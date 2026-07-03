@@ -56,42 +56,12 @@ static func set_audio_bus_volume_linear(type: AudioBusType, volume_linear: float
 	pass
 
 static func stop_all() -> void:
-	for audio in audio_map.values():
-		audio.stop()
+	for audio_bus in audio_map.keys():
+		stop_stream_fade(audio_bus)
 	pass
 
 ####################################################################################################
-# music
-static func play_music(path: String) -> void:
-	musics = [path]
-	play_music_random()
-	pass
-
-static func play_musics(paths: Array[String]) -> void:
-	musics = paths
-	play_music_random()
-	pass
-
-static func play_music_random(duration: float = 1.0) -> void:
-	if musics.is_empty():
-		return
-	var audio: AudioStreamPlayer = audio_map[AudioBusType.Music]
-	var path: String = RandomUtils.random_ele(musics)
-	var resource = await ResourceHelper.async_load(path)
-	if resource == null:
-		return
-	if audio.playing:
-		var tween := audio.create_tween()
-		tween.tween_property(audio, "volume_linear", 0, duration)
-		await tween.finished
-	else:
-		audio.volume_linear = 0
-	audio.stream = resource
-	audio.play()
-	audio.create_tween().tween_property(audio, "volume_linear", 1, duration)
-	pass
-
-
+# stream
 static func play_stream(bus: AudioBusType, path: String) -> void:
 	if StringUtils.is_blank(path):
 		return
@@ -107,6 +77,53 @@ static func stop_stream(bus: AudioBusType) -> void:
 	var player: AudioStreamPlayer = audio_map[bus]
 	player.stop()
 	pass
+
+static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 1.0) -> void:
+	if StringUtils.is_blank(path):
+		return
+	var resource: Variant = await ResourceHelper.async_load(path)
+	if resource == null:
+		return
+	var audio: AudioStreamPlayer = audio_map[bus]
+	if audio.playing:
+		var tween := audio.create_tween()
+		tween.tween_property(audio, "volume_linear", 0, duration)
+		await tween.finished
+	else:
+		audio.volume_linear = 0
+	audio.stream = resource
+	audio.play()
+	audio.create_tween().tween_property(audio, "volume_linear", 1, duration)
+	pass
+
+static func stop_stream_fade(bus: AudioBusType, duration: float = 1.0) -> void:
+	var audio: AudioStreamPlayer = audio_map[bus]
+	if !audio.playing:
+		return
+	var tween := audio.create_tween()
+	tween.tween_property(audio, "volume_linear", 0, duration)
+	await tween.finished
+	audio.stop()
+	pass
+####################################################################################################
+# music
+static func play_music(path: String) -> void:
+	musics = [path]
+	play_music_random()
+	pass
+
+static func play_musics(paths: Array[String]) -> void:
+	musics = paths
+	play_music_random()
+	pass
+
+static func play_music_random(duration: float = 1.0) -> void:
+	if musics.is_empty():
+		return
+	var path: String = RandomUtils.random_ele(musics)
+	await play_stream_fade(AudioBusType.Music, path, duration)
+	pass
+
 ####################################################################################################
 # sound
 static func play_sound(path: String) -> void:
@@ -136,21 +153,7 @@ static func stop_voice() -> void:
 ####################################################################################################
 # ambience
 static func play_ambience(path: String, duration: float = 1.0) -> void:
-	if StringUtils.is_blank(path):
-		return
-	var audio: AudioStreamPlayer = audio_map[AudioBusType.Ambience]
-	var resource: Variant = await ResourceHelper.async_load(path)
-	if resource == null:
-		return
-	if audio.playing:
-		var tween := audio.create_tween()
-		tween.tween_property(audio, "volume_linear", 0, duration)
-		await tween.finished
-	else:
-		audio.volume_linear = 0
-	audio.stream = resource
-	audio.play()
-	audio.create_tween().tween_property(audio, "volume_linear", 1, duration)
+	await play_stream_fade(AudioBusType.Ambience, path, duration)
 	pass
 
 static func is_playing_ambience() -> bool:
@@ -158,11 +161,5 @@ static func is_playing_ambience() -> bool:
 	return audio.playing
 
 static func stop_ambience(duration: float = 1.0) -> void:
-	var audio: AudioStreamPlayer = audio_map[AudioBusType.Ambience]
-	if !audio.playing:
-		return
-	var tween := audio.create_tween()
-	tween.tween_property(audio, "volume_linear", 0, duration)
-	await tween.finished
-	audio.stop()
+	await stop_stream_fade(AudioBusType.Ambience, duration)
 	pass
