@@ -7,6 +7,13 @@ description: Batch-normalizes audio files to consistent LUFS loudness using FFmp
 
 Batch-process files or folders so all audio lands at a consistent perceived loudness (LUFS), with true-peak limiting to prevent clipping.
 
+## Framework rules
+
+When this skill applies, read and follow both project rules before running scripts:
+
+- [dependency-manager](../../rules/dependency-manager.md) — `.dependency/` layout, `manifest.json`, and installing missing runtimes/CLIs
+- [skill-controller](../../rules/skill-controller.md) — run bundled skill scripts (no hand-written equivalents); install missing tools, then retry the same command
+
 ## Prerequisites
 
 Python and FFmpeg are resolved from local install directories defined in [dependency-manager](../../rules/dependency-manager.md). They do **not** need to be on system `PATH`.

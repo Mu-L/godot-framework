@@ -1,6 +1,6 @@
 ---
 description: Skill controller — run skill scripts, install missing tools
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Skill Controller

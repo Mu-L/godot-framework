@@ -7,6 +7,13 @@ description: Trims leading and trailing silence from audio files using FFmpeg. U
 
 Trim silence at the start and/or end of audio files — remove dead air before the hit or after the tail. Pair with [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md) for a full game-audio prep pipeline.
 
+## Framework rules
+
+When this skill applies, read and follow both project rules before running scripts:
+
+- [dependency-manager](../../rules/dependency-manager.md) — `.dependency/` layout, `manifest.json`, and installing missing runtimes/CLIs
+- [skill-controller](../../rules/skill-controller.md) — run bundled skill scripts (no hand-written equivalents); install missing tools, then retry the same command
+
 ## Terminology
 
 **Trim / Audio Trimming** — the most standard, general term for cutting invalid or silent parts at the boundaries of a clip:

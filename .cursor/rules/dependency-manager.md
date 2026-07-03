@@ -1,6 +1,6 @@
 ---
 description: Local tool and runtime install directories for skills
-alwaysApply: true
+alwaysApply: false
 ---
 
 # Dependency Manager
