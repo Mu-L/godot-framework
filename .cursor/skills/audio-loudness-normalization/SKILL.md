@@ -5,147 +5,45 @@ description: Batch-normalizes audio files to consistent LUFS loudness using FFmp
 
 # Audio Loudness Normalization
 
-Batch-process files or folders so all audio lands at a consistent perceived loudness (LUFS), with true-peak limiting to prevent clipping.
+Batch-normalize audio to consistent LUFS with true-peak limiting.
 
-## Framework rules
+## Rules
 
-When this skill applies, read and follow both project rules before running scripts:
-
-- [dependency-manager](../../rules/dependency-manager.md) — `.dependency/` layout, `manifest.json`, and installing missing runtimes/CLIs
-- [skill-controller](../../rules/skill-controller.md) — run bundled skill scripts (no hand-written equivalents); install missing tools, then retry the same command
-
-## Prerequisites
-
-Python and FFmpeg are resolved from local install directories defined in [dependency-manager](../../rules/dependency-manager.md). They do **not** need to be on system `PATH`.
-
-| Tool | Manifest | Example `bin` |
-|------|----------|---------------|
-| Python | `.dependency/manifest.json` | `.dependency/python/python` |
-| FFmpeg | `.dependency/manifest.json` | `.dependency/ffmpeg/bin/ffmpeg` |
-
-Ensure both entries have `populated: true` before running. The normalize script reads FFmpeg from `.dependency/manifest.json` automatically.
+When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 ## Quick Start
 
-**Default (recommended):** target **-14 LUFS**, true peak **-1.5 dBTP**, output to `<input>/normalized/`:
+Default: **-14 LUFS**, **-1.5 dBTP**, output to `normalized/`:
 
 ```bash
-# From repo root — use Python path from .dependency/manifest.json
 .dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
 ```
 
-Scripts live in this skill directory: `.cursor/skills/audio-loudness-normalization/scripts/`.
+## LUFS Targets
 
-## When to Apply This Skill
-
-- User has many WAV/MP3/OGG/FLAC files with inconsistent levels
-- Game SFX, UI clicks, explosions, or BGM need unified loudness before import
-- User asks to normalize a folder, batch audio, or match loudness across assets
-
-## Workflow
-
-```
-Task Progress:
-- [ ] Confirm `.dependency/manifest.json` entries for Python and FFmpeg are populated
-- [ ] Identify input (single file or folder)
-- [ ] Choose LUFS target (see category table below)
-- [ ] Run normalize script with --dry-run if user wants a preview
-- [ ] Verify output in normalized/ folder
-- [ ] Spot-check 3–5 files by ear
-```
-
-### Step 1 — Pick a LUFS target
-
-| Category | LUFS (I) | True Peak (TP) |
-|----------|----------|----------------|
+| Category | LUFS | True peak |
+|----------|------|-----------|
 | UI / clicks | -18 to -14 | -1.5 dBTP |
-| Gameplay SFX (weapons, skills) | -16 to -12 | -1.5 dBTP |
-| Explosions / impacts | -12 to -8 | -1.5 dBTP |
-| Ambience / footsteps | -22 to -18 | -3.0 dBTP |
-| BGM | -16 to -14 | -1.5 dBTP |
-| Voice / dialogue | -16 to -14 | -1.5 dBTP |
+| Gameplay SFX | -16 to -12 | -1.5 dBTP |
+| Explosions | -12 to -8 | -1.5 dBTP |
+| Ambience | -22 to -18 | -3.0 dBTP |
+| BGM / voice | -16 to -14 | -1.5 dBTP |
 
-**Default for mixed folders:** `-14` LUFS. **Same category only** should share one target; do not use one value for UI and explosions together.
+One category per folder. Mixed folders: split first, then batch with matching `-t`.
 
-Full rationale and engine bus defaults: [reference.md](reference.md).
+## Common Flags
 
-### Step 2 — Organize input (recommended)
-
-Split assets by category before batching:
-
-```
-Audio/
-  UI/
-  SFX/
-  Explosions/
-  BGM/
-```
-
-Run the script once per folder with the matching `-t` / `--target-lufs`.
-
-### Step 3 — Run batch normalization
+`-t` / `--target-lufs` · `-tp` / `--true-peak` · `-r` (recursive) · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
 
 ```bash
-PY=.dependency/python/python
-NORM=.cursor/skills/audio-loudness-normalization/scripts/normalize.py
-
-# Single folder, custom target
-$PY $NORM Audio/SFX -t -14 -tp -1.5
-
-# Single file
-$PY $NORM click.wav
-
-# Recursive subfolders
-$PY $NORM Audio -r -t -18
-
-# Custom output directory
-$PY $NORM Audio/UI -o Audio/UI_normalized
-
-# Preview without writing files
-$PY $NORM Audio/SFX --dry-run
-
-# Replace existing output files
-$PY $NORM Audio/SFX --overwrite
+.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX -t -14 -r --dry-run
 ```
 
-### Step 4 — Validate
+Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
-- Confirm each output file exists and is not 0 bytes
-- Replay UI, gun, explosion, and BGM samples together — levels should feel even within each category
-- If one asset still stands out, fix the **source** or re-run with a category-specific folder; avoid per-file volume hacks in game code
+## Agent Notes
 
-## Script Behavior
-
-| Behavior | Detail |
-|----------|--------|
-| Input | Single audio file or directory |
-| Supported formats | `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma` |
-| Method | FFmpeg **two-pass** `loudnorm` (measure → apply) |
-| Output | Preserves relative paths under `normalized/` (or `-o` / `--output-dir`) |
-| Originals | Never modified — outputs are copies |
-| Skip | Leaves existing output unchanged unless `--overwrite` |
-
-## Agent Instructions
-
-1. **Prefer the bundled script** over ad-hoc one-liners — two-pass loudnorm is more accurate than single-pass.
-2. If FFmpeg is missing, populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json`; do not fall back to peak normalization unless the user explicitly accepts lower quality.
-3. Ask which **category** the assets belong to if the user did not say; pick the matching LUFS from the table.
-4. For **mixed-category folders**, recommend splitting folders first, then batching per category.
-5. Do **not** set per-asset volume in game code to fix batch loudness — re-normalize sources instead.
-6. After normalization, mention engine-side defaults (BGM bus ~-4 dB, player BGM slider ~85%) only if the user integrates into a game engine.
-
-## Troubleshooting
-
-| Issue | Fix |
-|-------|-----|
-| Python runtime missing | Populate `.dependency/python/` and set `populated: true` in `.dependency/manifest.json` |
-| FFmpeg missing | Populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json` |
-| `.dependency/manifest.json` not found | Run from repo root that follows dependency-manager layout |
-| Output still uneven | Folder mixes categories — split and use per-category LUFS |
-| Clipping / distortion | Lower `--true-peak` to `-3` or reduce `-t` by 2 |
-| Looping BGM clicks | Normalize loop assets separately; check zero-crossing at loop points |
-| Very short UI blips | LUFS may be unstable; accept or normalize UI as a group |
-
-## Additional Resources
-
-- Category targets, bus defaults, player slider defaults: [reference.md](reference.md)
+1. Use the bundled script (two-pass `loudnorm`), not hand-written FFmpeg.
+2. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
+3. Do not fix uneven levels with per-asset volume in game code — re-normalize sources.
+4. Engine bus defaults and rationale: [reference.md](reference.md)
