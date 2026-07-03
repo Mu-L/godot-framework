@@ -17,6 +17,10 @@ External CLIs and language runtimes install into `.dependency/`. Do not put proj
 
 Each name is a dedicated install directory under `.dependency/`. After populating, set `populated: true` and correct `bin` paths in the manifest.
 
+## When tools are missing
+
+`populated: false` in `.dependency/manifest.json` is not a reason to skip a skill script. Install the missing tool here first, then run the same skill command again. See [skill-controller](skill-controller.md).
+
 ## Python default version
 
 When a skill does **not** specify a Python version, assume **Python 3.14** as the default runtime.
