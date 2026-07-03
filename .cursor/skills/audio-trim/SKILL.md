@@ -25,24 +25,22 @@ Typical use cases: batch SFX processing, voice/dialogue preprocessing.
 
 ## Prerequisites
 
-1. **FFmpeg** must be installed and on `PATH`.
-   - Windows: `winget install Gyan.FFmpeg` or https://ffmpeg.org/download.html
-   - macOS: `brew install ffmpeg`
-   - Linux: `sudo apt install ffmpeg`
-2. Verify: `ffmpeg -version`
+Python and FFmpeg are resolved from local install directories defined in [dependency-manager](../../rules/dependency-manager.md). They do **not** need to be on system `PATH`.
+
+| Tool | Manifest | Example `bin` |
+|------|----------|---------------|
+| Python | `.dependency/manifest.json` | `.dependency/python-3.11/python` |
+| FFmpeg | `.dependency/manifest.json` | `.dependency/ffmpeg/bin/ffmpeg` |
+
+Ensure both entries have `populated: true` before running. The trim script reads FFmpeg from `.dependency/manifest.json` automatically.
 
 ## Quick Start
 
 **Default:** trim start and end silence, threshold **-50 dB**, output to `<input>/trimmed/`:
 
-```powershell
-# Windows — file or folder
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 -Input "path/to/audio_or_folder"
-```
-
 ```bash
-# macOS / Linux — file or folder
-bash scripts/trim.sh path/to/audio_or_folder
+# From repo root — use Python path from .dependency/manifest.json
+.dependency/python-3.11/python .cursor/skills/audio-trim/scripts/trim.py path/to/audio_or_folder
 ```
 
 Scripts live in this skill directory: `.cursor/skills/audio-trim/scripts/`.
@@ -66,10 +64,10 @@ Run this skill first, then `audio-loudness-normalization` on the `trimmed/` outp
 
 ```
 Task Progress:
-- [ ] Confirm FFmpeg is available
+- [ ] Confirm `.dependency/manifest.json` entries for Python and FFmpeg are populated
 - [ ] Identify input (single file or folder)
 - [ ] Choose threshold and trim sides (start/end/both)
-- [ ] Run trim script with -DryRun if user wants a preview
+- [ ] Run trim script with --dry-run if user wants a preview
 - [ ] Verify output in trimmed/ folder
 - [ ] Spot-check 3–5 files — attacks and tails should feel tight, not clipped
 - [ ] (Optional) Run loudness normalization on trimmed output
@@ -85,47 +83,34 @@ Task Progress:
 
 **Default:** `-50 dB`, trim **both** start and end.
 
-Use `-TrimStart $false` / `-TrimEnd $false` (PowerShell) or `--no-start` / `--no-end` (bash) to trim one side only.
+Use `--no-start` / `--no-end` to trim one side only.
 
 ### Step 2 — Run batch trim
 
-**Windows (PowerShell):**
+```bash
+PY=.dependency/python-3.11/python
+TRIM=.cursor/skills/audio-trim/scripts/trim.py
 
-```powershell
 # Single folder
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio/SFX" -Threshold -50
+$PY $TRIM Audio/SFX -t -50
 
 # Trim start only (remove leading silence)
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio/Voice" -TrimEnd $false
+$PY $TRIM Audio/Voice --no-end
 
 # Trim end only (remove trailing silence)
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio/SFX" -TrimStart $false
+$PY $TRIM Audio/SFX --no-start
 
 # Recursive subfolders
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio" -Recurse
+$PY $TRIM Audio -r
 
 # Custom output directory
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio/SFX" -OutputDir "Audio/SFX_trimmed"
+$PY $TRIM Audio/SFX -o Audio/SFX_trimmed
 
 # Preview without writing files
-powershell -ExecutionPolicy Bypass -File scripts/trim.ps1 `
-  -Input "Audio/SFX" -DryRun
-```
+$PY $TRIM Audio/SFX --dry-run
 
-**macOS / Linux (bash):**
-
-```bash
-bash scripts/trim.sh Audio/SFX
-bash scripts/trim.sh Audio/Voice --no-end
-bash scripts/trim.sh Audio/SFX --no-start
-bash scripts/trim.sh Audio -r -t -45
-bash scripts/trim.sh Audio/SFX -o Audio/SFX_trimmed
-bash scripts/trim.sh Audio/SFX --dry-run
+# Replace existing output files
+$PY $TRIM Audio/SFX --overwrite
 ```
 
 ### Step 3 — Validate
@@ -141,14 +126,14 @@ bash scripts/trim.sh Audio/SFX --dry-run
 | Input | Single audio file or directory |
 | Supported formats | `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma` |
 | Method | FFmpeg `silenceremove` filter |
-| Output | Preserves relative paths under `trimmed/` (or `-OutputDir`) |
+| Output | Preserves relative paths under `trimmed/` (or `-o` / `--output-dir`) |
 | Originals | Never modified — outputs are copies |
-| Skip | Leaves existing output unchanged unless `-Overwrite` |
+| Skip | Leaves existing output unchanged unless `--overwrite` |
 
 ## Agent Instructions
 
-1. **Prefer the bundled scripts** over ad-hoc one-liners — consistent defaults and batch layout.
-2. If FFmpeg is missing, install it first; do not fall back to manual `-ss`/`-to` unless the user accepts imprecise cuts.
+1. **Prefer the bundled script** over ad-hoc one-liners — consistent defaults and batch layout.
+2. If FFmpeg is missing, populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json`; do not fall back to manual `-ss`/`-to` unless the user accepts imprecise cuts.
 3. Recommend **Audio Trim before Loudness Normalization** when both are needed.
 4. For **looping assets**, warn that end trim can break loop seams — trim manually or skip.
 5. If clips sound clipped or breath is removed from voice, raise threshold (e.g. `-45` or `-40` dB) or trim one side only.
@@ -157,9 +142,11 @@ bash scripts/trim.sh Audio/SFX --dry-run
 
 | Issue | Fix |
 |-------|-----|
-| `ffmpeg` not found | Install FFmpeg and restart the terminal |
-| Attack feels cut off | Threshold too aggressive — use `-40` or `-35` dB |
-| Tail/reverb chopped | Disable end trim (`-TrimEnd $false` / `--no-end`) or raise threshold |
+| Python runtime missing | Populate `.dependency/python-3.11/` and set `populated: true` in `.dependency/manifest.json` |
+| FFmpeg missing | Populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json` |
+| `.dependency/manifest.json` not found | Run from repo root that follows dependency-manager layout |
+| Attack feels cut off | Threshold too aggressive — use `-t -40` or `-t -35` |
+| Tail/reverb chopped | Disable end trim (`--no-end`) or raise threshold |
 | File unchanged after trim | Source may already have no silence above threshold — expected |
 | Loop click after trim | Re-check zero-crossing at loop point; do not batch-trim loops blindly |
 

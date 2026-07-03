@@ -5,18 +5,21 @@ alwaysApply: true
 
 # Dependency Manager
 
-External CLIs and language runtimes install into local named directories. Do not put project/business packages (pip/npm/cargo) in these directories.
+External CLIs and language runtimes install into `.dependency/`. Do not put project/business packages (pip/npm/cargo) here.
 
-| Layer | Root | Manifest | Name |
-|-------|------|----------|------|
-| **runtime** | `runtime/` | `runtime/manifest.json` | `python-3.11`, `node-20`, `rust-1.75`, `go-1.22` |
-| **tools** | `tools/` | `tools/manifest.json` | `ffmpeg`, `git`, `jq`, `curl`, `imagemagick` |
+| Kind | Name examples |
+|------|---------------|
+| Language runtime | `python-3.11`, `node-20`, `rust-1.75`, `go-1.22` |
+| CLI tool | `ffmpeg`, `git`, `jq`, `curl`, `imagemagick` |
 
-Each name is a dedicated install directory for one upstream toolchain. After populating, set `populated: true` and correct `bin` paths in the manifest.
+**Root:** `.dependency/`  
+**Manifest:** `.dependency/manifest.json`
+
+Each name is a dedicated install directory under `.dependency/`. After populating, set `populated: true` and correct `bin` paths in the manifest.
 
 ## manifest.json
 
-Top-level keys match **Name** in the table above. Each entry:
+Top-level keys match install directory names. Each entry:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -29,11 +32,11 @@ Example:
 {
   "python-3.11": {
     "populated": false,
-    "bin": "runtime/python-3.11/python"
+    "bin": ".dependency/python-3.11/python"
   },
   "ffmpeg": {
     "populated": true,
-    "bin": "tools/ffmpeg/bin/ffmpeg"
+    "bin": ".dependency/ffmpeg/bin/ffmpeg"
   }
 }
 ```

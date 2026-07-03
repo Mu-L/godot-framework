@@ -57,10 +57,13 @@ Prefer `silenceremove` for batch folders; use `atrim` or `-ss`/`-to` for single 
 
 ## Chaining with Loudness Normalization
 
-```powershell
+```bash
 # 1. Trim silence at start/end
-powershell -ExecutionPolicy Bypass -File .cursor/skills/audio-trim/scripts/trim.ps1 -Input "Audio/SFX"
+.dependency/python-3.11/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX
 
-# 2. Normalize trimmed output
+# 2. Normalize trimmed output (Windows)
 powershell -ExecutionPolicy Bypass -File .cursor/skills/audio-loudness-normalization/scripts/normalize.ps1 -Input "Audio/SFX/trimmed"
+
+# 2. Normalize trimmed output (macOS / Linux)
+bash .cursor/skills/audio-loudness-normalization/scripts/normalize.sh Audio/SFX/trimmed
 ```
