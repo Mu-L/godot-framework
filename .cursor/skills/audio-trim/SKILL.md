@@ -5,7 +5,7 @@ description: Trims leading and trailing silence from audio files using FFmpeg. U
 
 # Audio Trim
 
-Remove leading/trailing silence via FFmpeg `silenceremove`. Pipeline: **trim → [loudness normalize](../audio-loudness-normalization/SKILL.md)**.
+Remove leading/trailing silence via FFmpeg `silenceremove`.
 
 ## Rules
 
@@ -33,12 +33,6 @@ Default: threshold **-50 dB**, both sides, output to `trimmed/`:
 
 ```bash
 .dependency/python/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX -t -50 --no-end -r --dry-run
-```
-
-Then normalize trimmed output:
-
-```bash
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX/trimmed
 ```
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.

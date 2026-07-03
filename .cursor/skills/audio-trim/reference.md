@@ -54,13 +54,3 @@ Prefer `silenceremove` for batch folders; use `atrim` or `-ss`/`-to` for single 
 | Voice lines | Yes | Yes | -50 dB (watch breath) |
 | BGM loops | Rarely | **Avoid** | N/A — manual |
 | Ambience beds | Careful | Careful | -60 dB or skip |
-
-## Chaining with Loudness Normalization
-
-```bash
-# 1. Trim silence at start/end
-.dependency/python/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX
-
-# 2. Normalize trimmed output
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX/trimmed
-```
