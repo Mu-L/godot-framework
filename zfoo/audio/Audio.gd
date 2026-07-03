@@ -135,14 +135,34 @@ static func stop_voice() -> void:
 	pass
 ####################################################################################################
 # ambience
-static func play_ambience(path: String) -> void:
-	await play_stream(AudioBusType.Ambience, path)
+static func play_ambience(path: String, duration: float = 1.0) -> void:
+	if StringUtils.is_blank(path):
+		return
+	var audio: AudioStreamPlayer = audio_map[AudioBusType.Ambience]
+	var resource: Variant = await ResourceHelper.async_load(path)
+	if resource == null:
+		return
+	if audio.playing:
+		var tween := audio.create_tween()
+		tween.tween_property(audio, "volume_linear", 0, duration)
+		await tween.finished
+	else:
+		audio.volume_linear = 0
+	audio.stream = resource
+	audio.play()
+	audio.create_tween().tween_property(audio, "volume_linear", 1, duration)
 	pass
 
 static func is_playing_ambience() -> bool:
 	var audio := audio_map[AudioBusType.Ambience]
 	return audio.playing
 
-static func stop_ambience() -> void:
-	stop_stream(AudioBusType.Ambience)
+static func stop_ambience(duration: float = 1.0) -> void:
+	var audio: AudioStreamPlayer = audio_map[AudioBusType.Ambience]
+	if !audio.playing:
+		return
+	var tween := audio.create_tween()
+	tween.tween_property(audio, "volume_linear", 0, duration)
+	await tween.finished
+	audio.stop()
 	pass
