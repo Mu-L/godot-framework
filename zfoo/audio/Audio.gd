@@ -113,6 +113,12 @@ static func play_sound(path: String) -> void:
 	await play_stream(AudioBusType.SoundEffect, path)
 	pass
 
+static func is_playing_sound() -> bool:
+	return audio_map[AudioBusType.SoundEffect].playing
+	
+static func stop_sound() -> void:
+	stop_stream(AudioBusType.SoundEffect)
+	pass
 ####################################################################################################
 # voice
 static func play_voice(path: String) -> void:
@@ -120,13 +126,19 @@ static func play_voice(path: String) -> void:
 	pass
 
 static func is_playing_voice() -> bool:
-	var audio := audio_map[AudioBusType.Voice]
-	return audio.playing
+	return audio_map[AudioBusType.Voice].playing
+	
+static func stop_voice() -> void:
+	stop_stream(AudioBusType.Voice)
+	pass
 ####################################################################################################
 # ambience
 static func play_ambience(path: String) -> void:
 	await play_stream(AudioBusType.Ambience, path)
 	pass
+
+static func is_playing_ambience() -> bool:
+	return audio_map[AudioBusType.Ambience].playing
 
 static func stop_ambience() -> void:
 	stop_stream(AudioBusType.Ambience)
