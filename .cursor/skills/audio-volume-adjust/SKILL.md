@@ -13,13 +13,13 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 
 ## Quick Start
 
-Reduce by 6 dB (~half amplitude), output to `adjusted/`:
+Reduce by 6 dB (~half amplitude), output to `adjust/`:
 
 ```bash
 .dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py path/to/audio_or_folder -d -6
 ```
 
-Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/adjusted/tank_move.wav`
+Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/adjust/tank_move.wav`
 
 Boost by 3 dB:
 
@@ -55,14 +55,14 @@ Use **dB** for perceptual steps; use **gain** when matching a known multiplier.
 .dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py Audio/SFX -d -9 -r --dry-run
 ```
 
-**Never overwrite source files.** The script writes only to `adjusted/` (or `-o`). Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+**Never overwrite source files.** The script writes only to `adjust/` (or `-o`). Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 
 1. Use the bundled script, not hand-written `volume` filters.
 2. Always pass `-d` or `-g` to match the user's intent (reduce vs boost).
 3. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-4. **Do not copy, move, or replace the source with the adjusted output** — tell the user where `adjusted/` files are; they swap assets manually when ready.
+4. **Do not copy, move, or replace the source with the adjusted output** — tell the user where `adjust/` files are; they swap assets manually when ready.
 5. Do not use `-o` pointing at the source folder; the script refuses output paths that would overwrite inputs.
 6. **Boosting** (+dB or gain > 1) can clip peaks — warn the user; suggest `audio-loudness-normalization` for safe level matching instead of large boosts.
 7. Need **consistent loudness across mixed assets** → use `audio-loudness-normalization`, not this skill.

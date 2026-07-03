@@ -183,7 +183,7 @@ def parse_args() -> argparse.Namespace:
         "-o",
         "--output-dir",
         default="",
-        help="Output directory (must not overwrite sources; default: <input>/adjusted)",
+        help="Output directory (must not overwrite sources; default: <input>/adjust)",
     )
     parser.add_argument(
         "-r", "--recurse", action="store_true", help="Process subdirectories"
@@ -226,7 +226,7 @@ def main() -> int:
     output_dir = (
         Path(args.output_dir).resolve()
         if args.output_dir
-        else input_root / "adjusted"
+        else input_root / "adjust"
     )
 
     initial_count = len(files)
@@ -235,7 +235,7 @@ def main() -> int:
         if initial_count:
             print(
                 "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: adjusted/).",
+                "Choose a separate output directory (default: adjust/).",
                 file=sys.stderr,
             )
             return 1
@@ -246,7 +246,7 @@ def main() -> int:
     if collisions:
         print(
             "Refusing to overwrite source files. Use a separate output directory "
-            "(default: adjusted/).",
+            "(default: adjust/).",
             file=sys.stderr,
         )
         for source, dest in collisions:
