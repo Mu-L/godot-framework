@@ -1,23 +1,31 @@
 class_name Audios
 extends Object
 
+# Multi-channel audio: a pool of AudioStreamPlayers that can play multiple sounds concurrently.
+
 const COUNT: int = 8
-const NAME: String = "SoundEffect"
+const BUS_NAME: String = "SoundEffect"
 
 static var audios: Array[AudioStreamPlayer] = []
+static var bus_index: int = -1
 
 static func init() -> void:
-	var sound_effect_node := Node.new()
-	sound_effect_node.name = NAME
-	gdf.gdf_node.add_child(sound_effect_node)
+	AudioServer.add_bus()
+	bus_index = AudioServer.get_bus_count() - 1
+	AudioServer.set_bus_name(bus_index, BUS_NAME)
+
+	var sfx_node := Node.new()
+	sfx_node.name = BUS_NAME
+	gdf.gdf_node.add_child(sfx_node)
 	for i in range(COUNT):
 		var player := AudioStreamPlayer.new()
 		player.name = StringUtils.format("sfx_{}", i)
-		player.bus = NAME
+		player.bus = BUS_NAME
 		player.finished.connect(func() -> void: player.stream = null)
-		sound_effect_node.add_child(player)
+		sfx_node.add_child(player)
 		audios.append(player)
 	pass
+
 
 static func play(path: String, volume_linear: float = 1.0) -> void:
 	if StringUtils.is_blank(path):

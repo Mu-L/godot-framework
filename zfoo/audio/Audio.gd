@@ -1,6 +1,8 @@
 class_name Audio
 extends Object
 
+# Single-channel audio: one AudioStreamPlayer per bus; a new sound replaces the current one.
+
 enum AudioBusType {
 	Music,
 	Sound,
