@@ -23,5 +23,6 @@ func pressedPlayMusicButton():
 	pass
 
 func pressedPlaySoundButton():
-	Audio.play_sound("test/asset/cheer.mp3")
+#	Audio.play_sound("test/asset/cheer.mp3")
+	Audios.play("test/asset/cheer.mp3")
 	pass

@@ -11,6 +11,7 @@ func _ready() -> void:
 		init_layer()
 		init_async_timer()
 		Audio.init()
+		Audios.init()
 		LoggerHelper.init()
 	pass
 

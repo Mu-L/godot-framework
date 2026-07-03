@@ -3,7 +3,7 @@ extends Object
 
 enum AudioBusType {
 	Music,
-	SoundEffect,
+	Sound,
 	Voice,
 	Ambience,
 }
@@ -127,15 +127,15 @@ static func play_music_random(duration: float = 1.0) -> void:
 ####################################################################################################
 # sound
 static func play_sound(path: String) -> void:
-	await play_stream(AudioBusType.SoundEffect, path)
+	await play_stream(AudioBusType.Sound, path)
 	pass
 
 static func is_playing_sound() -> bool:
-	var audio := audio_map[AudioBusType.SoundEffect]
+	var audio := audio_map[AudioBusType.Sound]
 	return audio.playing
 	
 static func stop_sound() -> void:
-	stop_stream(AudioBusType.SoundEffect)
+	stop_stream(AudioBusType.Sound)
 	pass
 ####################################################################################################
 # voice
