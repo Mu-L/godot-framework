@@ -60,7 +60,6 @@ static func stop_all() -> void:
 		audio.stop()
 	pass
 
-
 ####################################################################################################
 # music
 static func play_music(path: String) -> void:
@@ -104,6 +103,10 @@ static func play_stream(bus: AudioBusType, path: String) -> void:
 	player.play()
 	pass
 
+static func stop_stream(bus: AudioBusType) -> void:
+	var player: AudioStreamPlayer = audio_map[bus]
+	player.stop()
+	pass
 ####################################################################################################
 # sound
 static func play_sound(path: String) -> void:
@@ -116,7 +119,15 @@ static func play_voice(path: String) -> void:
 	await play_stream(AudioBusType.Voice, path)
 	pass
 
-
 static func is_playing_voice() -> bool:
 	var audio := audio_map[AudioBusType.Voice]
 	return audio.playing
+####################################################################################################
+# ambience
+static func play_ambience(path: String) -> void:
+	await play_stream(AudioBusType.Ambience, path)
+	pass
+
+static func stop_ambience() -> void:
+	stop_stream(AudioBusType.Ambience)
+	pass
