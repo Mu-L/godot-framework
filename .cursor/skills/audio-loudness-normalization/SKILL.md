@@ -9,27 +9,25 @@ Batch-process files or folders so all audio lands at a consistent perceived loud
 
 ## Prerequisites
 
-1. **FFmpeg** must be installed and on `PATH`.
-   - Windows: `winget install Gyan.FFmpeg` or download from https://ffmpeg.org/download.html
-   - macOS: `brew install ffmpeg`
-   - Linux: `sudo apt install ffmpeg`
-2. Verify: `ffmpeg -version`
+Python and FFmpeg are resolved from local install directories defined in [dependency-manager](../../rules/dependency-manager.md). They do **not** need to be on system `PATH`.
+
+| Tool | Manifest | Example `bin` |
+|------|----------|---------------|
+| Python | `.dependency/manifest.json` | `.dependency/python-3.11/python` |
+| FFmpeg | `.dependency/manifest.json` | `.dependency/ffmpeg/bin/ffmpeg` |
+
+Ensure both entries have `populated: true` before running. The normalize script reads FFmpeg from `.dependency/manifest.json` automatically.
 
 ## Quick Start
 
 **Default (recommended):** target **-14 LUFS**, true peak **-1.5 dBTP**, output to `<input>/normalized/`:
 
-```powershell
-# Windows — file or folder
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 -Input "path/to/audio_or_folder"
-```
-
 ```bash
-# macOS / Linux — file or folder
-bash scripts/normalize.sh path/to/audio_or_folder
+# From repo root — use Python path from .dependency/manifest.json
+.dependency/python-3.11/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
 ```
 
-Scripts live in this skill directory: `~/.cursor/skills/audio-loudness-normalization/scripts/`.
+Scripts live in this skill directory: `.cursor/skills/audio-loudness-normalization/scripts/`.
 
 ## When to Apply This Skill
 
@@ -41,10 +39,10 @@ Scripts live in this skill directory: `~/.cursor/skills/audio-loudness-normaliza
 
 ```
 Task Progress:
-- [ ] Confirm FFmpeg is available
+- [ ] Confirm `.dependency/manifest.json` entries for Python and FFmpeg are populated
 - [ ] Identify input (single file or folder)
 - [ ] Choose LUFS target (see category table below)
-- [ ] Run normalize script with dry-run if user wants a preview
+- [ ] Run normalize script with --dry-run if user wants a preview
 - [ ] Verify output in normalized/ folder
 - [ ] Spot-check 3–5 files by ear
 ```
@@ -76,41 +74,31 @@ Audio/
   BGM/
 ```
 
-Run the script once per folder with the matching `-TargetLUFS`.
+Run the script once per folder with the matching `-t` / `--target-lufs`.
 
 ### Step 3 — Run batch normalization
 
-**Windows (PowerShell):**
+```bash
+PY=.dependency/python-3.11/python
+NORM=.cursor/skills/audio-loudness-normalization/scripts/normalize.py
 
-```powershell
 # Single folder, custom target
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 `
-  -Input "Audio/SFX" -TargetLUFS -14 -TruePeak -1.5
+$PY $NORM Audio/SFX -t -14 -tp -1.5
 
 # Single file
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 -Input "click.wav"
+$PY $NORM click.wav
 
 # Recursive subfolders
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 `
-  -Input "Audio" -Recurse -TargetLUFS -18
+$PY $NORM Audio -r -t -18
 
 # Custom output directory
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 `
-  -Input "Audio/UI" -OutputDir "Audio/UI_normalized"
+$PY $NORM Audio/UI -o Audio/UI_normalized
 
 # Preview without writing files
-powershell -ExecutionPolicy Bypass -File scripts/normalize.ps1 `
-  -Input "Audio/SFX" -DryRun
-```
+$PY $NORM Audio/SFX --dry-run
 
-**macOS / Linux (bash):**
-
-```bash
-bash scripts/normalize.sh Audio/SFX -t -14 -tp -1.5
-bash scripts/normalize.sh click.wav
-bash scripts/normalize.sh Audio -r -t -18
-bash scripts/normalize.sh Audio/UI -o Audio/UI_normalized
-bash scripts/normalize.sh Audio/SFX --dry-run
+# Replace existing output files
+$PY $NORM Audio/SFX --overwrite
 ```
 
 ### Step 4 — Validate
@@ -126,14 +114,14 @@ bash scripts/normalize.sh Audio/SFX --dry-run
 | Input | Single audio file or directory |
 | Supported formats | `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma` |
 | Method | FFmpeg **two-pass** `loudnorm` (measure → apply) |
-| Output | Preserves relative paths under `normalized/` (or `-OutputDir`) |
+| Output | Preserves relative paths under `normalized/` (or `-o` / `--output-dir`) |
 | Originals | Never modified — outputs are copies |
-| Skip | Leaves existing output unchanged unless `-Overwrite` |
+| Skip | Leaves existing output unchanged unless `--overwrite` |
 
 ## Agent Instructions
 
-1. **Prefer the bundled scripts** over ad-hoc one-liners — two-pass loudnorm is more accurate than single-pass.
-2. If FFmpeg is missing, install it first; do not fall back to peak normalization unless the user explicitly accepts lower quality.
+1. **Prefer the bundled script** over ad-hoc one-liners — two-pass loudnorm is more accurate than single-pass.
+2. If FFmpeg is missing, populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json`; do not fall back to peak normalization unless the user explicitly accepts lower quality.
 3. Ask which **category** the assets belong to if the user did not say; pick the matching LUFS from the table.
 4. For **mixed-category folders**, recommend splitting folders first, then batching per category.
 5. Do **not** set per-asset volume in game code to fix batch loudness — re-normalize sources instead.
@@ -143,9 +131,11 @@ bash scripts/normalize.sh Audio/SFX --dry-run
 
 | Issue | Fix |
 |-------|-----|
-| `ffmpeg` not found | Install FFmpeg and restart the terminal |
+| Python runtime missing | Populate `.dependency/python-3.11/` and set `populated: true` in `.dependency/manifest.json` |
+| FFmpeg missing | Populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json` |
+| `.dependency/manifest.json` not found | Run from repo root that follows dependency-manager layout |
 | Output still uneven | Folder mixes categories — split and use per-category LUFS |
-| Clipping / distortion | Lower `-TruePeak` to `-3` or reduce `-TargetLUFS` by 2 |
+| Clipping / distortion | Lower `--true-peak` to `-3` or reduce `-t` by 2 |
 | Looping BGM clicks | Normalize loop assets separately; check zero-crossing at loop points |
 | Very short UI blips | LUFS may be unstable; accept or normalize UI as a group |
 
