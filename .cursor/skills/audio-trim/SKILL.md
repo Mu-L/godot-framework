@@ -29,7 +29,7 @@ Python and FFmpeg are resolved from local install directories defined in [depend
 
 | Tool | Manifest | Example `bin` |
 |------|----------|---------------|
-| Python | `.dependency/manifest.json` | `.dependency/python-3.11/python` |
+| Python | `.dependency/manifest.json` | `.dependency/python/python` |
 | FFmpeg | `.dependency/manifest.json` | `.dependency/ffmpeg/bin/ffmpeg` |
 
 Ensure both entries have `populated: true` before running. The trim script reads FFmpeg from `.dependency/manifest.json` automatically.
@@ -40,7 +40,7 @@ Ensure both entries have `populated: true` before running. The trim script reads
 
 ```bash
 # From repo root — use Python path from .dependency/manifest.json
-.dependency/python-3.11/python .cursor/skills/audio-trim/scripts/trim.py path/to/audio_or_folder
+.dependency/python/python .cursor/skills/audio-trim/scripts/trim.py path/to/audio_or_folder
 ```
 
 Scripts live in this skill directory: `.cursor/skills/audio-trim/scripts/`.
@@ -88,7 +88,7 @@ Use `--no-start` / `--no-end` to trim one side only.
 ### Step 2 — Run batch trim
 
 ```bash
-PY=.dependency/python-3.11/python
+PY=.dependency/python/python
 TRIM=.cursor/skills/audio-trim/scripts/trim.py
 
 # Single folder
@@ -142,7 +142,7 @@ $PY $TRIM Audio/SFX --overwrite
 
 | Issue | Fix |
 |-------|-----|
-| Python runtime missing | Populate `.dependency/python-3.11/` and set `populated: true` in `.dependency/manifest.json` |
+| Python runtime missing | Populate `.dependency/python/` and set `populated: true` in `.dependency/manifest.json` |
 | FFmpeg missing | Populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json` |
 | `.dependency/manifest.json` not found | Run from repo root that follows dependency-manager layout |
 | Attack feels cut off | Threshold too aggressive — use `-t -40` or `-t -35` |

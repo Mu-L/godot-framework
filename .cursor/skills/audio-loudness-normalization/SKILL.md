@@ -13,7 +13,7 @@ Python and FFmpeg are resolved from local install directories defined in [depend
 
 | Tool | Manifest | Example `bin` |
 |------|----------|---------------|
-| Python | `.dependency/manifest.json` | `.dependency/python-3.11/python` |
+| Python | `.dependency/manifest.json` | `.dependency/python/python` |
 | FFmpeg | `.dependency/manifest.json` | `.dependency/ffmpeg/bin/ffmpeg` |
 
 Ensure both entries have `populated: true` before running. The normalize script reads FFmpeg from `.dependency/manifest.json` automatically.
@@ -24,7 +24,7 @@ Ensure both entries have `populated: true` before running. The normalize script 
 
 ```bash
 # From repo root — use Python path from .dependency/manifest.json
-.dependency/python-3.11/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
+.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
 ```
 
 Scripts live in this skill directory: `.cursor/skills/audio-loudness-normalization/scripts/`.
@@ -79,7 +79,7 @@ Run the script once per folder with the matching `-t` / `--target-lufs`.
 ### Step 3 — Run batch normalization
 
 ```bash
-PY=.dependency/python-3.11/python
+PY=.dependency/python/python
 NORM=.cursor/skills/audio-loudness-normalization/scripts/normalize.py
 
 # Single folder, custom target
@@ -131,7 +131,7 @@ $PY $NORM Audio/SFX --overwrite
 
 | Issue | Fix |
 |-------|-----|
-| Python runtime missing | Populate `.dependency/python-3.11/` and set `populated: true` in `.dependency/manifest.json` |
+| Python runtime missing | Populate `.dependency/python/` and set `populated: true` in `.dependency/manifest.json` |
 | FFmpeg missing | Populate `.dependency/ffmpeg/` and set `populated: true` in `.dependency/manifest.json` |
 | `.dependency/manifest.json` not found | Run from repo root that follows dependency-manager layout |
 | Output still uneven | Folder mixes categories — split and use per-category LUFS |

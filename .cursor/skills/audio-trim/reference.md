@@ -59,8 +59,8 @@ Prefer `silenceremove` for batch folders; use `atrim` or `-ss`/`-to` for single 
 
 ```bash
 # 1. Trim silence at start/end
-.dependency/python-3.11/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX
+.dependency/python/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX
 
 # 2. Normalize trimmed output
-.dependency/python-3.11/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX/trimmed
+.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX/trimmed
 ```
