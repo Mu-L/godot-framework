@@ -34,7 +34,14 @@ static func play(path: String, volume_linear: float = 1.0) -> void:
 	if resource == null:
 		return
 	var player_index := audios.find_custom(func(audio: AudioStreamPlayer) -> bool: return !audio.playing)
-	var player: AudioStreamPlayer = audios[player_index] if player_index >= 0 else RandomUtils.random_ele(audios)
+	var player: AudioStreamPlayer
+	if player_index >= 0:
+		player = audios[player_index]
+	else:
+		# All channels busy: preempt a random one so the new SFX still plays.
+		player = RandomUtils.random_ele(audios)
+		player.stop()
+		player.stream = null
 	player.volume_linear = clampf(volume_linear, 0.0, 1.0)
 	player.stream = resource
 	player.play()
