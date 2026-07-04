@@ -33,12 +33,11 @@ static func play(path: String, volume_linear: float = 1.0) -> void:
 	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
-	for audio in audios:
-		if !audio.playing:
-			audio.volume_linear = clampf(volume_linear, 0.0, 1.0)
-			audio.stream = resource
-			audio.play()
-			break
+	var player_index := audios.find_custom(func(audio: AudioStreamPlayer) -> bool: return !audio.playing)
+	var player: AudioStreamPlayer = audios[player_index] if player_index >= 0 else RandomUtils.random_ele(audios)
+	player.volume_linear = clampf(volume_linear, 0.0, 1.0)
+	player.stream = resource
+	player.play()
 	pass
 
 static func stop_all() -> void:

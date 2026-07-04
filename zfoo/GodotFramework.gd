@@ -44,7 +44,6 @@ func init_async_timer() -> void:
 
 func async_timer_one_second() -> void:
 	TimeUtils.current_time_millis()
-	Audio.async_update()
 	pass
 
 ####################################################################################################

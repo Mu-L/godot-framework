@@ -26,28 +26,11 @@ static func init() -> void:
 		audio_stream_player.bus = bus_name
 		gdf.gdf_node.add_child(audio_stream_player)
 		audio_map[bus_value] = audio_stream_player
+	
+	var music := audio_map[AudioBusType.Music]
+	music.finished.connect(play_music_next)
 	pass
 
-####################################################################################################
-# music update
-static var musics: Array[String] = []
-static var music_change_timestamp: int = 0
-
-static func async_update() -> void:
-	var audio: AudioStreamPlayer = audio_map[AudioBusType.Music]
-	if !audio.playing:
-		return
-	if musics.is_empty():
-		return
-	var total_length: float = audio.stream.get_length()
-	var position: float = audio.get_playback_position()
-	if total_length <= 0.0 || position <= 0.0 || (total_length - position) > ENDING_THRESHOLD:
-		return
-	if TimeUtils.now() - music_change_timestamp < TimeUtils.MILLIS_PER_SECOND_10:
-		return
-	gdf.callable_deferred(Callable(Audio, "play_music_next").bind(3.0))
-	music_change_timestamp = TimeUtils.now()
-	pass
 ####################################################################################################
 
 static func set_audio_bus_volume_linear(type: AudioBusType, volume_linear: float) -> void:
@@ -103,6 +86,8 @@ static func stop_stream_fade(bus: AudioBusType, duration: float = 1.0) -> void:
 	pass
 ####################################################################################################
 # music
+static var musics: Array[String] = []
+
 static func play_music(path: String) -> void:
 	musics = [path]
 	play_music_next()
@@ -113,7 +98,7 @@ static func play_musics(paths: Array[String]) -> void:
 	play_music_next()
 	pass
 
-static func play_music_next(duration: float = 1.0) -> void:
+static func play_music_next(duration: float = 3.0) -> void:
 	if musics.is_empty():
 		return
 	var path: String = musics.pop_front()
@@ -121,6 +106,25 @@ static func play_music_next(duration: float = 1.0) -> void:
 	await play_stream_fade(AudioBusType.Music, path, duration)
 	pass
 
+static func stop_music() -> void:
+	musics.clear()
+	stop_stream(AudioBusType.Music)
+	pass
+
+static func stop_music_fade(duration: float = 1.0) -> void:
+	musics.clear()
+	await stop_stream_fade(AudioBusType.Music, duration)
+	pass
+
+static func pause_music() -> void:
+	var player: AudioStreamPlayer = audio_map[AudioBusType.Music]
+	player.stream_paused = true
+	pass
+
+static func resume_music() -> void:
+	var player: AudioStreamPlayer = audio_map[AudioBusType.Music]
+	player.stream_paused = false
+	pass
 ####################################################################################################
 # sound
 static func play_sound(path: String) -> void:
