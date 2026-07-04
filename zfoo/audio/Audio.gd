@@ -45,7 +45,7 @@ static func async_update() -> void:
 		return
 	if TimeUtils.now() - music_change_timestamp < TimeUtils.MILLIS_PER_SECOND_10:
 		return
-	gdf.callable_deferred(Callable(Audio, "play_music_random").bind(3.0))
+	gdf.callable_deferred(Callable(Audio, "play_music_next").bind(3.0))
 	music_change_timestamp = TimeUtils.now()
 	pass
 ####################################################################################################
@@ -105,18 +105,19 @@ static func stop_stream_fade(bus: AudioBusType, duration: float = 1.0) -> void:
 # music
 static func play_music(path: String) -> void:
 	musics = [path]
-	play_music_random()
+	play_music_next()
 	pass
 
 static func play_musics(paths: Array[String]) -> void:
-	musics = paths
-	play_music_random()
+	musics = paths.duplicate()
+	play_music_next()
 	pass
 
-static func play_music_random(duration: float = 1.0) -> void:
+static func play_music_next(duration: float = 1.0) -> void:
 	if musics.is_empty():
 		return
-	var path: String = RandomUtils.random_ele(musics)
+	var path: String = musics.pop_front()
+	musics.push_back(path)
 	await play_stream_fade(AudioBusType.Music, path, duration)
 	pass
 
