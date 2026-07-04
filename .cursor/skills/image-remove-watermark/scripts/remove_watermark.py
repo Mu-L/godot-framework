@@ -37,6 +37,12 @@ DEFAULT_DEVICE = "auto"
 DEFAULT_EXPAND = 8
 DEFAULT_EXCLUDES: tuple[str, ...] = ("*_sheet.png", "*_mask.png")
 
+# IOPaint HD strategy — auto-selected from image size + device (see resolve_iopaint_config)
+HD_DEFAULT_MAX_SIDE = 1280  # at or below: IOPaint built-in defaults, no config file
+HD_CUDA_LIMIT = 2048
+HD_MPS_LIMIT = 1536
+HD_CPU_LIMIT = 1024
+
 CORNER_CHOICES = ("bottom-right", "bottom-left", "top-right", "top-left", "center")
 
 
@@ -136,8 +142,56 @@ def collect_images(
         excluded.update(target_dir.rglob(exclude) if recursive else target_dir.glob(exclude))
 
     globber = target_dir.rglob if recursive else target_dir.glob
-    images = sorted(path for path in globber(pattern) if path not in excluded and path.is_file())
+    images = sorted(
+        path.resolve()
+        for path in globber(pattern)
+        if path not in excluded and path.is_file()
+    )
     return images
+
+
+def resolve_input(
+    project_root: Path,
+    directory: str,
+    pattern: str,
+    excludes: tuple[str, ...],
+    recursive: bool,
+) -> tuple[Path | None, list[Path]]:
+    """Return (search_root, image_paths). search_root is the directory arg or file's parent."""
+    input_path = (project_root / directory).resolve()
+    if input_path.is_file():
+        suffix = input_path.suffix.lower()
+        if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
+            print(f"Unsupported image type: {input_path}")
+            return None, []
+        return input_path.parent, [input_path]
+
+    if not input_path.is_dir():
+        print(f"Path not found: {input_path}")
+        return None, []
+
+    images = collect_images(input_path, pattern, excludes, recursive)
+    return input_path, images
+
+
+def mask_key(image_path: Path, search_root: Path) -> str:
+    """Unique mask filename; preserves subpaths when batching under a parent directory."""
+    try:
+        rel = image_path.relative_to(search_root)
+        if rel.parent == Path("."):
+            return rel.name
+        return "__".join(rel.parts)
+    except ValueError:
+        return image_path.name
+
+
+def resolve_dest(image_path: Path, search_root: Path, output_dir: Path | None) -> Path:
+    """Default: overwrite the source file. --output-dir keeps relative layout under search_root."""
+    if output_dir is None:
+        return image_path.resolve()
+    dest = output_dir / image_path.relative_to(search_root)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    return dest.resolve()
 
 
 def parse_fraction(value: str, name: str, *, allow_zero: bool = False) -> float:
@@ -237,11 +291,21 @@ def resolve_mask_path(
     image_path: Path,
     mask_file: Path | None,
     mask_dir: Path | None,
+    search_root: Path | None = None,
+    generated_masks: dict[Path, Path] | None = None,
 ) -> Path | None:
+    if generated_masks is not None:
+        candidate = generated_masks.get(image_path)
+        if candidate is not None:
+            return candidate
     if mask_file is not None:
         return mask_file
     if mask_dir is None:
         return None
+    if search_root is not None:
+        keyed = mask_dir / mask_key(image_path, search_root)
+        if keyed.is_file():
+            return keyed
     candidate = mask_dir / image_path.name
     if candidate.is_file():
         return candidate
@@ -254,6 +318,7 @@ def resolve_mask_path(
 def generate_masks(
     image_paths: list[Path],
     mask_dir: Path,
+    search_root: Path,
     *,
     rect_spec: str | None,
     corner: str | None,
@@ -261,9 +326,9 @@ def generate_masks(
     height_frac: float | None,
     margin_frac: float,
     expand: int,
-) -> list[Path]:
+) -> dict[Path, Path]:
     mask_dir.mkdir(parents=True, exist_ok=True)
-    mask_paths: list[Path] = []
+    mask_by_image: dict[Path, Path] = {}
 
     for image_path in image_paths:
         with Image.open(image_path) as image:
@@ -280,11 +345,61 @@ def generate_masks(
 
         mask = make_rect_mask(size, rect)
         mask = dilate_mask(mask, expand)
-        out_path = mask_dir / image_path.name
+        out_path = mask_dir / mask_key(image_path, search_root)
         mask.save(out_path)
-        mask_paths.append(out_path)
+        mask_by_image[image_path] = out_path
 
-    return mask_paths
+    return mask_by_image
+
+
+def max_image_dimension(image_paths: list[Path]) -> int:
+    largest = 0
+    for image_path in image_paths:
+        with Image.open(image_path) as image:
+            width, height = image.size
+        largest = max(largest, width, height)
+    return largest
+
+
+def resolve_iopaint_config(
+    image_paths: list[Path],
+    device: str,
+    *,
+    override_path: Path | None = None,
+    hd_limit: int | None = None,
+) -> tuple[Path | None, Path | None]:
+    """Return (config path for iopaint, temp file to delete after run)."""
+    if override_path is not None:
+        print(f"HD config: {override_path} (manual override)")
+        return override_path, None
+
+    max_side = max_image_dimension(image_paths)
+    if max_side <= HD_DEFAULT_MAX_SIDE:
+        print(f"HD config: auto default (max side {max_side}px)")
+        return None, None
+
+    if hd_limit is not None:
+        limit = hd_limit
+    elif device == "cpu":
+        limit = min(max_side, HD_CPU_LIMIT)
+    elif device == "mps":
+        limit = min(max_side, HD_MPS_LIMIT)
+    else:
+        limit = min(max_side, HD_CUDA_LIMIT)
+
+    payload = {"hd_strategy": "Resize", "hd_strategy_resize_limit": limit}
+    temp = tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".json",
+        prefix="iopaint_hd_",
+        delete=False,
+        encoding="utf-8",
+    )
+    json.dump(payload, temp)
+    temp.close()
+    temp_path = Path(temp.name)
+    print(f"HD config: auto Resize limit={limit} (max side {max_side}px, device={device})")
+    return temp_path, temp_path
 
 
 def iopaint_cmd_prefix() -> list[str]:
@@ -326,40 +441,6 @@ def run_iopaint(
         raise RuntimeError(f"iopaint failed for {image_path.name}: {message}")
 
 
-def run_iopaint_batch(
-    *,
-    model: str,
-    device: str,
-    image_dir: Path,
-    mask_path: Path,
-    output_dir: Path,
-    config: Path | None,
-) -> None:
-    """Batch-run IOPaint on a folder of images."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        *iopaint_cmd_prefix(),
-        "run",
-        "--model",
-        model,
-        "--device",
-        device,
-        "--image",
-        str(image_dir),
-        "--mask",
-        str(mask_path),
-        "--output",
-        str(output_dir),
-    ]
-    if config is not None:
-        cmd.extend(["--config", str(config)])
-
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        message = result.stderr.strip() or result.stdout.strip() or "unknown error"
-        raise RuntimeError(f"iopaint batch failed: {message}")
-
-
 def merge_inpaint_result(
     original_path: Path,
     inpainted_path: Path,
@@ -379,33 +460,6 @@ def merge_inpaint_result(
     Image.fromarray(result).save(output_path)
 
 
-def finalize_outputs(
-    image_paths: list[Path],
-    *,
-    inpaint_dir: Path,
-    mask_dir: Path | None,
-    mask_file: Path | None,
-    output_dir: Path | None,
-) -> int:
-    saved = 0
-    for image_path in image_paths:
-        inpainted = inpaint_dir / image_path.name
-        if not inpainted.is_file():
-            print(f"  SKIP {image_path.name}: no inpaint output")
-            continue
-
-        mask_path = resolve_mask_path(image_path, mask_file, mask_dir)
-        if mask_path is None:
-            print(f"  SKIP {image_path.name}: no mask for alpha merge")
-            continue
-
-        dest = image_path if output_dir is None else output_dir / image_path.name
-        merge_inpaint_result(image_path, inpainted, mask_path, dest)
-        print(f"  Saved {dest} (alpha preserved)")
-        saved += 1
-    return saved
-
-
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Remove watermarks with LaMa/IOPaint inpainting.",
@@ -414,7 +468,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "directory",
         nargs="?",
         default=DEFAULT_DIR,
-        help=f"Target directory relative to project root (default: {DEFAULT_DIR})",
+        help=f"Image file or directory relative to project root (default: {DEFAULT_DIR})",
     )
     parser.add_argument("--pattern", default=DEFAULT_PATTERN, help="Input glob pattern")
     parser.add_argument("--recursive", action="store_true", help="Search subdirectories")
@@ -427,7 +481,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Compute device (default: auto)",
     )
     parser.add_argument("--expand", type=int, default=DEFAULT_EXPAND, help="Mask dilation px")
-    parser.add_argument("--config", type=Path, help="IOPaint config JSON path")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Optional IOPaint config JSON override (HD strategy is auto by default)",
+    )
+    parser.add_argument(
+        "--hd-limit",
+        type=int,
+        help="Override auto resize limit for large images (CUDA OOM workaround)",
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -475,15 +538,17 @@ def main(argv: list[str] | None = None) -> int:
     validate_mask_source(args)
 
     project_root = find_project_root()
-    target_dir = project_root / args.directory
-    if not target_dir.is_dir():
-        print(f"Directory not found: {target_dir}")
+    search_root, image_paths = resolve_input(
+        project_root,
+        args.directory,
+        args.pattern,
+        tuple(DEFAULT_EXCLUDES) + tuple(args.exclude),
+        args.recursive,
+    )
+    if search_root is None:
         return 1
-
-    excludes = tuple(DEFAULT_EXCLUDES) + tuple(args.exclude)
-    image_paths = collect_images(target_dir, args.pattern, excludes, args.recursive)
     if not image_paths:
-        print(f"No images found in {target_dir} (pattern: {args.pattern})")
+        print(f"No images found under {search_root} (pattern: {args.pattern})")
         return 1
 
     width_frac = parse_fraction(args.width, "--width") if args.width else None
@@ -497,22 +562,25 @@ def main(argv: list[str] | None = None) -> int:
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Target: {target_dir}")
+    print(f"Target: {search_root}")
     print(f"Images: {len(image_paths)}, Model: {args.model}, Device: {device}")
     print(f"Output: {output_dir if output_dir else 'original file path (overwrite)'}")
 
     generated_mask_dir: Path | None = None
+    generated_masks: dict[Path, Path] | None = None
     temp_ctx = None
     inpaint_ctx = None
+    config_temp_path: Path | None = None
 
     try:
         if args.rect or args.corner:
             temp_ctx = tempfile.TemporaryDirectory(prefix="iopaint_masks_")
             generated_mask_dir = Path(temp_ctx.name)
             print(f"Generating masks in {generated_mask_dir} ...")
-            generate_masks(
+            generated_masks = generate_masks(
                 image_paths,
                 generated_mask_dir,
+                search_root,
                 rect_spec=args.rect,
                 corner=args.corner,
                 width_frac=width_frac,
@@ -521,10 +589,11 @@ def main(argv: list[str] | None = None) -> int:
                 expand=args.expand,
             )
             if args.masks_only:
-                persist = (output_dir or target_dir) / "_masks"
+                persist = (output_dir or search_root) / "_masks"
                 persist.mkdir(parents=True, exist_ok=True)
-                for mask_path in generated_mask_dir.glob("*"):
-                    shutil.copy2(mask_path, persist / mask_path.name)
+                for image_path, mask_path in generated_masks.items():
+                    dest = persist / mask_key(image_path, search_root)
+                    shutil.copy2(mask_path, dest)
                 print(f"Masks saved to {persist}")
                 return 0
 
@@ -542,7 +611,13 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Mask directory not found: {mask_dir}")
             return 1
 
-        config_path = (project_root / args.config).resolve() if args.config else None
+        override_config = (project_root / args.config).resolve() if args.config else None
+        config_path, config_temp_path = resolve_iopaint_config(
+            image_paths,
+            device,
+            override_path=override_config,
+            hd_limit=args.hd_limit,
+        )
 
         if output_dir is None:
             inpaint_ctx = tempfile.TemporaryDirectory(prefix="iopaint_out_")
@@ -550,29 +625,14 @@ def main(argv: list[str] | None = None) -> int:
         else:
             inpaint_dir = output_dir
 
-        if mask_dir is not None and len(image_paths) > 1 and mask_file is None:
-            print("Running batch inpaint ...")
-            run_iopaint_batch(
-                model=args.model,
-                device=device,
-                image_dir=target_dir,
-                mask_path=mask_dir,
-                output_dir=inpaint_dir,
-                config=config_path,
-            )
-            print("Merging inpaint results with original alpha ...")
-            saved = finalize_outputs(
-                image_paths,
-                inpaint_dir=inpaint_dir,
-                mask_dir=mask_dir,
-                mask_file=mask_file,
-                output_dir=output_dir,
-            )
-            print(f"Done. Processed {saved} image(s).")
-            return 0 if saved else 1
-
         for image_path in image_paths:
-            mask_path = resolve_mask_path(image_path, mask_file, mask_dir)
+            mask_path = resolve_mask_path(
+                image_path,
+                mask_file,
+                mask_dir,
+                search_root=search_root,
+                generated_masks=generated_masks,
+            )
             if mask_path is None:
                 print(f"  SKIP {image_path.name}: no matching mask")
                 continue
@@ -595,7 +655,7 @@ def main(argv: list[str] | None = None) -> int:
                 output_dir=inpaint_dir,
                 config=config_path,
             )
-            dest = image_path if output_dir is None else output_dir / image_path.name
+            dest = resolve_dest(image_path, search_root, output_dir)
             merge_inpaint_result(
                 image_path,
                 inpaint_dir / image_path.name,
@@ -609,6 +669,8 @@ def main(argv: list[str] | None = None) -> int:
             temp_ctx.cleanup()
         if inpaint_ctx is not None:
             inpaint_ctx.cleanup()
+        if config_temp_path is not None:
+            config_temp_path.unlink(missing_ok=True)
 
     print(f"Done. Processed {len(image_paths)} image(s).")
     return 0

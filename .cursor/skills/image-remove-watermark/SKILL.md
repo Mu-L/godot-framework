@@ -74,15 +74,23 @@ Use `bin/python` on Unix. The LaMa model downloads automatically on first run (~
 
 ## Quick Start
 
-Pick a mask source, then run from the project root:
+Pick a mask source, then run from the project root. The first argument may be a **directory or a single image file**:
 
 ```bash
-# Corner watermark (28% wide, 10% tall, 2% margin from bottom-right)
-.dependency/iopaint/.venv/Scripts/python .cursor/skills/image-remove-watermark/scripts/remove_watermark.py image/_src/bullets/basic \
+# Directory batch
+.dependency/iopaint/.venv/Scripts/python .cursor/skills/image-remove-watermark/scripts/remove_watermark.py image/_watermark_trial \
   --corner bottom-right --width 0.28 --height 0.10 --margin 0.02
+
+# Single file (writes back to the same file path)
+.dependency/iopaint/.venv/Scripts/python .cursor/skills/image-remove-watermark/scripts/remove_watermark.py image/_watermark_trial/tank.png \
+  --rect 12%,76%,76%,22%
+
+# Recursive subdirectories (-r)
+.dependency/iopaint/.venv/Scripts/python .cursor/skills/image-remove-watermark/scripts/remove_watermark.py image -r \
+  --corner bottom-right --width 0.05 --height 0.10
 ```
 
-Default output: **overwrite each source file at its original path** (same directory, same filename). Use `--output-dir` only when you want a separate copy elsewhere.
+Default output: **overwrite each source file at its original path** (same directory, same filename). Use `--output-dir` only when you want copies elsewhere (keeps relative subpaths under the input directory).
 
 ## Mask sources (pick one)
 
@@ -138,6 +146,7 @@ Paint in the browser, export the mask, then pass `--mask` or `--mask-dir`.
 | Device | `auto` | Uses CUDA/MPS when available |
 | Output | original file path | Overwrites in place; `--output-dir` writes copies elsewhere |
 | `--expand` | `8` | Mask dilation in pixels for edge blending |
+| HD strategy | auto | By image size + device; `--hd-limit` / `--config` to override |
 
 ## Pipeline
 
@@ -156,16 +165,11 @@ Mask convention: **white (255) = region to repair, black (0) = keep**.
 ## Models and quality
 
 - **Default `lama`**: Fast with strong erase quality; best for batch work.
-- For large images, pass `--config` JSON to tune HD strategy:
-
-```json
-{"hd_strategy": "Resize", "hd_strategy_resize_limit": 2048}
-```
-
-```bash
-.dependency/iopaint/.venv/Scripts/python .cursor/skills/image-remove-watermark/scripts/remove_watermark.py image/foo \
-  --corner bottom-right --config .cursor/skills/image-remove-watermark/hd_config.json
-```
+- **HD strategy is automatic** — the script picks IOPaint settings from image size and device:
+  - Max side ≤ 1280px: IOPaint defaults (no config file)
+  - Max side > 1280px: `Resize` with limit 2048 (CUDA), 1536 (MPS), or 1024 (CPU)
+- **CUDA OOM** on large images: pass `--hd-limit 1536` or `--hd-limit 1024`
+- **Manual override** (rare): `--config path/to/custom.json`
 
 ## Agent Notes
 
@@ -184,7 +188,7 @@ Mask convention: **white (255) = region to repair, black (0) = keep**.
 | `iopaint` missing or `populated: false` | Follow **Setup**; set `populated: true`, retry same command |
 | Used host Python / wrong venv | Use only manifest `iopaint.bin` under `.dependency/` |
 | Very slow | `--device cuda`; CPU is for single-image trials only |
-| CUDA OOM | Lower `hd_strategy_resize_limit` via `--config` |
+| CUDA OOM | Pass `--hd-limit 1536` or `--hd-limit 1024` |
 | Edge ghosting | Increase `--expand` or enlarge the mask rectangle |
 | Repair area too large/small | Adjust `--corner` / `--rect` / hand-drawn mask |
 | Auto mask inaccurate | `--masks-only`, edit masks manually, then `--mask-dir` |
