@@ -10,6 +10,7 @@ enum AudioBusType {
 }
 
 static var audio_map: Dictionary[AudioBusType, AudioStreamPlayer] = {}
+static var stream_fade_map: Dictionary[AudioBusType, bool] = {}
 
 static func init() -> void:
 	for bus_name in AudioBusType.keys():
@@ -56,9 +57,22 @@ static func stop_stream(bus: AudioBusType) -> void:
 	player.stop()
 	pass
 
+static func begin_stream_fade(bus: AudioBusType, method: String) -> bool:
+	if stream_fade_map.get(bus, false):
+		Log.error("stream fade already in progress on bus:[{}], skip [{}]", AudioBusType.keys()[bus], method)
+		return false
+	stream_fade_map[bus] = true
+	return true
+
+static func end_stream_fade(bus: AudioBusType) -> void:
+	stream_fade_map[bus] = false
+	pass
+
 static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 1.0) -> void:
 	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
+		return
+	if !begin_stream_fade(bus, "play_stream_fade"):
 		return
 	var audio: AudioStreamPlayer = audio_map[bus]
 	if audio.playing:
@@ -69,17 +83,23 @@ static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 
 		audio.volume_linear = 0
 	audio.stream = resource
 	audio.play()
-	audio.create_tween().tween_property(audio, "volume_linear", 1, duration)
+	var fade_in := audio.create_tween()
+	fade_in.tween_property(audio, "volume_linear", 1, duration)
+	await fade_in.finished
+	end_stream_fade(bus)
 	pass
 
 static func stop_stream_fade(bus: AudioBusType, duration: float = 1.0) -> void:
 	var audio: AudioStreamPlayer = audio_map[bus]
 	if !audio.playing:
 		return
+	if !begin_stream_fade(bus, "stop_stream_fade"):
+		return
 	var tween := audio.create_tween()
 	tween.tween_property(audio, "volume_linear", 0, duration)
 	await tween.finished
 	audio.stop()
+	end_stream_fade(bus)
 	pass
 ####################################################################################################
 # music
