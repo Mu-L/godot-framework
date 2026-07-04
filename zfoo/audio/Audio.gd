@@ -13,7 +13,6 @@ enum AudioBusType {
 const ENDING_THRESHOLD: float = 4.0
 
 static var audio_map: Dictionary[AudioBusType, AudioStreamPlayer] = {}
-static var bus_index_by_type: Dictionary[AudioBusType, int] = {}
 
 static func init() -> void:
 	for bus_name in AudioBusType.keys():
@@ -22,7 +21,6 @@ static func init() -> void:
 		AudioServer.set_bus_name(bus_index, bus_name)
 
 		var bus_value: AudioBusType = AudioBusType[bus_name]
-		bus_index_by_type[bus_value] = bus_index
 		var audio_stream_player := AudioStreamPlayer.new()
 		audio_stream_player.name = bus_name
 		audio_stream_player.bus = bus_name
@@ -53,8 +51,8 @@ static func async_update() -> void:
 ####################################################################################################
 
 static func set_audio_bus_volume_linear(type: AudioBusType, volume_linear: float) -> void:
-	var bus_idx: int = bus_index_by_type[type]
-	AudioServer.set_bus_volume_linear(bus_idx, clampf(volume_linear, 0.0, 1.0))
+	var bus_name: String = AudioBusType.keys()[type]
+	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(bus_name), clampf(volume_linear, 0.0, 1.0))
 	pass
 
 static func stop_all() -> void:
@@ -65,7 +63,7 @@ static func stop_all() -> void:
 ####################################################################################################
 # stream
 static func play_stream(bus: AudioBusType, path: String) -> void:
-	var resource: Variant = await ResourceHelper.async_load(path)
+	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
 	var player: AudioStreamPlayer = audio_map[bus]
@@ -79,7 +77,7 @@ static func stop_stream(bus: AudioBusType) -> void:
 	pass
 
 static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 1.0) -> void:
-	var resource: Variant = await ResourceHelper.async_load(path)
+	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
 	var audio: AudioStreamPlayer = audio_map[bus]

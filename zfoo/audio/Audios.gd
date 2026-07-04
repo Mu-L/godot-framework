@@ -7,11 +7,10 @@ const COUNT: int = 8
 const BUS_NAME: String = "SoundEffect"
 
 static var audios: Array[AudioStreamPlayer] = []
-static var bus_index: int = -1
 
 static func init() -> void:
 	AudioServer.add_bus()
-	bus_index = AudioServer.get_bus_count() - 1
+	var bus_index := AudioServer.get_bus_count() - 1
 	AudioServer.set_bus_name(bus_index, BUS_NAME)
 
 	var sfx_node := Node.new()
@@ -26,9 +25,12 @@ static func init() -> void:
 		audios.append(player)
 	pass
 
+static func set_bus_volume_linear(volume_linear: float) -> void:
+	AudioServer.set_bus_volume_linear(AudioServer.get_bus_index(BUS_NAME), clampf(volume_linear, 0.0, 1.0))
+	pass
 
 static func play(path: String, volume_linear: float = 1.0) -> void:
-	var resource: Variant = await ResourceHelper.async_load(path)
+	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
 	for audio in audios:
