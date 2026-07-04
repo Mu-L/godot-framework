@@ -5,12 +5,9 @@ extends Object
 
 enum AudioBusType {
 	Music,
-	Sound,
 	Voice,
 	Ambience,
 }
-
-const ENDING_THRESHOLD: float = 4.0
 
 static var audio_map: Dictionary[AudioBusType, AudioStreamPlayer] = {}
 
@@ -125,19 +122,7 @@ static func resume_music() -> void:
 	var player: AudioStreamPlayer = audio_map[AudioBusType.Music]
 	player.stream_paused = false
 	pass
-####################################################################################################
-# sound
-static func play_sound(path: String) -> void:
-	await play_stream(AudioBusType.Sound, path)
-	pass
 
-static func is_playing_sound() -> bool:
-	var audio := audio_map[AudioBusType.Sound]
-	return audio.playing
-	
-static func stop_sound() -> void:
-	stop_stream(AudioBusType.Sound)
-	pass
 ####################################################################################################
 # voice
 static func play_voice(path: String) -> void:
@@ -157,18 +142,10 @@ static func play_ambience(path: String) -> void:
 	await play_stream(AudioBusType.Ambience, path)
 	pass
 
-static func play_ambience_fade(path: String, duration: float = 1.0) -> void:
-	await play_stream_fade(AudioBusType.Ambience, path, duration)
-	pass
-
 static func is_playing_ambience() -> bool:
 	var audio := audio_map[AudioBusType.Ambience]
 	return audio.playing
 
 static func stop_ambience() -> void:
 	stop_stream(AudioBusType.Ambience)
-	pass
-
-static func stop_ambience_fade(duration: float = 1.0) -> void:
-	await stop_stream_fade(AudioBusType.Ambience, duration)
 	pass
