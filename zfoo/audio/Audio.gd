@@ -156,6 +156,14 @@ static func is_playing_voice() -> bool:
 static func stop_voice() -> void:
 	stop_stream(AudioBusType.Voice)
 	pass
+
+static func play_voice_fade(path: String, duration: float = 1.0) -> void:
+	await play_stream_fade(AudioBusType.Voice, path, duration)
+	pass
+
+static func stop_voice_fade(duration: float = 1.0) -> void:
+	await stop_stream_fade(AudioBusType.Voice, duration)
+	pass
 ####################################################################################################
 # ambience
 static func play_ambience(path: String) -> void:
@@ -168,4 +176,12 @@ static func is_playing_ambience() -> bool:
 
 static func stop_ambience() -> void:
 	stop_stream(AudioBusType.Ambience)
+	pass
+
+static func play_ambience_fade(path: String, duration: float = 1.0) -> void:
+	await play_stream_fade(AudioBusType.Ambience, path, duration)
+	pass
+
+static func stop_ambience_fade(duration: float = 1.0) -> void:
+	await stop_stream_fade(AudioBusType.Ambience, duration)
 	pass
