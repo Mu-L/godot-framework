@@ -41,6 +41,9 @@ func update() -> void:
 
 
 func async_load(path: String) -> Resource:
+	if path.is_empty():
+		Log.error("resource path is empty")
+		return null
 	if ResourceLoader.has_cached(path):
 		return ResourceLoader.load(path)
 	if !ResourceLoader.exists(path):

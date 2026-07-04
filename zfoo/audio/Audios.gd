@@ -28,8 +28,6 @@ static func init() -> void:
 
 
 static func play(path: String, volume_linear: float = 1.0) -> void:
-	if StringUtils.is_blank(path):
-		return
 	var resource: Variant = await ResourceHelper.async_load(path)
 	if resource == null:
 		return

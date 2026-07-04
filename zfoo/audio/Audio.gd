@@ -65,12 +65,10 @@ static func stop_all() -> void:
 ####################################################################################################
 # stream
 static func play_stream(bus: AudioBusType, path: String) -> void:
-	if StringUtils.is_blank(path):
-		return
-	var player: AudioStreamPlayer = audio_map[bus]
 	var resource: Variant = await ResourceHelper.async_load(path)
 	if resource == null:
 		return
+	var player: AudioStreamPlayer = audio_map[bus]
 	player.stream = resource
 	player.play()
 	pass
@@ -81,8 +79,6 @@ static func stop_stream(bus: AudioBusType) -> void:
 	pass
 
 static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 1.0) -> void:
-	if StringUtils.is_blank(path):
-		return
 	var resource: Variant = await ResourceHelper.async_load(path)
 	if resource == null:
 		return
