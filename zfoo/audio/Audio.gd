@@ -38,6 +38,11 @@ static func set_audio_bus_volume_linear(type: AudioBusType, volume_linear: float
 
 static func stop_all() -> void:
 	for audio_bus in audio_map.keys():
+		stop_stream(audio_bus)
+	pass
+
+static func stop_all_fade() -> void:
+	for audio_bus in audio_map.keys():
 		stop_stream_fade(audio_bus)
 	pass
 
