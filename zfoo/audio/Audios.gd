@@ -47,8 +47,8 @@ static func play(path: String, volume_linear: float = 1.0) -> void:
 	player.play()
 	pass
 
-static func play_sfx(effect: SoundEffect) -> void:
-	await play(effect.path, effect.volume_linear)
+static func play_sfx(sfx: SoundEffect) -> void:
+	play(sfx.path, sfx.volume_linear)
 	pass
 
 static func stop_all() -> void:
