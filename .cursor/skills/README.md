@@ -4,9 +4,6 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 ## Audio
 
-- **Step 1:** Convert SFX to WAV; convert BGM to OGG
-- **Step 2:** Loudness-normalize so levels stay consistent (no sudden loud/quiet clips)
-
 ```
 Source audio
     ↓
@@ -22,29 +19,34 @@ Source audio
     ↓
 ⑥ Adjust volume / loudness (normalize)
     ↓
-⑦ Export final format (OGG / WAV)
+⑦ Standardize sample rate (44100 / 48000 Hz WAV)
+    ↓
+⑧ Export final format (OGG / WAV)
 ```
 
-| Step | Skill |
-|------|-------|
-| ① | [audio-to-wav](audio-to-wav/SKILL.md) |
-| ① | [video-to-wav](video-to-wav/SKILL.md) (video sources) |
-| ② | [audio-trim](audio-trim/SKILL.md) |
-| ③ | [audio-split](audio-split/SKILL.md) |
-| ④ | [audio-denoise](audio-denoise/SKILL.md) |
-| ⑤ | [audio-fade](audio-fade/SKILL.md) |
-| ⑥ | [audio-loudness-sample-rate-standardize](audio-loudness-sample-rate-standardize/SKILL.md) |
-| ⑥ | [audio-volume-adjust](audio-volume-adjust/SKILL.md) (fixed dB tweak) |
-| ⑦ | [audio-to-ogg](audio-to-ogg/SKILL.md) (BGM) |
-| ⑦ | [audio-to-wav](audio-to-wav/SKILL.md) (SFX; skip if already WAV) |
+| Skill | Purpose |
+|-------|---------|
+| [audio-to-wav](audio-to-wav/SKILL.md) | ① Audio → WAV |
+| [audio-trim](audio-trim/SKILL.md) | ② Trim leading/trailing silence |
+| [audio-split](audio-split/SKILL.md) | ③ Split at a timestamp |
+| [audio-denoise](audio-denoise/SKILL.md) | ④ Denoise / de-clip |
+| [audio-fade](audio-fade/SKILL.md) | ⑤ Fade in/out |
+| [audio-loudness-normalization](audio-loudness-normalization/SKILL.md) | ⑥ LUFS loudness normalize |
+| [audio-volume-adjust](audio-volume-adjust/SKILL.md) | ⑥ Fixed dB gain (alternative) |
+| [audio-sample-rate-standardize](audio-sample-rate-standardize/SKILL.md) | ⑦ Standardize to 44100 / 48000 Hz WAV |
+| [audio-to-ogg](audio-to-ogg/SKILL.md) | ⑧ Audio → OGG (BGM) |
 
-Outputs go to sibling folders (`wav/`, `denoised/`, `normalized/`, `ogg/`, etc.). Add `-r` for subfolders, `--dry-run` to preview.
+## Video
+
+| Skill | Purpose |
+|-------|---------|
+| [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
+| [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 
 ## Other
 
 | Skill | Purpose |
 |-------|---------|
-| [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 | [image-remove-watermark](image-remove-watermark/SKILL.md) | Remove corner watermark |
 | [file-naming-normalization](file-naming-normalization/SKILL.md) | Filename → kebab-case |
 | [git-commit-message](git-commit-message/SKILL.md) | Commit message |

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Batch loudness-normalize, sample-rate-standardize, and export audio to PCM WAV."""
+"""Batch standardize audio sample rate to 44100 or 48000 Hz and export 16-bit PCM WAV."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -14,7 +13,6 @@ AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
 
 SAMPLE_RATE_44100 = 44100
 SAMPLE_RATE_48000 = 48000
-ALLOWED_SAMPLE_RATES = (SAMPLE_RATE_44100, SAMPLE_RATE_48000)
 OUTPUT_CODEC = "pcm_s16le"
 
 
@@ -124,7 +122,6 @@ def probe_sample_rate(ffprobe: Path, file_path: Path) -> int | None:
 
 
 def resolve_output_sample_rate(source_rate: int | None) -> int:
-    """Snap output to 44100 or 48000 Hz only."""
     if source_rate is None or source_rate <= SAMPLE_RATE_44100:
         return SAMPLE_RATE_44100
     return SAMPLE_RATE_48000
@@ -197,105 +194,48 @@ def find_source_collisions(
     return collisions
 
 
-def measure_loudnorm(
-    ffmpeg: Path, file_path: Path, target_lufs: float, true_peak: float
-) -> dict:
+def standardize_file(
+    ffmpeg: Path,
+    file_path: Path,
+    out_path: Path,
+    sample_rate: int,
+) -> None:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     result = subprocess.run(
         [
             str(ffmpeg),
             "-hide_banner",
             "-nostats",
+            "-y",
             "-i",
             str(file_path),
-            "-af",
-            f"loudnorm=I={target_lufs}:TP={true_peak}:LRA=11:print_format=json",
-            "-f",
-            "null",
-            "-",
+            "-ar",
+            str(sample_rate),
+            "-c:a",
+            OUTPUT_CODEC,
+            str(out_path),
         ],
         capture_output=True,
         text=True,
     )
     if result.returncode != 0:
-        raise RuntimeError(
-            f"FFmpeg analysis failed for: {file_path}\n{result.stderr.strip()}"
-        )
-
-    match = re.search(r"\{[\s\S]*\}", result.stderr)
-    if not match:
-        raise RuntimeError(f"Could not parse loudnorm JSON for: {file_path}")
-
-    return json.loads(match.group(0))
-
-
-def normalize_file(
-    ffmpeg: Path,
-    file_path: Path,
-    out_path: Path,
-    target_lufs: float,
-    true_peak: float,
-    measured: dict,
-    sample_rate: int,
-    codec: str,
-) -> None:
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    filter_str = (
-        f"loudnorm=I={target_lufs}:TP={true_peak}:LRA=11"
-        f":measured_I={measured['input_i']}"
-        f":measured_LRA={measured['input_lra']}"
-        f":measured_TP={measured['input_tp']}"
-        f":measured_thresh={measured['input_thresh']}"
-        f":offset={measured['target_offset']}"
-        ":linear=true"
-    )
-    cmd = [
-        str(ffmpeg),
-        "-hide_banner",
-        "-nostats",
-        "-y",
-        "-i",
-        str(file_path),
-        "-af",
-        filter_str,
-        "-ar",
-        str(sample_rate),
-        "-c:a",
-        codec,
-        str(out_path),
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(
-            f"FFmpeg normalize failed for: {file_path}"
+            f"FFmpeg standardize failed for: {file_path}"
             + (f"\n{detail}" if detail else "")
         )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Batch loudness-normalize, sample-rate-standardize, and export audio to PCM WAV."
+        description="Batch standardize audio to 44100 or 48000 Hz 16-bit PCM WAV."
     )
     parser.add_argument("input", help="Path to a single audio file or directory")
-    parser.add_argument(
-        "-t",
-        "--target-lufs",
-        type=float,
-        default=-14,
-        help="Target integrated loudness in LUFS (default: -14)",
-    )
-    parser.add_argument(
-        "-tp",
-        "--true-peak",
-        type=float,
-        default=-1.5,
-        help="True peak limit in dBTP (default: -1.5)",
-    )
     parser.add_argument(
         "-o",
         "--output-dir",
         default="",
-        help="Output directory (must not overwrite sources; default: <input>/normalized)",
+        help="Output directory (must not overwrite sources; default: <input>/standardized)",
     )
     parser.add_argument(
         "-r", "--recurse", action="store_true", help="Process subdirectories"
@@ -333,7 +273,7 @@ def main() -> int:
     output_dir = (
         Path(args.output_dir).resolve()
         if args.output_dir
-        else input_root / "normalized"
+        else input_root / "standardized"
     )
 
     initial_count = len(files)
@@ -342,7 +282,7 @@ def main() -> int:
         if initial_count:
             print(
                 "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: normalized/).",
+                "Choose a separate output directory (default: standardized/).",
                 file=sys.stderr,
             )
             return 1
@@ -353,21 +293,19 @@ def main() -> int:
     if collisions:
         print(
             "Refusing to overwrite source files. Use a separate output directory "
-            "(default: normalized/).",
+            "(default: standardized/).",
             file=sys.stderr,
         )
         for source, dest in collisions:
             print(f"  {source} -> {dest}", file=sys.stderr)
         return 1
 
-    print(f"Input:       {args.input}")
-    print(f"Files:       {len(files)}")
-    print(f"Target LUFS: {args.target_lufs}")
-    print(f"True Peak:   {args.true_peak} dBTP")
-    print(f"Format:      {SAMPLE_RATE_44100} / {SAMPLE_RATE_48000} Hz, 16-bit PCM WAV")
-    print(f"Output:      {output_dir}")
+    print(f"Input:  {args.input}")
+    print(f"Files:  {len(files)}")
+    print(f"Format: {SAMPLE_RATE_44100} / {SAMPLE_RATE_48000} Hz, 16-bit PCM WAV")
+    print(f"Output: {output_dir}")
     if args.dry_run:
-        print("Mode:        DRY RUN")
+        print("Run:    DRY RUN")
     print()
 
     ok = 0
@@ -395,19 +333,7 @@ def main() -> int:
 
         try:
             print(f"[run]  {src_rel} -> {out_rel} ({format_plan})")
-            measured = measure_loudnorm(
-                ffmpeg, file_path, args.target_lufs, args.true_peak
-            )
-            normalize_file(
-                ffmpeg,
-                file_path,
-                out_path,
-                args.target_lufs,
-                args.true_peak,
-                measured,
-                output_rate,
-                OUTPUT_CODEC,
-            )
+            standardize_file(ffmpeg, file_path, out_path, output_rate)
             ok += 1
         except RuntimeError as exc:
             print(f"[fail] {out_rel}")
