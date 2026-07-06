@@ -26,15 +26,15 @@ Source audio
 
 | Skill | Purpose |
 |-------|---------|
-| [audio-to-wav](audio-to-wav/SKILL.md) | ① Audio → WAV |
-| [audio-trim](audio-trim/SKILL.md) | ② Trim leading/trailing silence |
-| [audio-split](audio-split/SKILL.md) | ③ Split at a timestamp |
-| [audio-denoise](audio-denoise/SKILL.md) | ④ Denoise / de-clip |
-| [audio-fade](audio-fade/SKILL.md) | ⑤ Fade in/out |
-| [audio-loudness-normalization](audio-loudness-normalization/SKILL.md) | ⑥ LUFS loudness normalize |
-| [audio-volume-adjust](audio-volume-adjust/SKILL.md) | ⑥ Fixed dB gain (alternative) |
-| [audio-sample-rate-standardize](audio-sample-rate-standardize/SKILL.md) | ⑦ Standardize to 44100 / 48000 Hz WAV |
-| [audio-to-ogg](audio-to-ogg/SKILL.md) | ⑧ Audio → OGG (BGM) |
+| [audio-to-wav](audio-to-wav/SKILL.md) | Audio → WAV |
+| [audio-trim](audio-trim/SKILL.md) | Trim leading/trailing silence |
+| [audio-split](audio-split/SKILL.md) | Split at a timestamp |
+| [audio-denoise](audio-denoise/SKILL.md) | Denoise / de-clip |
+| [audio-fade](audio-fade/SKILL.md) | Fade in/out |
+| [audio-loudness-normalization](audio-loudness-normalization/SKILL.md) | LUFS loudness normalize |
+| [audio-volume-adjust](audio-volume-adjust/SKILL.md) | Fixed dB gain (alternative) |
+| [audio-sample-rate-standardize](audio-sample-rate-standardize/SKILL.md) | Standardize to 44100 / 48000 Hz WAV |
+| [audio-to-ogg](audio-to-ogg/SKILL.md) | Audio → OGG (BGM) |
 
 ## Video
 
