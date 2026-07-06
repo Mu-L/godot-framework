@@ -1,11 +1,11 @@
 ---
-name: audio-loudness-normalization
-description: Batch-normalizes audio files to consistent LUFS loudness and exports 16-bit PCM WAV using FFmpeg. Use when the user wants loudness normalization, volume matching, unified audio levels, batch SFX/UI/BGM processing, or mentions LUFS, true peak, loudnorm, or inconsistent game audio.
+name: audio-loudness-sample-rate-standardize
+description: Batch-normalizes audio to consistent LUFS loudness, standardizes sample rate to 44100 or 48000 Hz, and exports 16-bit PCM WAV using FFmpeg. Use when the user wants loudness normalization, volume matching, sample rate standardization, unified audio levels, batch SFX/UI/BGM processing, or mentions LUFS, true peak, loudnorm, or inconsistent game audio.
 ---
 
-# Audio Loudness Normalization
+# Audio Loudness & Sample Rate Standardize
 
-Batch-normalize audio to consistent LUFS with true-peak limiting. **Outputs 16-bit PCM WAV** at **44100 or 48000 Hz** only.
+Batch-normalize audio to consistent LUFS with true-peak limiting, and standardize output to **16-bit PCM WAV** at **44100 or 48000 Hz**.
 
 ## Rules
 
@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 Default: **-14 LUFS**, **-1.5 dBTP**, **16-bit PCM WAV** (44100 / 48000 Hz), output to a sibling `normalized/` folder (source files are read-only):
 
 ```bash
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
+.dependency/python/python .cursor/skills/audio-loudness-sample-rate-standardize/scripts/standardize.py path/to/audio_or_folder
 ```
 
 Example: `audio/sfx/tank/tank_move.mp3` → `audio/sfx/tank/normalized/tank_move.wav`
@@ -53,7 +53,7 @@ One category per folder. Mixed folders: split first, then batch with matching `-
 `-t` / `--target-lufs` · `-tp` / `--true-peak` · `-r` (recursive) · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX -t -14 -r --dry-run
+.dependency/python/python .cursor/skills/audio-loudness-sample-rate-standardize/scripts/standardize.py Audio/SFX -t -14 -r --dry-run
 ```
 
 **Never overwrite source files.** The script writes only to `normalized/` (or `-o`). All outputs are `.wav` regardless of input format. Supported inputs: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
@@ -66,5 +66,4 @@ One category per folder. Mixed folders: split first, then batch with matching `-
 4. **Do not copy, move, or replace the source with the normalized output** — even after a successful run. Tell the user where `normalized/` files are; they swap assets manually when ready.
 5. Do not use `-o` pointing at the source folder; the script refuses output paths that would overwrite inputs.
 6. Do not fix uneven levels with per-asset volume in game code — re-normalize sources.
-7. Need format conversion without loudness normalization → use `audio-to-wav`.
-8. Engine bus defaults and rationale: [reference.md](reference.md)
+7. Engine bus defaults and rationale: [reference.md](reference.md)

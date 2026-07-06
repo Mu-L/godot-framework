@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Batch loudness-normalize audio files to a target LUFS using FFmpeg two-pass loudnorm."""
+"""Batch loudness-normalize, sample-rate-standardize, and export audio to PCM WAV."""
 
 from __future__ import annotations
 
@@ -274,7 +274,7 @@ def normalize_file(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Batch loudness-normalize audio files to a target LUFS."
+        description="Batch loudness-normalize, sample-rate-standardize, and export audio to PCM WAV."
     )
     parser.add_argument("input", help="Path to a single audio file or directory")
     parser.add_argument(

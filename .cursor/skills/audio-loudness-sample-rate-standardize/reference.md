@@ -1,4 +1,4 @@
-# Loudness Normalization Reference
+# Loudness & Sample Rate Standardize — Reference
 
 ## Why LUFS, Not Peak
 
