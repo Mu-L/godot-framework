@@ -48,11 +48,12 @@ static func stop_all_fade() -> void:
 
 ####################################################################################################
 # stream
-static func play_stream(bus: AudioBusType, path: String) -> void:
+static func play_stream(bus: AudioBusType, path: String, volume_linear: float = 1.0) -> void:
 	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
 	var player: AudioStreamPlayer = audio_map[bus]
+	player.volume_linear = clampf(volume_linear, 0.0, 1.0)
 	player.stream = resource
 	player.play()
 	pass
@@ -73,12 +74,13 @@ static func end_stream_fade(bus: AudioBusType) -> void:
 	stream_fade_map[bus] = false
 	pass
 
-static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 1.0) -> void:
+static func play_stream_fade(bus: AudioBusType, path: String, volume_linear: float = 1.0, duration: float = 1.0) -> void:
 	var resource := await ResourceHelper.async_load(path) as AudioStream
 	if resource == null:
 		return
 	if !begin_stream_fade(bus, "play_stream_fade"):
 		return
+	var target_volume := clampf(volume_linear, 0.0, 1.0)
 	var audio: AudioStreamPlayer = audio_map[bus]
 	if audio.playing:
 		var tween := audio.create_tween()
@@ -89,7 +91,7 @@ static func play_stream_fade(bus: AudioBusType, path: String, duration: float = 
 	audio.stream = resource
 	audio.play()
 	var fade_in := audio.create_tween()
-	fade_in.tween_property(audio, "volume_linear", 1, duration)
+	fade_in.tween_property(audio, "volume_linear", target_volume, duration)
 	await fade_in.finished
 	end_stream_fade(bus)
 	pass
@@ -108,18 +110,18 @@ static func stop_stream_fade(bus: AudioBusType, duration: float = 1.0) -> void:
 	pass
 ####################################################################################################
 # music
-static func play_music(path: String) -> void:
+static func play_music(path: String, volume_linear: float = 1.0) -> void:
 	musics.clear()
-	await play_stream(AudioBusType.Music, path)
+	await play_stream(AudioBusType.Music, path, volume_linear)
 	pass
 
 static func stop_music() -> void:
 	stop_stream(AudioBusType.Music)
 	pass
 
-static func play_music_fade(path: String, duration: float = 1.0) -> void:
+static func play_music_fade(path: String, volume_linear: float = 1.0, duration: float = 1.0) -> void:
 	musics.clear()
-	await play_stream_fade(AudioBusType.Music, path, duration)
+	await play_stream_fade(AudioBusType.Music, path, volume_linear, duration)
 	pass
 
 static func stop_music_fade(duration: float = 1.0) -> void:
@@ -127,8 +129,8 @@ static func stop_music_fade(duration: float = 1.0) -> void:
 	pass
 ####################################################################################################
 # voice
-static func play_voice(path: String) -> void:
-	await play_stream(AudioBusType.Voice, path)
+static func play_voice(path: String, volume_linear: float = 1.0) -> void:
+	await play_stream(AudioBusType.Voice, path, volume_linear)
 	pass
 
 static func is_playing_voice() -> bool:
@@ -139,8 +141,8 @@ static func stop_voice() -> void:
 	stop_stream(AudioBusType.Voice)
 	pass
 
-static func play_voice_fade(path: String, duration: float = 1.0) -> void:
-	await play_stream_fade(AudioBusType.Voice, path, duration)
+static func play_voice_fade(path: String, volume_linear: float = 1.0, duration: float = 1.0) -> void:
+	await play_stream_fade(AudioBusType.Voice, path, volume_linear, duration)
 	pass
 
 static func stop_voice_fade(duration: float = 1.0) -> void:
@@ -148,8 +150,8 @@ static func stop_voice_fade(duration: float = 1.0) -> void:
 	pass
 ####################################################################################################
 # ambience
-static func play_ambience(path: String) -> void:
-	await play_stream(AudioBusType.Ambience, path)
+static func play_ambience(path: String, volume_linear: float = 1.0) -> void:
+	await play_stream(AudioBusType.Ambience, path, volume_linear)
 	pass
 
 static func is_playing_ambience() -> bool:
@@ -160,8 +162,8 @@ static func stop_ambience() -> void:
 	stop_stream(AudioBusType.Ambience)
 	pass
 
-static func play_ambience_fade(path: String, duration: float = 1.0) -> void:
-	await play_stream_fade(AudioBusType.Ambience, path, duration)
+static func play_ambience_fade(path: String, volume_linear: float = 1.0, duration: float = 1.0) -> void:
+	await play_stream_fade(AudioBusType.Ambience, path, volume_linear, duration)
 	pass
 
 static func stop_ambience_fade(duration: float = 1.0) -> void:
@@ -172,9 +174,11 @@ static func stop_ambience_fade(duration: float = 1.0) -> void:
 ####################################################################################################
 # musics
 static var musics: Array[String] = []
+static var musics_volume_linear: float = 1.0
 
-static func play_musics(paths: Array[String]) -> void:
+static func play_musics(paths: Array[String], volume_linear: float = 1.0) -> void:
 	musics = paths.duplicate()
+	musics_volume_linear = clampf(volume_linear, 0.0, 1.0)
 	play_music_next()
 	pass
 
@@ -183,7 +187,7 @@ static func play_music_next(duration: float = 3.0) -> void:
 		return
 	var path: String = musics.pop_front()
 	musics.push_back(path)
-	await play_stream_fade(AudioBusType.Music, path, duration)
+	await play_stream_fade(AudioBusType.Music, path, musics_volume_linear, duration)
 	pass
 
 static func pause_musics(duration: float = 1.0) -> void:
