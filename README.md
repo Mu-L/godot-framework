@@ -1,6 +1,6 @@
 # godot-framework
 
-A lightweight game framework for godot engine
+A lightweight Godot framework + agent skills for building and shipping games
 
 ## Quick start
 

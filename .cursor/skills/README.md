@@ -2,6 +2,15 @@
 
 Batch asset tools — run from repo root; use each skill's script; never overwrite sources. Dependencies: [skill-dependency-manager](../rules/skill-dependency-manager.md). Commands and flags: see each skill's `SKILL.md`.
 
+## Categories
+
+| Category | Pipeline | Skills |
+|----------|----------|--------|
+| [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
+| [Image](#image) | PNG → watermark → split → background | 5 skills |
+| [Video](#video) | Watermark → OGV → extract audio | 3 skills |
+| [Other](#other) | Naming, commits | 2 skills |
+
 ## Audio
 
 ```
@@ -64,8 +73,21 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
+Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, export Godot-ready OGV, optionally rip the audio track.
+
+```
+Source video (Veo / Gemini generated)
+    ↓
+① Remove Gemini / Veo watermark (if needed)
+    ↓
+② Convert to OGV (for Godot)
+    ↓
+③ Extract audio track → WAV (optional)
+```
+
 | Skill | Purpose |
 |-------|---------|
+| [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 
