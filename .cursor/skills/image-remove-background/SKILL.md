@@ -17,6 +17,7 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 - Run `remove_background.py` through the **`rembg` manifest entry** (`.dependency/rembg/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write `rembg i` / `rembg p` — use the bundled script.
 - `populated: false` for `rembg` is not a reason to skip. Install first, set `populated: true`, retry the same command.
+- Pass the input path as-is (chat attachment path, `Downloads/foo.png`, project folder, etc.). Output goes to `<input>/transparent/` by default — no path rewriting.
 
 ## Setup (first run)
 
@@ -102,12 +103,13 @@ For hair, fur, or soft edges, enable alpha matting:
 
 ## Agent workflow
 
-1. **Trial first** — run on 1 image, inspect the `transparent/` or `--output-dir` result before batch.
-2. **Pick model** — `u2net` for generic assets; `birefnet-portrait` for characters; `birefnet-general` when quality matters.
-3. **Soft edges** — try `--alpha-matting` if halos or jagged hair/fur appear.
-4. **Sprite sheets** — skip `*_sheet.png` by default; process individual frames unless the user asks otherwise.
-5. **Already transparent** — script still runs; rembg re-mats from visible RGB. Warn user if source already has alpha.
-6. **Revert** — delete output folder or `git restore` if needed; sources are never modified.
+1. **Paths** — Pass whatever path the user gives or the chat `<image_files>` path directly. Output lands in `transparent/` next to that input.
+2. **Trial first** — run on 1 image, inspect the `transparent/` or `--output-dir` result before batch.
+3. **Pick model** — `u2net` for generic assets; `birefnet-portrait` for characters; `birefnet-general` when quality matters.
+4. **Soft edges** — try `--alpha-matting` if halos or jagged hair/fur appear.
+5. **Sprite sheets** — skip `*_sheet.png` by default; process individual frames unless the user asks otherwise.
+6. **Already transparent** — script still runs; rembg re-mats from visible RGB. Warn user if source already has alpha.
+7. **Revert** — delete output folder or `git restore` if needed; sources are never modified.
 
 ## Troubleshooting
 
@@ -123,4 +125,5 @@ For hair, fur, or soft edges, enable alpha matting:
 ## Related
 
 - Script: [scripts/remove_background.py](scripts/remove_background.py)
+- Flat white/green/magenta AI backgrounds: [image-remove-white-background](../image-remove-white-background/SKILL.md) (prefer over rembg)
 - rembg docs: https://github.com/danielgatis/rembg
