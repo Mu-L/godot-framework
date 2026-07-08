@@ -30,6 +30,7 @@ DEFAULT_PATTERN = "*.png"
 DEFAULT_PRESET = "white"
 DEFAULT_TOLERANCE = 25
 DEFAULT_FEATHER = 2
+DEFAULT_MODE = "global"
 DEFAULT_EXCLUDES: tuple[str, ...] = ("*_sheet.png", "*_mask.png", "transparent/*")
 
 PRESETS: dict[str, tuple[int, int, int]] = {
@@ -177,7 +178,7 @@ def is_key_pixel(
     return max(abs(r - kr), abs(g - kg), abs(b - kb)) <= tolerance
 
 
-def build_border_mask(
+def build_flood_mask(
     pixels: list[tuple[int, ...]],
     width: int,
     height: int,
@@ -185,6 +186,7 @@ def build_border_mask(
     tolerance: int,
     *,
     white_mode: bool,
+    seeds: list[tuple[int, int]],
 ) -> bytearray:
     def matches(idx: int) -> bool:
         r, g, b = pixels[idx][:3]
@@ -194,18 +196,13 @@ def build_border_mask(
     visited = bytearray(width * height)
     queue: deque[int] = deque()
 
-    def try_seed(x: int, y: int) -> None:
+    for x, y in seeds:
+        if not 0 <= x < width or not 0 <= y < height:
+            continue
         idx = y * width + x
         if not visited[idx] and matches(idx):
             visited[idx] = 1
             queue.append(idx)
-
-    for x in range(width):
-        try_seed(x, 0)
-        try_seed(x, height - 1)
-    for y in range(height):
-        try_seed(0, y)
-        try_seed(width - 1, y)
 
     while queue:
         idx = queue.popleft()
@@ -234,6 +231,79 @@ def build_border_mask(
                 queue.append(nidx)
 
     return remove
+
+
+def border_seeds(width: int, height: int) -> list[tuple[int, int]]:
+    seeds: list[tuple[int, int]] = []
+    for x in range(width):
+        seeds.append((x, 0))
+        seeds.append((x, height - 1))
+    for y in range(1, height - 1):
+        seeds.append((0, y))
+        seeds.append((width - 1, y))
+    return seeds
+
+
+def center_seeds(width: int, height: int) -> list[tuple[int, int]]:
+    return [(width // 2, height // 2)]
+
+
+def build_border_mask(
+    pixels: list[tuple[int, ...]],
+    width: int,
+    height: int,
+    key: tuple[int, int, int],
+    tolerance: int,
+    *,
+    white_mode: bool,
+) -> bytearray:
+    return build_flood_mask(
+        pixels,
+        width,
+        height,
+        key,
+        tolerance,
+        white_mode=white_mode,
+        seeds=border_seeds(width, height),
+    )
+
+
+def build_center_mask(
+    pixels: list[tuple[int, ...]],
+    width: int,
+    height: int,
+    key: tuple[int, int, int],
+    tolerance: int,
+    *,
+    white_mode: bool,
+) -> bytearray:
+    return build_flood_mask(
+        pixels,
+        width,
+        height,
+        key,
+        tolerance,
+        white_mode=white_mode,
+        seeds=center_seeds(width, height),
+    )
+
+
+def build_both_mask(
+    pixels: list[tuple[int, ...]],
+    width: int,
+    height: int,
+    key: tuple[int, int, int],
+    tolerance: int,
+    *,
+    white_mode: bool,
+) -> bytearray:
+    border = build_border_mask(
+        pixels, width, height, key, tolerance, white_mode=white_mode
+    )
+    center = build_center_mask(
+        pixels, width, height, key, tolerance, white_mode=white_mode
+    )
+    return bytearray(1 if border[i] or center[i] else 0 for i in range(len(border)))
 
 
 def build_global_mask(
@@ -289,6 +359,14 @@ def remove_solid_background(
 
         if mode == "border":
             remove = build_border_mask(
+                pixels, width, height, key, tolerance, white_mode=white_mode
+            )
+        elif mode == "center":
+            remove = build_center_mask(
+                pixels, width, height, key, tolerance, white_mode=white_mode
+            )
+        elif mode == "both":
+            remove = build_both_mask(
                 pixels, width, height, key, tolerance, white_mode=white_mode
             )
         else:
@@ -355,9 +433,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mode",
-        choices=("border", "global"),
-        default="border",
-        help="border: flood-fill from image edges (default); global: remove all matching pixels",
+        choices=("border", "center", "both", "global"),
+        default=DEFAULT_MODE,
+        help=(
+            "global: remove all matching pixels (default); both: union of border and center; "
+            "border: flood-fill from edges; center: flood-fill from image center"
+        ),
     )
     parser.add_argument(
         "--crop",

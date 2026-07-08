@@ -86,8 +86,18 @@ Custom key color:
 
 | Mode | Behavior |
 |------|----------|
-| `border` *(default)* | Flood fill from image edges — removes only background **connected to the border**. Keeps isolated white areas inside the subject (e.g. white shirt). |
-| `global` | Removes **all** pixels matching the key color. Use only when the subject has no same-color interior details. |
+| `global` *(default)* | Removes **all** pixels matching the key color. Best when the subject has no same-color interior details to preserve. |
+| `both` | Union of `border` and `center` — removes background connected to edges **or** to the center. |
+| `border` | Flood fill from image edges only — keeps isolated white areas not reachable from edges or center (e.g. white shirt interior). |
+| `center` | Flood fill from the **image center** outward — removes key-color regions reachable from the middle. |
+
+```bash
+# Center-out flood (interior white holes)
+... remove_white_bg.py image/foo.png --mode center
+
+# Edge + center without removing every white pixel
+... remove_white_bg.py image/foo.png --mode both
+```
 
 ## Defaults
 
@@ -95,7 +105,7 @@ Custom key color:
 |--------|---------|-------|
 | Output | `<input-path>/transparent/` | Use `--output-dir` for a custom path |
 | `--preset` | `white` | `green` / `magenta` for chroma-screen AI art |
-| `--mode` | `border` | Prefer over `global` for characters and props |
+| `--mode` | `global` | Use `border` or `both` when same-color interior details must be preserved |
 | `--tolerance` | preset-specific | Raise if background remnants remain; lower if foreground edges erode |
 | `--feather` | 2 | Gaussian soft edge on alpha; `0` for hard edges |
 | `--pattern` | `*.png` | Also matches `.jpg`, `.jpeg`, `.webp`, `.bmp` |
@@ -118,9 +128,10 @@ Custom key color:
 | `image-remove-white-background` missing | Follow **Setup**; update manifest |
 | Background remnants (gray fringe) | Increase `--tolerance`; try `--feather 3` |
 | Subject edges eroded | Decrease `--tolerance`; ensure `--mode border` |
-| White clothing removed | Switch to `--mode border` (default); avoid `global` |
+| White clothing removed | Switch to `--mode border` or `--mode both`; avoid `global` for characters with white details |
 | Green spill on subject edges | Lower `--tolerance`; increase `--feather` slightly |
-| Interior holes stay opaque | Expected with `border` mode if a matching-color region is fully enclosed — use `--mode global` only if safe, or fix in an editor |
+| Interior holes stay opaque | Try `--mode center` if the hole matches the key color at the image center; try `--mode both` for edge + center; otherwise `--mode global` only if safe, or fix in an editor |
+| Center mode does nothing | Center pixel is not key color (subject sits in the middle) — use `border`, `both`, or split sprite sheets per frame |
 | Wrong colors in JPEG | Prefer PNG from AI export; raise tolerance slightly for compression artifacts |
 
 ## Related

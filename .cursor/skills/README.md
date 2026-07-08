@@ -38,13 +38,29 @@ Source audio
 
 ## Image
 
+```
+Source image (AI art / sprite sheet)
+    ↓
+① Convert to PNG (if needed)
+    ↓
+② Remove Gemini watermark (if needed)
+    ↓
+③ Split sprite sheet grid → frames (if sheet)
+    ↓
+④ Remove background
+   · flat white / green / magenta → color key (this skill)
+   · complex / photo backgrounds → AI matting (rembg)
+    ↓
+⑤ Filename normalization (optional)
+```
+
 | Skill | Purpose |
 |-------|---------|
 | [image-to-png](image-to-png/SKILL.md) | Image → PNG |
 | [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark |
 | [image-sprite-sheet-split](image-sprite-sheet-split/SKILL.md) | Split sprite sheet grid → individual frame PNGs |
+| [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove flat white / green / magenta backgrounds (color key; default `global` mode; also `border` / `center` / `both`) |
 | [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG (AI matting) |
-| [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove white/green/magenta flat backgrounds (color key) |
 
 ## Video
 
