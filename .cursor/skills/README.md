@@ -45,8 +45,9 @@ Source audio
 
 ## Other
 
-| Skill | Purpose |
-|-------|---------|
-| [image-remove-watermark](image-remove-watermark/SKILL.md) | Remove corner watermark |
-| [file-naming-normalization](file-naming-normalization/SKILL.md) | Filename → kebab-case |
-| [git-commit-message](git-commit-message/SKILL.md) | Commit message |
+| Skill | Purpose                                     |
+|-------|---------------------------------------------|
+| [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG |
+| [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark             |
+| [file-naming-normalization](file-naming-normalization/SKILL.md) | Filename → kebab-case                       |
+| [git-commit-message](git-commit-message/SKILL.md) | Commit message                              |

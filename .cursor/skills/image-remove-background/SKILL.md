@@ -46,14 +46,15 @@ Use `bin/python` on Unix. Model weights download on first run (~hundreds of MB).
 
 ## Quick Start
 
-**Default: write transparent PNGs to a sibling `transparent/` folder** (never overwrites sources):
+**Default: create a `transparent/` folder under the input path** and write outputs there (never overwrites sources):
 
 ```bash
-# Single file → image/sprites/hero/transparent/hero.png
+# Single file → image/sprites/transparent/hero.png
 .dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/sprites/hero.png
 
-# Directory batch
+# Directory batch → image/sprites/hero/transparent/<relative-path>.png
 .dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/sprites/hero -r
+# e.g. image/sprites/hero/sub/foo.png → image/sprites/hero/transparent/sub/foo.png
 ```
 
 Custom output directory:
@@ -92,7 +93,7 @@ For hair, fur, or soft edges, enable alpha matting:
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| Output | `<input-dir>/transparent/` | Use `--output-dir` for custom path |
+| Output | `<input-path>/transparent/` | Folder is auto-created under the file or directory you pass; use `--output-dir` for a custom path |
 | `--model` | `u2net` | See table above |
 | `--pattern` | `*.png` | Also matches `.jpg`, `.jpeg`, `.webp` |
 | `--alpha-matting` | off | Enable for fine edge detail |

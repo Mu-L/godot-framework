@@ -136,14 +136,13 @@ def resolve_output_path(
     input_root: Path,
     output_dir: Path | None,
 ) -> Path:
-    if output_dir is not None:
-        try:
-            rel = source.relative_to(input_root)
-        except ValueError:
-            rel = Path(source.name)
-        return (output_dir / rel).with_suffix(".png")
+    try:
+        rel = source.relative_to(input_root)
+    except ValueError:
+        rel = Path(source.name)
 
-    return (source.parent / "transparent" / source.name).with_suffix(".png")
+    base = output_dir if output_dir is not None else input_root / "transparent"
+    return (base / rel).with_suffix(".png")
 
 
 def maybe_downscale(image: Image.Image, max_side: int) -> Image.Image:
@@ -216,7 +215,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-o",
         "--output-dir",
-        help="Output directory (default: <input-dir>/transparent/)",
+        help="Output directory (default: <input-path>/transparent/)",
     )
     parser.add_argument(
         "--pattern",
