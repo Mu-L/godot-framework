@@ -36,6 +36,14 @@ Source audio
 | [audio-sample-rate-standardize](audio-sample-rate-standardize/SKILL.md) | Standardize to 44100 / 48000 Hz WAV |
 | [audio-to-ogg](audio-to-ogg/SKILL.md) | Audio → OGG (BGM) |
 
+## Image
+
+| Skill | Purpose |
+|-------|---------|
+| [image-to-png](image-to-png/SKILL.md) | Image → PNG |
+| [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark             |
+| [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG |
+
 ## Video
 
 | Skill | Purpose |
@@ -47,7 +55,5 @@ Source audio
 
 | Skill | Purpose                                     |
 |-------|---------------------------------------------|
-| [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG |
-| [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark             |
 | [file-naming-normalization](file-naming-normalization/SKILL.md) | Filename → kebab-case                       |
 | [git-commit-message](git-commit-message/SKILL.md) | Commit message                              |
