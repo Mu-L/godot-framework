@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -30,6 +31,10 @@ DEFAULT_ALPHA_THRESHOLD = 10
 DEFAULT_TOLERANCE = 25
 DEFAULT_PADDING = 0
 DEFAULT_EXCLUDES: tuple[str, ...] = ("*_sheet.png", "trimmed/*", "transparent/*")
+CURSOR_ATTACHMENT_RE = re.compile(
+    r"empty-window_images_(?P<name>.+)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -133,6 +138,13 @@ def collect_images(
     return sorted(images)
 
 
+def output_filename(source: Path) -> str:
+    match = CURSOR_ATTACHMENT_RE.search(source.stem)
+    if match:
+        return f"{match.group('name')}{source.suffix.lower()}"
+    return source.name
+
+
 def resolve_output_path(
     source: Path,
     input_root: Path,
@@ -140,11 +152,33 @@ def resolve_output_path(
 ) -> Path:
     try:
         rel = source.relative_to(input_root)
+        rel = rel.parent / output_filename(source)
     except ValueError:
-        rel = Path(source.name)
+        rel = Path(output_filename(source))
 
     base = output_dir if output_dir is not None else input_root / "trimmed"
     return base / rel
+
+
+def prepare_image(image: Image.Image) -> Image.Image:
+    if image.mode == "P":
+        if image.info.get("transparency") is not None:
+            return image.convert("RGBA")
+        return image.convert("RGB")
+    if image.mode == "LA":
+        return image.convert("RGBA")
+    if image.mode == "RGBA":
+        return image.copy()
+    return image.convert("RGB")
+
+
+def has_transparency(image: Image.Image) -> bool:
+    if image.mode in {"RGBA", "LA"}:
+        alpha = image.split()[-1]
+        return alpha.getextrema()[0] < 255
+    if image.mode == "P" and image.info.get("transparency") is not None:
+        return True
+    return False
 
 
 def sample_corner_background(image: Image.Image) -> tuple[int, int, int]:
@@ -187,16 +221,20 @@ def bbox_from_color(
     image: Image.Image,
     background: tuple[int, int, int],
     tolerance: int,
+    alpha_threshold: int,
 ) -> tuple[int, int, int, int] | None:
-    rgb = image.convert("RGB")
-    width, height = rgb.size
-    pixels = rgb.load()
+    rgba = image.convert("RGBA")
+    width, height = rgba.size
+    pixels = rgba.load()
     min_x, min_y = width, height
     max_x, max_y = -1, -1
     found = False
     for y in range(height):
         for x in range(width):
-            if color_distance(pixels[x, y], background) > tolerance:
+            r, g, b, a = pixels[x, y]
+            if a <= alpha_threshold:
+                continue
+            if color_distance((r, g, b), background) > tolerance:
                 found = True
                 min_x = min(min_x, x)
                 min_y = min(min_y, y)
@@ -223,15 +261,16 @@ def detect_content_bbox(
             background = sample_corner_background(image)
         return bbox_from_color(image, background, tolerance)
 
-    rgba = image.convert("RGBA")
-    alpha_bbox = bbox_from_alpha(rgba, alpha_threshold)
-    if alpha_bbox is not None:
-        alpha = rgba.split()[3]
-        if alpha.getextrema()[0] < 255:
-            return alpha_bbox
+    if mode == "color":
+        if background is None:
+            background = sample_corner_background(image)
+        return bbox_from_color(image, background, tolerance, alpha_threshold)
+
+    if has_transparency(image):
+        return bbox_from_alpha(image, alpha_threshold)
 
     bg = background if background is not None else sample_corner_background(image)
-    return bbox_from_color(image, bg, tolerance)
+    return bbox_from_color(image, bg, tolerance, alpha_threshold)
 
 
 def expand_bbox_preserve_aspect(
@@ -345,8 +384,17 @@ def trim_image(
 
 def save_trimmed(image: Image.Image, dest: Path) -> None:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if dest.suffix.lower() in {".jpg", ".jpeg"} and image.mode in {"RGBA", "LA", "P"}:
-        image = image.convert("RGB")
+    suffix = dest.suffix.lower()
+    if suffix == ".png":
+        out = image
+        if out.mode not in {"RGBA", "RGB", "P", "L"}:
+            out = out.convert("RGBA")
+        out.save(dest, format="PNG")
+        return
+    if suffix in {".jpg", ".jpeg"}:
+        out = image.convert("RGB") if image.mode in {"RGBA", "LA", "P"} else image
+        out.save(dest, format="JPEG")
+        return
     image.save(dest)
 
 
@@ -476,9 +524,17 @@ def main() -> None:
             continue
 
         with Image.open(source) as img:
-            original_size = img.size
+            if img.format == "JPEG" and source.suffix.lower() == ".png":
+                print(
+                    f"Warning: {source.name} is JPEG data with a .png extension — "
+                    "transparency was already lost before trim. Use the original RGBA PNG.",
+                    file=sys.stderr,
+                )
+
+            prepared = prepare_image(img)
+            original_size = prepared.size
             result, crop_box = trim_image(
-                img,
+                prepared,
                 mode=args.mode,
                 preserve_aspect=preserve_aspect,
                 alpha_threshold=args.alpha_threshold,

@@ -21,6 +21,8 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 - Do not hand-write ImageMagick / FFmpeg crop commands — use the bundled script.
 - `populated: false` for `image-trim` is not a reason to skip. Install first, set `populated: true`, retry the same command.
 - Pass the input path as-is. Output goes to `<input>/trimmed/` by default — no path rewriting; **never overwrite sources**.
+- **Crop only** — preserve source pixel data and alpha; never composite onto black/white or fill background colors.
+- Output filenames keep the **original asset name** (e.g. `bullet_speed.png`). Cursor chat attachment paths like `empty-window_images_bullet_speed-<uuid>.png` are shortened automatically.
 
 ## Setup (first run)
 
@@ -125,6 +127,8 @@ Custom output directory:
 | Borders remain | Raise `--tolerance`; use `--mode color` with explicit `--color` |
 | Distorted proportions after trim | Do **not** pass `--tight` unless user wants tight bbox |
 | JPEG saved with wrong mode | Script converts RGBA → RGB automatically for `.jpg` output |
+| Output has black instead of transparency | Source may be JPEG data saved with a `.png` extension (Cursor attachments) — re-supply the original RGBA PNG |
+| Long Cursor attachment filenames | Script auto-renames to the embedded asset name (`bullet_speed.png`, etc.) |
 
 ## Related
 
