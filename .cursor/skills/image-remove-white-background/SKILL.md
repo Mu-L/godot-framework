@@ -136,5 +136,4 @@ Custom key color:
 
 ## Related
 
-- Script: [scripts/remove_white_bg.py](scripts/remove_white_bg.py)
 - AI matting (complex backgrounds): [image-remove-background](../image-remove-background/SKILL.md)

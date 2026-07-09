@@ -118,8 +118,3 @@ Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 | Distorted sprite | Switch from `exact` to `fit` or `fill` |
 | Animated GIF | Only first frame is processed by default ImageMagick behavior |
 
-## Related
-
-- Script: [scripts/resize.py](scripts/resize.py)
-- Trim: [image-trim](../image-trim/SKILL.md)
-- Convert: [image-to-png](../image-to-png/SKILL.md)

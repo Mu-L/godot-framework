@@ -124,6 +124,5 @@ For hair, fur, or soft edges, enable alpha matting:
 
 ## Related
 
-- Script: [scripts/remove_background.py](scripts/remove_background.py)
 - Flat white/green/magenta AI backgrounds: [image-remove-white-background](../image-remove-white-background/SKILL.md) (prefer over rembg)
 - rembg docs: https://github.com/danielgatis/rembg

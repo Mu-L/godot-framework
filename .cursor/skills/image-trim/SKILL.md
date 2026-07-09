@@ -130,8 +130,3 @@ Custom output directory:
 | Output has black instead of transparency | Source may be JPEG data saved with a `.png` extension (Cursor attachments) — re-supply the original RGBA PNG |
 | Long Cursor attachment filenames | Script auto-renames to the embedded asset name (`bullet_speed.png`, etc.) |
 
-## Related
-
-- Script: [scripts/trim.py](scripts/trim.py)
-- Background removal: [image-remove-white-background](../image-remove-white-background/SKILL.md), [image-remove-background](../image-remove-background/SKILL.md)
-- Sprite sheet split: [image-sprite-sheet-split](../image-sprite-sheet-split/SKILL.md)

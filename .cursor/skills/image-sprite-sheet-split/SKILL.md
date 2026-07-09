@@ -123,8 +123,3 @@ Non-uniform cell width (2816×1536, 6 columns × 3 rows):
 | Unused pixels warning | Set explicit cell dimensions or offsets |
 | Need transparent frames | Split first, then [image-remove-background](../image-remove-background/SKILL.md) on `frames/` |
 
-## Related
-
-- Script: [scripts/split_frames.py](scripts/split_frames.py)
-- Background removal (per frame): [image-remove-background](../image-remove-background/SKILL.md)
-- PNG conversion: [image-to-png](../image-to-png/SKILL.md)
