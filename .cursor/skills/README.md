@@ -7,7 +7,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | Category | Pipeline | Skills |
 |----------|----------|--------|
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
-| [Image](#image) | PNG → watermark → split → background → trim | 6 skills |
+| [Image](#image) | PNG → watermark → split → background → trim → resize | 7 skills |
 | [Video](#video) | Watermark → OGV → extract audio | 3 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
@@ -62,7 +62,9 @@ Source image (AI art / sprite sheet)
     ↓
 ⑤ Trim invalid borders / transparent padding (optional)
     ↓
-⑥ Filename normalization (optional)
+⑥ Resize to target width × height (optional)
+    ↓
+⑦ Filename normalization (optional)
 ```
 
 | Skill | Purpose |
@@ -73,6 +75,7 @@ Source image (AI art / sprite sheet)
 | [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove flat white / green / magenta backgrounds (color key; default `global` mode; also `border` / `center` / `both`) |
 | [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG (AI matting) |
 | [image-trim](image-trim/SKILL.md) | Trim transparent or solid-color borders (preserve aspect ratio by default) |
+| [image-resize](image-resize/SKILL.md) | Resize to explicit width × height (fit / fill / exact; ImageMagick) |
 
 ## Video
 
