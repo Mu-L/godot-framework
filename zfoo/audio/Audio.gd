@@ -116,6 +116,7 @@ static func play_music(path: String, volume_linear: float = 1.0) -> void:
 	pass
 
 static func stop_music() -> void:
+	musics.clear()
 	stop_stream(AudioBusType.Music)
 	pass
 
@@ -125,6 +126,7 @@ static func play_music_fade(path: String, volume_linear: float = 1.0, duration: 
 	pass
 
 static func stop_music_fade(duration: float = 1.0) -> void:
+	musics.clear()
 	await stop_stream_fade(AudioBusType.Music, duration)
 	pass
 ####################################################################################################
