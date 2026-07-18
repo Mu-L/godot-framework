@@ -28,7 +28,10 @@ static func log_format_error_message(function: String, file: String, line: int, 
 
 	if script_backtraces != null and script_backtraces.size() > 0:
 		for bt in script_backtraces:
-			parts.append(StringUtils.format("at {}", str(bt)))
+			var part := str(bt)
+			if StringUtils.is_blank(part):
+				continue
+			parts.append(StringUtils.format("at {}", part))
 	gdf.events.log_error.emit()
 	return "\n".join(parts)
 
