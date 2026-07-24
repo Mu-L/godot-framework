@@ -75,7 +75,7 @@ Download uses the **same filename** as the source (forced `.png`). No share / no
 4. Choose **Key color** / tolerance / feather if needed.
 5. Click **Apply** → preview (gray = transparent).
 6. Click **Download** → browser download with the original name.
-7. Stop the server when done (`Ctrl+C`).
+7. Click **Stop server** when done (or `Ctrl+C` in the terminal).
 
 ## Key color
 
@@ -94,7 +94,7 @@ Use the UI color picker (default `#FFFFFF`). CLI `--preset` only sets the initia
 3. **Launch** — run `app.py` with the user image path; prefer `--no-browser` if the agent cannot open a GUI browser, and print `http://127.0.0.1:<port>`.
 4. **Hand off** — tell the user to paint, Apply, then Download (same filename as source).
 5. **Verify** — after the user confirms download, they are done; do not overwrite sources.
-6. **Stop** — terminate the Gradio process when the user is done.
+6. **Stop** — click **Stop server** in the UI, or terminate the Gradio process when the user is done.
 
 ## Defaults
 

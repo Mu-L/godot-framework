@@ -7,8 +7,10 @@ Run via manifest ui-image-remove-background.bin — see SKILL.md.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageFilter
@@ -175,7 +177,15 @@ def build_ui(
         initial_height = display_height(source0.size, chrome=EDITOR_CHROME_PX)
 
     with gr.Blocks(title="ui-image-remove-background") as demo:
-        gr.Markdown("## ui-image-remove-background")
+        with gr.Row(elem_classes=["title-row"]):
+            gr.Markdown("## ui-image-remove-background", scale=1)
+            stop_btn = gr.Button(
+                "Stop server",
+                variant="stop",
+                scale=0,
+                min_width=140,
+                elem_id="stop-server-btn",
+            )
 
         source_path = gr.State(path0)
 
@@ -286,12 +296,31 @@ def build_ui(
                 f"Ready — download as `{name}`.",
             )
 
+        def on_stop():
+            # Yield UI feedback first so the browser grays the button before exit.
+            yield (
+                gr.update(value="Stopping…", interactive=False, variant="secondary"),
+                "Stopping server…",
+            )
+            time.sleep(0.5)
+            yield (
+                gr.update(value="Stopped", interactive=False, variant="secondary"),
+                "Server stopped.",
+            )
+            time.sleep(0.4)
+            try:
+                demo.close()
+            except Exception:
+                pass
+            os._exit(0)
+
         file_in.change(on_file, inputs=[file_in], outputs=[source_path, editor, status])
         apply_btn.click(
             on_apply,
             inputs=[editor, source_path, key_color, tolerance, feather],
             outputs=[preview, download_btn, status],
         )
+        stop_btn.click(on_stop, outputs=[stop_btn, status])
 
     return demo
 
@@ -327,6 +356,16 @@ def main() -> int:
         server_port=args.port,
         inbrowser=not args.no_browser,
         share=False,
+        css="""
+.title-row { align-items: center; }
+#stop-server-btn button:disabled,
+#stop-server-btn.disabled,
+#stop-server-btn button[disabled] {
+  opacity: 0.45 !important;
+  filter: grayscale(1);
+  cursor: not-allowed !important;
+}
+""",
         footer_links=["gradio", "settings"],
     )
     return 0
