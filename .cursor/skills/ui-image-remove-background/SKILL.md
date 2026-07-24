@@ -72,15 +72,17 @@ Download uses the **same filename** as the source (forced `.png`). No share / no
 1. **Upload** the image via the file control (or preload via CLI) — do not drop into the editor canvas.
 2. Transparent areas appear as **gray** in the editor (download still has real alpha).
 3. **Paint** over local white / chroma patches to remove.
-4. Choose preset / tolerance / feather if needed.
+4. Choose **Key color** / tolerance / feather if needed.
 5. Click **Apply** → preview (gray = transparent).
 6. Click **Download** → browser download with the original name.
 7. Stop the server when done (`Ctrl+C`).
 
-## Presets
+## Key color
 
-| Preset | Key color | Default tolerance |
-|--------|-----------|-------------------|
+Use the UI color picker (default `#FFFFFF`). CLI `--preset` only sets the initial color and tolerance:
+
+| `--preset` | Key color | Default tolerance |
+|------------|-----------|-------------------|
 | `white` *(default)* | `#FFFFFF` | 25 |
 | `green` | `#00FF00` | 40 |
 | `magenta` | `#FF00FF` | 40 |

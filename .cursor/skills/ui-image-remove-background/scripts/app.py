@@ -28,6 +28,21 @@ EDITOR_CHROME_PX = 56
 _TEMP_DIR = Path(tempfile.mkdtemp(prefix="region_key_"))
 
 
+def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
+
+
+def parse_hex(color: str | None) -> tuple[int, int, int]:
+    if not color:
+        return PRESETS["white"]
+    s = color.strip().lstrip("#")
+    if len(s) == 3:
+        s = "".join(c * 2 for c in s)
+    if len(s) != 6:
+        return PRESETS["white"]
+    return int(s[0:2], 16), int(s[2:4], 16), int(s[4:6], 16)
+
+
 def load_rgba(path: str | Path) -> Image.Image:
     with Image.open(path) as img:
         return img.convert("RGBA")
@@ -198,13 +213,26 @@ def build_ui(
             )
 
         with gr.Row():
-            preset = gr.Dropdown(
-                choices=["white", "green", "magenta"],
-                value=default_preset,
-                label="Key preset",
+            key_color = gr.ColorPicker(
+                value=rgb_to_hex(PRESETS[default_preset]),
+                label="Key color",
             )
-            tolerance = gr.Slider(0, 80, value=default_tolerance, step=1, label="Tolerance")
-            feather = gr.Slider(0, 8, value=default_feather, step=1, label="Feather")
+            tolerance = gr.Slider(
+                0,
+                80,
+                value=default_tolerance,
+                step=1,
+                label="Tolerance",
+                info="How close a pixel must be to Key color to be removed (higher = more aggressive)",
+            )
+            feather = gr.Slider(
+                0,
+                8,
+                value=default_feather,
+                step=1,
+                label="Feather",
+                info="Softens edges of removed regions inside the paint mask (0 = hard cut)",
+            )
 
         status = gr.Markdown(
             f"Loaded `{download_name(name0)}` — paint, Apply, then Download."
@@ -236,7 +264,7 @@ def build_ui(
                 f"Loaded `{download_name(path.name)}` — paint, Apply, then Download.",
             )
 
-        def on_apply(editor_value, path, preset_name, tol, feather_radius):
+        def on_apply(editor_value, path, color, tol, feather_radius):
             if not path:
                 return None, gr.update(value=None, interactive=False), "Upload an image first."
             source = load_rgba(path)
@@ -246,7 +274,7 @@ def build_ui(
             result = remove_key_in_region(
                 source,
                 mask,
-                key=PRESETS[preset_name],
+                key=parse_hex(color),
                 tolerance=int(tol),
                 feather=int(feather_radius),
             )
@@ -261,7 +289,7 @@ def build_ui(
         file_in.change(on_file, inputs=[file_in], outputs=[source_path, editor, status])
         apply_btn.click(
             on_apply,
-            inputs=[editor, source_path, preset, tolerance, feather],
+            inputs=[editor, source_path, key_color, tolerance, feather],
             outputs=[preview, download_btn, status],
         )
 
