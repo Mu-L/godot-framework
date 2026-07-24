@@ -179,7 +179,7 @@ def build_ui(
                 image_mode="RGBA",
                 format="png",
                 brush=gr.Brush(default_size=8, colors=["#ff00ff"], color_mode="fixed"),
-                layers=gr.LayerOptions(allow_additional_layers=False),
+                layers=False,
                 transforms=(),
                 canvas_size=initial_canvas,
                 fixed_canvas=False,
