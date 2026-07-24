@@ -22,50 +22,62 @@ PRESET_TOLERANCE = {"white": 25, "green": 40, "magenta": 40}
 DEFAULT_FEATHER = 2
 DEFAULT_PORT = 7860
 GRAY = (0x9E, 0x9E, 0x9E, 255)
+MAX_DISPLAY_SIDE = 520
+EDITOR_CHROME_PX = 56
 
-UI_CSS = """
-.gray-bg,
-.gray-bg .wrap,
-.gray-bg .image-container,
-.gray-bg .pixi-target,
-.gray-bg .upload-container,
-.gray-bg canvas,
-.gray-bg img,
-.gray-bg [data-testid="image"] {
-  background-color: #9e9e9e !important;
-  background-image: none !important;
-}
-"""
+_TEMP_DIR = Path(tempfile.mkdtemp(prefix="region_key_"))
+
+
+def load_rgba(path: str | Path) -> Image.Image:
+    with Image.open(path) as img:
+        return img.convert("RGBA")
 
 
 def as_pil(image) -> Image.Image | None:
+    """Normalize ImageEditor layer payloads (path / PIL / array) to RGBA."""
     if image is None:
         return None
     if isinstance(image, (str, Path)):
-        with Image.open(image) as img:
-            return img.convert("RGBA")
+        return load_rgba(image)
     if isinstance(image, Image.Image):
         return image.convert("RGBA")
     return Image.fromarray(image).convert("RGBA")
 
 
 def on_gray(image: Image.Image) -> Image.Image:
-    """Composite RGBA onto solid gray, then flatten to RGB.
-
-    Gradio ImageEditor's Pixi canvas clears to white under alpha; baking gray
-    into opaque RGB is required for transparent regions to read as gray.
-    """
+    """Bake transparency to opaque gray for Pixi / preview display."""
     rgba = image.convert("RGBA")
     return Image.alpha_composite(Image.new("RGBA", rgba.size, GRAY), rgba).convert("RGB")
 
 
 def save_temp_png(image: Image.Image, name: str = "display.png") -> str:
-    path = Path(tempfile.mkdtemp(prefix="region_key_")) / Path(name).name
-    if image.mode == "RGB":
-        image.save(path, format="PNG")
-    else:
-        image.convert("RGBA").save(path, format="PNG")
+    path = _TEMP_DIR / Path(name).name
+    image.save(path, format="PNG")
     return str(path)
+
+
+def download_name(name: str | None) -> str:
+    if not name:
+        return "result.png"
+    return str(Path(name).with_suffix(".png").name)
+
+
+def display_height(size: tuple[int, int], *, chrome: int = 0) -> int:
+    w, h = size
+    scale = min(MAX_DISPLAY_SIDE / max(w, h, 1), 1.0)
+    return max(1, int(round(h * scale))) + chrome
+
+
+def editor_update(source: Image.Image, name: str):
+    """Build ImageEditor value + canvas sized to the image (no letterbox padding)."""
+    import gradio as gr
+
+    display = save_temp_png(on_gray(source), download_name(name))
+    return gr.update(
+        value={"background": display, "layers": [], "composite": display},
+        canvas_size=source.size,
+        height=display_height(source.size, chrome=EDITOR_CHROME_PX),
+    )
 
 
 def is_key_pixel(r, g, b, key, tolerance, *, white_mode: bool) -> bool:
@@ -126,15 +138,8 @@ def remove_key_in_region(
     return result
 
 
-def download_name(name: str | None) -> str:
-    if not name:
-        return "result.png"
-    return str(Path(name).with_suffix(".png").name)
-
-
 def build_ui(
     *,
-    preload: Image.Image | None,
     preload_path: Path | None,
     default_preset: str,
     default_tolerance: int,
@@ -142,62 +147,68 @@ def build_ui(
 ):
     import gradio as gr
 
-    source0 = preload.convert("RGBA") if preload is not None else None
-    name0 = Path(preload_path).name if preload_path else ""
+    path0 = str(preload_path) if preload_path else None
+    name0 = preload_path.name if preload_path else ""
     initial = None
-    if source0 is not None:
-        path = save_temp_png(on_gray(source0), download_name(name0) or "preload.png")
-        initial = {"background": path, "layers": [], "composite": path}
+    initial_canvas = (800, 800)
+    initial_height = MAX_DISPLAY_SIDE + EDITOR_CHROME_PX
+    if preload_path is not None:
+        source0 = load_rgba(preload_path)
+        display = save_temp_png(on_gray(source0), download_name(name0))
+        initial = {"background": display, "layers": [], "composite": display}
+        initial_canvas = source0.size
+        initial_height = display_height(source0.size, chrome=EDITOR_CHROME_PX)
 
-    with gr.Blocks(title="Region remove key background") as demo:
-        gr.Markdown(
-            "## Region key-color remove — upload image, paint white/chroma patches, Apply, then Download\n"
-            "Transparent areas show as gray in the editor/preview. Download keeps real alpha."
-        )
+    with gr.Blocks(title="ui-image-remove-background") as demo:
+        gr.Markdown("## ui-image-remove-background")
 
-        source_state = gr.State(source0)
-        filename_state = gr.State(name0)
+        source_path = gr.State(path0)
 
         file_in = gr.File(
             label="Upload image (PNG with transparency OK)",
             file_types=["image"],
             type="filepath",
-            value=str(preload_path) if preload_path else None,
+            value=path0,
         )
 
-        with gr.Row(equal_height=True):
+        with gr.Row(equal_height=False):
             editor = gr.ImageEditor(
                 value=initial,
-                label="Paint region to key out (gray = transparent)",
+                show_label=False,
                 type="filepath",
                 image_mode="RGBA",
                 format="png",
                 brush=gr.Brush(default_size=8, colors=["#ff00ff"], color_mode="fixed"),
+                layers=gr.LayerOptions(allow_additional_layers=False),
                 transforms=(),
-                height=520,
+                canvas_size=initial_canvas,
+                fixed_canvas=False,
+                height=initial_height,
                 # Never load source PNGs here — Pixi canvas is white under alpha.
                 sources=(),
                 buttons=[],
-                elem_classes=["gray-bg"],
             )
             preview = gr.Image(
-                label="Preview (gray = transparent)",
+                show_label=False,
                 type="pil",
                 format="png",
                 image_mode="RGB",
-                height=520,
+                height=display_height(initial_canvas) if initial else MAX_DISPLAY_SIDE,
                 buttons=[],
-                elem_classes=["gray-bg"],
             )
 
         with gr.Row():
-            preset = gr.Dropdown(choices=sorted(PRESETS), value=default_preset, label="Key preset")
+            preset = gr.Dropdown(
+                choices=["white", "green", "magenta"],
+                value=default_preset,
+                label="Key preset",
+            )
             tolerance = gr.Slider(0, 80, value=default_tolerance, step=1, label="Tolerance")
             feather = gr.Slider(0, 8, value=default_feather, step=1, label="Feather")
 
         status = gr.Markdown(
             f"Loaded `{download_name(name0)}` — paint, Apply, then Download."
-            if source0 is not None
+            if path0
             else "Upload an image to begin."
         )
         with gr.Row():
@@ -206,25 +217,29 @@ def build_ui(
 
         def on_file(path):
             if not path:
-                return None, "", gr.update(value=None), "Upload an image to begin."
+                return (
+                    None,
+                    gr.update(
+                        value=None,
+                        canvas_size=(800, 800),
+                        height=MAX_DISPLAY_SIDE + EDITOR_CHROME_PX,
+                    ),
+                    "Upload an image to begin.",
+                )
             path = Path(path)
             if not path.is_file():
-                return None, "", gr.update(value=None), f"File not found: `{path}`"
-            with Image.open(path) as img:
-                source = img.convert("RGBA")
-            name = path.name
-            display = save_temp_png(on_gray(source), download_name(name))
+                return None, gr.update(value=None), f"File not found: `{path}`"
+            source = load_rgba(path)
             return (
-                source,
-                name,
-                gr.update(value={"background": display, "layers": [], "composite": display}),
-                f"Loaded `{download_name(name)}` — paint, Apply, then Download.",
+                str(path),
+                editor_update(source, path.name),
+                f"Loaded `{download_name(path.name)}` — paint, Apply, then Download.",
             )
 
-        def on_apply(editor_value, source, filename, preset_name, tol, feather_radius):
-            if source is None:
+        def on_apply(editor_value, path, preset_name, tol, feather_radius):
+            if not path:
                 return None, gr.update(value=None, interactive=False), "Upload an image first."
-            source = as_pil(source)
+            source = load_rgba(path)
             mask = editor_region_mask(editor_value, source.size)
             if mask.getbbox() is None:
                 return None, gr.update(value=None, interactive=False), "Paint the region to remove first."
@@ -235,22 +250,18 @@ def build_ui(
                 tolerance=int(tol),
                 feather=int(feather_radius),
             )
-            name = download_name(filename)
-            path = save_temp_png(result, name)
+            name = download_name(Path(path).name)
+            out = save_temp_png(result, name)
             return (
-                on_gray(result),
-                gr.update(value=path, interactive=True, label=f"Download ({name})"),
+                gr.update(value=on_gray(result), height=display_height(result.size)),
+                gr.update(value=out, interactive=True, label=f"Download ({name})"),
                 f"Ready — download as `{name}`.",
             )
 
-        file_in.change(
-            on_file,
-            inputs=[file_in],
-            outputs=[source_state, filename_state, editor, status],
-        )
+        file_in.change(on_file, inputs=[file_in], outputs=[source_path, editor, status])
         apply_btn.click(
             on_apply,
-            inputs=[editor, source_state, filename_state, preset, tolerance, feather],
+            inputs=[editor, source_path, preset, tolerance, feather],
             outputs=[preview, download_btn, status],
         )
 
@@ -260,26 +271,22 @@ def build_ui(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Paint a region and remove key-color background.")
     parser.add_argument("image", nargs="?", help="Optional image to preload")
-    parser.add_argument("--preset", choices=sorted(PRESETS), default="white")
+    parser.add_argument("--preset", choices=list(PRESETS), default="white")
     parser.add_argument("--tolerance", type=int)
     parser.add_argument("--feather", type=int, default=DEFAULT_FEATHER)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
-    preload = None
     preload_path = None
     if args.image:
         preload_path = Path(args.image).expanduser().resolve()
         if not preload_path.is_file():
             print(f"Image not found: {preload_path}", file=sys.stderr)
             return 1
-        with Image.open(preload_path) as img:
-            preload = img.convert("RGBA")
 
     tol = args.tolerance if args.tolerance is not None else PRESET_TOLERANCE[args.preset]
     demo = build_ui(
-        preload=preload,
         preload_path=preload_path,
         default_preset=args.preset,
         default_tolerance=tol,
@@ -292,7 +299,6 @@ def main() -> int:
         server_port=args.port,
         inbrowser=not args.no_browser,
         share=False,
-        css=UI_CSS,
         footer_links=["gradio", "settings"],
     )
     return 0
