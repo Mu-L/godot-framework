@@ -8,7 +8,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 |----------|----------|--------|
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 7 skills |
-| [Video](#video) | Watermark → OGV → extract audio | 3 skills |
+| [Video](#video) | Watermark → mute / extract → OGV | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## Audio
@@ -79,23 +79,26 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
-Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, export Godot-ready OGV, optionally rip the audio track.
+Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, optionally mute or rip audio, then export Godot-ready OGV.
 
 ```
 Source video (Veo / Gemini generated)
     ↓
 ① Remove Gemini / Veo watermark (if needed)
     ↓
-② Convert to OGV (for Godot)
+② Extract audio track → WAV (optional)
     ↓
-③ Extract audio track → WAV (optional)
+③ Remove all audio / mute (optional)
+    ↓
+④ Convert to OGV (for Godot)
 ```
 
 | Skill | Purpose |
 |-------|---------|
 | [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
-| [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
+| [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
+| [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 
 ## Other
 
