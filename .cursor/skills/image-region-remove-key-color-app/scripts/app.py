@@ -1,7 +1,7 @@
 """
 Gradio UI: paint a region, then remove key-color pixels only inside that region.
 
-Run via manifest ui-image-remove-background.bin — see SKILL.md.
+Run via manifest image-region-remove-key-color-app.bin — see SKILL.md.
 """
 
 from __future__ import annotations
@@ -176,9 +176,9 @@ def build_ui(
         initial_canvas = source0.size
         initial_height = display_height(source0.size, chrome=EDITOR_CHROME_PX)
 
-    with gr.Blocks(title="ui-image-remove-background") as demo:
+    with gr.Blocks(title="image-region-remove-key-color-app") as demo:
         with gr.Row(elem_classes=["title-row"]):
-            gr.Markdown("## ui-image-remove-background", scale=1)
+            gr.Markdown("## image-region-remove-key-color-app", scale=1)
             stop_btn = gr.Button(
                 "Stop server",
                 variant="stop",

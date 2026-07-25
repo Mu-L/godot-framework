@@ -1,5 +1,5 @@
 ---
-name: ui-image-remove-background
+name: image-region-remove-key-color-app
 description: >-
   Interactive Gradio UI to paint a region and remove solid key-color background
   (white / green / magenta) only inside that selection. Use when enclosed white
@@ -7,7 +7,7 @@ description: >-
   chroma patches, or selective color-key cleanup before Godot sprite import.
 ---
 
-# UI Image Remove Background
+# Image Region Remove Key Color App
 
 Paint a **region mask** in a local Gradio UI, then remove **key-color pixels only inside that region** (global keying scoped to the brush). Preserves white/light subject pixels outside the paint strokes.
 
@@ -17,7 +17,7 @@ Use after [image-remove-white-background](../image-remove-white-background/SKILL
 
 When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
-- Run `app.py` through the **`ui-image-remove-background` manifest entry** (`.dependency/ui-image-remove-background/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
+- Run `app.py` through the **`image-region-remove-key-color-app` manifest entry** (`.dependency/image-region-remove-key-color-app/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write a one-off Gradio app — use the bundled script.
 - `populated: false` is not a reason to skip. Install first, set `populated: true`, retry the same command.
 - This skill is **interactive**: launch the UI, give the user the local URL, wait for them to paint / Apply / Download.
@@ -27,24 +27,24 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 From project root:
 
 ```bash
-.dependency/python/python -m venv .dependency/ui-image-remove-background/.venv
-.dependency/ui-image-remove-background/.venv/Scripts/python -m pip install Pillow gradio
+.dependency/python/python -m venv .dependency/image-region-remove-key-color-app/.venv
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python -m pip install Pillow gradio
 ```
 
 If `python -m venv` fails (missing `venv` / `ensurepip`), create the env with `virtualenv` from another populated skill venv, then install packages into the new env:
 
 ```bash
 .dependency/rembg/.venv/Scripts/python -m pip install virtualenv
-.dependency/rembg/.venv/Scripts/python -m virtualenv .dependency/ui-image-remove-background/.venv
-.dependency/ui-image-remove-background/.venv/Scripts/python -m pip install Pillow gradio
+.dependency/rembg/.venv/Scripts/python -m virtualenv .dependency/image-region-remove-key-color-app/.venv
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python -m pip install Pillow gradio
 ```
 
 Register in `.dependency/manifest.json`:
 
 ```json
-"ui-image-remove-background": {
+"image-region-remove-key-color-app": {
   "populated": true,
-  "bin": ".dependency/ui-image-remove-background/.venv/Scripts/python.exe"
+  "bin": ".dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe"
 }
 ```
 
@@ -54,13 +54,13 @@ Use `bin/python` on Unix.
 
 ```bash
 # Preload an image (opens http://127.0.0.1:7860)
-.dependency/ui-image-remove-background/.venv/Scripts/python \
-  .cursor/skills/ui-image-remove-background/scripts/app.py \
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python \
+  .cursor/skills/image-region-remove-key-color-app/scripts/app.py \
   path/to/sprite.png
 
 # Custom port
-.dependency/ui-image-remove-background/.venv/Scripts/python \
-  .cursor/skills/ui-image-remove-background/scripts/app.py \
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python \
+  .cursor/skills/image-region-remove-key-color-app/scripts/app.py \
   path/to/sprite.png \
   --port 7861
 ```
