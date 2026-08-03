@@ -16,18 +16,7 @@ A lightweight Godot framework + agent skills for building and shipping games
       |-----------------|-------------------------------|
    | `GodotFramework` | `res://zfoo/GodotFramework.tscn` |
 
-3. Ensure `GodotFramework` loads **before** any scene that uses framework APIs. On startup, `gdf` initializes logging,
-   audio buses, and a top-level UI layer (`gdf_layer`).
-
-The Autoload node runs `GodotFramework.gd`, whose global class name is `gdf`.
-
-```gdscript
-# Defer a callable to the main thread (useful from network / worker callbacks)
-gdf.callable_deferred(func() -> void: refresh_ui())
-
-# Graceful exit (waits a few frames before quit)
-await gdf.quit()
-```
+3. That's it — have fun!
 
 ---
 
@@ -225,6 +214,20 @@ var item = RandomUtils.random_ele(items)
 
 # ThreadUtils — non-blocking wait on main thread
 await ThreadUtils.async_sleep(500)
+```
+
+---
+
+## GodotFramework — gdf
+
+The Autoload node runs `GodotFramework.gd`, whose global class name is `gdf`.
+
+```gdscript
+# Defer a callable to the main thread (useful from network / worker callbacks)
+gdf.callable_deferred(func() -> void: refresh_ui())
+
+# Graceful exit (waits a few frames before quit)
+await gdf.quit()
 ```
 
 
