@@ -86,6 +86,11 @@ static func convert_json_value(property: Dictionary, value: Variant, obj: Object
 		TYPE_STRING:
 			return str(value)
 		TYPE_OBJECT:
+			if typeof(value) != TYPE_DICTIONARY:
+				return value
+			var current = obj.get(property_name)
+			if current is Object and current.get_script() != null:
+				return dict_to_object(value, current.get_script())
 			return value
 		_:
 			return value

@@ -54,46 +54,57 @@ func _poll_task(task: HttpTask) -> void:
 		HTTPClient.STATUS_TLS_HANDSHAKE_ERROR:
 			fail(task)
 			Log.error("Http tls error:[STATUS_TLS_HANDSHAKE_ERROR] url:[{}]", task.url)
-		HTTPClient.STATUS_DISCONNECTED:
-			fail(task)
-			Log.error("Http connection error:[STATUS_DISCONNECTED] url:[{}]", task.url)
 		HTTPClient.STATUS_CONNECTION_ERROR:
 			fail(task)
 			Log.error("Http connection error:[STATUS_CONNECTION_ERROR] url:[{}]", task.url)
+		HTTPClient.STATUS_DISCONNECTED:
+			# Connection: close — body finished (or failed before request)
+			if task.has_requested:
+				complete(task)
+			else:
+				fail(task)
+				Log.error("Http connection error:[STATUS_DISCONNECTED] url:[{}]", task.url)
 		HTTPClient.STATUS_REQUESTING, HTTPClient.STATUS_RESOLVING, HTTPClient.STATUS_CONNECTING:
 			pass
 		HTTPClient.STATUS_CONNECTED:
+			if task.has_requested:
+				# Keep-alive — finished receiving body
+				complete(task)
+				return
 			var err := client.request(task.method, HttpUtils.get_path_from_url(task.url), task.headers, task.body)
 			if err != OK:
 				fail(task)
 				Log.error("Http request error url:[{}]", task.url)
+			else:
+				task.has_requested = true
 		HTTPClient.STATUS_BODY:
-			if client.has_response():
-				var chunk := client.read_response_body_chunk()
-				# prefer using the length.
-				if client.get_response_body_length() > 0:
-					response.body.append_array(chunk)
-					if response.body.size() >= client.get_response_body_length():
-						complete(task)
-				else:
-					# HTTP **chunked(Transfer-Encoding: chunked)** end flag is a chunk with lenth 0
-					if client.is_response_chunked():
-						if StringUtils.is_empty(chunk.get_string_from_utf8()):
-							complete(task)
-						else:
-							response.body.append_array(chunk)
-					else:
-						response.body.append_array(chunk)
-						complete(task)
+			if !client.has_response():
+				return
+				
+			var chunk := client.read_response_body_chunk()
+			# prefer using the length.
+			if client.get_response_body_length() > 0:
+				response.body.append_array(chunk)
+				if response.body.size() >= client.get_response_body_length():
+					complete(task)
+				return
+
+			if chunk.size() > 0:
+				response.body.append_array(chunk)
+					
 		pass
 
 func fail(task: HttpTask) -> void:
+	if task.done:
+		return
 	var client := task.client
 	task.done = true
 	client.close()
 	pass
 
 func complete(task: HttpTask) -> void:
+	if task.done:
+		return
 	var client := task.client
 	var response := task.response
 	# read complete
@@ -143,6 +154,7 @@ class HttpTask:
 	var startTime: int
 	var response: HttpResponse = HttpResponse.new()
 	var done: bool = false
+	var has_requested: bool = false
 
 	func _init(_signalId: int, _client: HTTPClient, _method: HTTPClient.Method, _url: String, _headers: PackedStringArray, _body: String):
 		self.signalId = _signalId
