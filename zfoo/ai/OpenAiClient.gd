@@ -10,21 +10,30 @@ static var model: String = "deepseek-v4-flash"
 
 
 static func async_chat(prompt: String, system_prompt: String = "") -> String:
-	if StringUtils.is_blank(api_key):
-		Log.error("OpenAI api_key is empty, set env {}", API_KEY_ENV)
-		return ""
-	var request := OpenAiRequest.new()
-	request.model = model
-	request.stream = false
+	var messages: Array[ChatMessage] = []
 	if not StringUtils.is_blank(system_prompt):
 		var system_message := ChatMessage.new()
 		system_message.role = ChatMessage.ROLE_SYSTEM
 		system_message.content = system_prompt
-		request.messages.append(system_message)
+		messages.append(system_message)
 	var user_message := ChatMessage.new()
 	user_message.role = ChatMessage.ROLE_USER
 	user_message.content = prompt
-	request.messages.append(user_message)
+	messages.append(user_message)
+	return await async_chat_messages(messages)
+
+
+static func async_chat_messages(messages: Array[ChatMessage]) -> String:
+	if StringUtils.is_blank(api_key):
+		Log.error("OpenAI api_key is empty, set env {}", API_KEY_ENV)
+		return StringUtils.EMPTY
+	if messages.is_empty():
+		Log.error("OpenAI messages is empty")
+		return StringUtils.EMPTY
+	var request := OpenAiRequest.new()
+	request.model = model
+	request.stream = false
+	request.messages = messages
 
 	var headers := PackedStringArray([
 		StringUtils.format("Authorization: Bearer {}", api_key),
@@ -33,15 +42,15 @@ static func async_chat(prompt: String, system_prompt: String = "") -> String:
 	Log.info("OpenAI response body:[{}]", response.get_body_string())
 	if not response.success or response.code != 200:
 		Log.error("OpenAI request failed code:[{}] body:[{}]", response.code, response.get_body_string())
-		return ""
+		return StringUtils.EMPTY
 
 	var chat_response: OpenAiResponse = JsonUtils.json_to_object(response.get_body_string(), OpenAiResponse)
 	if chat_response == null or chat_response.choices.is_empty():
 		Log.error("OpenAI response parse failed body:[{}]", response.get_body_string())
-		return ""
+		return StringUtils.EMPTY
 
 	var message := chat_response.choices[0].message
 	if message == null or StringUtils.is_blank(message.content):
 		Log.error("OpenAI response missing content body:[{}]", response.get_body_string())
-		return ""
+		return StringUtils.EMPTY
 	return message.content
