@@ -119,7 +119,7 @@ func complete(task: HttpTask) -> void:
 
 ####################################################################################################
 ## proxy: optional proxy address, e.g. "127.0.0.1:10809" or "http://127.0.0.1:10809"
-func async_request(method: HTTPClient.Method, url: String, headers: PackedStringArray = PackedStringArray(), body: String = "", proxy: String = "") -> HttpResponse:
+func async_request(method: HTTPClient.Method, url: String, body: String = "", headers: PackedStringArray = PackedStringArray(), proxy: String = "") -> HttpResponse:
 	if !HttpUtils.is_valid_http_url(url):
 		Log.error("Http is not valid http url:[{}]", url)
 		return HttpResponse.new()
@@ -132,7 +132,7 @@ func async_request(method: HTTPClient.Method, url: String, headers: PackedString
 		var proxy_port := HttpUtils.get_port_from_url(proxy)
 		client.set_http_proxy(proxy_host, proxy_port)
 		client.set_https_proxy(proxy_host, proxy_port)
-		Log.info("Http proxy:[{}:{}]", proxy_host, proxy_port)
+		Log.info("Http proxy:[{}], host:[{}], port:[{}]", proxy, proxy_host, proxy_port)
 	var err := client.connect_to_host(host, port, TLSOptions.client()) if HttpUtils.is_https_url(url) else client.connect_to_host(host, port)
 	if err != OK:
 		Log.error("Http connect error:[{}]", err)
