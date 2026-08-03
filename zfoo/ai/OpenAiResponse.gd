@@ -2,15 +2,9 @@ class_name OpenAiResponse
 extends RefCounted
 
 
-class Message:
-	var role: String = ""
-	var content: String = ""
-	pass
-
-
 class Choice:
 	var index: int = 0
-	var message: Message = Message.new()
+	var message: ChatMessage = ChatMessage.new()
 	var finish_reason: String = ""
 	pass
 

@@ -2,26 +2,34 @@ class_name OpenAiClient
 extends Object
 
 ## Local-dev only. Replace with a backend proxy before shipping.
-static var api_key: String = "xxx"
+## Reads from env OPENAI_API_KEY by default; can still override at runtime.
+const API_KEY_ENV := "OPENAI_API_KEY"
+static var api_key: String = OS.get_environment(API_KEY_ENV)
 static var base_url: String = "https://api.deepseek.com/chat/completions"
 static var model: String = "deepseek-v4-flash"
 
 
 static func async_chat(prompt: String, system_prompt: String = "") -> String:
-	var messages: Array = []
+	if StringUtils.is_blank(api_key):
+		Log.error("OpenAI api_key is empty, set env {}", API_KEY_ENV)
+		return ""
+	var request := OpenAiRequest.new()
+	request.model = model
+	request.stream = false
 	if not StringUtils.is_blank(system_prompt):
-		messages.push_back({"role": "system", "content": system_prompt})
-	messages.push_back({"role": "user", "content": prompt})
+		var system_message := ChatMessage.new()
+		system_message.role = ChatMessage.ROLE_SYSTEM
+		system_message.content = system_prompt
+		request.messages.append(system_message)
+	var user_message := ChatMessage.new()
+	user_message.role = ChatMessage.ROLE_USER
+	user_message.content = prompt
+	request.messages.append(user_message)
 
-	var body := {
-		"model": model,
-		"messages": messages,
-		"stream": false
-	}
 	var headers := PackedStringArray([
 		StringUtils.format("Authorization: Bearer {}", api_key),
 	])
-	var response := await HttpHelper.async_post(base_url, JSON.stringify(body), headers)
+	var response := await HttpHelper.async_post(base_url, JsonUtils.object_to_json(request), headers)
 	Log.info("OpenAI response body:[{}]", response.get_body_string())
 	if not response.success or response.code != 200:
 		Log.error("OpenAI request failed code:[{}] body:[{}]", response.code, response.get_body_string())
