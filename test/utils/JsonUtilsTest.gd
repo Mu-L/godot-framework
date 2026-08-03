@@ -31,6 +31,7 @@ class Student:
 	var teachers: Array[Teacher]
 	var scores: Dictionary[String, int]
 	var teacherMap: Dictionary[String, Teacher]
+	var friendMap: Dictionary[int, String]
 pass
 
 
@@ -46,6 +47,9 @@ func json_test() -> void:
 	student.teacherMap = {}
 	student.teacherMap["Peter"] = teacher1
 	student.teacherMap["David"] = teacher2
+	student.friendMap[1] = "Jay"
+	student.friendMap[99] = "Sun"
+	student.friendMap[-999] = "zfoo"
 	var json := JsonUtils.object_to_json(student)
 	var obj: Student = JsonUtils.json_to_object(json, Student)
 	var json_text := JsonUtils.object_to_json(obj)

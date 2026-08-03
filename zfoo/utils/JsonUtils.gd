@@ -49,7 +49,8 @@ static func object_to_json(obj: Variant) -> String:
 			var array: PackedStringArray = PackedStringArray()
 			for key in obj:
 				var value = obj.get(key)
-				array.push_back(object_to_json(key) + ": " + object_to_json(value))
+				# JSON object keys must be strings (e.g. int key 1 -> "1")
+				array.push_back(object_to_json(str(key)) + ": " + object_to_json(value))
 			return "{" + ", ".join(array) + "}"
 		TYPE_OBJECT:
 			var array: PackedStringArray = PackedStringArray()
