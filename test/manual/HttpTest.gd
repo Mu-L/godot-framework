@@ -27,14 +27,8 @@ func pressedGetRequestChunkButton():
 	pass
 
 func pressedGetRequestFileButton():
-	var response = await HttpHelper.async_get("https://fsn1-speed.hetzner.com/100MB.bin")
-	if !response.success:
-		Log.error("download failed code:[{}] body length:[{}]", response.code, response.body.size())
-		return
+	var response = await HttpHelper.async_get("https://fsn1-speed.hetzner.com/100MB.bin", "http://127.0.0.1:10809")
 	var file: FileAccess = FileAccess.open("./100MB.bin", FileAccess.WRITE)
-	if file == null:
-		Log.error("open file failed err:[{}]", FileAccess.get_open_error())
-		return
 	file.store_buffer(response.body)
 	Log.info("download ok path:[./100MB.bin] bytes:[{}]", response.body.size())
 	pass
