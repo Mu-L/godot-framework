@@ -28,6 +28,21 @@ await gdf.quit()
 
 # Usage
 
+## AI — OpenAI-compatible chat
+
+```gdscript
+# Set OPENAI_API_KEY env, or override OpenAiClient.api_key / base_url / model
+var reply := await OpenAiClient.async_chat("hello", "you are a helpful assistant")
+
+# Multi-turn
+var messages: Array[ChatMessage] = []
+messages.append(ChatMessage.new(ChatMessage.ROLE_USER, "hello"))
+var reply2 := await OpenAiClient.async_chat_messages(messages)
+```
+
+---
+
+
 ## Alert — Floating toast messages
 
 ```gdscript
@@ -36,6 +51,7 @@ Alert.alert("Network error", Colors.error)
 ```
 
 ---
+
 
 ## Audio — play music, sound, voice，SoundEffect
 

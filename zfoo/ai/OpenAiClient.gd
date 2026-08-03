@@ -12,14 +12,8 @@ static var model: String = "deepseek-v4-flash"
 static func async_chat(prompt: String, system_prompt: String = "") -> String:
 	var messages: Array[ChatMessage] = []
 	if not StringUtils.is_blank(system_prompt):
-		var system_message := ChatMessage.new()
-		system_message.role = ChatMessage.ROLE_SYSTEM
-		system_message.content = system_prompt
-		messages.append(system_message)
-	var user_message := ChatMessage.new()
-	user_message.role = ChatMessage.ROLE_USER
-	user_message.content = prompt
-	messages.append(user_message)
+		messages.append(ChatMessage.new(ChatMessage.ROLE_SYSTEM, system_prompt))
+	messages.append(ChatMessage.new(ChatMessage.ROLE_USER, prompt))
 	return await async_chat_messages(messages)
 
 
@@ -30,10 +24,7 @@ static func async_chat_messages(messages: Array[ChatMessage]) -> String:
 	if messages.is_empty():
 		Log.error("OpenAI messages is empty")
 		return StringUtils.EMPTY
-	var request := OpenAiRequest.new()
-	request.model = model
-	request.stream = false
-	request.messages = messages
+	var request := OpenAiRequest.new(model, messages, false)
 
 	var headers := PackedStringArray([
 		StringUtils.format("Authorization: Bearer {}", api_key),

@@ -7,3 +7,9 @@ const ROLE_ASSISTANT := "assistant"
 
 var role: String = ""
 var content: String = ""
+
+
+func _init(_role: String = "", _content: String = "") -> void:
+	role = _role
+	content = _content
+	pass
