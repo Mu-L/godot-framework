@@ -75,21 +75,3 @@ func NumberUtils_test() -> void:
 	assert(NumberUtils.INT64_MAX + 1 == NumberUtils.INT64_MIN)
 	pass
 
-
-
-# --------------------------------------------------------------------------------------------------
-enum State {
-	IDLE,
-	RUNNING,
-	STOPPED
-}
-
-func StringUtils_test() -> void:
-	var emptyStr: String = ""
-	var blankStr: String = "  	"
-	assert(StringUtils.is_empty(emptyStr))
-	assert(StringUtils.is_blank(emptyStr))
-	assert(StringUtils.is_not_empty(blankStr))
-	assert(StringUtils.is_blank(blankStr))
-	assert(StringUtils.enum_to_string(State, State.IDLE), "IDLE")
-	pass

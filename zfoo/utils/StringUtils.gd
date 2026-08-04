@@ -49,6 +49,22 @@ static func substring_after(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(index + delimiter.length(), s.length())
 
+static func substring_before_last(s: String, delimiter: String) -> String:
+	if is_empty(s):
+		return EMPTY
+	var index := s.rfind(delimiter)
+	if index == -1:
+		return EMPTY
+	return s.substr(0, index)
+
+static func substring_after_last(s: String, delimiter: String) -> String:
+	if is_empty(s):
+		return EMPTY
+	var index := s.rfind(delimiter)
+	if index == -1:
+		return EMPTY
+	return s.substr(index + delimiter.length(), s.length())
+
 
 static func enum_to_string(enum_obj: Dictionary, value: int) -> String:
 	for key in enum_obj.keys():
