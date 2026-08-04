@@ -2,9 +2,49 @@ class_name StringUtils
 extends Object
 
 const EMPTY: String = ""
+const EMPTY_ARRAY: PackedStringArray = PackedStringArray()
 const EMPTY_JSON: String = "{}"
+
 const SPACE: String = " "
-const COMMA: String = ","
+const SPACE_REGEX: String = "\\s+"
+
+const TAB: String = "    "
+const TAB_ASCII: String = "\t"
+
+const COMMA: String = "," # [com·ma || 'kɒmə] n. comma
+const COMMA_REGEX: String = ",|，"
+const COMMON_SPLIT_REGEX: String = "[,，\\s]+"
+
+const PERIOD: String = "." # period
+const PERIOD_REGEX: String = "\\."
+
+const LEFT_SQUARE_BRACKET: String = "[" # left square bracket
+const RIGHT_SQUARE_BRACKET: String = "]" # right square bracket
+
+const COLON: String = ":" # colon [co·lon || 'kəʊlən]
+const COLON_REGEX: String = ":|："
+
+const SEMICOLON: String = ";" # semicolon ['semi'kәulәn]
+const SEMICOLON_REGEX: String = ";|；"
+
+const QUOTATION_MARK: String = "\"" # quotation mark [quo·ta·tion || kwəʊ'teɪʃn]
+const ELLIPSIS: String = "..." # ellipsis
+const EXCLAMATION_POINT: String = "!" # exclamation point
+const DASH: String = "-" # dash
+const QUESTION_MARK: String = "?" # question mark
+const HYPHEN: String = "-" # hyphen, the difference from DASH is that hyphen has no spaces on either side
+const SLASH: String = "/" # slash
+const EQUAL: String = "=" # equal sign
+const BACK_SLASH: String = "\\" # back slash
+
+const VERTICAL_BAR: String = "|" # vertical bar
+const VERTICAL_BAR_REGEX: String = "\\|"
+
+const SHARP: String = "#"
+const SHARP_REGEX: String = "\\#"
+
+const DOLLAR: String = "$" # dollar sign
+
 const LS: String = "\n"
 
 # Checks if a String is empty ("") or null
