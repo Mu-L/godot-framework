@@ -2,7 +2,6 @@ class_name StringUtils
 extends Object
 
 const EMPTY: String = ""
-const EMPTY_ARRAY: PackedStringArray = PackedStringArray()
 const EMPTY_JSON: String = "{}"
 
 const SPACE: String = " "
