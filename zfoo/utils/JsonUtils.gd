@@ -39,7 +39,8 @@ static func object_to_json(obj: Variant) -> String:
 		TYPE_FLOAT:
 			return str(obj)
 		TYPE_STRING:
-			return "\"" + obj as String + "\""
+			# Must escape control chars / quotes; raw concatenation breaks JSON APIs.
+			return JSON.stringify(obj as String)
 		TYPE_ARRAY:
 			var array: PackedStringArray = PackedStringArray()
 			for element in obj:
