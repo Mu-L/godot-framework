@@ -48,3 +48,12 @@ func substring_after_last_test() -> void:
 	assert(StringUtils.substring_after_last(path, "#") == StringUtils.EMPTY)
 	assert(StringUtils.substring_after_last("", "/") == StringUtils.EMPTY)
 	pass
+
+func truncate_test() -> void:
+	assert(StringUtils.truncate("abcdef", 10) == "abcdef")
+	assert(StringUtils.truncate("abcdef", 6) == "abcdef")
+	assert(StringUtils.truncate("abcdef", 5) == "ab...")
+	assert(StringUtils.truncate("abcdef", 3) == "...")
+	assert(StringUtils.truncate("abcdef", 2) == "ab")
+	assert(StringUtils.truncate("", 5) == StringUtils.EMPTY)
+	pass

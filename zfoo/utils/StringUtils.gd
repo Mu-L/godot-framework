@@ -104,6 +104,14 @@ static func substring_after_last(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(index + delimiter.length(), s.length())
 
+## Truncates to max_length and appends "..." when longer. Total length never exceeds max_length.
+static func truncate(s: String, max_length: int) -> String:
+	if is_empty(s) or s.length() <= max_length:
+		return s
+	if max_length <= ELLIPSIS.length():
+		return s.substr(0, max_length)
+	return s.substr(0, max_length - ELLIPSIS.length()) + ELLIPSIS
+
 
 static func enum_to_string(enum_obj: Dictionary, value: int) -> String:
 	for key in enum_obj.keys():
