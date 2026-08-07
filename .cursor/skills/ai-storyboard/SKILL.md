@@ -1,5 +1,5 @@
 ---
-name: ai-text-to-storyboard
+name: ai-storyboard
 description: >-
   Turns user-provided materials into a shot-by-shot storyboard with bilingual
   narration (Chinese + English voiceover, both required), AI video generation
@@ -11,7 +11,7 @@ description: >-
   video cover, thumbnail, 封面, or wants to turn images/clips/copy into a video plan.
 ---
 
-# AI Text to Storyboard
+# AI Storyboard
 
 From **user materials only**, produce a complete shot-by-shot plan:
 
@@ -45,7 +45,7 @@ If materials are ambiguous on goal or audience, state one short assumption and p
 Treat a user-given path as the **output file** when any of these apply:
 
 1. **Explicit** — user says 写到 / 输出到 / 保存到 / write to / save as / put in + path
-2. **Primary path with this skill** — message pairs `/ai-text-to-storyboard` (or equivalent 分镜 request) with **one main document path** (typically `.md` / `.txt`), with or without other material assets
+2. **Primary path with this skill** — message pairs `/ai-storyboard` (or equivalent 分镜 request) with **one main document path** (typically `.md` / `.txt`), with or without other material assets
 3. **Empty or draft document** — path points to an empty or placeholder draft the user clearly opened for this output
 
 ### Materials inside the same file
@@ -302,7 +302,7 @@ Before finishing, check:
 
 ## Examples (shape only)
 
-**User gives a markdown path + skill** (e.g. `.../01.xxx 开源了.md` + `/ai-text-to-storyboard`):
+**User gives a markdown path + skill** (e.g. `.../01.xxx 开源了.md` + `/ai-storyboard`):
 → Read that file (and any other materials), build the full storyboard, **Write the complete markdown into that path**, chat only confirms path + brief meta.
 
 **Few materials (one hero product image + two bullets):**
