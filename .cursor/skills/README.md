@@ -6,10 +6,18 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
+| [AI](#ai) | Storyboard → TTS | 2 skills |
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
 | [Video](#video) | Watermark → mute / extract → OGV | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
+
+## AI
+
+| Skill | Purpose |
+|-------|---------|
+| [ai-storyboard](ai-storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
+| [ai-text-to-speech](ai-text-to-speech/SKILL.md) | Text → speech with voice clone (IndexTTS2) |
 
 ## Audio
 
