@@ -189,6 +189,8 @@ def probe_audio(ffprobe: Path, file_path: Path, track: int) -> dict:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         return {}
@@ -320,7 +322,7 @@ def extract_file(
         channels,
         stream_copy,
     )
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(

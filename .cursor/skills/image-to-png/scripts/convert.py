@@ -168,6 +168,8 @@ def probe_image(ffprobe: Path, file_path: Path) -> dict:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         return {}
@@ -257,7 +259,7 @@ def convert_file(
     cmd = build_ffmpeg_args(
         ffmpeg, file_path, out_path, stream_copy, strip_alpha, first_frame_only
     )
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(

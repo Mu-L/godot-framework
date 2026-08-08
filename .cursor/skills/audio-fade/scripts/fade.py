@@ -142,6 +142,8 @@ def get_duration(ffprobe: Path, file_path: Path) -> float:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         raise RuntimeError(f"Could not read duration for: {file_path}")
@@ -211,6 +213,8 @@ def fade_file(
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg fade failed for: {file_path}")

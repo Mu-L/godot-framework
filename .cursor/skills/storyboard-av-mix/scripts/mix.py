@@ -197,6 +197,8 @@ def probe_duration(ffprobe: Path, path: Path, stream_type: str) -> float:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -361,7 +363,7 @@ def mix_one(
         video_dur=video_dur,
         audio_dur=audio_dur,
     )
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(

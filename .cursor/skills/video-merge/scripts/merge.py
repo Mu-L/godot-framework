@@ -154,6 +154,8 @@ def probe_duration(ffprobe: Path, file_path: Path) -> float:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -194,6 +196,8 @@ def has_audio_stream(ffprobe: Path, file_path: Path) -> bool:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         return False
@@ -471,7 +475,7 @@ def main() -> int:
 
     print()
     print("[run] ffmpeg merge …")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         print(f"[fail] merge failed", file=sys.stderr)

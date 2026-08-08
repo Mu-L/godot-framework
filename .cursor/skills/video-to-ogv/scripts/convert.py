@@ -215,6 +215,8 @@ def probe_streams(ffprobe: Path, file_path: Path) -> dict:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         return {"video": {}, "audio": {}}
@@ -420,7 +422,7 @@ def build_ffmpeg_args(
 
 
 def run_ffmpeg(cmd: list[str], file_path: Path, phase: str) -> None:
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(

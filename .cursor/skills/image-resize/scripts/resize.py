@@ -186,7 +186,7 @@ def resize_file(
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = build_magick_args(magick, file_path, out_path, width, height, mode)
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(

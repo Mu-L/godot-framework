@@ -168,6 +168,8 @@ def has_audio_streams(ffprobe: Path, file_path: Path) -> bool:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         return False
@@ -214,7 +216,7 @@ def remove_audio_file(
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = build_ffmpeg_args(ffmpeg, file_path, out_path, reencode)
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(
