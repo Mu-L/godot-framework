@@ -117,7 +117,7 @@ Source video (Veo / Gemini generated)
 
 ## Storyboard
 
-Write bilingual narration, generate per-shot AI video, then mux VO with video and merge into a final film.
+Video production pipeline: write bilingual narration, generate per-shot AI video, then mux VO with video and merge into a final film.
 
 ```
 Materials / copy / images
