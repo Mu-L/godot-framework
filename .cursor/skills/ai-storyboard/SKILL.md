@@ -14,9 +14,9 @@ description: >-
 
 From **user materials only**, produce:
 
-1. **Cover** — one still prompt for thumbnail/poster (**first** in the markdown)
-2. **Narration** per shot — **Chinese and English** (both required unless user opts out)
-3. **Video prompt** per shot — ready for i2v / t2v
+1. **Narration** per shot — **Chinese and English** (both required unless user opts out)
+2. **Video prompt** per shot — ready for i2v / t2v
+3. **Cover** — one still prompt for thumbnail/poster (after Spine + Assembly in the markdown)
 
 Do not invent product facts, prices, logos, or claims not in the materials.
 Style and length are agent-chosen from the content (no fixed genre or duration).
@@ -56,7 +56,7 @@ Treat a path as the **output file** when:
 4. Design story spine (hook → develop → payoff / CTA)
 5. Break into shots (one clear idea each; duration free)
 6. Write bilingual VO + video prompt per shot
-7. Write Cover (place first in markdown after title)
+7. Write Assembly (after Spine), then Cover (after Assembly)
 8. Consistency pass; deliver in required format
 
 ### Visual Style (once)
@@ -103,7 +103,7 @@ Self-contained for a generic model. Include: subject + action in time order, cam
 
 ### Cover (required unless user skips)
 
-Place `## Cover` **immediately after** the title, before Materials.
+Place `## Cover` **immediately after** `## Assembly`, before `## Shots`.
 
 - One focal subject; thumbnail-readable; match Visual Style
 - Still only (no camera motion as main instruction)
@@ -114,19 +114,10 @@ Place `## Cover` **immediately after** the title, before Materials.
 
 ## Output format (required)
 
+Section order is fixed: Materials → Visual Style → Spine → Assembly → Cover → Shots.
+
 ```markdown
 # Storyboard — [working title]
-
-## Cover
-- **Aspect:** [e.g. 16:9]
-- **Source:** [t2i / i2i from …]
-- **Visual:** [one-sentence composition]
-- **On-image text:** [from materials, or none]
-- **Image prompt:**
-  ```
-  [still prompt — English preferred]
-  ```
-- **Avoid (optional):** …
 
 ## Materials
 - [asset or note → role]
@@ -141,6 +132,20 @@ Place `## Cover` **immediately after** the title, before Materials.
 
 ## Spine
 [1–4 sentences: arc + rough total runtime]
+
+## Assembly
+[shot order, total runtime, TTS/BGM/stitch notes if obvious]
+
+## Cover
+- **Aspect:** [e.g. 16:9]
+- **Source:** [t2i / i2i from …]
+- **Visual:** [one-sentence composition]
+- **On-image text:** [from materials, or none]
+- **Image prompt:**
+  ```
+  [still prompt — English preferred]
+  ```
+- **Avoid (optional):** …
 
 ## Shots
 
@@ -159,15 +164,12 @@ Place `## Cover` **immediately after** the title, before Materials.
 
 ### Shot 02 — …
 …
-
-## Assembly
-[shot order, total runtime, TTS/BGM/stitch notes if obvious]
 ```
 
 ## Quality bar
 
 - [ ] File path given → full markdown **saved there** (UTF-8); not chat-only
-- [ ] Cover first; every shot has Chinese + English + Video prompt (or user opt-out)
+- [ ] Section order: Spine → Assembly → Cover → Shots; every shot has Chinese + English + Video prompt (or user opt-out)
 - [ ] VO languages sense-aligned; durations match speak length
 - [ ] Facts trace to materials; style coherent; i2v points at the right still
 - [ ] No video/image generation APIs unless user separately asks
