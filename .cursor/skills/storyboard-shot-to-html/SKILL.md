@@ -130,17 +130,26 @@ Ship a **dense but readable** stage. Thin “one transform + one opacity” demo
 
 | Layer | Role | Examples |
 |-------|------|----------|
-| 1. Camera | Whole-frame energy from the prompt’s Camera line | Push-in, pull-back, slow pan, slight dutch, orbital drift via `transform` on a `.scene` root |
-| 2. Primary subject | What the shot is about | Prototype appearing, module docking, graph exploding, gate locking |
+| 1. Camera | Energy **only if** the shot’s Camera line calls for it; otherwise lock or micro-parallax | Push-in / pull-back / pan / dutch / orbital **when Camera says so**; locked multilayer HUD when it doesn’t |
+| 2. Primary subject | What the shot is about | Prototype appearing, module docking, graph exploding, gate locking, **code lines revealing** |
 | 3. Secondary / support | Proof the world is alive | Sibling UI panels, folder tree growth, packet lanes, platform pieces |
 | 4. Light & atmosphere | Mood continuity from Visual Style | Lamp pulse, monitor bloom, volumetric haze drift, vignette breathe, rim-light shift |
 | 5. Micro-detail | Texture without stealing focus | Cursor blink, scrubber/knob, floating code bits, dust/particles, soft shadow crawl |
 
-Require **at least 4 of these 5 layers** on every shot, and **≥5 distinct animated properties** after `Space` (e.g. scene scale + tree stagger + platforms + clock scrub + play-view bloom). Ambient loops (`infinite` lamp flicker, dust) are OK **only if subtle** and do **not** read as the shot replaying; the **main narrative beat stays one-shot + forwards**.
+Require **at least 4 of these 5 layers** on every shot, and **≥5 distinct animated properties** after `Space` (e.g. code line stagger + tree stagger + platforms + clock scrub + play-view bloom — **not** a default whole-frame scale). Ambient loops (`infinite` lamp flicker, dust) are OK **only if subtle** and do **not** read as the shot replaying; the **main narrative beat stays one-shot + forwards**.
+
+**Camera vs readable content (priority):**
+
+When the stage shows **important content** — real project code / API call sites, terminal output, labeled architecture, readable UI chrome the viewer must parse — **prefer readability over cinematic camera**:
+
+1. **Do not** default to whole-frame push-in / zoom / orbit on `.scene` just to “have a Camera layer.”
+2. Prefer **locked camera** (or tiny parallax / drift that does not shrink text) **or** a **local emphasis** on the important block (scale/highlight that one panel or code card — not the entire stage).
+3. Whole-frame camera moves are allowed only when the shot’s **Camera** line explicitly asks (push-in, pull-back, orbital, tracking, etc.) **and** they won’t make the key text/code illegible.
+4. If Camera is composite / multilayer / locked-off (“parallel HUD”, “static board”, …), treat Camera as **depth + panel energy**, not zoom.
 
 **Depth & layering:**
 
-- Build **≥3 depth planes** (bg / mid / fg or room / screens / desk props). Parallax them slightly on camera move (different translate/scale amounts).
+- Build **≥3 depth planes** (bg / mid / fg or room / screens / desk props). Parallax them slightly **when** there is a camera move (different translate amounts — avoid scale that eats readability).
 - Prefer real structure (monitor bezels, desk, lamp, HUD chrome) over a single flat rectangle with text.
 - Use soft masks, inset bezels, bloom, and gradient haze so the frame doesn’t look like clipped divs on black.
 
@@ -158,7 +167,7 @@ Use **staggers** (40–120ms steps) for lists, folders, packets, checkmarks. Pre
 
 | Shot type | Enrich with |
 |-----------|-------------|
-| Desk / editor / IDE | Dual screens, sidebar tree stagger, typed/fading code lines, blinking caret, playview empty→alive, clock or timeline scrub, warm lamp + cool monitor mix, camera push into playview |
+| Desk / editor / IDE | Dual screens, sidebar tree stagger, typed/fading code lines, blinking caret, playview empty→alive, clock or timeline scrub, warm lamp + cool monitor mix; **keep code readable** — local emphasis on the editor, not whole-frame zoom |
 | Architecture / graph | Nodes lighting in sequence, edges drawing, local cyan vs global fog, camera pull-back revealing scale, soft particle drift |
 | Chaos / debt | Multiplying clones, spaghetti cables growing, amber warning pulses, dutch tilt increasing, denser particle rain — still graphic-clean, not illegible spam |
 | Product / module dock | Orbital turntable, modules easing into sockets with short “dock” scale settle, rim light pass, label fades (short, abstract) |
@@ -181,12 +190,14 @@ Use **staggers** (40–120ms steps) for lists, folders, packets, checkmarks. Pre
 - Busy infinite loops that feel like a GIF restart
 - Unreadable micro-text walls or fake brand logos
 - Burning 旁白 into the frame
+- Default whole-frame `scale` / push-in while code or other critical text is on stage (zooms away readability)
+- Inventing camera moves not present in the shot’s **Camera** line
 
 ### 4b. Pre-flight motion checklist
 
 Before writing the file, briefly plan (internally or in overlay research notes):
 
-1. Camera move from the shot’s **Camera** line  
+1. Camera from the shot’s **Camera** line — if important code/content is on stage, choose **lock / local zoom on that content**, not whole-frame push  
 2. Primary beat from the **Video prompt**  
 3. Two secondary enrichments (UI / props / particles)  
 4. Light or atmosphere continuity from **Visual Style**  
@@ -251,6 +262,7 @@ Only if the user asks for a full board:
 - [ ] Stage matches prompt subject, camera energy, and aspect
 - [ ] 旁白 concepts analyzed; factual/usage gaps researched when needed
 - [ ] **Rich motion:** ≥4 of 5 layers (camera / primary / secondary / light / micro); ≥5 animated properties; ≥3 depth planes
+- [ ] **Readable priority:** important code/content → locked camera or local emphasis; no default whole-frame zoom that shrinks text
 - [ ] Timing follows Duration (setup → development → accent → hold); staggers on lists/UI; not one global fade
 - [ ] Visible continuous life after play starts (not a still poster); ambient loops stay subtle
 - [ ] Self-contained; no storyboard overwrite; no video API calls
