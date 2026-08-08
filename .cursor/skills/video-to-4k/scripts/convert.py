@@ -184,6 +184,8 @@ def probe_video(ffprobe: Path, file_path: Path) -> dict:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
@@ -246,7 +248,9 @@ def pick_scale(width: int, height: int) -> int:
 
 
 def run_checked(cmd: list[str], label: str) -> None:
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+    )
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(
@@ -260,7 +264,9 @@ def run_video2x(cmd: list[str], out_path: Path) -> None:
     Video2X 6.x on Windows sometimes exits with STATUS_ACCESS_VIOLATION
     (-1073741819) after a successful encode.
     """
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+    )
     detail = (result.stderr or "") + "\n" + (result.stdout or "")
     ok_marker = "Video processed successfully" in detail
     usable = out_path.is_file() and out_path.stat().st_size > 0
