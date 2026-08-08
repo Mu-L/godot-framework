@@ -293,31 +293,34 @@ def build_filter_complex(
         parts.append("[a0]anull[aout]")
         return ";".join(parts), extra_inputs
 
-    # Chain xfade / acrossfade
+    # Chain xfade / acrossfade. Pad the outgoing side by T (freeze last frame /
+    # silence) so each overlap does not shorten total duration vs sum(clips).
     cur_v = "v0"
     cur_a = "a0"
     cum = durations[0]
 
     for i in range(1, len(files)):
         transition = transitions[i - 1]
-        offset = cum - TRANSITION_DURATION
-        if offset < 0:
-            raise RuntimeError(
-                f"Transition offset negative before clip {i + 1} "
-                f"({files[i].name}); earlier clips may be too short."
-            )
         next_v = f"vx{i}"
         next_a = f"ax{i}"
+        pad_v = f"vp{i}"
+        pad_a = f"ap{i}"
         parts.append(
-            f"[{cur_v}][v{i}]xfade=transition={transition}:"
+            f"[{cur_v}]tpad=stop_mode=clone:stop_duration={TRANSITION_DURATION}[{pad_v}]"
+        )
+        parts.append(f"[{cur_a}]apad=pad_dur={TRANSITION_DURATION}[{pad_a}]")
+        # Transition begins after all real content of the outgoing chain.
+        offset = cum
+        parts.append(
+            f"[{pad_v}][v{i}]xfade=transition={transition}:"
             f"duration={TRANSITION_DURATION}:offset={offset:.6f}[{next_v}]"
         )
         parts.append(
-            f"[{cur_a}][a{i}]acrossfade=d={TRANSITION_DURATION}:c1=tri:c2=tri[{next_a}]"
+            f"[{pad_a}][a{i}]acrossfade=d={TRANSITION_DURATION}:c1=tri:c2=tri[{next_a}]"
         )
         cur_v = next_v
         cur_a = next_a
-        cum = cum + durations[i] - TRANSITION_DURATION
+        cum = cum + durations[i]
 
     parts.append(f"[{cur_v}]null[vout]")
     parts.append(f"[{cur_a}]anull[aout]")
@@ -332,7 +335,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Merge videos in a folder (filename sort) with random 0.5s transitions "
-            "into 3840x2160 60fps H.265 Main10 40Mbps + AAC 320kbps."
+            "(freeze-pad; duration = sum of clips) into 3840x2160 60fps "
+            "H.265 Main10 40Mbps + AAC 320kbps."
         )
     )
     parser.add_argument("input", help="Directory containing videos to merge")
@@ -404,7 +408,8 @@ def main() -> int:
         except RuntimeError as exc:
             print(exc, file=sys.stderr)
             return 1
-        if len(files) > 1 and dur <= TRANSITION_DURATION:
+        # Incoming (right) side of xfade must be longer than the transition.
+        if len(files) > 1 and file_path != files[0] and dur <= TRANSITION_DURATION:
             print(
                 f"Clip shorter than transition ({TRANSITION_DURATION}s): "
                 f"{file_path.name} ({dur:.3f}s)",
@@ -418,9 +423,14 @@ def main() -> int:
     if len(files) > 1:
         transitions = [rng.choice(TRANSITIONS) for _ in range(len(files) - 1)]
 
+    total_duration = sum(durations)
     print(f"Input:       {folder}")
     print(f"Clips:       {len(files)}")
-    print(f"Transition:  {TRANSITION_DURATION}s (random xfade)")
+    print(
+        f"Transition:  {TRANSITION_DURATION}s (random xfade, "
+        "freeze-pad — total duration = sum of clips)"
+    )
+    print(f"Duration:    {total_duration:.3f}s (preserved)")
     print(
         f"Output spec: {OUTPUT_WIDTH}x{OUTPUT_HEIGHT} @{OUTPUT_FPS} "
         f"H.265 Main10 {VIDEO_BITRATE} + AAC {AUDIO_BITRATE}"
@@ -436,7 +446,7 @@ def main() -> int:
         audio_note = "audio" if audio_flags[i] else "silent→anullsrc"
         print(f"  [{i + 1:02d}] {file_path.name}  {durations[i]:.3f}s  ({audio_note})")
         if i < len(transitions):
-            print(f"       └─ xfade: {transitions[i]}")
+            print(f"       └─ xfade: {transitions[i]} (freeze-pad {TRANSITION_DURATION}s)")
 
     if args.dry_run:
         print()

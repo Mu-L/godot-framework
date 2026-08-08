@@ -22,15 +22,23 @@ asetpts=PTS-STARTPTS
 
 Clips with no audio stream get a matching silent stereo track (`anullsrc`).
 
-## Offset math
+## Duration-preserving transitions
+
+Plain `xfade` overlaps by `T` and shortens the timeline by `T` per cut. To keep
+**output duration = sum(source durations)**, pad the outgoing side before each cut:
+
+```
+tpad=stop_mode=clone:stop_duration=T   # freeze last frame
+apad=pad_dur=T                         # pad silence for acrossfade
+```
 
 Transition duration `T = 0.5`. For clips with durations `d0, d1, …`:
 
-- Cut 0 offset = `d0 - T`
-- After cut `i`, cumulative length = `sum(d[0..i+1]) - (i+1)*T`
-- Next offset = that length − `T`
+- Before cut `i`, pad the current chain by `T`
+- Cut offset = cumulative **content** length so far (`sum(d[0..i])`) — transition runs over the freeze/silence pad
+- After cut `i`, cumulative content length = `sum(d[0..i+1])` (no `-T`)
 
-Audio uses `acrossfade=d=0.5:c1=tri:c2=tri` in the same order.
+Audio uses `acrossfade=d=0.5:c1=tri:c2=tri` on the padded streams in the same order.
 
 ## Encode
 
