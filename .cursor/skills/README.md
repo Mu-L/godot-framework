@@ -6,32 +6,12 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
-| [Storyboard](#storyboard) | Storyboard → TTS → AV mix | 3 skills |
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
 | [Video](#video) | Watermark → mute / extract → 4K → merge → OGV | 6 skills |
+| [Storyboard](#storyboard) | Storyboard → VO / video → AV mix → merge | 7 skills |
 | [Other](#other) | Naming, commits | 2 skills |
-
-## Storyboard
-
-Write bilingual narration, batch TTS per shot, then mux video with VO (video retimed to audio).
-
-```
-Materials / copy / images
-    ↓
-① Storyboard markdown (CN+EN narration, video prompts, cover)
-    ↓
-② Batch TTS → Chinese/ + English/ WAVs (+ speech-timeline.md)
-    ↓
-③ Per-shot A/V mix → Video-Chinese/ + Video-English/
-```
-
-| Skill | Purpose |
-|-------|---------|
-| [storyboard](storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
-| [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
-| [storyboard-av-mix](storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
 ## AI
 
@@ -134,6 +114,39 @@ Source video (Veo / Gemini generated)
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
 | [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
+
+## Storyboard
+
+Write bilingual narration, generate per-shot AI video, then mux VO with video and merge into a final film.
+
+```
+Materials / copy / images
+    ↓
+① storyboard — markdown (CN+EN narration, video prompts, cover)
+    ├─ audio branch
+    │     ↓
+    │  ② storyboard-tts → Chinese/ + English/ WAVs
+    │     ↓
+    │  ③ audio-loudness-normalization
+    │
+    └─ video branch
+          ↓
+       ④ Generate AI video (external; from prompts)
+          ↓
+       ⑤ video-remove-watermark-gemini
+          ↓
+       ⑥ video-to-4k → Video/
+    ↓
+⑦ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+    ↓
+⑧ video-merge → final film
+```
+
+| Skill | Purpose |
+|-------|---------|
+| [storyboard](storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
+| [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
+| [storyboard-av-mix](storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
 ## Other
 
