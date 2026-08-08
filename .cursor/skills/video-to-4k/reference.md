@@ -10,19 +10,22 @@ ffprobe source
 
 ## Scale factor (Video2X Real-ESRGAN)
 
-Pick the smallest of `{2, 4}` such that `width * s ≥ 3840` and `height * s ≥ 2160`. If neither is enough (e.g. very low-res), use `4` and let FFmpeg finish the remaining scale to 3840×2160.
+Pick the smallest scale the selected Real-ESRGAN model ships (`realesrgan-plus` / `realesrgan-plus-anime`: `{4}` only; `realesr-animevideov3`: `{2, 3, 4}`) such that `width * s ≥ 3840` and `height * s ≥ 2160`. If none is enough (e.g. very low-res), use the model's largest scale and let FFmpeg finish the remaining scale to 3840×2160.
 
-| Source | Scale | After Video2X | FFmpeg |
-|--------|-------|---------------|--------|
-| 1920×1080 | 2 | 3840×2160 | Exact / light polish |
+| Source | Scale (`realesrgan-plus`) | After Video2X | FFmpeg |
+|--------|---------------------------|---------------|--------|
+| 2560×1440 | 4 | 10240×5760 | Downscale to 3840×2160 |
+| 1920×1080 | 4 | 7680×4320 | Downscale to 3840×2160 |
 | 1280×720 | 4 | 5120×2880 | Downscale to 3840×2160 |
 | 640×360 | 4 | 2560×1440 | Upscale remainder to 3840×2160 |
+
+With `--anime` (`realesr-animevideov3`), 1920×1080 / 2560×1440 can use scale `2` because that model ships x2 weights.
 
 ## Video2X intermediate (below 4K)
 
 ```bash
 video2x -i input.mp4 -o 4k-upscaled/clip.mkv \
-  -p realesrgan -s 2 \
+  -p realesrgan -s 4 \
   --realesrgan-model realesrgan-plus \
   -c libx265 --pix-fmt yuv420p10le \
   -e preset=medium -e crf=12

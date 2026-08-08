@@ -240,11 +240,20 @@ def is_already_4k(width: int, height: int) -> bool:
     return width >= TARGET_WIDTH and height >= TARGET_HEIGHT
 
 
-def pick_scale(width: int, height: int) -> int:
-    for scale in (2, 4):
+# Video2X ships limited Real-ESRGAN weights; pick only scales that exist.
+MODEL_SCALES: dict[str, tuple[int, ...]] = {
+    "realesrgan-plus": (4,),
+    "realesrgan-plus-anime": (4,),
+    "realesr-animevideov3": (2, 3, 4),
+}
+
+
+def pick_scale(width: int, height: int, model: str = DEFAULT_MODEL) -> int:
+    scales = MODEL_SCALES.get(model, (2, 4))
+    for scale in scales:
         if width * scale >= TARGET_WIDTH and height * scale >= TARGET_HEIGHT:
             return scale
-    return 4
+    return scales[-1]
 
 
 def run_checked(cmd: list[str], label: str) -> None:
@@ -388,7 +397,7 @@ def convert_file(
         )
         return plan
 
-    scale = pick_scale(width, height)
+    scale = pick_scale(width, height, model)
     plan = (
         f"video2x×{scale} ({width}x{height} @{fps_label}fps, {model}) → "
         f"ffmpeg 4K60 Main10"
