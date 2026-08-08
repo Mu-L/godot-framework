@@ -140,6 +140,7 @@ Rules:
   - Chinese ≈ 3–4 characters/sec spoken
   - English ≈ 2–3 words/sec
   If one side would overrun, tighten that side — do not force identical length counts.
+- **Edit sync (mandatory):** If **Chinese** or **English** is modified, sync the other VO field and related shot fields (**Duration**, **Visual**, **Camera**, **Video prompt**, and Cover if the beat changes) so meaning, timing, and picture stay aligned. Do not leave one language or the prompt out of date.
 - Silence-only shots: use both `(no VO)` for **Chinese** and **English**.
 - If user supplies exact lines in **one** language: keep them **verbatim** in that language; write a natural equivalent in the other (mark free translation only if meaning must expand).
 - If user supplies **both** languages: use each **verbatim** where assigned.
@@ -262,6 +263,8 @@ Deliver markdown in this structure. Omit empty optional lines.
   ```
 - **Avoid (optional):** …
 
+> **Chinese / English sync:** Chinese或English修改的话，需要同步修改其它的 — if either VO line changes, update the other language and related fields (`Duration`, `Visual`, `Camera`, `Video prompt`, Cover when needed) in the same edit.
+
 ### Shot 02 — …
 …
 
@@ -280,7 +283,7 @@ Deliver markdown in this structure. Omit empty optional lines.
 ### Deliverable notes
 
 1. After all shots, add **Cover**, then a short **Assembly** section: order, total runtime, notes for stitch/TTS/BGM if obvious (call out bilingual VO tracks when relevant; note cover export size if user specified platform).
-2. Default: **Chinese and English narration always both**; **video prompts and cover image prompt in English** (models tokenize English more reliably). If user wants prompts in Chinese, switch. Only drop a VO language when the user explicitly asks for one language.
+2. Default: **Chinese and English narration always both**; **video prompts and cover image prompt in English** (models tokenize English more reliably). If user wants prompts in Chinese, switch. Only drop a VO language when the user explicitly asks for one language. **Chinese或English修改的话，需要同步修改其它的** (other VO + Duration / Visual / Camera / Video prompt / Cover as needed).
 3. If user only wants narration or only prompts, still keep shot IDs so they can expand later; still output both VO fields unless they opted out of one. Still include **Cover** unless they only want VO/prompts for shots and opt out of cover.
 4. Do not generate video/image files or call external APIs unless the user separately asks and provides a path — this skill stops at script + prompts (including the cover prompt text).
 5. **File delivery (mandatory when a path is given):** write the **entire** markdown body (required format + Assembly) to the user’s path in one write. Use UTF-8. Do not leave the storyboard only in the assistant message. Confirm the absolute or user-given path in chat.
@@ -294,6 +297,7 @@ Before finishing, check:
 - [ ] Visual Style is coherent shot-to-shot
 - [ ] Every shot has **Chinese**, **English**, and **Video prompt** (or explicit none / user opted out of a language)
 - [ ] Chinese and English VO for the same shot are sense-aligned (same beat, no conflicting claims)
+- [ ] After any Chinese/English edit: the other VO and related fields (Duration / Visual / Camera / Video prompt / Cover) were synced in the same pass
 - [ ] Claims and product details trace to materials
 - [ ] Durations and VO length roughly agree for each language track
 - [ ] Transitions make narrative sense without unexplained jumps
