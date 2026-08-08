@@ -6,18 +6,32 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
-| [AI](#ai) | Storyboard → TTS | 2 skills |
+| [AI](#ai) | Storyboard → TTS → AV mix | 4 skills |
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
-| [Video](#video) | Watermark → mute / extract → OGV | 4 skills |
+| [Video](#video) | Watermark → mute / extract → 4K → merge → OGV | 6 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## AI
 
+Storyboard pipeline — write bilingual narration, batch TTS per shot, then mux video with VO (video retimed to audio).
+
+```
+Materials / copy / images
+    ↓
+① Storyboard markdown (CN+EN narration, video prompts, cover)
+    ↓
+② Batch TTS → Chinese/ + English/ WAVs (+ speech-timeline.md)
+    ↓
+③ Per-shot A/V mix → Video-Chinese/ + Video-English/
+```
+
 | Skill | Purpose |
 |-------|---------|
 | [ai-storyboard](ai-storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
-| [ai-text-to-speech](ai-text-to-speech/SKILL.md) | Text → speech with voice clone (IndexTTS2) |
+| [ai-storyboard-tts](ai-storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
+| [ai-text-to-speech](ai-text-to-speech/SKILL.md) | Text → speech with voice clone (IndexTTS2; single-line / trial) |
+| [ai-storyboard-av-mix](ai-storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
 ## Audio
 
@@ -88,7 +102,7 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
-Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, optionally mute or rip audio, then export Godot-ready OGV.
+Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, optionally mute or rip audio, upscale to 4K / merge shots, then export Godot-ready OGV.
 
 ```
 Source video (Veo / Gemini generated)
@@ -99,7 +113,11 @@ Source video (Veo / Gemini generated)
     ↓
 ③ Remove all audio / mute (optional)
     ↓
-④ Convert to OGV (for Godot)
+④ Upscale to 4K master (optional)
+    ↓
+⑤ Merge folder of clips with xfade (optional)
+    ↓
+⑥ Convert to OGV (for Godot)
 ```
 
 | Skill | Purpose |
@@ -107,6 +125,8 @@ Source video (Veo / Gemini generated)
 | [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
+| [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
+| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 
 ## Other
