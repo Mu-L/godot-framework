@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Parse ai-storyboard markdown into per-shot Chinese / English VO lines.
+Parse storyboard markdown into per-shot Chinese / English VO lines.
 
 Usage
 -----
     .dependency/python/python \\
-        .cursor/skills/ai-storyboard-tts/scripts/parse_storyboard.py \\
+        .cursor/skills/storyboard-tts/scripts/parse_storyboard.py \\
         path/to/storyboard.md
 
     .dependency/python/python .../parse_storyboard.py storyboard.md -o shots.json
@@ -112,7 +112,7 @@ def parse_storyboard(markdown: str) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Parse ai-storyboard markdown into shot VO JSON.",
+        description="Parse storyboard markdown into shot VO JSON.",
     )
     parser.add_argument("storyboard", help="Path to storyboard markdown")
     parser.add_argument(

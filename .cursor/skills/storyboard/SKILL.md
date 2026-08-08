@@ -1,5 +1,5 @@
 ---
-name: ai-storyboard
+name: storyboard
 description: >-
   Turns user materials into a shot-by-shot storyboard with bilingual narration
   (Chinese + English VO, both required), AI video prompts, and a cover/thumbnail
@@ -10,7 +10,7 @@ description: >-
   from images/clips/copy.
 ---
 
-# AI Storyboard
+# Storyboard
 
 From **user materials only**, produce:
 

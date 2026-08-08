@@ -6,15 +6,16 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
-| [AI](#ai) | Storyboard → TTS → AV mix | 4 skills |
+| [Storyboard](#storyboard) | Storyboard → TTS → AV mix | 3 skills |
+| [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
 | [Video](#video) | Watermark → mute / extract → 4K → merge → OGV | 6 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
-## AI
+## Storyboard
 
-Storyboard pipeline — write bilingual narration, batch TTS per shot, then mux video with VO (video retimed to audio).
+Write bilingual narration, batch TTS per shot, then mux video with VO (video retimed to audio).
 
 ```
 Materials / copy / images
@@ -28,10 +29,15 @@ Materials / copy / images
 
 | Skill | Purpose |
 |-------|---------|
-| [ai-storyboard](ai-storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
-| [ai-storyboard-tts](ai-storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
+| [storyboard](storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
+| [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
+| [storyboard-av-mix](storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
+
+## AI
+
+| Skill | Purpose |
+|-------|---------|
 | [ai-text-to-speech](ai-text-to-speech/SKILL.md) | Text → speech with voice clone (IndexTTS2; single-line / trial) |
-| [ai-storyboard-av-mix](ai-storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
 ## Audio
 

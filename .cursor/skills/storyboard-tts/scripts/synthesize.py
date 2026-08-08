@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Batch-synthesize ai-storyboard VO (Chinese + English) with IndexTTS2.
+Batch-synthesize storyboard VO (Chinese + English) with IndexTTS2.
 
 Loads the model **once**, then writes:
 
@@ -10,7 +10,7 @@ Loads the model **once**, then writes:
 Run through the **index-tts** interpreter only:
 
     .dependency/index-tts/.venv/Scripts/python.exe \\
-        .cursor/skills/ai-storyboard-tts/scripts/synthesize.py \\
+        .cursor/skills/storyboard-tts/scripts/synthesize.py \\
         --storyboard path/to/storyboard.md \\
         --voice path/to/ref.wav \\
         --audio-dir path/to/out \\
@@ -127,7 +127,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description="Batch storyboard TTS (Chinese/English) with one model load.",
     )
     src = parser.add_mutually_exclusive_group(required=True)
-    src.add_argument("--storyboard", help="ai-storyboard markdown path")
+    src.add_argument("--storyboard", help="storyboard markdown path")
     src.add_argument("--shots", help="shots.json from parse_storyboard.py")
 
     parser.add_argument(

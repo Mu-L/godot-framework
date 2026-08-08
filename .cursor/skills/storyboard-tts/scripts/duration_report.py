@@ -5,7 +5,7 @@ Build a shot-to-audio duration report from Chinese/ and English/ WAV folders.
 Usage
 -----
     .dependency/python/python \\
-        .cursor/skills/ai-storyboard-tts/scripts/duration_report.py \\
+        .cursor/skills/storyboard-tts/scripts/duration_report.py \\
         --storyboard path/to/storyboard.md \\
         --audio-dir path/to/output \\
         -o path/to/output/speech-timeline.md
@@ -194,7 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--storyboard",
         required=True,
-        help="Path to ai-storyboard markdown (for titles / VO text)",
+        help="Path to storyboard markdown (for titles / VO text)",
     )
     parser.add_argument(
         "--audio-dir",

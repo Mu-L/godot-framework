@@ -1,5 +1,5 @@
 ---
-name: ai-storyboard-av-mix
+name: storyboard-av-mix
 description: >-
   Muxes per-shot storyboard video with Chinese and English voice-over by retiming
   video to match VO duration (setpts), writing Video-Chinese/ and Video-English/
@@ -8,7 +8,7 @@ description: >-
   bilingual VO on cut video, or batch mux Video/ + Chinese/ + English/.
 ---
 
-# AI Storyboard AV Mix
+# Storyboard AV Mix
 
 Take a work directory with **per-shot** video and bilingual VO. For each shot, **retime the video to the VO duration** (audio master), drop original video audio, mux, and write language-specific folders.
 
@@ -23,7 +23,7 @@ Take a work directory with **per-shot** video and bilingual VO. For each shot, *
 | Chinese mux | `<root>/Video-Chinese/<shot-id>.<video-ext>` |
 | English mux | `<root>/Video-English/<shot-id>.<video-ext>` |
 
-Shot id = leading digits of the filename stem (`01.mp4` + `01.wav` → `01`). Compatible with **[ai-storyboard-tts](../ai-storyboard-tts/SKILL.md)** (`Chinese/01.wav`, `English/01.wav`).
+Shot id = leading digits of the filename stem (`01.mp4` + `01.wav` → `01`). Compatible with **[storyboard-tts](../storyboard-tts/SKILL.md)** (`Chinese/01.wav`, `English/01.wav`).
 
 ## Duration rule (only mode)
 
@@ -86,7 +86,7 @@ Task Progress:
 From project root:
 
 ```bash
-.dependency/python/python .cursor/skills/ai-storyboard-av-mix/scripts/mix.py path/to/root
+.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/root
 ```
 
 This will:
@@ -100,10 +100,10 @@ This will:
 
 ```bash
 # Only Chinese track
-.dependency/python/python .cursor/skills/ai-storyboard-av-mix/scripts/mix.py path/to/root --lang chinese
+.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/root --lang chinese
 
 # Preview factors without writing
-.dependency/python/python .cursor/skills/ai-storyboard-av-mix/scripts/mix.py path/to/root --dry-run
+.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/root --dry-run
 ```
 
 ## Flags (mix.py)
@@ -124,11 +124,11 @@ This will:
 1. Prefer **one** `mix.py` call for the full board (`--lang both`).
 2. Chat summary: `root`, job counts, paths to `Video-Chinese/` / `Video-English/`, missing pairs — not per-file dumps unless asked.
 3. Extreme factors (e.g. &lt;0.5 or &gt;2) look like fast-forward / slow-mo; report if noticed in logs, still run.
-4. Upstream VO from [ai-storyboard-tts](../ai-storyboard-tts/SKILL.md); do not regenerate TTS here.
+4. Upstream VO from [storyboard-tts](../storyboard-tts/SKILL.md); do not regenerate TTS here.
 5. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry the same command.
 6. Concatenate all shots into one film is **out of scope** — this skill only per-shot mux.
 
 ## Related
 
-- [ai-storyboard-tts](../ai-storyboard-tts/SKILL.md) — bilingual VO (`Chinese/`, `English/`)
-- [ai-storyboard](../ai-storyboard/SKILL.md) — storyboard markdown
+- [storyboard-tts](../storyboard-tts/SKILL.md) — bilingual VO (`Chinese/`, `English/`)
+- [storyboard](../storyboard/SKILL.md) — storyboard markdown

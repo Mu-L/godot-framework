@@ -1,7 +1,7 @@
 ---
-name: ai-storyboard-tts
+name: storyboard-tts
 description: >-
-  Converts ai-storyboard markdown (bilingual Chinese + English narration per shot)
+  Converts storyboard markdown (bilingual Chinese + English narration per shot)
   into speech audio via IndexTTS2 (same stack as ai-text-to-speech). Batch-writes
   WAVs under Chinese/ and English/ named by shot id (model loaded once), then a
   speech-timeline.md with per-shot durations. Use when the user wants storyboard
@@ -9,9 +9,9 @@ description: >-
   TTS from a storyboard.md.
 ---
 
-# AI Storyboard TTS
+# Storyboard TTS
 
-Take an **[ai-storyboard](../ai-storyboard/SKILL.md)** deliverable and batch-synthesize **Chinese + English** voice-over with IndexTTS2 (shared setup with **[ai-text-to-speech](../ai-text-to-speech/SKILL.md)**).
+Take a **[storyboard](../storyboard/SKILL.md)** deliverable and batch-synthesize **Chinese + English** voice-over with IndexTTS2 (shared setup with **[ai-text-to-speech](../ai-text-to-speech/SKILL.md)**).
 
 | Output | Path |
 |--------|------|
@@ -79,7 +79,7 @@ From project root (Windows; use `.venv/bin/python` on Unix):
 
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/ai-storyboard-tts/scripts/synthesize.py \
+  .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --storyboard path/to/storyboard.md \
   --voice path/to/ref.wav \
   --audio-dir path/to/<storyboard-stem>-speech \
@@ -97,7 +97,7 @@ This will:
 
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/ai-storyboard-tts/scripts/synthesize.py \
+  .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --storyboard path/to/storyboard.md \
   --voice path/to/ref.wav \
   --audio-dir path/to/<audio-dir> \
@@ -117,10 +117,10 @@ This will:
 ### Parse or report alone (stdlib python)
 
 ```bash
-.dependency/python/python .cursor/skills/ai-storyboard-tts/scripts/parse_storyboard.py \
+.dependency/python/python .cursor/skills/storyboard-tts/scripts/parse_storyboard.py \
   path/to/storyboard.md -o path/to/<audio-dir>/shots.json
 
-.dependency/python/python .cursor/skills/ai-storyboard-tts/scripts/duration_report.py \
+.dependency/python/python .cursor/skills/storyboard-tts/scripts/duration_report.py \
   --storyboard path/to/storyboard.md \
   --audio-dir path/to/<audio-dir> \
   --shots path/to/<audio-dir>/shots.json \
@@ -131,7 +131,7 @@ Resume from an existing `shots.json`:
 
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/ai-storyboard-tts/scripts/synthesize.py \
+  .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --shots path/to/<audio-dir>/shots.json \
   --voice path/to/ref.wav \
   --audio-dir path/to/<audio-dir> \
@@ -167,6 +167,6 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 
 ## Related
 
-- [ai-storyboard](../ai-storyboard/SKILL.md) — source markdown
+- [storyboard](../storyboard/SKILL.md) — source markdown
 - [ai-text-to-speech](../ai-text-to-speech/SKILL.md) — single-line TTS + IndexTTS setup
 - Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md), [audio-to-ogg](../audio-to-ogg/SKILL.md)
