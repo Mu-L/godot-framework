@@ -108,7 +108,7 @@ static func substring_after_last(s: String, delimiter: String) -> String:
 static func truncate(s: String, max_length: int) -> String:
 	if is_empty(s) or s.length() <= max_length:
 		return s
-	if max_length <= ELLIPSIS.length():
+	if max_length < ELLIPSIS.length():
 		return s.substr(0, max_length)
 	return s.substr(0, max_length - ELLIPSIS.length()) + ELLIPSIS
 
