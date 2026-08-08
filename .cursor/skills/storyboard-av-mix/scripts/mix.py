@@ -61,6 +61,8 @@ LANGS = {
 
 SHOT_ID_RE = re.compile(r"^(\d+)")
 MIN_DURATION_SEC = 1e-3
+# VO is tight; freeze video 0.5s before/after (audio samples never filtered).
+AUDIO_PAD_SEC = 0.5
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -301,6 +303,11 @@ def codecs_for(out_path: Path) -> tuple[str, list[str], str, list[str]]:
     return CONTAINER_CODECS.get(out_path.suffix.lower(), DEFAULT_CODECS)
 
 
+def output_duration(audio_dur: float) -> float:
+    """VO length plus leading/trailing hold pads (video only; audio untouched)."""
+    return audio_dur + (AUDIO_PAD_SEC * 2)
+
+
 def build_ffmpeg_args(
     ffmpeg: Path,
     job: MixJob,
@@ -308,10 +315,12 @@ def build_ffmpeg_args(
     video_dur: float,
     audio_dur: float,
 ) -> list[str]:
-    # factor > 1 slows video (stretch); factor < 1 speeds video (compress).
+    # Stretch video body to VO length, then freeze 0.5s at each end.
+    # Audio is never filtered — only delayed on the timeline (-itsoffset).
     factor = audio_dur / video_dur
+    target_dur = output_duration(audio_dur)
     v_codec, v_opts, a_codec, a_opts = codecs_for(job.output)
-    # lock output to VO length so A/V match even with tiny probe/round trip drift
+    pad = f"{AUDIO_PAD_SEC:.6f}"
     return [
         str(ffmpeg),
         "-hide_banner",
@@ -319,10 +328,16 @@ def build_ffmpeg_args(
         "-y",
         "-i",
         str(job.video),
+        "-itsoffset",
+        pad,
         "-i",
         str(job.audio),
         "-filter:v",
-        f"setpts=PTS*{factor:.10f}",
+        (
+            f"setpts=PTS*{factor:.10f},"
+            f"tpad=start_mode=clone:start_duration={pad}:"
+            f"stop_mode=clone:stop_duration={pad}"
+        ),
         "-map",
         "0:v:0",
         "-map",
@@ -334,7 +349,7 @@ def build_ffmpeg_args(
         a_codec,
         *a_opts,
         "-t",
-        f"{audio_dur:.6f}",
+        f"{target_dur:.6f}",
         "-map_metadata",
         "-1",
         "-sn",
@@ -374,13 +389,18 @@ def mix_one(
 
 
 def format_plan(video_dur: float, audio_dur: float, factor: float) -> str:
+    target_dur = output_duration(audio_dur)
     if factor < 1.0:
         action = "speed-up video"
     elif factor > 1.0:
         action = "slow-down video"
     else:
         action = "keep video pace"
-    return f"v={video_dur:.3f}s a={audio_dur:.3f}s factor={factor:.4f} ({action})"
+    return (
+        f"v={video_dur:.3f}s a={audio_dur:.3f}s (untouched) "
+        f"+{AUDIO_PAD_SEC:g}s video hold each side -> {target_dur:.3f}s "
+        f"factor={factor:.4f} ({action})"
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -439,7 +459,10 @@ def main() -> int:
     print(f"Root:   {root}")
     print(f"Lang:   {args.lang}")
     print(f"Jobs:   {len(jobs)}")
-    print("Mode:   retime video to audio duration (setpts + reencode)")
+    print(
+        f"Mode:   stretch video to VO, hold {AUDIO_PAD_SEC:g}s each side "
+        "(setpts + tpad; audio untouched aside from container encode)"
+    )
     if args.dry_run:
         print("Run:    DRY RUN")
     print()

@@ -3,10 +3,11 @@ name: storyboard-shot-to-html
 description: >-
   Turns a storyboard shot (video prompt + narration) into a self-contained
   fullscreen HTML CSS animation for the browser. Analyzes VO/旁白, searches
-  related facts and usage cues, then builds a full-viewport animated stage with
-  Fullscreen API. Use when the user wants storyboard-shot-to-html, HTML
-  animation preview, prompt-to-HTML, 分镜转HTML, 提示词动画演示, 旁白可视化,
-  fullscreen preview, Space to play, or a web demo of a video prompt / shot.
+  related facts and usage cues, then builds a rich layered stage (camera,
+  subject, secondary UI, light, micro-detail) with Fullscreen API and Space-to-play.
+  Use when the user wants storyboard-shot-to-html, HTML animation preview,
+  prompt-to-HTML, 分镜转HTML, 提示词动画演示, 旁白可视化, fullscreen preview,
+  Space to play, or a web demo of a video prompt / shot.
 ---
 
 # Storyboard Shot → HTML
@@ -66,7 +67,8 @@ Task Progress:
 - [ ] Parse shot (prompt + VO + camera/duration/style)
 - [ ] Analyze narration → concepts to ground
 - [ ] Search related info / usage (when needed)
-- [ ] Design stage + motion from prompt + research
+- [ ] Plan motion layers (camera / subject / secondary / light / micro) + timing beats
+- [ ] Design rich stage from prompt + research (depth planes, staggers, payoff hold)
 - [ ] Write HTML; open in browser
 - [ ] Chat: path + what the demo shows
 ```
@@ -104,22 +106,93 @@ Skip heavy research for pure mood/atmosphere shots with no domain claims.
 
 ### 4. Build the HTML animation
 
-Goal: **one composition** that reads as the shot at first viewport — animated stand-in for the video prompt.
+Goal: **one composition** that reads as the shot at first viewport — animated stand-in for the video prompt. Aim for a **rich motion sketch** (layered beats + secondary life), not a flat poster that barely moves.
 
 | Prefer | Avoid |
 |--------|--------|
 | Full-viewport stage (100vw×100vh) + Fullscreen API | Inset card + scrolling meta under the hero |
 | Aspect-locked cover (16:9 default) filling the screen | Dashboard clutter, card grids in the hero |
 | CSS/`@keyframes` one-shot until end, paused until `Space` | Autoplay, `infinite` / looping shot timelines, Space restart |
-| Camera drift, light pulse, parallax, typed UI, particle/haze | Static mock with no motion after play starts; looping ambient that reads as “replay” |
+| Layered camera + light + subject + micro-UI + atmosphere | Single fade-in with nothing else moving |
+| Staggered reveals, easing, hold on end frame | Everything popping at t=0 then freezing |
 | Prompt / research in toggle overlay (`I` / `?`) | Fake photoreal video, watermarked stock embeds |
 | Expressive fonts when they serve mood | Default system-only stacks for cinematic shots |
-
-**Motion budget:** at least **2–3** intentional motions (e.g. camera drift + light pulse + UI activity).
 
 **Sync with VO meaning:** if旁白 teaches a step or names a UI, show that metaphor on stage (even abstractly). Mood-only VO → prioritize prompt cinematography.
 
 **Language:** Abstract UI chrome labels may follow the VO language when helpful (default Chinese if Chinese VO present, else English). **Never** put spoken 旁白 / VO lines on the stage. Keep the **original prompt + VO text** only in the toggle overlay.
+
+### 4a. Animation richness (required)
+
+Ship a **dense but readable** stage. Thin “one transform + one opacity” demos are not enough.
+
+**Motion budget (minimum):**
+
+| Layer | Role | Examples |
+|-------|------|----------|
+| 1. Camera | Whole-frame energy from the prompt’s Camera line | Push-in, pull-back, slow pan, slight dutch, orbital drift via `transform` on a `.scene` root |
+| 2. Primary subject | What the shot is about | Prototype appearing, module docking, graph exploding, gate locking |
+| 3. Secondary / support | Proof the world is alive | Sibling UI panels, folder tree growth, packet lanes, platform pieces |
+| 4. Light & atmosphere | Mood continuity from Visual Style | Lamp pulse, monitor bloom, volumetric haze drift, vignette breathe, rim-light shift |
+| 5. Micro-detail | Texture without stealing focus | Cursor blink, scrubber/knob, floating code bits, dust/particles, soft shadow crawl |
+
+Require **at least 4 of these 5 layers** on every shot, and **≥5 distinct animated properties** after `Space` (e.g. scene scale + tree stagger + platforms + clock scrub + play-view bloom). Ambient loops (`infinite` lamp flicker, dust) are OK **only if subtle** and do **not** read as the shot replaying; the **main narrative beat stays one-shot + forwards**.
+
+**Depth & layering:**
+
+- Build **≥3 depth planes** (bg / mid / fg or room / screens / desk props). Parallax them slightly on camera move (different translate/scale amounts).
+- Prefer real structure (monitor bezels, desk, lamp, HUD chrome) over a single flat rectangle with text.
+- Use soft masks, inset bezels, bloom, and gradient haze so the frame doesn’t look like clipped divs on black.
+
+**Timing craft (map to Duration):**
+
+1. **Idle (pre-Space):** readable establishing frame — lights on, subjects in start pose, no story progress.
+2. **Setup (first ~20–30%):** environment wakes — UI populates, secondary elements stagger in (`animation-delay` cascade).
+3. **Development (middle):** primary transformation from the video prompt (build / collapse / reveal / dock).
+4. **Accent (~last 20%):** punch the Camera/VO payoff (RUN success, shockwave, CTA hold, badge snap).
+5. **Hold:** freeze the end pose (`forwards`); no rewind.
+
+Use **staggers** (40–120ms steps) for lists, folders, packets, checkmarks. Prefer `cubic-bezier` / ease-out on arrivals; reserve snappy ease for hits and smash cuts. If Duration is `~8s`, keep the CSS timeline ≈8s — don’t compress a whole story into 2s then dead-air.
+
+**Detail recipes (pick what fits the prompt):**
+
+| Shot type | Enrich with |
+|-----------|-------------|
+| Desk / editor / IDE | Dual screens, sidebar tree stagger, typed/fading code lines, blinking caret, playview empty→alive, clock or timeline scrub, warm lamp + cool monitor mix, camera push into playview |
+| Architecture / graph | Nodes lighting in sequence, edges drawing, local cyan vs global fog, camera pull-back revealing scale, soft particle drift |
+| Chaos / debt | Multiplying clones, spaghetti cables growing, amber warning pulses, dutch tilt increasing, denser particle rain — still graphic-clean, not illegible spam |
+| Product / module dock | Orbital turntable, modules easing into sockets with short “dock” scale settle, rim light pass, label fades (short, abstract) |
+| Pipeline / steps | Lateral track or stepped gates lighting cyan as a token passes; each gate a micro-animation, not one long slide |
+| Game-feel montage | Meter needles, multi-hit sparks, toast slide+fade, one-shot VFX sheet burst — cut accents on beats, no seizure strobe |
+
+**CSS/JS practical rules:**
+
+- Gate story animations behind `.is-playing` (or equivalent). Idle may use only tiny ambient loops.
+- Prefer `transform` + `opacity` (+ `filter` sparingly) for performance; avoid layout thrash.
+- Name keyframes by intent (`cameraPush`, `platformGrow`, `badgeIn`) so timing stays editable.
+- Optional tiny JS for clocks, counters, or step indices — keep logic short; CSS owns most motion.
+- **No** on-stage VO captions, karaoke, or subtitle bars.
+
+**Anti-patterns (reject before shipping):**
+
+- Only opacity fade on the whole stage
+- Static screenshot look after play starts
+- All elements sharing one identical delay/duration
+- Busy infinite loops that feel like a GIF restart
+- Unreadable micro-text walls or fake brand logos
+- Burning 旁白 into the frame
+
+### 4b. Pre-flight motion checklist
+
+Before writing the file, briefly plan (internally or in overlay research notes):
+
+1. Camera move from the shot’s **Camera** line  
+2. Primary beat from the **Video prompt**  
+3. Two secondary enrichments (UI / props / particles)  
+4. Light or atmosphere continuity from **Visual Style**  
+5. End-frame hold that matches the payoff  
+
+If any item is missing, add it before coding.
 
 ### 5. Suggested HTML skeleton
 
@@ -177,6 +250,8 @@ Only if the user asks for a full board:
 - [ ] **Play once:** no loop; end frame held; no auto-replay / Space restart after finish
 - [ ] Stage matches prompt subject, camera energy, and aspect
 - [ ] 旁白 concepts analyzed; factual/usage gaps researched when needed
-- [ ] Visible motion after play starts (not a still poster)
+- [ ] **Rich motion:** ≥4 of 5 layers (camera / primary / secondary / light / micro); ≥5 animated properties; ≥3 depth planes
+- [ ] Timing follows Duration (setup → development → accent → hold); staggers on lists/UI; not one global fade
+- [ ] Visible continuous life after play starts (not a still poster); ambient loops stay subtle
 - [ ] Self-contained; no storyboard overwrite; no video API calls
 - [ ] Chat stays short: path + shot + research takeaway

@@ -27,14 +27,14 @@ Shot id = leading digits of the filename stem (`01.mp4` + `01.wav` → `01`). Co
 
 ## Duration rule (only mode)
 
-**Audio duration is master.** Video is always re-encoded with `setpts`:
+**Audio duration is master — VO is never filtered, trimmed, or tempo-changed.** Video is always re-encoded: `setpts` stretches/compresses the clip to the VO length, then `tpad` holds the first/last frame **0.5s** each side (breathing room). Audio is only placed on the timeline with `-itsoffset 0.5` (no audio filters).
 
 | Case | Effect |
 |------|--------|
-| Video longer than VO | Speed up video (compress time) → length = audio |
-| Video shorter than VO | Slow down video (stretch time) → length = audio |
+| Video longer than VO | Speed up video → body length = audio, then +0.5s hold each end |
+| Video shorter than VO | Slow down video → body length = audio, then +0.5s hold each end |
 
-VO is kept as-is (no pitch/tempo change). Output length locked with `-t <audio_duration>`.
+Output length locked with `-t <audio_duration + 1.0>`. Lead/trail play as silence + freeze frame; VO samples are unchanged.
 
 ## Rules
 
@@ -92,8 +92,8 @@ From project root:
 This will:
 
 1. Index `Video/`, `Chinese/`, `English/` by shot id
-2. Probe durations; `factor = audio_dur / video_dur`
-3. Apply `setpts=PTS*factor`, re-encode video, mux VO audio
+2. Probe durations; `factor = audio_dur / video_dur` (video body matches VO)
+3. `setpts` + `tpad` 0.5s hold each end on video only; mux VO via `-itsoffset` (no audio filters)
 4. Write `Video-Chinese/<id>.ext` / `Video-English/<id>.ext` (skip existing unless `--overwrite`)
 
 ### Language / trial
@@ -117,7 +117,7 @@ This will:
 
 **Video:** always re-encoded (setpts cannot stream-copy). Default quality: libx264 CRF 18 (VP9/Theora for webm/ogv).
 
-**Audio:** re-encoded to fit the container (AAC / Opus / Vorbis); duration unchanged.
+**Audio:** never filtered/trimmed/tempo-changed; only remuxed/re-encoded to fit the container (AAC / Opus / Vorbis). Timeline offset 0.5s so freeze holds are silent.
 
 ## Agent notes
 
