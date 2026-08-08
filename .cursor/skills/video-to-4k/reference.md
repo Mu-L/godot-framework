@@ -30,7 +30,7 @@ video2x -i input.mp4 -o 4k-upscaled/clip.mkv \
 
 `--anime` swaps the model to `realesr-animevideov3`.
 
-Intermediate aims for quality over size so the final 120 Mbps encode has a clean source. Audio is passed through by Video2X when present.
+Intermediate aims for quality over size so the final 40 Mbps encode has a clean source. Audio is passed through by Video2X when present.
 
 ## FFmpeg final (always)
 
@@ -38,7 +38,7 @@ Intermediate aims for quality over size so the final 120 Mbps encode has a clean
 ffmpeg -i SOURCE \
   -vf "scale=3840:2160:flags=lanczos,fps=60,format=yuv420p10le" \
   -c:v libx265 -profile:v main10 -pix_fmt yuv420p10le \
-  -b:v 120M -maxrate 120M -bufsize 240M \
+  -b:v 40M -maxrate 40M -bufsize 80M \
   -tag:v hvc1 -x265-params "profile=main10" \
   -c:a aac -b:a 320k \
   -movflags +faststart \
@@ -51,7 +51,7 @@ No audio streams → video-only output (`-an`).
 
 ## Why split Video2X and FFmpeg?
 
-Video2X owns ML upscaling. The unified master (exact 3840×2160, 60 FPS, Main10 @ 120 Mbps, AAC 320k) is enforced in one FFmpeg pass so already-4K and upscaled paths share identical output specs.
+Video2X owns ML upscaling. The unified master (exact 3840×2160, 60 FPS, Main10 @ 40 Mbps, AAC 320k) is enforced in one FFmpeg pass so already-4K and upscaled paths share identical output specs.
 
 ## Hardware
 

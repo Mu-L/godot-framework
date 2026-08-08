@@ -36,7 +36,7 @@ Audio uses `acrossfade=d=0.5:c1=tri:c2=tri` in the same order.
 
 ```
 -c:v libx265 -profile:v main10 -pix_fmt yuv420p10le
--b:v 120M -maxrate 120M -bufsize 240M
+-b:v 40M -maxrate 40M -bufsize 80M
 -r 60 -tag:v hvc1
 -c:a aac -b:a 320k -ar 48000 -ac 2
 ```

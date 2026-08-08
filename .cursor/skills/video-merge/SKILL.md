@@ -3,7 +3,7 @@ name: video-merge
 description: >-
   Merges multiple videos from a folder (sorted by filename) into one clip with a
   random xfade transition (0.5s) between each pair. Exports 3840×2160 60fps
-  H.265 Main10 120Mbps + AAC 320kbps. Use when the user wants video merge,
+  H.265 Main10 40Mbps + AAC 320kbps. Use when the user wants video merge,
   concatenate videos, 视频拼接, 过场动画, xfade, join clips, or batch stitch
   clips with transitions.
 disable-model-invocation: true
@@ -39,7 +39,7 @@ assets/shots/
 |---------|-------|
 | Resolution | 3840×2160 (scale + letterbox pad) |
 | Frame rate | 60 fps |
-| Video | H.265 Main10 (`libx265`, `yuv420p10le`) @ **120 Mbps** |
+| Video | H.265 Main10 (`libx265`, `yuv420p10le`) @ **40 Mbps** |
 | Audio | AAC **320 kbps**, 48 kHz stereo |
 | Transition | **0.5 s**, random from the pool below |
 | Container | `.mp4` (`hvc1` tag) |

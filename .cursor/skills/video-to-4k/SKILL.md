@@ -2,7 +2,7 @@
 name: video-to-4k
 description: >-
   Upscales low-resolution video to 4K with Video2X (Real-ESRGAN), then encodes
-  to a unified 3840×2160 60FPS H.265 Main10 120Mbps + AAC 320kbps MP4. Already-4K
+  to a unified 3840×2160 60FPS H.265 Main10 40Mbps + AAC 320kbps MP4. Already-4K
   sources skip Video2X and go straight to FFmpeg. Use when the user wants
   video-to-4k, 4K upscale, UHD export, Video2X, Real-ESRGAN, H.265 Main10,
   or batch convert SD/HD clips to 4K.
@@ -17,7 +17,7 @@ Convert supported videos to a **unified 4K master**:
 | Resolution | 3840×2160 |
 | Frame rate | 60 FPS |
 | Video | H.265 Main10 (`libx265`, `yuv420p10le`) |
-| Video bitrate | 120 Mbps |
+| Video bitrate | 40 Mbps |
 | Audio | AAC 320 kbps |
 | Container | MP4 (`.mp4`, `hvc1` tag) |
 

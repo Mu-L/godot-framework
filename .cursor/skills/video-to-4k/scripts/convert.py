@@ -32,7 +32,7 @@ VIDEO_EXTENSIONS = {
 TARGET_WIDTH = 3840
 TARGET_HEIGHT = 2160
 TARGET_FPS = 60
-VIDEO_BITRATE = "120M"
+VIDEO_BITRATE = "40M"
 AUDIO_BITRATE = "320k"
 DEFAULT_MODEL = "realesrgan-plus"
 ANIME_MODEL = "realesr-animevideov3"
@@ -345,7 +345,7 @@ def build_ffmpeg_final_args(
         "-maxrate",
         VIDEO_BITRATE,
         "-bufsize",
-        "240M",
+        "80M",
         "-tag:v",
         "hvc1",
         "-x265-params",
@@ -438,7 +438,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Upscale below-4K video with Video2X, then encode unified "
-            "3840x2160 60FPS H.265 Main10 120Mbps + AAC 320kbps MP4."
+            "3840x2160 60FPS H.265 Main10 40Mbps + AAC 320kbps MP4."
         )
     )
     parser.add_argument("input", help="Path to a single video file or directory")

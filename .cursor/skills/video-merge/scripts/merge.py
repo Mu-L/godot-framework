@@ -33,7 +33,7 @@ TRANSITION_DURATION = 0.5
 OUTPUT_WIDTH = 3840
 OUTPUT_HEIGHT = 2160
 OUTPUT_FPS = 60
-VIDEO_BITRATE = "120M"
+VIDEO_BITRATE = "40M"
 AUDIO_BITRATE = "320k"
 AUDIO_RATE = 48000
 
@@ -221,7 +221,7 @@ def encode_args(out_path: Path) -> list[str]:
         "-maxrate",
         VIDEO_BITRATE,
         "-bufsize",
-        "240M",
+        "80M",
         "-r",
         str(OUTPUT_FPS),
         "-tag:v",
@@ -332,7 +332,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Merge videos in a folder (filename sort) with random 0.5s transitions "
-            "into 3840x2160 60fps H.265 Main10 120Mbps + AAC 320kbps."
+            "into 3840x2160 60fps H.265 Main10 40Mbps + AAC 320kbps."
         )
     )
     parser.add_argument("input", help="Directory containing videos to merge")

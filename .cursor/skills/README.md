@@ -10,7 +10,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
 | [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
 | [Video](#video) | Watermark → mute / extract → 4K → merge → OGV | 6 skills |
-| [Storyboard](#storyboard) | Storyboard → VO / video → AV mix → merge | 7 skills |
+| [Storyboard](#storyboard) | Storyboard → VO / video → AV mix → merge | 8 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## AI
@@ -135,11 +135,13 @@ Materials / copy / images
           ↓
        ⑤ video-remove-watermark-gemini
           ↓
-       ⑥ video-to-4k → Video/
+       ⑥ video-remove-audio — mute (drop source track before VO mux)
+          ↓
+       ⑦ video-to-4k → Video/
     ↓
-⑦ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑧ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑧ video-merge → final film
+⑨ video-merge → final film
 ```
 
 | Skill | Purpose |
