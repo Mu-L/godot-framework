@@ -122,6 +122,21 @@ Goal: **one composition** that reads as the shot at first viewport — animated 
 
 **Language:** Abstract UI chrome labels may follow the VO language when helpful (default Chinese if Chinese VO present, else English). **Never** put spoken 旁白 / VO lines on the stage. Keep the **original prompt + VO text** only in the toggle overlay.
 
+**Typography / readable stage text (required):**
+
+Stage labels are viewed fullscreen — **do not ship micro-UI**. Anything the viewer should parse (chrome titles, badges, graph nodes, file cards, status chips, code lines, gate names) must stay large enough at 16:9 cover.
+
+| Element | Minimum size guidance |
+|---------|----------------------|
+| Primary labels (badges, thesis chips, CTA, key nodes) | `clamp(14px, 1.8vw, 20px)` or larger |
+| Secondary UI (window chrome, folder/file names, status) | `clamp(13px, 1.5vw, 17px)` |
+| Micro ornament only (optional ticks, tiny meters) | may go smaller — but **never** put critical meaning there |
+| Hint bar (`.fs-hint`) | ≥14–15px |
+
+- Prefer fewer, larger labels over dense 8–10px walls.
+- When enlarging type, also bump padding / card height so text is not cramped.
+- Anti-pattern: `font-size: 7px`–`11px` clamps on graph nodes, code, or badges “to fit more” — cut content instead.
+
 ### 4a. Animation richness (required)
 
 Ship a **dense but readable** stage. Thin “one transform + one opacity” demos are not enough.
@@ -189,6 +204,7 @@ Use **staggers** (40–120ms steps) for lists, folders, packets, checkmarks. Pre
 - All elements sharing one identical delay/duration
 - Busy infinite loops that feel like a GIF restart
 - Unreadable micro-text walls or fake brand logos
+- Stage chrome / nodes / badges at ~7–11px (too small for fullscreen; enlarge or drop labels)
 - Burning 旁白 into the frame
 - Default whole-frame `scale` / push-in while code or other critical text is on stage (zooms away readability)
 - Inventing camera moves not present in the shot’s **Camera** line
@@ -263,6 +279,7 @@ Only if the user asks for a full board:
 - [ ] 旁白 concepts analyzed; factual/usage gaps researched when needed
 - [ ] **Rich motion:** ≥4 of 5 layers (camera / primary / secondary / light / micro); ≥5 animated properties; ≥3 depth planes
 - [ ] **Readable priority:** important code/content → locked camera or local emphasis; no default whole-frame zoom that shrinks text
+- [ ] **Typography:** on-stage labels use large clamps (primary ≥~14–20px, secondary ≥~13–17px); no critical 7–11px micro-text
 - [ ] Timing follows Duration (setup → development → accent → hold); staggers on lists/UI; not one global fade
 - [ ] Visible continuous life after play starts (not a still poster); ambient loops stay subtle
 - [ ] Self-contained; no storyboard overwrite; no video API calls
