@@ -8,7 +8,6 @@ import json
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 VIDEO_EXTENSIONS = {
@@ -255,6 +254,31 @@ def run_checked(cmd: list[str], label: str) -> None:
         )
 
 
+def run_video2x(cmd: list[str], out_path: Path) -> None:
+    """Run Video2X; accept output if the process crashes after writing the file.
+
+    Video2X 6.x on Windows sometimes exits with STATUS_ACCESS_VIOLATION
+    (-1073741819) after a successful encode.
+    """
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    detail = (result.stderr or "") + "\n" + (result.stdout or "")
+    ok_marker = "Video processed successfully" in detail
+    usable = out_path.is_file() and out_path.stat().st_size > 0
+
+    if result.returncode == 0 and usable:
+        return
+    if usable and (ok_marker or result.returncode == -1073741819):
+        print(
+            f"[warn] Video2X exited {result.returncode} after writing output; continuing"
+        )
+        return
+
+    detail = detail.strip()
+    raise RuntimeError(
+        "Video2X upscale failed" + (f"\n{detail}" if detail else "")
+    )
+
+
 def build_video2x_args(
     video2x: Path,
     file_path: Path,
@@ -285,7 +309,7 @@ def build_video2x_args(
         "crf=12",
     ]
     if gpu is not None:
-        cmd.extend(["-g", str(gpu)])
+        cmd.extend(["-d", str(gpu)])
     return cmd
 
 
@@ -369,14 +393,25 @@ def convert_file(
     upscaled_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Write to a temp name first so a failed run does not leave a partial final.
-    with tempfile.TemporaryDirectory(prefix="video-to-4k-") as tmp:
-        tmp_upscaled = Path(tmp) / f"upscaled{upscaled_path.suffix}"
-        run_checked(
+    # Write via a sibling temp file so a failed run does not leave a bad final.
+    # Must stay on the same drive as upscaled_path (Video2X crashes after write
+    # are common on Windows; we still need a durable path to validate).
+    tmp_upscaled = upscaled_path.with_name(
+        f".{upscaled_path.stem}.tmp{upscaled_path.suffix}"
+    )
+    if tmp_upscaled.exists():
+        tmp_upscaled.unlink()
+    try:
+        run_video2x(
             build_video2x_args(video2x, file_path, tmp_upscaled, scale, model, gpu),
-            "Video2X upscale",
+            tmp_upscaled,
         )
+        if upscaled_path.exists():
+            upscaled_path.unlink()
         shutil.move(str(tmp_upscaled), str(upscaled_path))
+    finally:
+        if tmp_upscaled.exists():
+            tmp_upscaled.unlink()
 
     # Re-probe upscaled for audio (should match source).
     up_payload = probe_video(ffprobe, upscaled_path)
@@ -424,7 +459,7 @@ def parse_args() -> argparse.Namespace:
         "--gpu",
         type=int,
         default=None,
-        help="Vulkan GPU index for Video2X (-g)",
+        help="Vulkan GPU index for Video2X (-d)",
     )
     parser.add_argument(
         "--clean-upscaled",
