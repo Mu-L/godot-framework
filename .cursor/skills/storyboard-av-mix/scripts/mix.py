@@ -380,8 +380,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--crf",
         type=int,
-        default=18,
-        help="libx264 CRF (default: 18)",
+        default=14,
+        help="libx264 CRF (default: 14)",
     )
     parser.add_argument(
         "--preset",

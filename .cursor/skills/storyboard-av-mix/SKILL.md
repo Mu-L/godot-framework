@@ -98,7 +98,7 @@ Per shot / language:
 | `--limit N` | First N shot ids only (sorted) |
 | `--force` | Overwrite existing outputs |
 | `--dry-run` | Plan only |
-| `--crf` | x264 CRF (default `18`) |
+| `--crf` | x264 CRF (default `14`) |
 | `--preset` | x264 preset (default `medium`) |
 
 Skip existing outputs unless `--force`. Missing VO for a language → skip that job with a warning. Missing video → skip shot.
