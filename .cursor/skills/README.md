@@ -112,7 +112,7 @@ Source video (Veo / Gemini generated)
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
-| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
+| [video-merge-xfade](video-merge-xfade/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 
 ## Storyboard
@@ -141,7 +141,7 @@ Materials / copy / images
     ↓
 ⑧ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑨ video-merge → final film
+⑨ video-merge-xfade → final film
 ```
 
 | Skill | Purpose |

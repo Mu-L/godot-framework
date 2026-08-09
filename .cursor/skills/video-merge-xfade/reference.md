@@ -1,4 +1,4 @@
-# Video Merge — FFmpeg Notes
+# Video Merge Xfade — FFmpeg Notes
 
 ## Normalize + xfade
 

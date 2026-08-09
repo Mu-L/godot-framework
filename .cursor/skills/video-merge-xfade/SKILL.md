@@ -1,5 +1,5 @@
 ---
-name: video-merge
+name: video-merge-xfade
 description: >-
   Merges multiple videos from a folder (sorted by filename) into one clip with a
   random xfade transition (0.5s) between each pair; freeze-pads so total duration
@@ -9,7 +9,7 @@ description: >-
 disable-model-invocation: true
 ---
 
-# Video Merge
+# Video Merge Xfade
 
 Concatenate every video in a folder (filename sort) into **one** high-quality MP4. Between each pair, pick a **random** FFmpeg `xfade` transition (0.5s). Audio uses matching `acrossfade`.
 
@@ -22,7 +22,7 @@ When this skill applies, read and follow [skill-dependency-manager](../../rules/
 ## Quick Start
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py path/to/clips
+.dependency/python/python .cursor/skills/video-merge-xfade/scripts/merge.py path/to/clips
 ```
 
 Example:
@@ -57,8 +57,8 @@ Each cut independently samples one transition. Printed in the run log.
 `-o` / `--output` · `--overwrite` · `--dry-run` · `--seed`
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py clips --seed 42
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py clips -o out/final.mp4 --overwrite
+.dependency/python/python .cursor/skills/video-merge-xfade/scripts/merge.py clips --seed 42
+.dependency/python/python .cursor/skills/video-merge-xfade/scripts/merge.py clips -o out/final.mp4 --overwrite
 ```
 
 **Never overwrite source files.** Default output: `<folder>/merged/<folder-name>.mp4`. Only top-level videos in the folder (no recurse). Supported: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`, `.ogg`.
