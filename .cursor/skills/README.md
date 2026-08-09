@@ -101,11 +101,13 @@ Source video (Veo / Gemini generated)
     ↓
 ④ Upscale to 4K master (optional)
     ↓
-⑤ Merge folder of clips (optional)
+⑤ Conform 4K masters (optional; unify color / fps before merge)
+    ↓
+⑥ Merge folder of clips (optional)
    · hard cut / stream copy → video-merge
    · random 0.5s xfade → video-merge-xfade
     ↓
-⑥ Convert to OGV (for Godot)
+⑦ Convert to OGV (for Godot)
 ```
 
 | Skill | Purpose |
@@ -114,6 +116,7 @@ Source video (Veo / Gemini generated)
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
+| [video-4k-conform](video-4k-conform/SKILL.md) | Conform mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
 | [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with hard cuts (concat demuxer + stream copy; no re-encode) |
 | [video-merge-xfade](video-merge-xfade/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
@@ -141,10 +144,12 @@ Materials / copy / images
        ⑥ video-remove-audio — mute (drop source track before VO mux)
           ↓
        ⑦ video-to-4k → Video/
+          ↓
+       ⑦b video-4k-conform (if HDR/SDR or params still mixed)
     ↓
 ⑧ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑨ video-merge / video-merge-xfade → final film
+⑨ video-4k-conform (optional) → video-merge / video-merge-xfade → final film
 ```
 
 | Skill | Purpose |
