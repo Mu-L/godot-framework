@@ -58,6 +58,10 @@ def load_duration_report():
     return load_module("duration_report", SCRIPT_DIR / "duration_report.py")
 
 
+def load_write_subtitles():
+    return load_module("write_subtitles", SCRIPT_DIR / "write_subtitles.py")
+
+
 @dataclass
 class Job:
     shot_id: str
@@ -167,11 +171,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--report",
         action="store_true",
-        help="Write speech-timeline.md after synthesis",
+        help="Write speech-timeline.md and language SRT subtitles after synthesis",
     )
     parser.add_argument(
         "--report-out",
         help="Timeline path (default: <audio-dir>/speech-timeline.md)",
+    )
+    parser.add_argument(
+        "--no-subtitles",
+        action="store_true",
+        help="With --report, skip Chinese.srt / English.srt",
     )
     parser.add_argument(
         "--write-text",
@@ -446,19 +455,31 @@ def write_report(
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(report, encoding="utf-8")
         print(f"Wrote {output}")
-        return 0
+        rc = 0
+    else:
+        argv = [
+            "--storyboard",
+            str(sb),
+            "--audio-dir",
+            str(audio_dir),
+            "--shots",
+            str(shots_path),
+            "-o",
+            str(output),
+        ]
+        rc = int(report_mod.main(argv))
 
-    argv = [
-        "--storyboard",
-        str(sb),
-        "--audio-dir",
-        str(audio_dir),
-        "--shots",
-        str(shots_path),
-        "-o",
-        str(output),
-    ]
-    return int(report_mod.main(argv))
+    if not getattr(args, "no_subtitles", False):
+        sub_rc = write_subtitles_files(data, audio_dir, args.lang)
+        if sub_rc != 0 and rc == 0:
+            rc = sub_rc
+    return rc
+
+
+def write_subtitles_files(data: dict, audio_dir: Path, languages: str) -> int:
+    sub_mod = load_write_subtitles()
+    written = sub_mod.write_subtitles(data, audio_dir, languages)
+    return 0 if written else 1
 
 
 if __name__ == "__main__":

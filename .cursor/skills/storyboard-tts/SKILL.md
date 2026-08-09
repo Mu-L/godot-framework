@@ -4,9 +4,10 @@ description: >-
   Converts storyboard markdown (bilingual Chinese + English narration per shot)
   into speech audio via IndexTTS2 (same stack as ai-text-to-speech). Batch-writes
   WAVs under Chinese/ and English/ named by shot id (model loaded once), then a
-  speech-timeline.md with per-shot durations. Use when the user wants storyboard
-  TTS, 分镜转语音, 旁白配音, storyboard-to-speech, bilingual VO export, or batch
-  TTS from a storyboard.md.
+  speech-timeline.md and one concatenated SRT per language (Chinese.srt /
+  English.srt). Use when the user wants storyboard TTS, 分镜转语音, 旁白配音,
+  storyboard-to-speech, bilingual VO export, subtitles, 字幕, or batch TTS from
+  a storyboard.md.
 ---
 
 # Storyboard TTS
@@ -18,17 +19,21 @@ Take a **[storyboard](../storyboard/SKILL.md)** deliverable and batch-synthesize
 | Chinese VO | `<audio-dir>/Chinese/<shot-id>.wav` |
 | English VO | `<audio-dir>/English/<shot-id>.wav` |
 | Duration doc | `<audio-dir>/speech-timeline.md` |
+| Chinese subs | `<audio-dir>/Chinese.srt` |
+| English subs | `<audio-dir>/English.srt` |
 
 Shot id from headers (`### Shot 01 — …` → `01.wav`).
+
+Subtitles: **one SRT per language**, cues in shot order, timed by concatenating WAV durations (shot N starts when N−1 ends). Text is the storyboard Chinese/English line as-is. Skip `(no VO)` / missing audio.
 
 ## Rules
 
 1. Follow [skill-dependency-manager](../../rules/skill-dependency-manager.md).
 2. **Batch synthesis only via** `scripts/synthesize.py` with the **`index-tts`** interpreter. Do **not** hand-write IndexTTS loops, temporary batch drivers, or N× single `tts.py` calls for a full storyboard.
 3. **Trial / single-line** checks may use [ai-text-to-speech](../ai-text-to-speech/SKILL.md) `tts.py`, or `synthesize.py --limit 1`.
-4. Parse-only / report-only steps use stdlib **`python`** (`.dependency/python/python`).
+4. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python`).
 5. Never overwrite the storyboard source. Write only under `<audio-dir>/`.
-6. Skip `(no VO)` / empty lines — no empty WAVs.
+6. Skip `(no VO)` / empty lines — no empty WAVs or empty subtitle cues.
 7. Confirm **voice reference** (and output dir if unclear) before a full batch.
 
 ## Inputs
@@ -45,7 +50,8 @@ Shot id from headers (`### Shot 01 — …` → `01.wav`).
 | `--fp16` / emotion / `--device` | same meaning as ai-text-to-speech |
 | `--force` | off (skip existing WAVs) |
 | `--limit N` | 0 = all jobs (use `1` for trial) |
-| `--report` | write `speech-timeline.md` after synth |
+| `--report` | write `speech-timeline.md` + `Chinese.srt` / `English.srt` after synth |
+| `--no-subtitles` | with `--report`, skip SRT files |
 
 ## Layout
 
@@ -59,6 +65,8 @@ Shot id from headers (`### Shot 01 — …` → `01.wav`).
     …
   shots.json
   speech-timeline.md
+  Chinese.srt            # all Chinese cues, continuous timeline
+  English.srt            # all English cues, continuous timeline
   _text/                 # only with --write-text
 ```
 
@@ -70,7 +78,7 @@ Task Progress:
 - [ ] Ensure index-tts populated (ai-text-to-speech Setup if missing)
 - [ ] Optional trial: synthesize.py --limit 1 --fp16
 - [ ] Full batch: synthesize.py --fp16 --report
-- [ ] Chat: audio-dir, shot count, totals from speech-timeline.md
+- [ ] Chat: audio-dir, shot count, totals from speech-timeline.md, SRT paths
 ```
 
 ### One command (preferred)
@@ -91,7 +99,7 @@ This will:
 1. Parse the storyboard → `<audio-dir>/shots.json`
 2. Load IndexTTS2 **once**
 3. Write `Chinese/<id>.wav` and `English/<id>.wav` (skip existing unless `--force`)
-4. Write `speech-timeline.md` when `--report`
+4. Write `speech-timeline.md` and `Chinese.srt` / `English.srt` when `--report`
 
 ### Trial one line
 
@@ -114,7 +122,7 @@ This will:
 --lang chinese
 ```
 
-### Parse or report alone (stdlib python)
+### Parse, report, or subtitles alone (stdlib python)
 
 ```bash
 .dependency/python/python .cursor/skills/storyboard-tts/scripts/parse_storyboard.py \
@@ -125,6 +133,11 @@ This will:
   --audio-dir path/to/<audio-dir> \
   --shots path/to/<audio-dir>/shots.json \
   -o path/to/<audio-dir>/speech-timeline.md
+
+# Subtitles only (after WAVs exist) — one Chinese.srt + one English.srt
+.dependency/python/python .cursor/skills/storyboard-tts/scripts/write_subtitles.py \
+  --audio-dir path/to/<audio-dir> \
+  --shots path/to/<audio-dir>/shots.json
 ```
 
 Resume from an existing `shots.json`:
@@ -149,8 +162,9 @@ Resume from an existing `shots.json`:
 | `--lang` | `both` (default), `chinese`, `english` |
 | `--limit N` | First N pending jobs only |
 | `--force` | Overwrite existing WAVs |
-| `--report` | Write timeline markdown |
+| `--report` | Write timeline + SRT subtitles |
 | `--report-out` | Custom timeline path |
+| `--no-subtitles` | Skip SRT when using `--report` |
 | `--write-text` | Dump lines under `_text/` |
 | `--fp16` / `--device` | Runtime |
 | `--emotion-*` / `--random` / `--verbose` | Same role as `tts.py` |
@@ -159,11 +173,12 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 
 ## Agent notes
 
-1. Do **not** invent narration — use storyboard Chinese/English fields as-is.
+1. Do **not** invent narration — use storyboard Chinese/English fields as-is (audio and subtitles).
 2. Prefer **one** `synthesize.py` invocation for a full board; model reload cost is the reason.
-3. Chat summary: `audio-dir`, counts, path to `speech-timeline.md`, Chinese/English total seconds — no full transcripts unless asked.
+3. Chat summary: `audio-dir`, counts, path to `speech-timeline.md`, `Chinese.srt` / `English.srt`, Chinese/English total seconds — no full transcripts unless asked.
 4. IndexTTS install lives in [ai-text-to-speech](../ai-text-to-speech/SKILL.md); do not duplicate Setup here beyond “populate index-tts if missing”.
 5. Loudnorm / OGG / trim are separate skills after this one.
+6. If audio already exists and only subtitles are needed, run `write_subtitles.py` alone (stdlib python).
 
 ## Related
 
