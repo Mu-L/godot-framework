@@ -38,18 +38,54 @@ AUDIO_BITRATE = "320k"
 AUDIO_RATE = 48000
 
 TRANSITIONS = (
+    # fades
     "fade",
+    "fadeblack",
+    "fadewhite",
     "dissolve",
+    "fadefast",
+    "fadeslow",
+    # wipes / slides / smooth
     "wipeleft",
     "wiperight",
+    "wipeup",
+    "wipedown",
     "slideleft",
     "slideright",
+    "slideup",
+    "slidedown",
     "smoothleft",
     "smoothright",
+    "smoothup",
+    "smoothdown",
+    # diagonal / corner wipes
+    "diagtl",
+    "diagtr",
+    "diagbl",
+    "diagbr",
+    "wipetl",
+    "wipetr",
+    "wipebl",
+    "wipebr",
+    # open / close / radial
     "circleopen",
     "circleclose",
-    "diagtl",
+    "vertopen",
+    "vertclose",
+    "horzopen",
+    "horzclose",
     "radial",
+    "distance",
+    # cover / reveal / zoom
+    "coverleft",
+    "coverright",
+    "coverup",
+    "coverdown",
+    "revealleft",
+    "revealright",
+    "revealup",
+    "revealdown",
+    "zoomin",
 )
 
 
