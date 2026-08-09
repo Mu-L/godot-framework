@@ -7,7 +7,7 @@ import argparse
 import json
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 VIDEO_EXTENSIONS = {
@@ -52,6 +52,20 @@ class MixJob:
     video: Path
     audio: Path
     output: Path
+
+
+@dataclass(frozen=True)
+class VideoProbe:
+    codec_name: str
+    profile: str
+    pix_fmt: str
+    color_range: str
+    color_space: str
+    color_transfer: str
+    color_primaries: str
+    bit_rate: int | None
+    mastering: dict = field(default_factory=dict)
+    cll: dict = field(default_factory=dict)
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -185,6 +199,129 @@ def probe_audio_codec(ffprobe: Path, path: Path) -> str:
     return str(streams[0]["codec_name"]).lower()
 
 
+def _side_num(value: object) -> int:
+    """Parse ffprobe fraction/int side-data fields to int numerator."""
+    text = str(value)
+    if "/" in text:
+        return int(text.split("/", 1)[0])
+    return int(float(text))
+
+
+def probe_video(ffprobe: Path, path: Path) -> VideoProbe:
+    cmd = [
+        str(ffprobe),
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_streams",
+        "-of",
+        "json",
+        str(path),
+    ]
+    result = run_cmd(cmd)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffprobe video failed for {path}:\n"
+            f"{result.stderr.strip() or result.stdout.strip()}"
+        )
+    data = json.loads(result.stdout or "{}")
+    streams = data.get("streams") or []
+    if not streams:
+        raise RuntimeError(f"No video stream in {path}")
+    stream = streams[0]
+
+    mastering: dict = {}
+    cll: dict = {}
+    for side in stream.get("side_data_list") or []:
+        kind = side.get("side_data_type") or ""
+        if kind == "Mastering display metadata":
+            mastering = side
+        elif kind == "Content light level metadata":
+            cll = side
+
+    bit_rate_raw = stream.get("bit_rate")
+    bit_rate = int(bit_rate_raw) if bit_rate_raw not in (None, "N/A") else None
+
+    return VideoProbe(
+        codec_name=str(stream.get("codec_name") or "").lower(),
+        profile=str(stream.get("profile") or ""),
+        pix_fmt=str(stream.get("pix_fmt") or "yuv420p"),
+        color_range=str(stream.get("color_range") or ""),
+        color_space=str(stream.get("color_space") or ""),
+        color_transfer=str(stream.get("color_transfer") or ""),
+        color_primaries=str(stream.get("color_primaries") or ""),
+        bit_rate=bit_rate,
+        mastering=mastering,
+        cll=cll,
+    )
+
+
+def _master_display_x265(mastering: dict) -> str:
+    rx = _side_num(mastering["red_x"])
+    ry = _side_num(mastering["red_y"])
+    gx = _side_num(mastering["green_x"])
+    gy = _side_num(mastering["green_y"])
+    bx = _side_num(mastering["blue_x"])
+    by = _side_num(mastering["blue_y"])
+    wx = _side_num(mastering["white_point_x"])
+    wy = _side_num(mastering["white_point_y"])
+    max_l = _side_num(mastering["max_luminance"])
+    min_l = _side_num(mastering["min_luminance"])
+    return f"G({gx},{gy})B({bx},{by})R({rx},{ry})WP({wx},{wy})L({max_l},{min_l})"
+
+
+def video_encode_args(
+    probe: VideoProbe,
+    *,
+    crf: int | None,
+    preset: str,
+) -> list[str]:
+    """Match source codec / bit depth / HDR tags; setpts forces a re-encode."""
+    args: list[str] = []
+    is_10bit = "10" in probe.pix_fmt or "10" in probe.profile
+    hevc_like = probe.codec_name in {"hevc", "h265"}
+
+    if hevc_like or is_10bit:
+        args.extend(["-c:v", "libx265", "-tag:v", "hvc1"])
+        if is_10bit:
+            args.extend(["-profile:v", "main10"])
+        args.extend(["-preset", preset])
+        x265: list[str] = []
+        if probe.mastering:
+            x265.append(f"master-display={_master_display_x265(probe.mastering)}")
+        if probe.cll:
+            max_c = int(probe.cll.get("max_content") or 0)
+            max_a = int(probe.cll.get("max_average") or 0)
+            x265.append(f"max-cll={max_c},{max_a}")
+        if x265:
+            args.extend(["-x265-params", ":".join(x265)])
+    else:
+        args.extend(["-c:v", "libx264", "-preset", preset])
+
+    args.extend(["-pix_fmt", probe.pix_fmt])
+
+    if probe.color_range:
+        args.extend(["-color_range", probe.color_range])
+    if probe.color_space:
+        args.extend(["-colorspace", probe.color_space])
+    if probe.color_primaries:
+        args.extend(["-color_primaries", probe.color_primaries])
+    if probe.color_transfer:
+        args.extend(["-color_trc", probe.color_transfer])
+
+    if crf is not None:
+        args.extend(["-crf", str(crf)])
+    elif probe.bit_rate and probe.bit_rate > 0:
+        # Match source bitrate so retime does not silently crush quality.
+        rate = str(probe.bit_rate)
+        args.extend(["-b:v", rate, "-maxrate", rate, "-bufsize", str(probe.bit_rate * 2)])
+    else:
+        args.extend(["-crf", "14"])
+
+    return args
+
+
 def audio_encode_args(ffprobe: Path, audio: Path, video_ext: str) -> list[str]:
     """Prefer stream copy; never change VO duration. AAC only when container needs it."""
     codec = probe_audio_codec(ffprobe, audio)
@@ -271,18 +408,19 @@ def mux_job(
     ffprobe: Path,
     job: MixJob,
     *,
-    crf: int,
+    crf: int | None,
     preset: str,
     dry_run: bool,
     force: bool,
 ) -> str:
-    """Retime video to VO duration; stream-copy audio. Returns status label."""
+    """Retime video to VO duration; preserve source video encode + tags."""
     if job.output.exists() and not force:
         return "skip-exists"
 
     vo_dur = probe_duration_seconds(ffprobe, job.audio)
     vid_dur = probe_duration_seconds(ffprobe, job.video)
     ratio = vo_dur / vid_dur
+    vprobe = probe_video(ffprobe, job.video)
 
     job.output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -295,7 +433,9 @@ def mux_job(
         f"setpts=PTS*{ratio:.12f},"
         f"tpad=stop_mode=clone:stop_duration=1"
     )
+    video_args = video_encode_args(vprobe, crf=crf, preset=preset)
     audio_args = audio_encode_args(ffprobe, job.audio, job.video.suffix)
+    audio_lang = "chi" if job.lang == "chinese" else "eng"
 
     cmd = [
         str(ffmpeg),
@@ -310,24 +450,29 @@ def mux_job(
         "0:v:0",
         "-map",
         "1:a:0",
-        "-c:v",
-        "libx264",
-        "-preset",
-        preset,
-        "-crf",
-        str(crf),
-        "-pix_fmt",
-        "yuv420p",
+        # Keep container + video-stream metadata from the source clip.
+        "-map_metadata",
+        "0",
+        "-map_metadata:s:v:0",
+        "0:s:v:0",
+        *video_args,
         *audio_args,
+        "-metadata:s:a:0",
+        f"language={audio_lang}",
         "-shortest",
     ]
     if job.output.suffix.lower() in {".mp4", ".m4v", ".mov"}:
         cmd.extend(["-movflags", "+faststart"])
     cmd.append(str(job.output))
 
+    encode_note = (
+        f"{vprobe.codec_name}/{vprobe.pix_fmt}"
+        + (f" @{vprobe.bit_rate // 1000}kbps" if vprobe.bit_rate else "")
+    )
     print(
         f"[{job.lang}] {job.shot_id}: video {vid_dur:.3f}s → {vo_dur:.3f}s "
-        f"(setpts×{ratio:.6f}) → {job.output.relative_to(job.output.parent.parent)}"
+        f"(setpts×{ratio:.6f}, {encode_note}) → "
+        f"{job.output.relative_to(job.output.parent.parent)}"
     )
 
     if dry_run:
@@ -380,13 +525,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--crf",
         type=int,
-        default=14,
-        help="libx264 CRF (default: 14)",
+        default=None,
+        help="Optional CRF override (default: match source bitrate)",
     )
     parser.add_argument(
         "--preset",
         default="medium",
-        help="libx264 preset (default: medium)",
+        help="x264/x265 preset (default: medium)",
     )
     return parser.parse_args()
 

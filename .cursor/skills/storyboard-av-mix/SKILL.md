@@ -29,9 +29,10 @@ Take a work directory with **per-shot** video and bilingual VO. For each shot, *
 2. **VO timing is immutable.** Never stretch, shrink, pad, trim, or `atempo` the voice-over. Duration of the VO file is the master clock.
 3. **Video serves audio.** Only change video duration (FFmpeg `setpts`) so it equals that shot’s VO length, then mux.
 4. Drop all audio from the source video; replace with the VO track. Prefer `-c:a copy`; if the container cannot hold the VO codec (e.g. WAV→MP4), encode AAC **without** changing length.
-5. Match shots by **filename stem** (`01.mp4` ↔ `01.wav`).
-6. Batch only via `scripts/mix.py` — do not hand-write FFmpeg mux/retime commands.
-7. Never overwrite inputs under `Video/`, `Chinese/`, or `English/`.
+5. **Do not downgrade video.** `setpts` requires a re-encode, but match the source: codec family (H.265 Main10 when source is 10-bit HEVC), `pix_fmt`, bitrate, color tags, and HDR side data (mastering display / MaxCLL). Copy container + video-stream metadata from the source clip.
+6. Match shots by **filename stem** (`01.mp4` ↔ `01.wav`).
+7. Batch only via `scripts/mix.py` — do not hand-write FFmpeg mux/retime commands.
+8. Never overwrite inputs under `Video/`, `Chinese/`, or `English/`.
 
 ## Layout
 
@@ -98,8 +99,8 @@ Per shot / language:
 | `--limit N` | First N shot ids only (sorted) |
 | `--force` | Overwrite existing outputs |
 | `--dry-run` | Plan only |
-| `--crf` | x264 CRF (default `14`) |
-| `--preset` | x264 preset (default `medium`) |
+| `--crf` | Optional CRF override (default: match source bitrate) |
+| `--preset` | x264/x265 preset (default `medium`) |
 
 Skip existing outputs unless `--force`. Missing VO for a language → skip that job with a warning. Missing video → skip shot.
 
@@ -107,8 +108,9 @@ Skip existing outputs unless `--force`. Missing VO for a language → skip that 
 
 1. Audio first: if durations disagree, change **video**, never VO.
 2. Prefer one `mix.py` run for the whole board.
-3. Chat summary: `<root>`, jobs done / skipped, paths to `Video-Chinese/` and `Video-English/`.
-4. Upstream VO usually from [storyboard-tts](../storyboard-tts/SKILL.md); this skill does not synthesize speech.
+3. Re-encode must preserve source quality tags (Main10 / HDR / bitrate) — never force 8-bit H.264.
+4. Chat summary: `<root>`, jobs done / skipped, paths to `Video-Chinese/` and `Video-English/`.
+5. Upstream VO usually from [storyboard-tts](../storyboard-tts/SKILL.md); this skill does not synthesize speech.
 
 ## Related
 
