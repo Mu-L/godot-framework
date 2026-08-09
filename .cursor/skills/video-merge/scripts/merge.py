@@ -36,6 +36,8 @@ OUTPUT_FPS = 60
 VIDEO_BITRATE = "40M"
 AUDIO_BITRATE = "320k"
 AUDIO_RATE = 48000
+# One filtergraph with many 4K10 streams OOMs (~50GB+). Cap inputs per encode.
+MAX_INPUTS_PER_GRAPH = 4
 
 TRANSITIONS = (
     "fade",
@@ -331,6 +333,139 @@ def default_output_path(folder: Path) -> Path:
     return folder / "merged" / f"{folder.name}.mp4"
 
 
+def run_ffmpeg_merge(
+    ffmpeg: Path,
+    files: list[Path],
+    durations: list[float],
+    has_audio: list[bool],
+    transitions: list[str],
+    out_path: Path,
+) -> None:
+    filter_complex, extra_inputs = build_filter_complex(
+        files, durations, has_audio, transitions
+    )
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cmd: list[str] = [str(ffmpeg), "-hide_banner", "-y"]
+    for file_path in files:
+        cmd.extend(["-i", str(file_path)])
+    cmd.extend(extra_inputs)
+    cmd.extend(
+        [
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[vout]",
+            "-map",
+            "[aout]",
+        ]
+    )
+    cmd.extend(encode_args(out_path))
+
+    log_path = out_path.with_suffix(out_path.suffix + ".ffmpeg.log")
+    with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
+        result = subprocess.run(
+            cmd,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    if result.returncode != 0:
+        detail = ""
+        if log_path.is_file():
+            lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
+            detail = "\n".join(lines[-40:])
+        raise RuntimeError(
+            f"ffmpeg merge failed (exit {result.returncode})"
+            + (f"\n{detail}" if detail else "")
+        )
+    if log_path.is_file():
+        log_path.unlink(missing_ok=True)
+
+
+def merge_chunked(
+    ffmpeg: Path,
+    files: list[Path],
+    durations: list[float],
+    has_audio: list[bool],
+    transitions: list[str],
+    out_path: Path,
+    work_dir: Path,
+    depth: int = 0,
+) -> None:
+    """Merge with at most MAX_INPUTS_PER_GRAPH inputs per filtergraph."""
+    if len(files) <= MAX_INPUTS_PER_GRAPH:
+        run_ffmpeg_merge(ffmpeg, files, durations, has_audio, transitions, out_path)
+        return
+
+    work_dir.mkdir(parents=True, exist_ok=True)
+    chunk_files: list[Path] = []
+    chunk_durations: list[float] = []
+    chunk_audio: list[bool] = []
+    boundary_transitions: list[str] = []
+
+    start = 0
+    chunk_idx = 0
+    while start < len(files):
+        end = min(start + MAX_INPUTS_PER_GRAPH, len(files))
+        part_files = files[start:end]
+        part_durs = durations[start:end]
+        part_audio = has_audio[start:end]
+        part_trans = transitions[start : end - 1] if end - start > 1 else []
+
+        if end - start == 1 and depth == 0:
+            # Single leftover source still needs normalize encode when joining later.
+            chunk_out = work_dir / f"d{depth}_{chunk_idx:03d}.mp4"
+            print(
+                f"[chunk] d{depth} clip {start + 1}/{len(files)} "
+                f"→ {chunk_out.name}"
+            )
+            run_ffmpeg_merge(
+                ffmpeg, part_files, part_durs, part_audio, part_trans, chunk_out
+            )
+        elif end - start == 1:
+            chunk_out = part_files[0]
+        else:
+            chunk_out = work_dir / f"d{depth}_{chunk_idx:03d}.mp4"
+            print(
+                f"[chunk] d{depth} clips {start + 1}-{end}/{len(files)} "
+                f"→ {chunk_out.name}"
+            )
+            merge_chunked(
+                ffmpeg,
+                part_files,
+                part_durs,
+                part_audio,
+                part_trans,
+                chunk_out,
+                work_dir,
+                depth + 1,
+            )
+
+        chunk_files.append(chunk_out)
+        chunk_durations.append(sum(part_durs))
+        chunk_audio.append(True)
+        if end < len(files):
+            boundary_transitions.append(transitions[end - 1])
+        start = end
+        chunk_idx += 1
+
+    print(
+        f"[chunk] d{depth} join {len(chunk_files)} parts → {out_path.name}"
+    )
+    merge_chunked(
+        ffmpeg,
+        chunk_files,
+        chunk_durations,
+        chunk_audio,
+        boundary_transitions,
+        out_path,
+        work_dir,
+        depth + 1,
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -453,48 +588,45 @@ def main() -> int:
         print("Done. dry-run ok")
         return 0
 
-    try:
-        filter_complex, extra_inputs = build_filter_complex(
-            files, durations, audio_flags, transitions
-        )
-    except RuntimeError as exc:
-        print(exc, file=sys.stderr)
-        return 1
-
     out_path.parent.mkdir(parents=True, exist_ok=True)
-
-    cmd: list[str] = [
-        str(ffmpeg),
-        "-hide_banner",
-        "-y",
-    ]
-    for file_path in files:
-        cmd.extend(["-i", str(file_path)])
-    cmd.extend(extra_inputs)
-    cmd.extend(
-        [
-            "-filter_complex",
-            filter_complex,
-            "-map",
-            "[vout]",
-            "-map",
-            "[aout]",
-        ]
-    )
-    cmd.extend(encode_args(out_path))
+    work_dir = out_path.parent / f".tmp-{out_path.stem}"
+    if work_dir.exists():
+        for stale in work_dir.glob("*"):
+            if stale.is_file():
+                stale.unlink(missing_ok=True)
 
     print()
-    print("[run] ffmpeg merge …")
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        print(f"[fail] merge failed", file=sys.stderr)
-        if detail:
-            # Tail the error — full x265 logs can be huge
-            lines = detail.splitlines()
-            tail = "\n".join(lines[-40:])
-            print(tail, file=sys.stderr)
+    if len(files) > MAX_INPUTS_PER_GRAPH:
+        print(
+            f"[run] ffmpeg merge (chunked, max {MAX_INPUTS_PER_GRAPH} "
+            "inputs/graph to limit RAM) …"
+        )
+    else:
+        print("[run] ffmpeg merge …")
+
+    try:
+        merge_chunked(
+            ffmpeg,
+            files,
+            durations,
+            audio_flags,
+            transitions,
+            out_path,
+            work_dir,
+        )
+    except RuntimeError as exc:
+        print("[fail] merge failed", file=sys.stderr)
+        print(exc, file=sys.stderr)
         return 1
+    finally:
+        if work_dir.exists():
+            for stale in work_dir.glob("*"):
+                if stale.is_file():
+                    stale.unlink(missing_ok=True)
+            try:
+                work_dir.rmdir()
+            except OSError:
+                pass
 
     print(f"[ok]  {out_path}")
     print()

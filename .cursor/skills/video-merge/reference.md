@@ -49,6 +49,9 @@ Audio uses `acrossfade=d=0.5:c1=tri:c2=tri` on the padded streams in the same or
 -c:a aac -b:a 320k -ar 48000 -ac 2
 ```
 
-## Why one filtergraph
+## Filtergraph size / RAM
 
-All cuts are applied in a single encode so quality is not degraded by repeated H.265 passes.
+Prefer one filtergraph when the clip count is small so quality is not degraded by
+repeated H.265 passes. With many 4K Main10 inputs, a single graph can exceed tens
+of GB of RAM (`Cannot allocate memory`). `merge.py` therefore caps each encode at
+**4 inputs** and recursively merges chunks (boundary transitions preserved).
