@@ -3,7 +3,9 @@
 Build one concatenated SRT per language from shot VO text + WAV durations.
 
 Timeline is the continuous VO track: each shot with audio starts when the
-previous ends (no gap). Skipped / missing shots are omitted.
+previous ends (no gap). Within a shot, long narration is split on sentence
+punctuation into multiple cues; cue durations share the shot WAV length by
+character-count weight.
 
 Usage
 -----
@@ -11,17 +13,13 @@ Usage
         .cursor/skills/storyboard-tts/scripts/write_subtitles.py \\
         --audio-dir path/to/output \\
         --shots path/to/output/shots.json
-
-    # Or re-parse storyboard:
-    .dependency/python/python .../write_subtitles.py \\
-        --storyboard path/to/storyboard.md \\
-        --audio-dir path/to/output
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -42,6 +40,17 @@ LANG_SPECS = (
     ("english", "English", "english", "english_skip", "English.srt"),
 )
 
+# Chinese / fullwidth terminators always end a sentence.
+# ASCII .!? end a sentence only at EOS or before whitespace / closing quote.
+_SENTENCE_END_RE = re.compile(
+    r".+?(?:"
+    r"[。！？；…]+|"
+    r"[.!?]+(?=\s|$|[\"'”’」』）\)】])|"
+    r"[.!?]+$"
+    r")",
+    re.DOTALL,
+)
+
 
 def srt_timestamp(seconds: float) -> str:
     if seconds < 0:
@@ -51,6 +60,80 @@ def srt_timestamp(seconds: float) -> str:
     minutes, rem = divmod(rem, 60_000)
     secs, ms = divmod(rem, 1000)
     return f"{hours:02d}:{minutes:02d}:{secs:02d},{ms:03d}"
+
+
+def char_weight(text: str) -> int:
+    """Non-whitespace length; minimum 1 so empty-looking scraps still get time."""
+    n = len(re.sub(r"\s+", "", text))
+    return n if n > 0 else 1
+
+
+def split_sentences(text: str) -> list[str]:
+    """Split VO text on sentence punctuation; keep terminators with the sentence."""
+    text = text.strip()
+    if not text:
+        return []
+
+    parts: list[str] = []
+    pos = 0
+    while pos < len(text):
+        match = _SENTENCE_END_RE.search(text, pos)
+        if match is None:
+            tail = text[pos:].strip()
+            if tail:
+                parts.append(tail)
+            break
+        if match.start() > pos:
+            gap = text[pos : match.start()].strip()
+            if gap:
+                parts.append(gap)
+        piece = match.group(0).strip()
+        if piece:
+            parts.append(piece)
+        pos = match.end()
+        while pos < len(text) and text[pos].isspace():
+            pos += 1
+
+    return parts if parts else [text]
+
+
+def allocate_durations(weights: list[int], total: float) -> list[float]:
+    """Split total seconds by integer weights; last slice absorbs rounding residue."""
+    if not weights:
+        return []
+    if total <= 0:
+        return [0.0] * len(weights)
+    if len(weights) == 1:
+        return [total]
+
+    wsum = float(sum(weights))
+    durs: list[float] = []
+    used = 0.0
+    for w in weights[:-1]:
+        d = total * (w / wsum)
+        durs.append(d)
+        used += d
+    durs.append(max(total - used, 0.0))
+    return durs
+
+
+def cues_for_shot(text: str, shot_start: float, shot_dur: float) -> list[tuple[float, float, str]]:
+    """Return (start, end, cue_text) rows inside one shot window."""
+    sentences = split_sentences(text)
+    weights = [char_weight(s) for s in sentences]
+    durs = allocate_durations(weights, shot_dur)
+    shot_end = shot_start + shot_dur
+
+    rows: list[tuple[float, float, str]] = []
+    cursor = shot_start
+    for i, (sentence, dur) in enumerate(zip(sentences, durs)):
+        start = cursor
+        end = shot_end if i == len(sentences) - 1 else cursor + dur
+        if end <= start:
+            end = start + 0.001
+        rows.append((start, end, sentence))
+        cursor = end
+    return rows
 
 
 def load_shots(storyboard: Path | None, shots_json: Path | None) -> dict:
@@ -97,23 +180,20 @@ def build_srt_for_lang(
             )
             continue
 
-        start = cursor
-        end = cursor + dur
-        # Avoid zero-length / inverted cues from float edge cases
-        if end <= start:
-            end = start + 0.001
-        index += 1
-        cues.append(
-            "\n".join(
-                [
-                    str(index),
-                    f"{srt_timestamp(start)} --> {srt_timestamp(end)}",
-                    text,
-                    "",
-                ]
+        shot_start = cursor
+        for start, end, cue_text in cues_for_shot(text, shot_start, dur):
+            index += 1
+            cues.append(
+                "\n".join(
+                    [
+                        str(index),
+                        f"{srt_timestamp(start)} --> {srt_timestamp(end)}",
+                        cue_text,
+                        "",
+                    ]
+                )
             )
-        )
-        cursor = end
+        cursor = shot_start + dur
 
     body = "\n".join(cues).rstrip() + ("\n" if cues else "")
     return body, index, cursor
@@ -183,7 +263,6 @@ def main(argv: list[str] | None = None) -> int:
 
     storyboard = Path(args.storyboard).expanduser() if args.storyboard else None
     shots_json = Path(args.shots).expanduser() if args.shots else None
-    # Prefer shots.json next to audio when only storyboard given but shots exist
     if shots_json is None:
         candidate = audio_dir / "shots.json"
         if candidate.is_file():

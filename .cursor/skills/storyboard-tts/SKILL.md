@@ -24,7 +24,7 @@ Take a **[storyboard](../storyboard/SKILL.md)** deliverable and batch-synthesize
 
 Shot id from headers (`### Shot 01 — …` → `01.wav`).
 
-Subtitles: **one SRT per language**, cues in shot order, timed by concatenating WAV durations (shot N starts when N−1 ends). Text is the storyboard Chinese/English line as-is. Skip `(no VO)` / missing audio.
+Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timeline (shot N starts when N−1 ends). Inside a shot, text is split on sentence punctuation (`。！？；…` / `.!?`) into multiple cues; cue lengths share that shot’s WAV duration by **non-whitespace character weight**. Skip `(no VO)` / missing audio.
 
 ## Rules
 
