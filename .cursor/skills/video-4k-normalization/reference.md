@@ -1,4 +1,4 @@
-# Video 4K Conform — Reference
+# Video 4K Normalization — Reference
 
 ## Decision tree
 
@@ -36,7 +36,7 @@ ffmpeg -i SOURCE \
   -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  conformed/clip.mp4
+  normalized/clip.mp4
 ```
 
 ## FFmpeg — HDR → SDR path
@@ -53,21 +53,21 @@ ffmpeg -i SOURCE \
   -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  conformed/clip.mp4
+  normalized/clip.mp4
 ```
 
 No audio → `-an`.
 
 ## vs video-to-4k
 
-| | `video-4k-conform` | `video-to-4k` |
-|--|--------------------|---------------|
+| | `video-4k-normalization` | `video-to-4k` |
+|--|--------------------------|---------------|
 | Below 4K | FFmpeg lanczos | Video2X Real-ESRGAN |
 | Color | Force BT.709 SDR (+ HDR tone map) | Final encode only (no explicit color conform) |
 | Goal | Merge-safe unified 4K masters | Quality upscale + same bitrate/size/fps |
 
-Typical storyboard flow: upscale with `video-to-4k` if needed → `video-4k-conform` if HDR/SDR still mixed → `video-merge` hard-cut.
+Typical storyboard flow: upscale with `video-to-4k` if needed → `video-4k-normalization` if HDR/SDR still mixed → `video-merge` hard-cut.
 
 ## vs video-merge
 
-`video-merge` never re-encodes. If concat looks wrong (saturation jump) or `-c copy` fails, run this skill on the sources, then merge `conformed/`.
+`video-merge` never re-encodes. If concat looks wrong (saturation jump) or `-c copy` fails, run this skill on the sources, then merge `normalized/`.

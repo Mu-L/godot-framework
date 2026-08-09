@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-"""Conform videos to unified 4K60 H.265 Main10 BT.709 SDR masters (FFmpeg only)."""
+﻿#!/usr/bin/env python3
+"""Normalize videos to unified 4K60 H.265 Main10 BT.709 SDR masters (FFmpeg only)."""
 
 from __future__ import annotations
 
@@ -324,7 +324,7 @@ def build_ffmpeg_args(
     return cmd
 
 
-def conform_file(
+def normalize_file(
     ffmpeg: Path,
     ffprobe: Path,
     file_path: Path,
@@ -340,10 +340,10 @@ def conform_file(
         fps = parse_frame_rate(video.get("r_frame_rate"))
     fps_label = f"{fps:.3g}" if fps else "?"
     hdr = is_hdr(video)
-    path_label = "HDR→SDR tonemap" if hdr else "SDR"
+    path_label = "HDR鈫扴DR tonemap" if hdr else "SDR"
 
     plan = (
-        f"{path_label} ({width}x{height} @{fps_label}fps → "
+        f"{path_label} ({width}x{height} @{fps_label}fps 鈫?"
         f"{TARGET_WIDTH}x{TARGET_HEIGHT} @{TARGET_FPS}fps Main10 BT.709)"
     )
     if dry_run:
@@ -352,7 +352,7 @@ def conform_file(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     run_checked(
         build_ffmpeg_args(ffmpeg, file_path, out_path, has_audio, hdr),
-        "FFmpeg conform encode",
+        "FFmpeg normalize encode",
     )
     return plan
 
@@ -360,7 +360,7 @@ def conform_file(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Conform videos to unified 3840x2160 60FPS H.265 Main10 40Mbps + "
+            "Normalize videos to unified 3840x2160 60FPS H.265 Main10 40Mbps + "
             "AAC 320kbps BT.709 SDR MP4 (FFmpeg re-encode; HDR tone-mapped)."
         )
     )
@@ -369,7 +369,7 @@ def parse_args() -> argparse.Namespace:
         "-o",
         "--output-dir",
         default="",
-        help="Output directory (default: <input>/conformed)",
+        help="Output directory (default: <input>/normalized)",
     )
     parser.add_argument(
         "-r", "--recurse", action="store_true", help="Process subdirectories"
@@ -404,7 +404,7 @@ def main() -> int:
         input_root = input_path
 
     output_dir = (
-        Path(args.output_dir).resolve() if args.output_dir else input_root / "conformed"
+        Path(args.output_dir).resolve() if args.output_dir else input_root / "normalized"
     )
 
     initial_count = len(files)
@@ -413,7 +413,7 @@ def main() -> int:
         if initial_count:
             print(
                 "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: conformed/).",
+                "Choose a separate output directory (default: normalized/).",
                 file=sys.stderr,
             )
             return 1
@@ -424,7 +424,7 @@ def main() -> int:
     if collisions:
         print(
             "Refusing to overwrite source files. Use a separate output directory "
-            "(default: conformed/).",
+            "(default: normalized/).",
             file=sys.stderr,
         )
         for source, dest in collisions:
@@ -458,7 +458,7 @@ def main() -> int:
 
         try:
             if args.dry_run:
-                plan = conform_file(
+                plan = normalize_file(
                     ffmpeg, ffprobe, file_path, out_path, dry_run=True
                 )
                 print(f"[plan] {rel} -> {out_rel} ({plan})")
@@ -466,7 +466,7 @@ def main() -> int:
                 continue
 
             print(f"[run]  {rel} -> {out_rel}")
-            plan = conform_file(
+            plan = normalize_file(
                 ffmpeg, ffprobe, file_path, out_path, dry_run=False
             )
             print(f"       {plan}")
