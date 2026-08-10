@@ -8,7 +8,7 @@ func start() -> void:
 	if components.has(self):
 		return
 	components.append(self)
-	Log.info("start component [{}] instance:[{}]", self.get_script().get_global_name(), self.get_instance_id())
+	Log.info("start component [{}]]", self.get_script().get_global_name())
 	pass
 
 func update() -> void:
