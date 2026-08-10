@@ -46,13 +46,15 @@ const DOLLAR: String = "$" # dollar sign
 
 const LS: String = "\n"
 
-# Checks if a String is empty ("") or null
+## Example: is_empty("") -> true; is_empty("a") -> false
 static func is_empty(s: String) -> bool:
 	return s == null or s.length() == 0
 
+## Example: is_not_empty("a") -> true; is_not_empty("") -> false
 static func is_not_empty(s: String) -> bool:
 	return !is_empty(s)
 
+## Example: is_blank("   ") -> true; is_blank("a") -> false
 static func is_blank(s: String) -> bool:
 	if is_empty(s):
 		return true
@@ -62,9 +64,12 @@ static func is_blank(s: String) -> bool:
 		
 	return false
 
+## Example: is_not_blank("a") -> true; is_not_blank("  ") -> false
 static func is_not_blank(s: String) -> bool:
 	return !is_blank(s)
 
+## Returns template with args filled into format placeholders; returns template unchanged when empty or args are empty.
+## Example: format("score:[{}] name:[{}]", 10, "bob") -> "score:[10] name:[bob]"
 static func format(template: String, ...args: Array) -> String:
 	if is_empty(template):
 		return template
@@ -72,6 +77,8 @@ static func format(template: String, ...args: Array) -> String:
 		return template
 	return template.format(args, EMPTY_JSON)
 
+## Returns the substring before the first delimiter; returns EMPTY if s is empty or delimiter is not found.
+## Example: substring_before("a/b/c.txt", "/") -> "a"; substring_before("a/b", "#") -> ""
 static func substring_before(s: String, delimiter: String) -> String:
 	if is_empty(s):
 		return EMPTY
@@ -80,6 +87,8 @@ static func substring_before(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(0, index)
 
+## Returns the substring after the first delimiter; returns EMPTY if s is empty or delimiter is not found.
+## Example: substring_after("a/b/c.txt", "/") -> "b/c.txt"; substring_after("a/b", "#") -> ""
 static func substring_after(s: String, delimiter: String) -> String:
 	if is_empty(s):
 		return EMPTY
@@ -88,6 +97,8 @@ static func substring_after(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(index + delimiter.length(), s.length())
 
+## Returns the substring before the last delimiter; returns EMPTY if s is empty or delimiter is not found.
+## Example: substring_before_last("a/b/c.txt", "/") -> "a/b"; substring_before_last("a/b/c.txt", ".") -> "a/b/c"
 static func substring_before_last(s: String, delimiter: String) -> String:
 	if is_empty(s):
 		return EMPTY
@@ -96,6 +107,8 @@ static func substring_before_last(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(0, index)
 
+## Returns the substring after the last delimiter; returns EMPTY if s is empty or delimiter is not found.
+## Example: substring_after_last("a/b/c.txt", "/") -> "c.txt"; substring_after_last("a/b/c.txt", ".") -> "txt"
 static func substring_after_last(s: String, delimiter: String) -> String:
 	if is_empty(s):
 		return EMPTY
@@ -104,7 +117,8 @@ static func substring_after_last(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(index + delimiter.length(), s.length())
 
-## Truncates to max_length and appends "..." when longer. Total length never exceeds max_length.
+## Returns s truncated to max_length, appending "..." when longer. Total length never exceeds max_length; returns s when empty or already short enough.
+## Example: truncate("abcdef", 5) -> "ab..."; truncate("abcdef", 6) -> "abcdef"
 static func truncate(s: String, max_length: int) -> String:
 	if is_empty(s) or s.length() <= max_length:
 		return s
@@ -113,6 +127,8 @@ static func truncate(s: String, max_length: int) -> String:
 	return s.substr(0, max_length - ELLIPSIS.length()) + ELLIPSIS
 
 
+## Returns the enum key name for value; returns "UNKNOWN" if value is not in enum_obj.
+## Example: enum_to_string(State, State.IDLE) -> "IDLE"; enum_to_string(State, 99) -> "UNKNOWN"
 static func enum_to_string(enum_obj: Dictionary, value: int) -> String:
 	for key in enum_obj.keys():
 		if enum_obj[key] == value:
@@ -128,7 +144,8 @@ const ANIMAL_EMOJIS: PackedStringArray = [
 	"🦮","🐕‍🦺","🐈","🐓","🦃","🦚","🦜","🦢","🦩","🕊️","🐇","🦝","🦨","🦡","🦦","🦥","🐁","🐀","🐿️","🦔",
 	"🐉","🐲"]
 
-# random emoji
+## Returns a random emoji string (Unicode range or animal emoji fallback).
+## Example: random_emoji() -> "🐶" (any emoji)
 static func random_emoji() -> String:
 	# emoji Unicode range
 	var ranges := [

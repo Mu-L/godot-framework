@@ -16,28 +16,29 @@ const MILLIS_PER_WEEK: int = 1 * 7 * MILLIS_PER_HOUR
 static var offset_from_uts = Time.get_time_zone_from_system().bias * MILLIS_PER_MINUTE
 
 static var _timestamp: int = current_time_millis()
+## Returns the last cached timestamp in milliseconds (updated by current_time_millis / second tick).
 static func now() -> int:
 	return _timestamp
 
-# Get the current timestamp in milliseconds.
+## Returns the current system timestamp in milliseconds, and refreshes the now() cache.
 static func current_time_millis() -> int:
 	_timestamp = (Time.get_unix_time_from_system() * MILLIS_PER_SECOND) as int
 	return _timestamp
 
-# YYYY-MM-DD HH:MM:SS
+## Returns local datetime string "YYYY-MM-DD HH:MM:SS" for timestamp (ms since Unix epoch).
 static func time_to_datetime_string(timestamp: int) -> String:
 	return Time.get_datetime_string_from_unix_time(((timestamp + offset_from_uts) / (MILLIS_PER_SECOND as float)) as int, true)
 
-# YYYY-MM-DD
+## Returns local date string "YYYY-MM-DD" for timestamp (ms since Unix epoch).
 static func time_to_date_string(timestamp: int) -> String:
 	return Time.get_date_string_from_unix_time(((timestamp + offset_from_uts) / (MILLIS_PER_SECOND as float)) as int)
 
 # ----------------------------------------------------------------------------------------------------------------------
-# yyyy-mm-dd hh:mm:ss
+## Returns the system local datetime string "yyyy-mm-dd hh:mm:ss" (now).
 static func date() -> String:
 	return Time.get_datetime_string_from_system(false, true)
 # ----------------------------------------------------------------------------------------------------------------------
-# MM-DD HH:MM
+## Returns "MM-DD HH:MM" for timestamp (ms); returns "" when timestamp <= 0.
 static func date_mmddhhmm(timestamp: int) -> String:
 	if timestamp <= 0:
 		return ""
@@ -53,7 +54,7 @@ static func date_mmddhhmm(timestamp: int) -> String:
 	return StringUtils.format("{}-{} {}", ymd[1], ymd[2], hm)
 
 
-# MM-DD
+## Returns "MM-DD" for timestamp (ms); returns "" when timestamp <= 0.
 static func date_mmdd(timestamp: int) -> String:
 	if timestamp <= 0:
 		return ""
@@ -66,7 +67,7 @@ static func date_mmdd(timestamp: int) -> String:
 		return s
 	return StringUtils.format("{}-{}", ymd[1], ymd[2])
 
-# ago
+## Returns relative time text for ctime (ms), e.g. "Just now", "5m ago", "2h ago", "3d ago"; future times use date_mmddhhmm; returns EMPTY when ctime <= 0.
 static func date_ago(ctime: int) -> String:
 	if ctime <= 0:
 		return StringUtils.EMPTY
