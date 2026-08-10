@@ -68,7 +68,7 @@ func next_integration_test() -> void:
 		remove_child(child)
 		child.free()
 	if test_scenes.is_empty():
-		Log.info("✅ PASS | IntegrationTest")
+		Log.info("🎉 DONE | IntegrationTest")
 		gdf.quit()
 		return
 	var scene_path := test_scenes[0]
