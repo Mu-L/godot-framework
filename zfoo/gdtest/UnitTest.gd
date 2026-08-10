@@ -1,7 +1,7 @@
 ﻿extends Node
 
 # Include files in subfolders
-@export var include_subfolders: bool = true
+@export var include_subfolders: bool = false
 
 @export var enable_test_logging: bool = true
 

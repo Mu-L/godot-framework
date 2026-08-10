@@ -4,7 +4,7 @@ class_name IntegrationTest
 static var is_integration_test: bool = false
 
 # Include files in subfolders
-@export var include_subfolders: bool = true
+@export var include_subfolders: bool = false
 
 @export var enable_test_logging: bool = true
 
