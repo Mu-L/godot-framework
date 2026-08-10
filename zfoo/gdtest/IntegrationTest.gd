@@ -51,7 +51,7 @@ func scan_test_scenes() -> void:
 			continue
 		test_scenes.push_back(file)
 	if enable_test_logging:
-		Log.info("📋 SCAN | IntegrationTest | scenes:[{}] | scan_path:[{}]", test_scenes.size(), scan_path)
+		Log.info("🔎 SCAN | IntegrationTest | scenes:[{}] | scan_path:[{}]", test_scenes.size(), scan_path)
 	pass
 
 
