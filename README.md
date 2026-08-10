@@ -240,6 +240,19 @@ await gdf.quit()
 
 ---
 
+# Agent Support
+
+Shared: [`.cursor/rules/`](.cursor/rules/), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy** rules into their root MD, **copy** skills into their skill folders.
+
+| Agent | Setup |
+|-------|-------|
+| **Cursor** | Native Support |
+| **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
+| **Codex** | Copy rules into root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` |
+| **Claude** | Copy rules into root `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills` |
+
+---
+
 # Agent Skills
 
 Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
