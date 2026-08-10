@@ -69,5 +69,6 @@ Each cut independently samples one transition. Printed in the run log.
 2. Transition duration is fixed at **0.5s** — no duration override flag.
 3. Every clip **except the first** must be **longer than 0.5s** (incoming side of `xfade`).
 4. Single file in the folder → re-encode to the output spec with no transition.
-5. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry.
-6. FFmpeg filter details: [reference.md](reference.md)
+5. Many clips (4K10) auto-chunk (max 4 inputs per filtergraph) to avoid OOM; transitions stay correct across chunk boundaries.
+6. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry.
+7. FFmpeg filter details: [reference.md](reference.md)
