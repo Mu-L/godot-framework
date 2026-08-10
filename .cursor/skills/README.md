@@ -104,8 +104,7 @@ Source video (Veo / Gemini generated)
 ⑤ Normalize 4K masters (optional; unify color / fps before merge)
     ↓
 ⑥ Merge folder of clips (optional)
-   · hard cut / stream copy → video-merge
-   · random 0.5s xfade → video-merge-xfade
+   · random 0.5s xfade → video-merge
     ↓
 ⑦ Convert to OGV (for Godot)
 ```
@@ -117,8 +116,7 @@ Source video (Veo / Gemini generated)
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
 | [video-4k-normalization](video-4k-normalization/SKILL.md) | Normalize mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
-| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with hard cuts (concat demuxer + stream copy; no re-encode) |
-| [video-merge-xfade](video-merge-xfade/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
+| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 
 ## Storyboard
