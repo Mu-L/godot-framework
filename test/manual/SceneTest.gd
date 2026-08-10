@@ -10,10 +10,10 @@ func _ready() -> void:
 
 
 func pressedSceneToMainButton():
-	await SceneHelper.async_change_scene_to_file("test/manual/TestA.tscn")
-	#await SceneHelper.async_change_scene_to_file("zfoo/test/manual/TestA.tscn", RectTransitionSlide.new())
+	await SceneHelper.async_change_scene_to_file("test/manual/MyTestScene.tscn")
+	#await SceneHelper.async_change_scene_to_file("zfoo/test/manual/MyTestScene.tscn", RectTransitionSlide.new())
 	pass
 
 func pressedSceneAddNodeButton():
-	SceneHelper.add_scene_to_node(load("test/manual/TestA.tscn"), gdf.gdf_node.get_tree().root)
+	SceneHelper.add_scene_to_node(load("test/manual/MyTestScene.tscn"), gdf.gdf_node.get_tree().root)
 	pass
