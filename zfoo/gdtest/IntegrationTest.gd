@@ -9,7 +9,6 @@ static var is_integration_test: bool = false
 @export var enable_test_logging: bool = true
 
 var error_occurred: bool = false
-var is_main_integration: bool = false
 var test_scenes: Array[String] = []
 
 
@@ -17,7 +16,6 @@ func _ready() -> void:
 	if is_integration_test:
 		return
 	is_integration_test = true
-	is_main_integration = true
 	gdf.events.log_error.connect(func() -> void: error_occurred = true)
 	gdf.events.test_passed.connect(on_integration_test_passed)
 	scan_test_scenes()
@@ -26,11 +24,8 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if !is_main_integration:
-		return
 	if !error_occurred:
 		return
-	is_main_integration = false
 	var scene_path := test_scenes[0] if !test_scenes.is_empty() else ""
 	Log.error("❌ FAIL | IntegrationTest | scene:[{}]", scene_path)
 	gdf.quit(1)
@@ -62,8 +57,6 @@ func on_integration_test_passed() -> void:
 
 
 func next_integration_test() -> void:
-	if !is_main_integration:
-		return
 	for child in get_children():
 		remove_child(child)
 		child.free()

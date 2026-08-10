@@ -58,6 +58,7 @@ func call_deferred_callable(callable: Callable) -> void:
 
 ####################################################################################################
 static func quit(exit_code: int = 0) -> void:
+	## Wait a few frames so loggers can flush to disk before the process exits.
 	for i in range(10):
 		await gdf_node.get_tree().process_frame
 	gdf_node.get_tree().quit(exit_code)
