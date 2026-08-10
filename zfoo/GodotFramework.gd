@@ -70,5 +70,6 @@ static var events := Events.new()
 
 class Events:
 	signal log_error
+	signal test_passed
 	pass
 ####################################################################################################

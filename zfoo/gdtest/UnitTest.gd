@@ -1,16 +1,16 @@
 ﻿extends Node
 
 # Include files in subfolders
-@export var include_subfolders: bool = false
+@export var include_subfolders: bool = true
 
-@export var enable_test_logging: bool = false
+@export var enable_test_logging: bool = true
 
 var error_occurred: bool = false
 
 func _ready() -> void:
-	var path: String = get_tree().current_scene.scene_file_path
-	var parent_dir := path.get_base_dir()
-	var files: Array[String] = FileUtils.get_all_files_in_folder(parent_dir, include_subfolders)
+	var current_scene_path := NodeUtils.scene_file_path_from_node(self)
+	var scan_path := current_scene_path.get_base_dir()
+	var files: Array[String] = FileUtils.get_all_files_in_folder(scan_path, include_subfolders)
 	gdf.events.log_error.connect(func() -> void: error_occurred = true)
 	for file in files:
 		if !file.ends_with(".gd"):
@@ -18,7 +18,10 @@ func _ready() -> void:
 		var res: Resource = ResourceLoader.load(file)
 		if res is Script:
 			await unit_test(res)
-	gdf.quit()
+	if IntegrationTest.is_integration_test:
+		gdf.events.test_passed.emit()
+	else:
+		gdf.quit()
 	pass
 
 
