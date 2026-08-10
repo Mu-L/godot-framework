@@ -1,4 +1,5 @@
-﻿extends Node
+﻿## Runs test scenes one by one. Each scene must emit gdf.events.test_passed when finished.
+extends Node
 class_name IntegrationTest
 
 static var is_integration_test: bool = false

@@ -18,6 +18,7 @@ func _ready() -> void:
 		var res: Resource = ResourceLoader.load(file)
 		if res is Script:
 			await unit_test(res)
+	# IntegrationTest advances to the next scene only after this signal.
 	if IntegrationTest.is_integration_test:
 		gdf.events.test_passed.emit()
 	else:

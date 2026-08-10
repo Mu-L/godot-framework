@@ -72,6 +72,11 @@ EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vec
 - Attach `zfoo/gdtest/UnitTest.gd` to a scene; `.gd` files in the same folder are scanned on startup.
 - Any method whose name **starts or ends with `test`** (case-insensitive, no arguments) is run as a unit test.
 
+## Integration tests
+
+- Attach `zfoo/gdtest/IntegrationTest.gd` to a scene; it runs every `.tscn` whose name **starts or ends with `test`**, one by one.
+- Each finished test scene must emit `gdf.events.test_passed` (UnitTest does this automatically).
+
 ---
 
 ## HotUpdate
