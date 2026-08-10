@@ -233,13 +233,6 @@ await gdf.quit()
 
 ---
 
-# Rules
-
-- Only change godot framework `zfoo/` when you have a clear reason.
-
-
----
-
 # Agent Support
 
 Shared: [`.cursor/rules/`](.cursor/rules/), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy** rules into their root MD, **copy** skills into their skill folders.
