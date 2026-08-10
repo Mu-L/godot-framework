@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Hard-cut merge: concat demuxer + stream copy (no re-encode, no xfade).
-
-Does not scale, retag, or re-encode — pixel data is unchanged. All clips must
-already share compatible codec/resolution/timebase for concat -c copy.
-"""
+"""Merge folder videos (filename sort) with random 0.5s xfade into 4K60 H.265 Main10."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import random
 import subprocess
 import sys
 from pathlib import Path
@@ -31,6 +28,37 @@ VIDEO_EXTENSIONS = {
     ".ogv",
     ".ogg",
 }
+
+TRANSITION_DURATION = 0.5
+OUTPUT_WIDTH = 3840
+OUTPUT_HEIGHT = 2160
+OUTPUT_FPS = 60
+VIDEO_BITRATE = "40M"
+AUDIO_BITRATE = "320k"
+AUDIO_RATE = 48000
+
+TRANSITIONS = (
+    "fade",
+    "dissolve",
+    "wipeleft",
+    "wiperight",
+    "wipeup",
+    "wipedown",
+    "slideleft",
+    "slideright",
+    "circlecrop",
+    "pixelize",
+    "distance",
+    "radial",
+    "smoothleft",
+    "smoothright",
+    "circleopen",
+    "circleclose",
+    "diagtl",
+    "diagtr",
+    "hblur",
+    "zoomin",
+)
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -153,8 +181,7 @@ def probe_duration(ffprobe: Path, file_path: Path) -> float:
     raise RuntimeError(f"Could not determine duration for: {file_path}")
 
 
-def probe_video_signature(ffprobe: Path, file_path: Path) -> dict[str, str]:
-    """Codec/size/fps fingerprint for concat -c copy compatibility warnings."""
+def has_audio_stream(ffprobe: Path, file_path: Path) -> bool:
     result = subprocess.run(
         [
             str(ffprobe),
@@ -164,7 +191,7 @@ def probe_video_signature(ffprobe: Path, file_path: Path) -> dict[str, str]:
             "json",
             "-show_streams",
             "-select_streams",
-            "v:0",
+            "a",
             str(file_path),
         ],
         capture_output=True,
@@ -173,84 +200,143 @@ def probe_video_signature(ffprobe: Path, file_path: Path) -> dict[str, str]:
         errors="replace",
     )
     if result.returncode != 0:
-        return {}
+        return False
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError:
-        return {}
-    streams = payload.get("streams") or []
-    if not streams:
-        return {}
-    s = streams[0]
-    return {
-        "codec": str(s.get("codec_name") or ""),
-        "width": str(s.get("width") or ""),
-        "height": str(s.get("height") or ""),
-        "pix_fmt": str(s.get("pix_fmt") or ""),
-        "avg_frame_rate": str(s.get("avg_frame_rate") or ""),
-    }
+        return False
+    return bool(payload.get("streams"))
+
+
+def encode_args(out_path: Path) -> list[str]:
+    return [
+        "-c:v",
+        "libx265",
+        "-profile:v",
+        "main10",
+        "-pix_fmt",
+        "yuv420p10le",
+        "-b:v",
+        VIDEO_BITRATE,
+        "-maxrate",
+        VIDEO_BITRATE,
+        "-bufsize",
+        "80M",
+        "-r",
+        str(OUTPUT_FPS),
+        "-tag:v",
+        "hvc1",
+        "-c:a",
+        "aac",
+        "-b:a",
+        AUDIO_BITRATE,
+        "-ar",
+        str(AUDIO_RATE),
+        "-ac",
+        "2",
+        "-movflags",
+        "+faststart",
+        str(out_path),
+    ]
+
+
+def video_normalize_filter(label_in: str, label_out: str) -> str:
+    return (
+        f"[{label_in}]scale={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:"
+        f"force_original_aspect_ratio=decrease,"
+        f"pad={OUTPUT_WIDTH}:{OUTPUT_HEIGHT}:(ow-iw)/2:(oh-ih)/2:black,"
+        f"fps={OUTPUT_FPS},format=yuv420p10le,setpts=PTS-STARTPTS[{label_out}]"
+    )
+
+
+def audio_normalize_filter(label_in: str, label_out: str) -> str:
+    return (
+        f"[{label_in}]aformat=sample_rates={AUDIO_RATE}:channel_layouts=stereo,"
+        f"aresample={AUDIO_RATE},asetpts=PTS-STARTPTS[{label_out}]"
+    )
+
+
+def build_filter_complex(
+    files: list[Path],
+    durations: list[float],
+    has_audio: list[bool],
+    transitions: list[str],
+) -> tuple[str, list[str]]:
+    """Return (filter_complex, extra_ffmpeg_inputs before -i files)."""
+    parts: list[str] = []
+    extra_inputs: list[str] = []
+    silent_index = 0
+
+    for i, file_path in enumerate(files):
+        parts.append(video_normalize_filter(f"{i}:v", f"v{i}"))
+        if has_audio[i]:
+            parts.append(audio_normalize_filter(f"{i}:a", f"a{i}"))
+        else:
+            # anullsrc as extra input after all video inputs
+            dur = durations[i]
+            extra_inputs.extend(
+                [
+                    "-f",
+                    "lavfi",
+                    "-t",
+                    f"{dur:.6f}",
+                    "-i",
+                    f"anullsrc=channel_layout=stereo:sample_rate={AUDIO_RATE}",
+                ]
+            )
+            src_idx = len(files) + silent_index
+            parts.append(audio_normalize_filter(f"{src_idx}:a", f"a{i}"))
+            silent_index += 1
+
+    if len(files) == 1:
+        parts.append("[v0]null[vout]")
+        parts.append("[a0]anull[aout]")
+        return ";".join(parts), extra_inputs
+
+    # Chain xfade / acrossfade. Pad the outgoing side by T (freeze last frame /
+    # silence) so each overlap does not shorten total duration vs sum(clips).
+    cur_v = "v0"
+    cur_a = "a0"
+    cum = durations[0]
+
+    for i in range(1, len(files)):
+        transition = transitions[i - 1]
+        next_v = f"vx{i}"
+        next_a = f"ax{i}"
+        pad_v = f"vp{i}"
+        pad_a = f"ap{i}"
+        parts.append(
+            f"[{cur_v}]tpad=stop_mode=clone:stop_duration={TRANSITION_DURATION}[{pad_v}]"
+        )
+        parts.append(f"[{cur_a}]apad=pad_dur={TRANSITION_DURATION}[{pad_a}]")
+        # Transition begins after all real content of the outgoing chain.
+        offset = cum
+        parts.append(
+            f"[{pad_v}][v{i}]xfade=transition={transition}:"
+            f"duration={TRANSITION_DURATION}:offset={offset:.6f}[{next_v}]"
+        )
+        parts.append(
+            f"[{pad_a}][a{i}]acrossfade=d={TRANSITION_DURATION}:c1=tri:c2=tri[{next_a}]"
+        )
+        cur_v = next_v
+        cur_a = next_a
+        cum = cum + durations[i]
+
+    parts.append(f"[{cur_v}]null[vout]")
+    parts.append(f"[{cur_a}]anull[aout]")
+    return ";".join(parts), extra_inputs
 
 
 def default_output_path(folder: Path) -> Path:
     return folder / "merged" / f"{folder.name}.mp4"
 
 
-def concat_copy(ffmpeg: Path, files: list[Path], out_path: Path, list_path: Path) -> None:
-    lines = []
-    for path in files:
-        escaped = path.resolve().as_posix().replace("'", r"'\''")
-        lines.append(f"file '{escaped}'")
-    list_path.parent.mkdir(parents=True, exist_ok=True)
-    list_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        str(ffmpeg),
-        "-hide_banner",
-        "-y",
-        "-f",
-        "concat",
-        "-safe",
-        "0",
-        "-i",
-        str(list_path),
-        "-c",
-        "copy",
-        "-movflags",
-        "+faststart",
-        str(out_path),
-    ]
-    log_path = out_path.with_suffix(out_path.suffix + ".ffmpeg.log")
-    with log_path.open("w", encoding="utf-8", errors="replace") as log_file:
-        result = subprocess.run(
-            cmd,
-            stdout=log_file,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-    if result.returncode != 0:
-        detail = ""
-        if log_path.is_file():
-            log_lines = log_path.read_text(encoding="utf-8", errors="replace").splitlines()
-            detail = "\n".join(log_lines[-40:])
-        raise RuntimeError(
-            f"ffmpeg concat failed (exit {result.returncode}). "
-            "Clips must share the same codec/size/timebase for -c copy."
-            + (f"\n{detail}" if detail else "")
-        )
-    if log_path.is_file():
-        log_path.unlink(missing_ok=True)
-    if list_path.is_file():
-        list_path.unlink(missing_ok=True)
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Hard-cut merge: concat demuxer + stream copy. No re-encode, no xfade. "
-            "Colors and quality match the source clips."
+            "Merge videos in a folder (filename sort) with random 0.5s transitions "
+            "(freeze-pad; duration = sum of clips) into 3840x2160 60fps "
+            "H.265 Main10 40Mbps + AAC 320kbps."
         )
     )
     parser.add_argument("input", help="Directory containing videos to merge")
@@ -266,11 +352,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dry-run", action="store_true", help="Preview without writing files"
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="RNG seed for reproducible transition picks",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+    rng = random.Random(args.seed)
 
     ffmpeg = resolve_ffmpeg()
     ffprobe = resolve_ffprobe(ffmpeg)
@@ -294,6 +387,7 @@ def main() -> int:
         print(f"Output must be an .mp4 file: {out_path}", file=sys.stderr)
         return 1
 
+    # Refuse writing onto a source
     for src in files:
         if out_path.resolve() == src.resolve():
             print(
@@ -307,89 +401,100 @@ def main() -> int:
         return 1
 
     durations: list[float] = []
-    signatures: list[dict[str, str]] = []
+    audio_flags: list[bool] = []
     for file_path in files:
         try:
-            durations.append(probe_duration(ffprobe, file_path))
+            dur = probe_duration(ffprobe, file_path)
         except RuntimeError as exc:
             print(exc, file=sys.stderr)
             return 1
-        signatures.append(probe_video_signature(ffprobe, file_path))
+        # Incoming (right) side of xfade must be longer than the transition.
+        if len(files) > 1 and file_path != files[0] and dur <= TRANSITION_DURATION:
+            print(
+                f"Clip shorter than transition ({TRANSITION_DURATION}s): "
+                f"{file_path.name} ({dur:.3f}s)",
+                file=sys.stderr,
+            )
+            return 1
+        durations.append(dur)
+        audio_flags.append(has_audio_stream(ffprobe, file_path))
 
-    mismatch = False
-    if signatures and signatures[0]:
-        base = signatures[0]
-        for i, sig in enumerate(signatures[1:], start=2):
-            if sig != base:
-                mismatch = True
-                print(
-                    f"[warn] clip {i:02d} signature differs from first "
-                    f"({files[i - 1].name}): {sig} vs {base}",
-                    file=sys.stderr,
-                )
+    transitions: list[str] = []
+    if len(files) > 1:
+        transitions = [rng.choice(TRANSITIONS) for _ in range(len(files) - 1)]
 
     total_duration = sum(durations)
     print(f"Input:       {folder}")
     print(f"Clips:       {len(files)}")
-    print("Pipeline:    hard-cut concat (stream copy, no re-encode)")
-    print(f"Duration:    {total_duration:.3f}s (sum of clips)")
+    print(
+        f"Transition:  {TRANSITION_DURATION}s (random xfade, "
+        "freeze-pad — total duration = sum of clips)"
+    )
+    print(f"Duration:    {total_duration:.3f}s (preserved)")
+    print(
+        f"Output spec: {OUTPUT_WIDTH}x{OUTPUT_HEIGHT} @{OUTPUT_FPS} "
+        f"H.265 Main10 {VIDEO_BITRATE} + AAC {AUDIO_BITRATE}"
+    )
     print(f"Output:      {out_path}")
-    if mismatch:
-        print(
-            "Note:        mixed codecs/sizes — concat -c copy may fail; "
-            "unify sources first if it does."
-        )
+    if args.seed is not None:
+        print(f"Seed:        {args.seed}")
     if args.dry_run:
         print("Run:         DRY RUN")
     print()
 
     for i, file_path in enumerate(files):
-        sig = signatures[i]
-        geo = ""
-        if sig:
-            geo = f"  {sig.get('width')}x{sig.get('height')} {sig.get('codec')}"
-        print(f"  [{i + 1:02d}] {file_path.name}  {durations[i]:.3f}s{geo}")
+        audio_note = "audio" if audio_flags[i] else "silent→anullsrc"
+        print(f"  [{i + 1:02d}] {file_path.name}  {durations[i]:.3f}s  ({audio_note})")
+        if i < len(transitions):
+            print(f"       └─ xfade: {transitions[i]} (freeze-pad {TRANSITION_DURATION}s)")
 
     if args.dry_run:
         print()
         print("Done. dry-run ok")
         return 0
 
-    if len(files) == 1:
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        # Single file: still stream-copy so container gets +faststart consistently.
-        cmd = [
-            str(ffmpeg),
-            "-hide_banner",
-            "-y",
-            "-i",
-            str(files[0]),
-            "-c",
-            "copy",
-            "-movflags",
-            "+faststart",
-            str(out_path),
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
-        if result.returncode != 0:
-            print(result.stderr or result.stdout, file=sys.stderr)
-            return 1
-        print(f"[ok]  {out_path}")
-        print()
-        print("Done. merged=1")
-        return 0
-
-    list_path = out_path.parent / f".tmp-{out_path.stem}-concat.txt"
     try:
-        print("[run] concat -c copy …")
-        concat_copy(ffmpeg, files, out_path, list_path)
+        filter_complex, extra_inputs = build_filter_complex(
+            files, durations, audio_flags, transitions
+        )
     except RuntimeError as exc:
-        print("[fail] merge failed", file=sys.stderr)
         print(exc, file=sys.stderr)
         return 1
-    finally:
-        if list_path.is_file():
-            list_path.unlink(missing_ok=True)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    cmd: list[str] = [
+        str(ffmpeg),
+        "-hide_banner",
+        "-y",
+    ]
+    for file_path in files:
+        cmd.extend(["-i", str(file_path)])
+    cmd.extend(extra_inputs)
+    cmd.extend(
+        [
+            "-filter_complex",
+            filter_complex,
+            "-map",
+            "[vout]",
+            "-map",
+            "[aout]",
+        ]
+    )
+    cmd.extend(encode_args(out_path))
+
+    print()
+    print("[run] ffmpeg merge …")
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+        print(f"[fail] merge failed", file=sys.stderr)
+        if detail:
+            # Tail the error — full x265 logs can be huge
+            lines = detail.splitlines()
+            tail = "\n".join(lines[-40:])
+            print(tail, file=sys.stderr)
+        return 1
 
     print(f"[ok]  {out_path}")
     print()

@@ -145,11 +145,11 @@ Materials / copy / images
           ↓
        ⑦ video-to-4k → Video/
           ↓
-       ⑦b video-4k-normalization (if HDR/SDR or params still mixed)
+       ⑦ video-4k-normalization (if HDR/SDR or params still mixed)
     ↓
-⑧ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑦ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑨ video-merge / video-merge-xfade → final film
+⑨ video-merge → final film
 ```
 
 | Skill | Purpose |

@@ -1,27 +1,54 @@
 # Video Merge — FFmpeg Notes
 
-## Hard-cut stream copy
+## Normalize + xfade
+
+Each input is normalized in the same `filter_complex` before transitions:
 
 ```
-ffmpeg -f concat -safe 0 -i concat.txt -c copy -movflags +faststart out.mp4
+scale=3840:2160:force_original_aspect_ratio=decrease
+pad=3840:2160:(ow-iw)/2:(oh-ih)/2:black
+fps=60
+format=yuv420p10le
+setpts=PTS-STARTPTS
 ```
 
-`concat.txt`:
+Audio:
 
 ```
-file 'C:/path/to/01.mp4'
-file 'C:/path/to/02.mp4'
+aformat=sample_rates=48000:channel_layouts=stereo
+aresample=48000
+asetpts=PTS-STARTPTS
 ```
 
-Use forward slashes; quote paths. No `scale`, `format`, `xfade`, or encoder.
+Clips with no audio stream get a matching silent stereo track (`anullsrc`).
 
-## Why not re-encode
+## Duration-preserving transitions
 
-Any pass that runs `libx265` / `scale` / `format=yuv420p10le` changes pixels and
-can wash out or shift color. Hard-cut merge only concatenates bitstreams.
+Plain `xfade` overlaps by `T` and shortens the timeline by `T` per cut. To keep
+**output duration = sum(source durations)**, pad the outgoing side before each cut:
 
-## Compatibility
+```
+tpad=stop_mode=clone:stop_duration=T   # freeze last frame
+apad=pad_dur=T                         # pad silence for acrossfade
+```
 
-`-c copy` requires matching video parameters across clips (codec, size, pixel
-format, timebase). Mixed AI remuxes may fail — fix upstream, do not reintroduce
-a silent normalize encode in this skill.
+Transition duration `T = 0.5`. For clips with durations `d0, d1, …`:
+
+- Before cut `i`, pad the current chain by `T`
+- Cut offset = cumulative **content** length so far (`sum(d[0..i])`) — transition runs over the freeze/silence pad
+- After cut `i`, cumulative content length = `sum(d[0..i+1])` (no `-T`)
+
+Audio uses `acrossfade=d=0.5:c1=tri:c2=tri` on the padded streams in the same order.
+
+## Encode
+
+```
+-c:v libx265 -profile:v main10 -pix_fmt yuv420p10le
+-b:v 40M -maxrate 40M -bufsize 80M
+-r 60 -tag:v hvc1
+-c:a aac -b:a 320k -ar 48000 -ac 2
+```
+
+## Why one filtergraph
+
+All cuts are applied in a single encode so quality is not degraded by repeated H.265 passes.
