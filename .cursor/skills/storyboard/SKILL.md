@@ -54,7 +54,7 @@ Treat a path as the **output file** when:
 2. Inventory materials (read delivery file if present)
 3. Infer Visual Style (once for the whole piece)
 4. Design story spine (hook → develop → payoff / CTA)
-5. Break into shots (one clear idea each; duration free)
+5. Break into shots (one clear idea each; duration free) — **Shot 01 is the eyeball grab** (see Shot 01)
 6. Write bilingual VO + video prompt per shot
 7. Write Assembly (after Spine), then Cover (after Assembly)
 8. Consistency pass; deliver in required format
@@ -69,6 +69,9 @@ Medium, mood, color/light, camera language, motion energy, aspect (default **16:
 - Character → setup → turn → resolution
 - Trailer → hooks and escalating beats
 - Explain → claim → show → reinforce
+- Attention-scarce / fragmented viewing → **grab in Shot 01** → develop → payoff / CTA
+
+Spine may note what Shot 01 uses to stop the scroll; that hook is **not** a summary of the whole piece.
 
 ### Shot rules
 
@@ -77,6 +80,15 @@ Medium, mood, color/light, camera language, motion energy, aspect (default **16:
 - No frame → **t2v** (full self-contained scene)
 - Respect user aspect; default 16:9
 - No invented logo text, legal claims, or competitor names
+
+### Shot 01 (hook — grab attention)
+
+Attention is fragmented: **Shot 01 must catch the eye**. It is an opening line that stops the scroll—not a summary of the video, and not necessarily the piece’s main thesis.
+
+- Prefer a sharp cold open: tension, curiosity, contrast, surprise, or a vivid concrete moment
+- VO + picture work as a hook; soft mood builds, empty atmosphere, or early detail dumps fail here
+- The main argument / product reveal can land in later shots; Shot 01 only needs to pull the viewer in
+- If materials already give a hook line, keep it and amplify — do not invent facts
 
 ### Narration (bilingual default)
 
@@ -149,7 +161,7 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Co
 
 ## Shots
 
-### Shot 01 — [short title]
+### Shot 01 — [short title — cold open / hook]
 - **Duration:** ~Xs
 - **Source:** [file / t2v / i2v from …]
 - **Visual:** [composition]
@@ -171,6 +183,7 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Co
 - [ ] File path given → full markdown **saved there** (UTF-8); not chat-only
 - [ ] Section order: Spine → Assembly → Cover → Shots; every shot has Chinese + English + Video prompt (or user opt-out)
 - [ ] VO languages sense-aligned; durations match speak length
+- [ ] **Shot 01** grabs attention as a cold open (not a thesis summary; no slow-burn open)
 - [ ] Facts trace to materials; style coherent; i2v points at the right still
 - [ ] No video/image generation APIs unless user separately asks
 - [ ] No invented output path when user gave none → chat delivery only
