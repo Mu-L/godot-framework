@@ -1,6 +1,10 @@
 # AI
 .dependency/
 
+# Skills
+.cursor/skills/humanizer
+.cursor/skills/humanizer-zh
+
 # Godot 4+ specific ignores
 .godot/
 .nomedia
