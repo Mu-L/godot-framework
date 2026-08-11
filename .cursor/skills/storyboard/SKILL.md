@@ -1,18 +1,19 @@
 ---
 name: storyboard
 description: >-
-  Turns user materials into a shot-by-shot storyboard with bilingual narration
-  (Chinese + English VO, both required), AI video prompts, and a cover/thumbnail
-  image prompt. When the user gives a target path (especially .md), write the
-  full storyboard there — do not only print it in chat. Style and duration are
-  free. Use when the user asks for storyboard, shot list, narration, VO script,
-  AI video prompts, image-to-video prompts, cover, thumbnail, or a video plan
-  from images/clips/copy.
+  Turns user materials (ideally a locked VO script) into a shot-by-shot
+  storyboard with bilingual narration (Chinese + English VO, both required),
+  AI video prompts, and a cover/thumbnail image prompt. When the user gives a
+  target path (especially .md), write the full storyboard there — do not only
+  print it in chat. Style and duration are free. Use when the user asks for
+  storyboard, shot list, AI video prompts, image-to-video prompts, cover,
+  thumbnail, or a video plan from images/clips/copy. For VO script / 旁白脚本
+  alone, use storyboard-vo-script first.
 ---
 
 # Storyboard
 
-From **user materials only**, produce:
+Downstream of **[storyboard-vo-script](../storyboard-vo-script/SKILL.md)**. From **user materials only**, produce:
 
 1. **Narration** per shot — **Chinese and English** (both required unless user opts out)
 2. **Video prompt** per shot — ready for i2v / t2v
@@ -21,9 +22,11 @@ From **user materials only**, produce:
 Do not invent product facts, prices, logos, or claims not in the materials.
 Style and length are agent-chosen from the content (no fixed genre or duration).
 
+Prefer a finished **VO script** as input. If the user only has loose materials and asks for shots, either run storyboard-vo-script first or state that you are deriving VO while boarding.
+
 ## Inputs
 
-Any mix of stills, clips, text brief, and constraints. Optional: a delivery file path.
+Any mix of stills, clips, text brief, **VO script**, and constraints. Optional: a delivery file path.
 
 If goal/audience is ambiguous, state one short assumption and proceed. Ask only when a missing fact would make the storyboard unusable.
 
@@ -51,11 +54,11 @@ Treat a path as the **output file** when:
 ## Workflow
 
 1. Detect delivery target (file vs chat)
-2. Inventory materials (read delivery file if present)
+2. Inventory materials (read delivery file if present; prefer VO script beats)
 3. Infer Visual Style (once for the whole piece)
-4. Design story spine (hook → develop → payoff / CTA)
-5. Break into shots (one clear idea each; duration free)
-6. Write bilingual VO + video prompt per shot
+4. Design story spine (hook → develop → payoff / CTA) — align with VO Structure when present
+5. Break into shots (one clear idea each; duration free; map from VO beats)
+6. Write bilingual VO + video prompt per shot (reuse VO lines when present)
 7. Write Assembly (after Spine), then Cover (after Assembly)
 8. Consistency pass; deliver in required format
 
@@ -174,3 +177,7 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Co
 - [ ] Facts trace to materials; style coherent; i2v points at the right still
 - [ ] No video/image generation APIs unless user separately asks
 - [ ] No invented output path when user gave none → chat delivery only
+
+## Related
+
+- Upstream: **[storyboard-vo-script](../storyboard-vo-script/SKILL.md)** — bilingual VO before shots
