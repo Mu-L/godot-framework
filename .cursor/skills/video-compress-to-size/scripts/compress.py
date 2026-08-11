@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compress video files to stay under a max file size via FFmpeg two-pass bitrate."""
+"""Compress video files to stay under a max file size via FFmpeg (GPU-first)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 VIDEO_EXTENSIONS = {
@@ -36,13 +37,59 @@ SIZE_RE = re.compile(
 )
 
 # Leave headroom for container/mux overhead vs declared max size.
-SAFETY_FACTOR = 0.92
+SAFETY_FACTOR_CPU = 0.92
+SAFETY_FACTOR_GPU = 0.90  # VBR is less precise than two-pass
 MIN_VIDEO_BITRATE = 50_000  # 50 kbps
-DEFAULT_AUDIO_BITRATE = 128_000  # 128 kbps
 MAX_ATTEMPTS = 3
 KIB = 1024
 MIB = 1024 * 1024
 GIB = 1024 * 1024 * 1024
+
+# Map common x264-style names → NVENC/AMF/QSV presets.
+NVENC_PRESET_MAP = {
+    "ultrafast": "p1",
+    "superfast": "p1",
+    "veryfast": "p2",
+    "faster": "p3",
+    "fast": "p3",
+    "medium": "p4",
+    "slow": "p5",
+    "slower": "p6",
+    "veryslow": "p7",
+    "placebo": "p7",
+}
+AMF_PRESET_MAP = {
+    "ultrafast": "speed",
+    "superfast": "speed",
+    "veryfast": "speed",
+    "faster": "speed",
+    "fast": "balanced",
+    "medium": "balanced",
+    "slow": "quality",
+    "slower": "quality",
+    "veryslow": "quality",
+    "placebo": "quality",
+}
+QSV_PRESET_MAP = {
+    "ultrafast": "veryfast",
+    "superfast": "veryfast",
+    "veryfast": "veryfast",
+    "faster": "faster",
+    "fast": "fast",
+    "medium": "medium",
+    "slow": "slow",
+    "slower": "slower",
+    "veryslow": "veryslow",
+    "placebo": "veryslow",
+}
+
+
+@dataclass(frozen=True)
+class EncoderChoice:
+    name: str  # ffmpeg -c:v name
+    kind: str  # nvenc | amf | qsv | cpu
+    hevc: bool
+    label: str
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -293,60 +340,262 @@ def run_ffmpeg(cmd: list[str]) -> None:
         )
 
 
+def encoder_works(ffmpeg: Path, codec: str) -> bool:
+    """Tiny probe encode to a temp mp4 (null mux is unreliable for hw encoders).
+
+    Use ≥256x256 — NVENC rejects very small frames (e.g. 64x64).
+    """
+    with tempfile.TemporaryDirectory(prefix="vcompress_probe_") as tmp:
+        out = Path(tmp) / "probe.mp4"
+        cmd = [
+            str(ffmpeg),
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=c=black:s=320x240:d=0.2",
+            "-frames:v",
+            "5",
+            "-c:v",
+            codec,
+            "-b:v",
+            "500k",
+            "-y",
+            str(out),
+        ]
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", errors="replace"
+        )
+        return result.returncode == 0 and out.is_file() and out.stat().st_size > 0
+
+
+def list_gpu_candidates(hevc: bool) -> list[EncoderChoice]:
+    if hevc:
+        return [
+            EncoderChoice("hevc_nvenc", "nvenc", True, "NVIDIA NVENC HEVC"),
+            EncoderChoice("hevc_amf", "amf", True, "AMD AMF HEVC"),
+            EncoderChoice("hevc_qsv", "qsv", True, "Intel QSV HEVC"),
+        ]
+    return [
+        EncoderChoice("h264_nvenc", "nvenc", False, "NVIDIA NVENC H.264"),
+        EncoderChoice("h264_amf", "amf", False, "AMD AMF H.264"),
+        EncoderChoice("h264_qsv", "qsv", False, "Intel QSV H.264"),
+    ]
+
+
+def select_encoder(ffmpeg: Path, hevc: bool, force_cpu: bool) -> EncoderChoice:
+    if not force_cpu:
+        for candidate in list_gpu_candidates(hevc):
+            if encoder_works(ffmpeg, candidate.name):
+                return candidate
+    if hevc:
+        return EncoderChoice("libx265", "cpu", True, "libx265 (CPU)")
+    return EncoderChoice("libx264", "cpu", False, "libx264 (CPU)")
+
+
+def map_preset(encoder: EncoderChoice, preset: str) -> str:
+    key = preset.strip().lower()
+    if encoder.kind == "nvenc":
+        if key in NVENC_PRESET_MAP:
+            return NVENC_PRESET_MAP[key]
+        if re.fullmatch(r"p[1-7]", key):
+            return key
+        return "p4"
+    if encoder.kind == "amf":
+        if key in {"speed", "balanced", "quality"}:
+            return key
+        return AMF_PRESET_MAP.get(key, "balanced")
+    if encoder.kind == "qsv":
+        return QSV_PRESET_MAP.get(key, key if key else "medium")
+    return preset
+
+
 def compute_video_bitrate(
     max_bytes: int,
     duration: float,
     audio_bitrate: int,
     has_audio: bool,
+    safety: float,
 ) -> int:
-    budget_bits = max_bytes * 8 * SAFETY_FACTOR
+    budget_bits = max_bytes * 8 * safety
     audio_bits = audio_bitrate if has_audio else 0
-    video_bitrate = int(budget_bits / duration - audio_bits)
-    return video_bitrate
+    return int(budget_bits / duration - audio_bits)
 
 
-def compress_file(
+def build_hwaccel_args(encoder: EncoderChoice) -> list[str]:
+    if encoder.kind == "nvenc":
+        return ["-hwaccel", "cuda"]
+    if encoder.kind == "qsv":
+        return ["-hwaccel", "qsv"]
+    if encoder.kind == "amf":
+        return ["-hwaccel", "d3d11va"]
+    return []
+
+
+def build_video_encode_args(
+    encoder: EncoderChoice,
+    video_bitrate: int,
+    preset: str,
+) -> list[str]:
+    vb = format_bitrate(video_bitrate)
+    maxrate = format_bitrate(int(video_bitrate * 1.05))
+    bufsize = format_bitrate(video_bitrate * 2)
+    mapped = map_preset(encoder, preset)
+    args = ["-c:v", encoder.name, "-b:v", vb]
+
+    # h264_* NVENC/AMF/QSV are 8-bit only; 10-bit sources (e.g. Main10 HEVC) must convert.
+    if not encoder.hevc:
+        args.extend(["-pix_fmt", "yuv420p"])
+    elif encoder.kind == "nvenc":
+        # Prefer 8-bit for size targets; Main10 → 8-bit is fine for compression.
+        args.extend(["-pix_fmt", "yuv420p"])
+
+    if encoder.kind == "nvenc":
+        args.extend(
+            [
+                "-rc",
+                "vbr",
+                "-maxrate",
+                maxrate,
+                "-bufsize",
+                bufsize,
+                "-preset",
+                mapped,
+                "-multipass",
+                "fullres",
+            ]
+        )
+    elif encoder.kind == "amf":
+        args.extend(
+            [
+                "-rc",
+                "vbr_peak",
+                "-maxrate",
+                maxrate,
+                "-bufsize",
+                bufsize,
+                "-quality",
+                mapped,
+            ]
+        )
+    elif encoder.kind == "qsv":
+        args.extend(
+            [
+                "-maxrate",
+                maxrate,
+                "-bufsize",
+                bufsize,
+                "-preset",
+                mapped,
+            ]
+        )
+    else:
+        args.extend(["-preset", mapped])
+
+    if encoder.hevc:
+        args.extend(["-tag:v", "hvc1"])
+    return args
+
+
+def compress_file_gpu(
     ffmpeg: Path,
-    ffprobe: Path,
     file_path: Path,
     out_path: Path,
+    encoder: EncoderChoice,
     max_bytes: int,
-    audio_bitrate: int,
+    video_bitrate: int,
+    effective_audio: int,
+    has_audio: bool,
     preset: str,
-    hevc: bool,
 ) -> tuple[int, int]:
-    """Returns (output_size, video_bitrate_used). Raises on failure."""
-    duration = probe_duration(ffprobe, file_path)
-    has_audio = has_audio_streams(ffprobe, file_path)
+    last_size = 0
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        cmd = [str(ffmpeg), "-hide_banner", "-nostats", "-y"]
+        cmd.extend(build_hwaccel_args(encoder))
+        cmd.extend(["-i", str(file_path), "-map", "0:v:0"])
+        cmd.extend(build_video_encode_args(encoder, video_bitrate, preset))
+        if has_audio:
+            cmd.extend(
+                [
+                    "-map",
+                    "0:a:0?",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    format_bitrate(effective_audio),
+                    "-ac",
+                    "2",
+                ]
+            )
+        else:
+            cmd.append("-an")
+        cmd.extend(["-movflags", "+faststart", str(out_path)])
 
-    effective_audio = audio_bitrate if has_audio else 0
-    # Shrink audio if it would consume most of a tiny budget.
-    if has_audio:
-        total_budget_bps = int(max_bytes * 8 * SAFETY_FACTOR / duration)
-        if effective_audio > total_budget_bps // 2:
-            effective_audio = max(32_000, total_budget_bps // 4)
+        try:
+            run_ffmpeg(cmd)
+        except RuntimeError:
+            # Retry once without hwaccel decode (encode-only GPU).
+            if build_hwaccel_args(encoder):
+                cmd = [str(ffmpeg), "-hide_banner", "-nostats", "-y", "-i", str(file_path)]
+                cmd.extend(["-map", "0:v:0"])
+                cmd.extend(build_video_encode_args(encoder, video_bitrate, preset))
+                if has_audio:
+                    cmd.extend(
+                        [
+                            "-map",
+                            "0:a:0?",
+                            "-c:a",
+                            "aac",
+                            "-b:a",
+                            format_bitrate(effective_audio),
+                            "-ac",
+                            "2",
+                        ]
+                    )
+                else:
+                    cmd.append("-an")
+                cmd.extend(["-movflags", "+faststart", str(out_path)])
+                run_ffmpeg(cmd)
+            else:
+                raise
 
-    video_bitrate = compute_video_bitrate(
-        max_bytes, duration, effective_audio, has_audio
-    )
-    if video_bitrate < MIN_VIDEO_BITRATE:
-        raise RuntimeError(
-            f"Target size {format_bytes(max_bytes)} is too small for "
-            f"{duration:.1f}s video (video bitrate would be {format_bitrate(video_bitrate)}). "
-            "Raise --max-size or lower --audio-bitrate."
+        last_size = out_path.stat().st_size
+        if last_size <= max_bytes:
+            return last_size, video_bitrate
+
+        scale = (max_bytes * SAFETY_FACTOR_GPU) / last_size
+        video_bitrate = max(MIN_VIDEO_BITRATE, int(video_bitrate * scale))
+        print(
+            f"  [retry {attempt}/{MAX_ATTEMPTS}] "
+            f"{format_bytes(last_size)} > {format_bytes(max_bytes)}; "
+            f"next video bitrate {format_bitrate(video_bitrate)}"
         )
 
-    vcodec = "libx265" if hevc else "libx264"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    raise RuntimeError(
+        f"Could not get under {format_bytes(max_bytes)} after {MAX_ATTEMPTS} attempts "
+        f"(last size {format_bytes(last_size)})."
+    )
 
+
+def compress_file_cpu(
+    ffmpeg: Path,
+    file_path: Path,
+    out_path: Path,
+    encoder: EncoderChoice,
+    max_bytes: int,
+    video_bitrate: int,
+    effective_audio: int,
+    has_audio: bool,
+    preset: str,
+) -> tuple[int, int]:
+    last_size = 0
     with tempfile.TemporaryDirectory(prefix="vcompress_") as tmp:
         passlog = Path(tmp) / "ffmpeg2pass"
-        last_size = 0
-
         for attempt in range(1, MAX_ATTEMPTS + 1):
             vb = format_bitrate(video_bitrate)
 
-            # Pass 1
             pass1 = [
                 str(ffmpeg),
                 "-hide_banner",
@@ -357,7 +606,7 @@ def compress_file(
                 "-map",
                 "0:v:0",
                 "-c:v",
-                vcodec,
+                encoder.name,
                 "-b:v",
                 vb,
                 "-preset",
@@ -373,7 +622,6 @@ def compress_file(
             ]
             run_ffmpeg(pass1)
 
-            # Pass 2
             pass2 = [
                 str(ffmpeg),
                 "-hide_banner",
@@ -384,7 +632,7 @@ def compress_file(
                 "-map",
                 "0:v:0",
                 "-c:v",
-                vcodec,
+                encoder.name,
                 "-b:v",
                 vb,
                 "-preset",
@@ -394,7 +642,7 @@ def compress_file(
                 "-passlogfile",
                 str(passlog),
             ]
-            if hevc:
+            if encoder.hevc:
                 pass2.extend(["-tag:v", "hvc1"])
             if has_audio:
                 pass2.extend(
@@ -418,8 +666,7 @@ def compress_file(
             if last_size <= max_bytes:
                 return last_size, video_bitrate
 
-            # Scale bitrate down for next attempt.
-            scale = (max_bytes * SAFETY_FACTOR) / last_size
+            scale = (max_bytes * SAFETY_FACTOR_CPU) / last_size
             video_bitrate = max(MIN_VIDEO_BITRATE, int(video_bitrate * scale))
             print(
                 f"  [retry {attempt}/{MAX_ATTEMPTS}] "
@@ -427,15 +674,75 @@ def compress_file(
                 f"next video bitrate {format_bitrate(video_bitrate)}"
             )
 
+    raise RuntimeError(
+        f"Could not get under {format_bytes(max_bytes)} after {MAX_ATTEMPTS} attempts "
+        f"(last size {format_bytes(last_size)})."
+    )
+
+
+def compress_file(
+    ffmpeg: Path,
+    ffprobe: Path,
+    file_path: Path,
+    out_path: Path,
+    encoder: EncoderChoice,
+    max_bytes: int,
+    audio_bitrate: int,
+    preset: str,
+) -> tuple[int, int]:
+    duration = probe_duration(ffprobe, file_path)
+    has_audio = has_audio_streams(ffprobe, file_path)
+    safety = SAFETY_FACTOR_GPU if encoder.kind != "cpu" else SAFETY_FACTOR_CPU
+
+    effective_audio = audio_bitrate if has_audio else 0
+    if has_audio:
+        total_budget_bps = int(max_bytes * 8 * safety / duration)
+        if effective_audio > total_budget_bps // 2:
+            effective_audio = max(32_000, total_budget_bps // 4)
+
+    video_bitrate = compute_video_bitrate(
+        max_bytes, duration, effective_audio, has_audio, safety
+    )
+    if video_bitrate < MIN_VIDEO_BITRATE:
         raise RuntimeError(
-            f"Could not get under {format_bytes(max_bytes)} after {MAX_ATTEMPTS} attempts "
-            f"(last size {format_bytes(last_size)})."
+            f"Target size {format_bytes(max_bytes)} is too small for "
+            f"{duration:.1f}s video (video bitrate would be {format_bitrate(video_bitrate)}). "
+            "Raise --max-size or lower --audio-bitrate."
         )
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if encoder.kind == "cpu":
+        return compress_file_cpu(
+            ffmpeg,
+            file_path,
+            out_path,
+            encoder,
+            max_bytes,
+            video_bitrate,
+            effective_audio,
+            has_audio,
+            preset,
+        )
+    return compress_file_gpu(
+        ffmpeg,
+        file_path,
+        out_path,
+        encoder,
+        max_bytes,
+        video_bitrate,
+        effective_audio,
+        has_audio,
+        preset,
+    )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Compress videos to stay under a max file size (FFmpeg two-pass)."
+        description=(
+            "Compress videos to stay under a max file size. "
+            "Prefers GPU encoders (NVENC/AMF/QSV), falls back to CPU two-pass."
+        )
     )
     parser.add_argument("input", help="Path to a single video file or directory")
     parser.add_argument(
@@ -460,12 +767,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--preset",
         default="medium",
-        help="x264/x265 preset (default: medium)",
+        help="Quality/speed preset (default: medium; mapped for GPU encoders)",
     )
     parser.add_argument(
         "--hevc",
         action="store_true",
-        help="Use libx265 instead of libx264",
+        help="Prefer HEVC (hevc_nvenc / hevc_amf / hevc_qsv / libx265)",
+    )
+    parser.add_argument(
+        "--cpu",
+        action="store_true",
+        help="Force CPU encoder (libx264/libx265 two-pass); skip GPU",
     )
     parser.add_argument(
         "--overwrite", action="store_true", help="Replace existing output files"
@@ -492,6 +804,8 @@ def main() -> int:
 
     ffmpeg = resolve_ffmpeg()
     ffprobe = resolve_ffprobe(ffmpeg)
+    encoder = select_encoder(ffmpeg, args.hevc, force_cpu=args.cpu)
+    mapped_preset = map_preset(encoder, args.preset)
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -539,11 +853,13 @@ def main() -> int:
             print(f"  {source} -> {dest}", file=sys.stderr)
         return 1
 
-    codec = "libx265 (HEVC)" if args.hevc else "libx264 (H.264)"
     print(f"Input:    {args.input}")
     print(f"Files:    {len(files)}")
     print(f"Max size: {format_bytes(max_bytes)} ({args.max_size})")
-    print(f"Codec:    {codec}, preset={args.preset}, audio={args.audio_bitrate}")
+    print(
+        f"Encoder:  {encoder.label} ({encoder.name}), "
+        f"preset={args.preset}→{mapped_preset}, audio={args.audio_bitrate}"
+    )
     print(f"Output:   {output_dir}")
     if args.dry_run:
         print("Run:      DRY RUN")
@@ -552,6 +868,7 @@ def main() -> int:
     ok = 0
     skip = 0
     fail = 0
+    safety = SAFETY_FACTOR_GPU if encoder.kind != "cpu" else SAFETY_FACTOR_CPU
 
     for file_path in files:
         rel_src = relative_path(file_path, input_root)
@@ -577,12 +894,12 @@ def main() -> int:
                 duration = probe_duration(ffprobe, file_path)
                 has_audio = has_audio_streams(ffprobe, file_path)
                 vb = compute_video_bitrate(
-                    max_bytes, duration, audio_bitrate, has_audio
+                    max_bytes, duration, audio_bitrate, has_audio, safety
                 )
                 print(
                     f"[plan] {rel_src} -> {rel_out} "
                     f"({format_bytes(src_size)} → ≤{format_bytes(max_bytes)}, "
-                    f"~{format_bitrate(vb)} video, {duration:.1f}s)"
+                    f"~{format_bitrate(vb)} video, {duration:.1f}s, {encoder.name})"
                 )
                 ok += 1
             except RuntimeError as exc:
@@ -594,17 +911,17 @@ def main() -> int:
         try:
             print(
                 f"[run]  {rel_src} -> {rel_out} "
-                f"({format_bytes(src_size)} → ≤{format_bytes(max_bytes)})"
+                f"({format_bytes(src_size)} → ≤{format_bytes(max_bytes)}, {encoder.name})"
             )
             out_size, used_vb = compress_file(
                 ffmpeg,
                 ffprobe,
                 file_path,
                 out_path,
+                encoder,
                 max_bytes,
                 audio_bitrate,
                 args.preset,
-                args.hevc,
             )
             print(
                 f"  [ok]   {format_bytes(out_size)} "
@@ -627,4 +944,10 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Line-buffer logs when stdout is piped (agent / CI).
+    try:
+        sys.stdout.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
+        sys.stderr.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
+    except Exception:
+        pass
     sys.exit(main())
