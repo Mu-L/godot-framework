@@ -258,3 +258,26 @@ Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from rep
 | Video | Watermark → mute/extract → 4K → merge → OGV |
 | Storyboard | Storyboard → TTS VO / AI video → AV mix → merge |
 | Other | Filename kebab-case, commit messages |
+
+---
+
+# Sync framework into your project
+
+Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `zfoo/` and `.cursor/` from [godot-fun/godot-framework](https://github.com/godot-fun/godot-framework) into a game project.
+
+1. Copy `sync-godot-framework.ps1` into your Godot project root (same level as `project.godot`).
+2. From that root, run:
+
+```powershell
+.\sync-godot-framework.ps1
+```
+
+What it does:
+
+- Shallow-clones the framework repo into a temp folder
+- **Overlays** `.cursor/` (rules / skills) onto your project
+- **Replaces** `zfoo/` entirely with the upstream copy
+- Deletes the temp clone when finished
+
+
+Requires Git and PowerShell. Review the diff after sync before committing.
