@@ -250,14 +250,14 @@ Shared: [`.cursor/rules/`](.cursor/rules/), [`.cursor/skills/`](.cursor/skills/R
 
 Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
 
-| Category | Pipeline |
-|----------|----------|
-| AI | Text → speech (voice clone) |
-| Audio | WAV → trim → edit → denoise → fade → normalize → sample rate → OGG/WAV |
-| Image | PNG → watermark → split sheet → background → trim → resize |
-| Video | Watermark → mute/extract → 4K → merge → OGV |
-| Storyboard | Storyboard → TTS VO / AI video → AV mix → merge |
-| Other | Filename kebab-case, commit messages |
+| Category | Pipeline | Skills |
+|----------|----------|--------|
+| [AI](#ai) | Text-to-speech | 1 skill |
+| [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
+| [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
+| [Video](#video) | watermark → mute / wav → 4K → merge → compress / OGV | 9 skills |
+| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
+| [Other](#other) | Naming, commits | 2 skills |
 
 ---
 
