@@ -9,7 +9,7 @@ Strip **all audio tracks** (music, voice, SFX) from supported video files via FF
 
 ## Rules
 
-When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 ## Quick Start
 

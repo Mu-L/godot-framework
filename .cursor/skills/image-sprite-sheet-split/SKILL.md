@@ -9,7 +9,7 @@ Split **uniform grid sprite sheets** into individual **PNG frames** via FFmpeg c
 
 ## Rules
 
-When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - Run `split_frames.py` through the **`python` manifest entry** (`.dependency/python/`). Never use host `python`, `py`, or `python3`.
 - Do not hand-write FFmpeg crop commands — use the bundled script.

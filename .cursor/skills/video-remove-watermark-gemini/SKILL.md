@@ -17,7 +17,7 @@ Remove **Gemini / Veo visible watermarks** from video with **[VeoWatermarkRemove
 
 ## Rules
 
-When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - Run `remove_watermark.py` through **`.dependency/python/python.exe`**. The script calls the bundled **GeminiWatermarkTool-Video** binary only. Never use host `python` or tools outside `.dependency/`.
 - **Do not customize removal.** No custom alpha tuning — the wrapper handles paths/batch; pixel processing is delegated to GeminiWatermarkTool-Video.

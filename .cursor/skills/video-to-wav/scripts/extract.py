@@ -67,7 +67,7 @@ def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
     if not entry:
         print(
             f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/rules/skill-dependency-manager.md",
+            "See .cursor/skills/skill-dependency-manager.md",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -99,7 +99,7 @@ def resolve_ffmpeg() -> Path:
     if repo_root is None:
         print(
             "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/rules/skill-dependency-manager.md.",
+            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
             file=sys.stderr,
         )
         sys.exit(1)

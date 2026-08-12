@@ -25,7 +25,7 @@ Take a work directory with **per-shot** video and bilingual VO. For each shot, *
 
 ## Rules
 
-1. Follow [skill-dependency-manager](../../rules/skill-dependency-manager.md).
+1. Follow [skill-dependency-manager](../skill-dependency-manager.md).
 2. **VO timing is immutable.** Never stretch, shrink, pad, trim, or `atempo` the voice-over. Duration of the VO file is the master clock.
 3. **Video serves audio.** Only change video duration (FFmpeg `setpts`) so it equals that shot’s VO length, then mux.
 4. Drop all audio from the source video; replace with the VO track. Prefer `-c:a copy`; if the container cannot hold the VO codec (e.g. WAV→MP4), encode AAC **without** changing length.

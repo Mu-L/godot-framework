@@ -348,7 +348,7 @@ def main(argv: list[str] | None = None) -> int:
     if project_root is None:
         print(
             "Could not find .dependency/manifest.json. "
-            "Run from a repo that follows .cursor/rules/skill-dependency-manager.md.",
+            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
             file=sys.stderr,
         )
         return 1

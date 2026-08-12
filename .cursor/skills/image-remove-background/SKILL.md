@@ -12,7 +12,7 @@ Remove image backgrounds with AI matting via **rembg**. Output is **RGBA PNG** w
 
 ## Rules
 
-When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - Run `remove_background.py` through the **`rembg` manifest entry** (`.dependency/rembg/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write `rembg i` / `rembg p` — use the bundled script.

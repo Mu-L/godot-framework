@@ -9,7 +9,7 @@ Resize images to a **user-specified width and height** via **ImageMagick**. **Bo
 
 ## Rules
 
-When this skill applies, read and follow [skill-dependency-manager](../../rules/skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - **Require target size first.** If width/height are missing, ask the user before running.
 - Run `resize.py` through the bundled script — do not hand-write `magick -resize` commands.

@@ -28,7 +28,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 
 ## Rules
 
-1. Follow [skill-dependency-manager](../../rules/skill-dependency-manager.md).
+1. Follow [skill-dependency-manager](../skill-dependency-manager.md).
 2. **Batch synthesis only via** `scripts/synthesize.py` with the **`index-tts`** interpreter. Do **not** hand-write IndexTTS loops, temporary batch drivers, or N× single `tts.py` calls for a full storyboard.
 3. **Trial / single-line** checks may use [ai-text-to-speech](../ai-text-to-speech/SKILL.md) `tts.py`, or `synthesize.py --limit 1`.
 4. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python`).
