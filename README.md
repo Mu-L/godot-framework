@@ -237,11 +237,11 @@ await gdf.quit()
 
 Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy**, then replace every `.cursor` path in the copied tree with that platform’s directory.
 
-| Agent | Setup                                                                                                                             |
-|-------|-----------------------------------------------------------------------------------------------------------------------------------|
-| **Cursor** | Native Support                                                                                                                    |
-| **OpenCode** | Native Support — [`opencode.json`](opencode.json)                                                                                 |
-| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills`, then replace `.cursor` with `.agents` in `skills/`               |
+| Agent | Setup |
+|-------|-------|
+| **Cursor** | Native Support |
+| **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
+| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills`, then replace `.cursor` with `.agents` in `skills/` |
 | **Claude** | Copy root `AGENTS.md` → `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills`, then replace `.cursor` with `.claude` in `skills/` |
 
 ---
