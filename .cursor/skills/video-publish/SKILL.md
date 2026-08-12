@@ -143,14 +143,34 @@ Generate **all eight**. Each section: Title, Description, Tags — each in its o
 
 | Platform | Language | Style notes |
 |----------|----------|-------------|
-| Bilibili | 中文 | Searchable title; description with highlights / chapters if known; rich tags |
-| Douyin | 中文 | Ultra-short hook title; first desc line = scroll-stopper; hot-topic tags |
-| Xiaohongshu | 中文 | Title + emoji OK; lifestyle/note tone; `#话题` style tags |
+| Bilibili | 中文 | Searchable title; description with highlights / chapters if known |
+| Douyin | 中文 | Ultra-short hook title; first desc line = scroll-stopper |
+| Xiaohongshu | 中文 | Title + emoji OK; lifestyle/note tone |
 | Weibo | 中文 | Short punchy; @/话题 friendly; desc can double as post body |
-| YouTube | English | SEO title (~≤100 chars ideal); description with hook + value + CTA; comma tags |
-| X | English | Punchy post-length energy; light hashtags; desc ≈ post text if needed |
-| TikTok | English | Caption-first hook; trend-aware tags; keep title/caption tight |
-| Instagram | English | Reels/caption tone; line breaks; 5–15 hashtags at end of tags/desc |
+| YouTube | English | SEO title (~≤100 chars ideal); description with hook + value + CTA |
+| X | English | Punchy post-length energy; desc ≈ post text if needed |
+| TikTok | English | Caption-first hook; keep title/caption tight |
+| Instagram | English | Reels/caption tone; line breaks in description |
+
+#### Tags — follow each platform’s rules (required)
+
+Do **not** use one universal tag format. The Tags fence must match how that platform expects paste-in.
+
+| Platform | Format inside Tags fence | Count / notes |
+|----------|--------------------------|---------------|
+| **Bilibili** | Plain keywords, **comma-separated**, **no `#`** (投稿标签栏) | ~8–12；中文为主；含分区向词 + 内容专有词；勿堆无关热词 |
+| **Douyin** | `#话题` space-separated，**有 `#`、无结尾 `#`** | ~5–8；可混 1–2 个较热话题 + 精准词；勿刷屏式 # |
+| **Xiaohongshu** | `#话题#` space-separated（**开闭都有 `#`**） | ~8–15；笔记发现流常用；生活/教程向词优先 |
+| **Weibo** | `#话题#` space-separated（**开闭都有 `#`**） | ~3–6；偏短、可上热搜向；勿超长句当话题 |
+| **YouTube** | Comma-separated SEO phrases，**no `#`** (YouTube Studio tags field) | ~8–15；可含 2–4 词短语；英/专有名保留原样 |
+| **X** | `#Hashtag` space-separated，**有 `#`** | **2–4 only**；克制；CamelCase 或短词；禁止一串标签墙 |
+| **TikTok** | `#hashtag` space-separated，**有 `#`** | ~4–8；1–2 broad + rest niche；少用空洞 #fyp 堆砌（最多 1 个，可不用） |
+| **Instagram** | `#hashtag` space-separated，**有 `#`** | ~8–15；可放 Tags 栏供粘贴到文末/首评；混 broad + specific |
+
+Shared tag quality:
+- Relevant to the video; mix discoverable + specific
+- No irrelevant viral spam, no competitor-brand stuffing unless in materials
+- Language matches the platform column above
 
 **`platforms.md` structure:**
 
@@ -174,39 +194,76 @@ Generate **all eight**. Each section: Title, Description, Tags — each in its o
 ### Tags
 
 ```
-[tag1, tag2, ...]
+Godot, GDScript, 游戏开发, …
 ```
 
 ## Douyin
-… (same Title / Description / Tags fences)
+
+### Tags
+
+```
+#Godot #游戏开发 #独立游戏 …
+```
 
 ## Xiaohongshu
-…
+
+### Tags
+
+```
+#Godot# #游戏开发# #独立游戏#
+```
 
 ## Weibo
-…
+
+### Tags
+
+```
+#Godot# #独立游戏#
+```
 
 ## YouTube
-…
+
+### Tags
+
+```
+Godot, GDScript, game development, …
+```
 
 ## X
-…
+
+### Tags
+
+```
+#Godot #IndieDev
+```
 
 ## TikTok
-…
+
+### Tags
+
+```
+#Godot #gamedev #indiedev …
+```
 
 ## Instagram
-…
+
+### Tags
+
+```
+#Godot #gamedev #indiedev …
+```
 ````
 
-Use exact section headings above (stable for copy-paste / tooling).
+(Each platform still has Title / Description / Tags; examples above only show Tags shape per platform.)
+
+Use exact section headings `## Bilibili` … `## Instagram` (stable for copy-paste / tooling).
 
 ## Quality bar
 
 - Hook in the first line/title every time
 - Articles are rich and material-grounded; include the user’s own code when available
 - Same factual core across files; wording adapted per platform
-- Tags: relevant + discoverable; no irrelevant viral spam
+- Tags: **per-platform format** (see table); relevant + discoverable; no irrelevant viral spam
 - Covers: no unreadable tiny text; if on-image text is needed, keep to ≤5 words and say so in the prompt
 - If materials are thin, still ship all files; mark uncertain lines with `(assumption: …)` once in chat, not inside every file
 
