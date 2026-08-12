@@ -9,8 +9,8 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
-| [Video](#video) | watermark → mute / wav → 4K → merge → OGV | 7 skills |
-| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge | 4 skills |
+| [Video](#video) | watermark → mute / wav → 4K → merge → compress / OGV | 9 skills |
+| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## AI
@@ -93,7 +93,7 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
-Veo / Gemini cutscenes and UI clips — remove corner watermark, optionally mute or rip audio, upscale / normalize / merge, then export Godot-ready OGV.
+Veo / Gemini cutscenes and UI clips — remove corner watermark, optionally mute or rip audio, upscale / normalize / merge, compress to a size cap, then export Godot-ready OGV. Publish pack for multi-platform release.
 
 ```
 Source video (Veo / Gemini generated)
@@ -109,7 +109,9 @@ Source video (Veo / Gemini generated)
     ↓
 ⑤ video-merge — random 0.5s xfade (optional)
     ↓
-⑥ video-to-ogv — Godot export
+⑥ video-compress-to-size — re-encode under max size (optional; GPU preferred)
+    ↓
+⑦ video-to-ogv — Godot export
 ```
 
 | Skill | Purpose |
@@ -120,7 +122,9 @@ Source video (Veo / Gemini generated)
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
 | [video-4k-normalization](video-4k-normalization/SKILL.md) | Normalize mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
 | [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
+| [video-compress-to-size](video-compress-to-size/SKILL.md) | Re-encode under a max file size (GPU VBR preferred; CPU two-pass fallback) |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
+| [video-publish](video-publish/SKILL.md) | Materials → multi-platform publish pack (知乎 / Reddit / covers / 8 platforms) |
 
 ## Storyboard
 
@@ -157,6 +161,10 @@ Materials / copy / images
 ⑩ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
 ⑪ video-merge → final film
+    ↓
+⑫ video-compress-to-size — re-encode under max size (optional)
+    ↓
+⑬ video-publish — platform copy / covers
 ```
 
 | Skill | Purpose |
