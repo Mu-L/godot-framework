@@ -23,19 +23,19 @@ Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/normalized/tank_move
 
 ## LUFS Targets
 
-| Category | LUFS | True peak |
-|----------|------|-----------|
-| UI / clicks | -18 to -14 | -1.5 dBTP |
-| Gameplay SFX | -16 to -12 | -1.5 dBTP |
-| Explosions | -12 to -8 | -1.5 dBTP |
-| Ambience | -22 to -18 | -3.0 dBTP |
-| BGM / voice | -16 to -14 | -1.5 dBTP |
+| Category | LUFS |
+|----------|------|
+| UI / clicks | -18 to -14 |
+| Gameplay SFX | -16 to -12 |
+| Explosions | -12 to -8 |
+| Ambience | -22 to -18 |
+| BGM / voice | -16 to -14 |
 
 One category per folder. Mixed folders: split first, then batch with matching `-t`.
 
 ## Common Flags
 
-`-t` / `--target-lufs` · `-tp` / `--true-peak` · `-r` (recursive) · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`-t` / `--target-lufs` · `-r` (recursive) · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
 
 ```bash
 .dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX -t -14 -r --dry-run
@@ -46,7 +46,7 @@ One category per folder. Mixed folders: split first, then batch with matching `-
 ## Agent Notes
 
 1. Use the bundled script (two-pass `loudnorm`), not hand-written FFmpeg.
-2. **Preserves input format** — does not resample or change container extension.
+2. **Preserves input format** — same extension and sample rate (`-ar` forced to source); does not resample.
 3. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
 4. **Do not copy, move, or replace the source with the normalized output** — tell the user where `normalized/` files are; they swap assets manually when ready.
 5. Do not use `-o` pointing at the source folder; the script refuses output paths that would overwrite inputs.

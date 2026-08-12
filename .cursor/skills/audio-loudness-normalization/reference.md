@@ -6,28 +6,21 @@ Peak normalization only aligns maximum sample amplitude. Two files with the same
 
 ## Category LUFS Targets
 
-| Category | Integrated LUFS (I) | True Peak (TP) | Notes |
-|----------|-------------------|----------------|-------|
-| UI / menu clicks | -18 to -14 | ≤ -1.5 dBTP | Short transients; batch as one group |
-| Gameplay SFX | -16 to -12 | ≤ -1.5 dBTP | Weapons, pickups, abilities |
-| Explosions / heavy impacts | -12 to -8 | ≤ -1.5 dBTP | Loudest category; keep separate |
-| Ambience / footsteps | -22 to -18 | ≤ -3.0 dBTP | Bed layers; stay under gameplay |
-| BGM | -16 to -14 | ≤ -1.5 dBTP | Duck under voice at runtime |
-| Voice / dialogue | -16 to -14 | ≤ -1.5 dBTP | Usually pre-mixed; normalize lightly |
+| Category | Integrated LUFS (I) | Notes |
+|----------|---------------------|-------|
+| UI / menu clicks | -18 to -14 | Short transients; batch as one group |
+| Gameplay SFX | -16 to -12 | Weapons, pickups, abilities |
+| Explosions / heavy impacts | -12 to -8 | Loudest category; keep separate |
+| Ambience / footsteps | -22 to -18 | Bed layers; stay under gameplay |
+| BGM | -16 to -14 | Duck under voice at runtime |
+| Voice / dialogue | -16 to -14 | Usually pre-mixed; normalize lightly |
 
-Keep assets within **±2 LUFS** inside each category.
+Keep assets within **±2 LUFS** inside each category. True peak is fixed at **-1.5 dBTP** in the script.
 
-## FFmpeg loudnorm Parameters
+## FFmpeg loudnorm (two-pass)
 
-| Param | Meaning | Typical value |
-|-------|---------|---------------|
-| `I` | Target integrated loudness (LUFS) | -14 |
-| `TP` | True peak limit (dBTP) | -1.5 |
-| `LRA` | Loudness range | 11 (default) |
-
-Two-pass flow:
 1. **Pass 1** — measure `measured_I`, `measured_LRA`, `measured_TP`, `measured_thresh`, `offset`
-2. **Pass 2** — apply with measured values for accurate normalization
+2. **Pass 2** — apply with measured values, then force `-ar` to the source sample rate (`loudnorm` may upsample internally for true-peak)
 
 ## Game Engine Defaults (Post-Import)
 

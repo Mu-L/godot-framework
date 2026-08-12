@@ -11,6 +11,9 @@ import sys
 from pathlib import Path
 
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
+DEFAULT_TARGET_LUFS = -14.0
+DEFAULT_TRUE_PEAK = -1.5
+DEFAULT_LRA = 11
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -75,6 +78,59 @@ def resolve_ffmpeg() -> Path:
     return resolve_tool_bin(repo_root, "ffmpeg")
 
 
+def resolve_ffprobe(ffmpeg: Path) -> Path:
+    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
+    candidate = ffmpeg.with_name(name)
+    if candidate.is_file():
+        return candidate
+    raise FileNotFoundError(
+        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
+        "Install a full FFmpeg build that includes ffprobe."
+    )
+
+
+def probe_sample_rate(ffprobe: Path, file_path: Path) -> int:
+    result = subprocess.run(
+        [
+            str(ffprobe),
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_streams",
+            "-select_streams",
+            "a:0",
+            str(file_path),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffprobe failed for: {file_path}\n{result.stderr.strip()}"
+        )
+
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"ffprobe JSON parse failed for: {file_path}") from exc
+
+    streams = payload.get("streams") or []
+    if not streams:
+        raise RuntimeError(f"No audio stream found for: {file_path}")
+
+    sample_rate = streams[0].get("sample_rate")
+    try:
+        rate = int(sample_rate) if sample_rate else 0
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError(f"Invalid sample rate for: {file_path}") from exc
+    if rate <= 0:
+        raise RuntimeError(f"Missing sample rate for: {file_path}")
+    return rate
+
+
 def get_audio_files(path: Path, recurse: bool) -> list[Path]:
     if path.is_file():
         if path.suffix.lower() not in AUDIO_EXTENSIONS:
@@ -129,9 +185,7 @@ def find_source_collisions(
     return collisions
 
 
-def measure_loudnorm(
-    ffmpeg: Path, file_path: Path, target_lufs: float, true_peak: float
-) -> dict:
+def measure_loudnorm(ffmpeg: Path, file_path: Path, target_lufs: float) -> dict:
     result = subprocess.run(
         [
             str(ffmpeg),
@@ -140,7 +194,10 @@ def measure_loudnorm(
             "-i",
             str(file_path),
             "-af",
-            f"loudnorm=I={target_lufs}:TP={true_peak}:LRA=11:print_format=json",
+            (
+                f"loudnorm=I={target_lufs}:TP={DEFAULT_TRUE_PEAK}"
+                f":LRA={DEFAULT_LRA}:print_format=json"
+            ),
             "-f",
             "null",
             "-",
@@ -167,12 +224,12 @@ def normalize_file(
     file_path: Path,
     out_path: Path,
     target_lufs: float,
-    true_peak: float,
+    sample_rate: int,
     measured: dict,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     filter_str = (
-        f"loudnorm=I={target_lufs}:TP={true_peak}:LRA=11"
+        f"loudnorm=I={target_lufs}:TP={DEFAULT_TRUE_PEAK}:LRA={DEFAULT_LRA}"
         f":measured_I={measured['input_i']}"
         f":measured_LRA={measured['input_lra']}"
         f":measured_TP={measured['input_tp']}"
@@ -190,6 +247,8 @@ def normalize_file(
             str(file_path),
             "-af",
             filter_str,
+            "-ar",
+            str(sample_rate),
             str(out_path),
         ],
         capture_output=True,
@@ -214,15 +273,8 @@ def parse_args() -> argparse.Namespace:
         "-t",
         "--target-lufs",
         type=float,
-        default=-14,
-        help="Target integrated loudness in LUFS (default: -14)",
-    )
-    parser.add_argument(
-        "-tp",
-        "--true-peak",
-        type=float,
-        default=-1.5,
-        help="True peak limit in dBTP (default: -1.5)",
+        default=DEFAULT_TARGET_LUFS,
+        help=f"Target integrated loudness in LUFS (default: {DEFAULT_TARGET_LUFS:g})",
     )
     parser.add_argument(
         "-o",
@@ -245,6 +297,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     ffmpeg = resolve_ffmpeg()
+    try:
+        ffprobe = resolve_ffprobe(ffmpeg)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -295,7 +352,8 @@ def main() -> int:
     print(f"Input:       {args.input}")
     print(f"Files:       {len(files)}")
     print(f"Target LUFS: {args.target_lufs}")
-    print(f"True Peak:   {args.true_peak} dBTP")
+    print(f"True Peak:   {DEFAULT_TRUE_PEAK} dBTP")
+    print(f"Sample rate: preserve source")
     print(f"Output:      {output_dir}")
     if args.dry_run:
         print("Mode:        DRY RUN")
@@ -321,19 +379,18 @@ def main() -> int:
 
         try:
             print(f"[run]  {rel}")
-            measured = measure_loudnorm(
-                ffmpeg, file_path, args.target_lufs, args.true_peak
-            )
+            sample_rate = probe_sample_rate(ffprobe, file_path)
+            measured = measure_loudnorm(ffmpeg, file_path, args.target_lufs)
             normalize_file(
                 ffmpeg,
                 file_path,
                 out_path,
                 args.target_lufs,
-                args.true_peak,
+                sample_rate,
                 measured,
             )
             ok += 1
-        except RuntimeError as exc:
+        except (RuntimeError, FileNotFoundError) as exc:
             print(f"[fail] {rel}")
             print(exc)
             fail += 1
