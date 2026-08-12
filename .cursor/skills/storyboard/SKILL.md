@@ -2,12 +2,11 @@
 name: storyboard
 description: >-
   Turns user materials into a shot-by-shot storyboard with bilingual narration
-  (Chinese + English VO, both required), AI video prompts, and a cover/thumbnail
-  image prompt. When the user gives a target path (especially .md), write the
-  full storyboard there — do not only print it in chat. Style and duration are
-  free. Use when the user asks for storyboard, shot list, narration, VO script,
-  AI video prompts, image-to-video prompts, cover, thumbnail, or a video plan
-  from images/clips/copy.
+  (Chinese + English VO, both required) and AI video prompts per shot. When the
+  user gives a target path (especially .md), write the full storyboard there —
+  do not only print it in chat. Style and duration are free. Use when the user
+  asks for storyboard, shot list, narration, VO script, AI video prompts,
+  image-to-video prompts, or a video plan from images/clips/copy.
 ---
 
 # Storyboard
@@ -16,7 +15,6 @@ From **user materials only**, produce:
 
 1. **Narration** per shot — **Chinese and English** (both required unless user opts out)
 2. **Video prompt** per shot — ready for i2v / t2v
-3. **Cover** — one still prompt for thumbnail/poster (after Spine + Assembly in the markdown)
 
 Do not invent product facts, prices, logos, or claims not in the materials.
 Style and length are agent-chosen from the content (no fixed genre or duration).
@@ -56,7 +54,7 @@ Treat a path as the **output file** when:
 4. Design story spine (hook → develop → payoff / CTA)
 5. Break into shots (one clear idea each; duration free) — **Shot 01 is the eyeball grab** (see Shot 01)
 6. Write bilingual VO + video prompt per shot
-7. Write Assembly (after Spine), then Cover (after Assembly)
+7. Write Assembly (after Spine), then Shots
 8. Consistency pass; deliver in required format
 
 ### Visual Style (once)
@@ -99,7 +97,7 @@ Attention is fragmented: **Shot 01 must catch the eye**. It is an opening line t
 
 - Same idea in both languages (natural spoken, not word-for-word).
 - Length vs duration: Chinese ~3–4 chars/sec; English ~2–3 words/sec. Tighten the side that overruns.
-- **Sync on edit:** if either VO changes, update the other VO and related fields (`Duration`, `Visual`, `Camera`, `Video prompt`, Cover if the beat changes) in the same edit.
+- **Sync on edit:** if either VO changes, update the other VO and related fields (`Duration`, `Visual`, `Camera`, `Video prompt`) in the same edit.
 - User gives one language verbatim → keep it; write a natural equivalent for the other.
 - User asks for only one language → omit the other field.
 
@@ -113,20 +111,9 @@ Self-contained for a generic model. Include: subject + action in time order, cam
 - Optional: `Avoid: flicker, morphing faces, extra limbs, watermark, text overlay`
 - **English** prompt body unless user requires Chinese
 
-### Cover (required unless user skips)
-
-Place `## Cover` **immediately after** `## Assembly`, before `## Shots`.
-
-- One focal subject; thumbnail-readable; match Visual Style
-- Still only (no camera motion as main instruction)
-- On-image text only from materials; else `no on-image text`
-- Aspect: match video, else 16:9
-- Prefer i2i from hero still when available; else t2i
-- Optional: `Avoid: watermark, blurry text, extra fingers, cluttered UI, low-contrast mud`
-
 ## Output format (required)
 
-Section order is fixed: Materials → Visual Style → Spine → Assembly → Cover → Shots.
+Section order is fixed: Materials → Visual Style → Spine → Assembly → Shots.
 
 ```markdown
 # Storyboard — [working title]
@@ -147,17 +134,6 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Co
 
 ## Assembly
 [shot order, total runtime, TTS/BGM/stitch notes if obvious]
-
-## Cover
-- **Aspect:** [e.g. 16:9]
-- **Source:** [t2i / i2i from …]
-- **Visual:** [one-sentence composition]
-- **On-image text:** [from materials, or none]
-- **Image prompt:**
-  ```
-  [still prompt — English preferred]
-  ```
-- **Avoid (optional):** …
 
 ## Shots
 
@@ -181,7 +157,7 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Co
 ## Quality bar
 
 - [ ] File path given → full markdown **saved there** (UTF-8); not chat-only
-- [ ] Section order: Spine → Assembly → Cover → Shots; every shot has Chinese + English + Video prompt (or user opt-out)
+- [ ] Section order: Spine → Assembly → Shots; every shot has Chinese + English + Video prompt (or user opt-out)
 - [ ] VO languages sense-aligned; durations match speak length
 - [ ] **Shot 01** grabs attention as a cold open (not a thesis summary; no slow-burn open)
 - [ ] Facts trace to materials; style coherent; i2v points at the right still
