@@ -42,11 +42,21 @@ Always **overwrite** these filenames in the output directory (create if missing)
 
 Chat after write: short confirm only (output dir + file list). Do not dump full copy into chat unless the user asks.
 
+## Copy-friendly MD (required)
+
+Every paste-ready field goes in its own **fenced code block** so the editor one-click copy works. Headings/labels stay outside the fence; **only the text to paste** is inside.
+
+Rules:
+- One field = one fence (title alone, description alone, tags alone, one cover prompt alone)
+- Fence language tag optional; prefer plain ` ``` ` with no language (avoids syntax coloring noise)
+- Inside the fence: raw publish text only — no markdown headings, no bullets added for structure, no “copy below” notes
+- Do **not** put multiple platforms or multiple fields in one fence
+
 ## Workflow
 
 1. Resolve output directory (file parent vs project root)
 2. Inventory materials; infer topic, hook, audience, tone
-3. Write all 5 files
+3. Write all 5 files using copy-friendly fences
 4. Consistency pass (same core claim/hook across platforms; no invented facts)
 5. Confirm paths in chat
 
@@ -64,7 +74,27 @@ Eye-catching first; still native to each platform — not the same paragraph pas
 **Reddit (`reddit.md`)** — English
 - Discussion-first, authentic; title like a real post, not ad copy
 - Body: context → value → soft invite to watch/comment
-- No hard sell, no keyword stuffing; optional `## Suggested subreddits` (2–5)
+- No hard sell, no keyword stuffing; optional suggested subreddits as plain lines in a fence
+
+**`zhihu.md` / `reddit.md` format:**
+
+````markdown
+# Zhihu
+
+## Title
+
+```
+[title only — paste-ready]
+```
+
+## Body
+
+```
+[full article body — paste-ready]
+```
+````
+
+(Reddit: `# Reddit`, same Title / Body fences; optional `## Suggested subreddits` with one fence of subreddit names.)
 
 ### Cover prompts
 
@@ -80,18 +110,27 @@ Google image generation prompts (Imagen / Gemini image). English prompts preferr
 
 Each file format:
 
-```markdown
+````markdown
 # Covers — landscape (16:9)
 
 ## Variant 1 — [short label]
-[full prompt]
+
+```
+[full prompt — paste-ready]
+```
 
 ## Variant 2 — [short label]
-[full prompt]
+
+```
+[full prompt — paste-ready]
+```
 
 ## Variant 3 — [short label]
-[full prompt]
+
 ```
+[full prompt — paste-ready]
+```
+````
 
 (Same structure for portrait with `9:16`.)
 
@@ -99,7 +138,7 @@ Three variants should differ in composition/hook (e.g. curiosity gap / bold clai
 
 ### Video platforms (`platforms.md`)
 
-Generate **all eight**. Each section: Title, Description, Tags (and platform-specific extras below).
+Generate **all eight**. Each section: Title, Description, Tags — each in its own fence.
 
 | Platform | Language | Style notes |
 |----------|----------|-------------|
@@ -114,38 +153,50 @@ Generate **all eight**. Each section: Title, Description, Tags (and platform-spe
 
 **`platforms.md` structure:**
 
-```markdown
+````markdown
 # Platform publish copy
 
 ## Bilibili
+
 ### Title
-...
+
+```
+[title]
+```
+
 ### Description
-...
+
+```
+[description]
+```
+
 ### Tags
-...
+
+```
+[tag1, tag2, ...]
+```
 
 ## Douyin
-...
+… (same Title / Description / Tags fences)
 
 ## Xiaohongshu
-...
+…
 
 ## Weibo
-...
+…
 
 ## YouTube
-...
+…
 
 ## X
-...
+…
 
 ## TikTok
-...
+…
 
 ## Instagram
-...
-```
+…
+````
 
 Use exact section headings above (stable for copy-paste / tooling).
 
