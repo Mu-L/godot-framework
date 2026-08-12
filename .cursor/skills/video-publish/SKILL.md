@@ -42,21 +42,23 @@ Always **overwrite** these filenames in the output directory (create if missing)
 
 Chat after write: short confirm only (output dir + file list). Do not dump full copy into chat unless the user asks.
 
-## Copy-friendly MD (required)
+## Copy-friendly MD
 
-Every paste-ready field goes in its own **fenced code block** so the editor one-click copy works. Headings/labels stay outside the fence; **only the text to paste** is inside.
+**Articles are normal Markdown** — `zhihu.md` and `reddit.md` stay readable long-form (headings, paragraphs). Do **not** wrap the whole article in a code fence.
 
-Rules:
-- One field = one fence (title alone, description alone, tags alone, one cover prompt alone)
-- Fence language tag optional; prefer plain ` ``` ` with no language (avoids syntax coloring noise)
-- Inside the fence: raw publish text only — no markdown headings, no bullets added for structure, no “copy below” notes
+**Paste fields use fences** — platform Title / Description / Tags, and each cover prompt: one field = one fence so one-click copy works.
+
+Fence rules (covers + `platforms.md` only):
+- Headings/labels outside the fence; **only the text to paste** inside
+- Prefer plain ` ``` ` with no language
+- Inside: raw publish text only — no extra structural markdown
 - Do **not** put multiple platforms or multiple fields in one fence
 
 ## Workflow
 
 1. Resolve output directory (file parent vs project root)
 2. Inventory materials; infer topic, hook, audience, tone
-3. Write all 5 files using copy-friendly fences
+3. Write all 5 files (articles as normal MD; covers + platforms with paste fences)
 4. Consistency pass (same core claim/hook across platforms; no invented facts)
 5. Confirm paths in chat
 
@@ -66,35 +68,34 @@ Eye-catching first; still native to each platform — not the same paragraph pas
 
 ### Articles
 
-**知乎 (`zhihu.md`)** — Chinese
+Both articles must be **substantive**, not teaser blurbs. Expand from the user’s materials: explain context, walk through key beats, add concrete detail, and give readers something useful even if they never open the video.
+
+**Depth (required)**
+- Zhihu: typically **1500–3500 字** (or more if materials are dense); multiple `##` sections
+- Reddit: typically **600–1500 words**; clear sections, still conversational
+- Prefer “too much useful detail” over thin summary; do not pad with empty hype
+- Structure idea: hook → background / problem → what we built or showed → how it works → takeaways → soft CTA
+- Reuse facts, names, numbers, and claims **only from materials**; when expanding prose, stay faithful
+
+**Code from the user (required when present)**
+- If materials include code, snippets, scripts, API usage, or repo paths: **pull in the user’s own code**, not generic invented samples
+- Prefer several short, real excerpts over one toy rewrite; keep enough context to be readable
+- Use fenced code blocks with the right language tag (`gdscript`, `python`, `cpp`, …)
+- Lightly annotate why each snippet matters; do not “improve” the code into something they didn’t provide
+- If materials only mention code indirectly (e.g. storyboard about a feature), open related project files when a clear path/repo is in scope and quote **their** implementations
+- No code in materials and none findable → skip code sections; do not fabricate demos
+
+**知乎 (`zhihu.md`)** — Chinese, normal Markdown article
+- `#` title as H1; body with `##` / `###` subheads, lists, and code fences as needed
 - Long-form, structured, credible; strong hook title + opening question/conflict
-- Subheads, concrete points, light CTA at end (watch / discuss)
-- Avoid slang spam and emoji walls
+- Fill sections with explanation, comparisons, pitfalls, and material-grounded examples
+- Light CTA at end (watch / discuss); avoid slang spam and emoji walls
 
-**Reddit (`reddit.md`)** — English
+**Reddit (`reddit.md`)** — English, normal Markdown post
+- `#` title as H1; body as readable prose (not one giant fence)
 - Discussion-first, authentic; title like a real post, not ad copy
-- Body: context → value → soft invite to watch/comment
-- No hard sell, no keyword stuffing; optional suggested subreddits as plain lines in a fence
-
-**`zhihu.md` / `reddit.md` format:**
-
-````markdown
-# Zhihu
-
-## Title
-
-```
-[title only — paste-ready]
-```
-
-## Body
-
-```
-[full article body — paste-ready]
-```
-````
-
-(Reddit: `# Reddit`, same Title / Body fences; optional `## Suggested subreddits` with one fence of subreddit names.)
+- Same richness bar as Zhihu (translated tone): context → build/demo → code when available → ask the room something specific
+- No hard sell, no keyword stuffing; optional `## Suggested subreddits` (2–5 as a normal list)
 
 ### Cover prompts
 
@@ -203,6 +204,7 @@ Use exact section headings above (stable for copy-paste / tooling).
 ## Quality bar
 
 - Hook in the first line/title every time
+- Articles are rich and material-grounded; include the user’s own code when available
 - Same factual core across files; wording adapted per platform
 - Tags: relevant + discoverable; no irrelevant viral spam
 - Covers: no unreadable tiny text; if on-image text is needed, keep to ≤5 words and say so in the prompt
