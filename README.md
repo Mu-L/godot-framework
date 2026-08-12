@@ -235,14 +235,14 @@ await gdf.quit()
 
 # Agent Support
 
-Shared: [`.cursor/rules/`](.cursor/rules/), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy** rules into their root MD, **copy** skills into their skill folders.
+Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy**, then replace every `.cursor` path in the copied tree with that platform’s directory.
 
-| Agent | Setup |
-|-------|-------|
-| **Cursor** | Native Support |
-| **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
-| **Codex** | Copy rules into root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` |
-| **Claude** | Copy rules into root `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills` |
+| Agent | Setup                                                                                                                             |
+|-------|-----------------------------------------------------------------------------------------------------------------------------------|
+| **Cursor** | Native Support                                                                                                                    |
+| **OpenCode** | Native Support — [`opencode.json`](opencode.json)                                                                                 |
+| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills`, then replace `.cursor` with `.agents` in `skills/`               |
+| **Claude** | Copy root `AGENTS.md` → `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills`, then replace `.cursor` with `.claude` in `skills/` |
 
 ---
 
@@ -275,7 +275,7 @@ Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `z
 What it does:
 
 - Shallow-clones the framework repo into a temp folder
-- **Overlays** `.cursor/` (rules / skills) onto your project
+- **Overlays** `.cursor/` (skills) and root `AGENTS.md` onto your project
 - **Replaces** `zfoo/` entirely with the upstream copy
 - Deletes the temp clone when finished
 
