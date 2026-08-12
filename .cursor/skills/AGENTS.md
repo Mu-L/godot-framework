@@ -1,8 +1,3 @@
-﻿---
-description: Skill dependency manager — run skill scripts, install missing tools into .dependency/
-alwaysApply: false
----
-
 # Skill Dependency Manager
 
 ## Run skill scripts
