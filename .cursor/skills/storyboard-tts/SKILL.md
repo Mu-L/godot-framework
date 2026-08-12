@@ -184,4 +184,4 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 
 - [storyboard](../storyboard/SKILL.md) — source markdown
 - [ai-text-to-speech](../ai-text-to-speech/SKILL.md) — single-line TTS + IndexTTS setup
-- Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md), [audio-to-ogg](../audio-to-ogg/SKILL.md)
+- Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md), [audio-padding](../audio-padding/SKILL.md)

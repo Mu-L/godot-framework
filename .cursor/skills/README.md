@@ -7,10 +7,10 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | Category | Pipeline | Skills |
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
-| [Audio](#audio) | Trim → denoise → normalize → export | 9 skills |
-| [Image](#image) | PNG → watermark → split → background → trim → resize | 8 skills |
-| [Video](#video) | Watermark → mute / extract → 4K → merge → OGV | 7 skills |
-| [Storyboard](#storyboard) | Storyboard → VO / video → AV mix → merge | 8 skills |
+| [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
+| [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
+| [Video](#video) | watermark → mute / wav → 4K → merge → OGV | 7 skills |
+| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## AI
@@ -21,30 +21,33 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 
 ## Audio
 
+Batch audio cleanup for SFX / VO / BGM — convert, shape edges, clean noise, normalize, then export.
+
 ```
 Source audio
     ↓
-① Convert to working format (WAV recommended)
+① audio-to-wav — working format (WAV recommended)
     ↓
-② Trim leading/trailing silence
+② audio-trim  ·or·  audio-padding — ensure min blank (default 0.4 s)
     ↓
-③ Edit (cut, splice)
+③ audio-split — cut / splice (optional)
     ↓
-④ Denoise / de-clip (if needed)
+④ audio-denoise — denoise / de-clip (optional)
     ↓
-⑤ Fade in/out (if needed)
+⑤ audio-fade — fade in/out (optional)
     ↓
-⑥ Adjust volume / loudness (normalize)
+⑥ audio-loudness-normalization  ·or·  audio-volume-adjust
     ↓
-⑦ Standardize sample rate (44100 / 48000 Hz WAV)
+⑦ audio-sample-rate-standardize — 44100 / 48000 Hz WAV
     ↓
-⑧ Export final format (OGG / WAV)
+⑧ audio-to-ogg — export (BGM)  ·or·  keep WAV
 ```
 
 | Skill | Purpose |
 |-------|---------|
 | [audio-to-wav](audio-to-wav/SKILL.md) | Audio → WAV |
 | [audio-trim](audio-trim/SKILL.md) | Trim leading/trailing silence |
+| [audio-padding](audio-padding/SKILL.md) | Pad leading/trailing silence (ensure min blank) |
 | [audio-split](audio-split/SKILL.md) | Split at a timestamp |
 | [audio-denoise](audio-denoise/SKILL.md) | Denoise / de-clip |
 | [audio-fade](audio-fade/SKILL.md) | Fade in/out |
@@ -55,24 +58,26 @@ Source audio
 
 ## Image
 
+AI art and sprite sheets — convert to PNG, clean watermarks, split grids, remove backgrounds, then trim / resize / rename.
+
 ```
 Source image (AI art / sprite sheet)
     ↓
-① Convert to PNG (if needed)
+① image-to-png (optional)
     ↓
-② Remove Gemini watermark (if needed)
+② image-remove-watermark-gemini (optional)
     ↓
-③ Split sprite sheet grid → frames (if sheet)
+③ image-sprite-sheet-split — grid → frames (optional)
     ↓
-④ Remove background
-   · flat white / green / magenta → color key (batch)
-   · complex / photo backgrounds → AI matting (rembg)
+④ image-remove-white-background — flat white / green / magenta
+   ·or·  image-remove-background — complex / photo (rembg)
+   ·or·  image-region-remove-key-color-app — paint region (manual)
     ↓
-⑤ Trim invalid borders / transparent padding (optional)
+⑤ image-trim — borders / transparent padding (optional)
     ↓
-⑥ Resize to target width × height (optional)
+⑥ image-resize — target width × height (optional)
     ↓
-⑦ Filename normalization (optional)
+⑦ file-naming-normalization (optional)
 ```
 
 | Skill | Purpose |
@@ -88,25 +93,23 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
-Veo / Gemini generated cutscenes and UI clips — remove the visible corner watermark, optionally mute or rip audio, upscale to 4K / merge shots, then export Godot-ready OGV.
+Veo / Gemini cutscenes and UI clips — remove corner watermark, optionally mute or rip audio, upscale / normalize / merge, then export Godot-ready OGV.
 
 ```
 Source video (Veo / Gemini generated)
     ↓
-① Remove Gemini / Veo watermark (if needed)
+① video-remove-watermark-gemini (optional)
     ↓
-② Extract audio track → WAV (optional)
+② video-to-wav — extract audio (optional)
+   ·or·  video-remove-audio — mute (optional)
     ↓
-③ Remove all audio / mute (optional)
+③ video-to-4k — upscale to 4K master (optional)
     ↓
-④ Upscale to 4K master (optional)
+④ video-4k-normalization — unify color / fps before merge (optional)
     ↓
-⑤ Normalize 4K masters (optional; unify color / fps before merge)
+⑤ video-merge — random 0.5s xfade (optional)
     ↓
-⑥ Merge folder of clips (optional)
-   · random 0.5s xfade → video-merge
-    ↓
-⑦ Convert to OGV (for Godot)
+⑥ video-to-ogv — Godot export
 ```
 
 | Skill | Purpose |
@@ -127,32 +130,39 @@ Video production pipeline: write bilingual narration, generate per-shot AI video
 Materials / copy / images
     ↓
 ① storyboard — markdown (CN+EN narration, video prompts, cover)
+    ├─ preview (optional)
+    │     ↓
+    │  storyboard-shot-to-html — one shot → fullscreen HTML motion sketch
+    │
     ├─ audio branch
     │     ↓
     │  ② storyboard-tts → Chinese/ + English/ WAVs
     │     ↓
     │  ③ audio-loudness-normalization
+    │     ↓
+    │  ④ audio-padding — ensure edge blank (default 0.4 s)
     │
     └─ video branch
           ↓
-       ④ Generate AI video (external; from prompts)
+       ⑤ Generate AI video (external; from prompts)
           ↓
-       ⑤ video-remove-watermark-gemini
+       ⑥ video-remove-watermark-gemini
           ↓
-       ⑥ video-remove-audio — mute (drop source track before VO mux)
+       ⑦ video-remove-audio — mute (drop source track before VO mux)
           ↓
-       ⑦ video-to-4k → Video/
+       ⑧ video-to-4k → Video/
           ↓
-       ⑦ video-4k-normalization (if HDR/SDR or params still mixed)
+       ⑨ video-4k-normalization (optional)
     ↓
-⑦ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑩ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑨ video-merge → final film
+⑪ video-merge → final film
 ```
 
 | Skill | Purpose |
 |-------|---------|
 | [storyboard](storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
+| [storyboard-shot-to-html](storyboard-shot-to-html/SKILL.md) | One shot (prompt + VO) → fullscreen HTML CSS animation preview (Space to play) |
 | [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
 | [storyboard-av-mix](storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
