@@ -55,9 +55,9 @@ The preview must play as a **full-viewport cinematic stage**, not a letterboxed 
 | Aspect | Keep storyboard aspect (default **16:9**) with **cover** (crop) or letterbox on black — prefer **cover** so the frame fills the screen |
 | No below-fold chrome | Title, tags, original prompt must **not** sit under the stage in normal flow |
 | Overlay meta | Put prompt / research in a **hidden overlay** (`I` or `?` to toggle; `Esc` closes). **Do not** burn VO/旁白 onto the stage — narration is for analysis only, not on-screen text |
-| **Space to play** | Animations stay **paused** on load (first frame / idle pose). **`Space`** starts playback **once**. Do not autoplay on open. Hint text must mention 空格开始 / Space |
+| **Space to play** | Animations stay **paused** on load (first frame / idle pose). **`Space`** starts playback **once**. Do not autoplay on open. Hint text: `Space to play · Click / F fullscreen · I prompt` (may also mention 空格开始) |
 | **Play once** | Shot timeline is **one-shot** — no `infinite` / `alternate` loop on the main beat. When duration ends, **hold the final frame** (`animation-fill-mode: forwards` or equivalent). Do **not** restart on a second `Space`, and do not auto-replay |
-| Browser Fullscreen API | On click (or `F`), call `element.requestFullscreen()` on the stage root. Show a brief hint until entered (`点击全屏 · 空格开始`). `Esc` exits native fullscreen |
+| Browser Fullscreen API | On click (or `F`), call `element.requestFullscreen()` on the stage root. Show a brief hint until entered (`Click / F fullscreen · Space to play`). `Esc` exits native fullscreen |
 | Open behavior | After writing the file, open it so the user lands on the fullscreen-ready **paused** page; wait for `Space` to play |
 
 ## Workflow
@@ -120,7 +120,7 @@ Goal: **one composition** that reads as the shot at first viewport — animated 
 
 **Sync with VO meaning:** if旁白 teaches a step or names a UI, show that metaphor on stage (even abstractly). Mood-only VO → prioritize prompt cinematography.
 
-**Language:** Abstract UI chrome labels may follow the VO language when helpful (default Chinese if Chinese VO present, else English). **Never** put spoken 旁白 / VO lines on the stage. Keep the **original prompt + VO text** only in the toggle overlay.
+**Language:** **Prefer English** for all on-stage chrome, labels, badges, chat bubbles, code comments, and hint text. Do not default to Chinese even when Chinese VO is present. **Never** put spoken 旁白 / VO lines on the stage. Keep the **original prompt + VO text** (Chinese and English) only in the toggle overlay. Overlay headings and research notes should also be English.
 
 **Typography / readable stage text (required):**
 
@@ -227,7 +227,7 @@ Adapt freely; keep **fullscreen** structure:
 
 ```html
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -251,7 +251,7 @@ Adapt freely; keep **fullscreen** structure:
   <div class="stage" id="stage">
     <div class="frame"><!-- scene layers only — no VO caption --></div>
   </div>
-  <div class="fs-hint">空格开始 · Space　·　点击 / F 全屏　·　I 提示词</div>
+  <div class="fs-hint">Space to play · Click / F fullscreen · I prompt</div>
   <aside class="overlay" hidden><!-- title, prompt, research — toggle with I / ? --></aside>
   <script>
     // Space adds .is-playing once; keyframes use forwards; no loop / no Space restart

@@ -4,8 +4,8 @@ Batch-synthesize storyboard VO (Chinese + English) with IndexTTS2.
 
 Loads the model **once**, then writes:
 
-    <audio-dir>/Chinese/<shot-id>.wav
-    <audio-dir>/English/<shot-id>.wav
+    <storyboard-dir>/<voice-stem>/Chinese/<shot-id>.wav
+    <storyboard-dir>/<voice-stem>/English/<shot-id>.wav
 
 Run through the **index-tts** interpreter only:
 
@@ -13,7 +13,6 @@ Run through the **index-tts** interpreter only:
         .cursor/skills/storyboard-tts/scripts/synthesize.py \\
         --storyboard path/to/storyboard.md \\
         --voice path/to/ref.wav \\
-        --audio-dir path/to/out \\
         --fp16 --report
 """
 
@@ -114,6 +113,41 @@ def build_jobs(
     return jobs
 
 
+def voice_stem_for_audio_dir(
+    voice: Path | None,
+    voice_zh: Path | None,
+    voice_en: Path | None,
+    languages: str,
+) -> str | None:
+    if voice is not None:
+        return voice.stem
+    if languages == "english" and voice_en is not None:
+        return voice_en.stem
+    if voice_zh is not None:
+        return voice_zh.stem
+    if voice_en is not None:
+        return voice_en.stem
+    return None
+
+
+def resolve_audio_dir(
+    args: argparse.Namespace,
+    storyboard_path: Path | None,
+    shots_path: Path | None,
+    voice: Path | None,
+    voice_zh: Path | None,
+    voice_en: Path | None,
+) -> Path | None:
+    if args.audio_dir:
+        return Path(args.audio_dir).expanduser()
+    stem = voice_stem_for_audio_dir(voice, voice_zh, voice_en, args.lang)
+    if storyboard_path is not None and stem:
+        return storyboard_path.parent / stem
+    if shots_path is not None:
+        return shots_path.parent
+    return None
+
+
 def parse_emotion_args(args: argparse.Namespace) -> SimpleNamespace:
     return SimpleNamespace(
         emotion_audio=args.emotion_audio,
@@ -136,8 +170,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     parser.add_argument(
         "--audio-dir",
-        required=True,
-        help="Output root (creates Chinese/ and English/)",
+        help="Output root (default: <storyboard-dir>/<voice-stem>/; creates Chinese/ and English/)",
     )
     parser.add_argument(
         "--voice",
@@ -260,12 +293,8 @@ def main(argv: list[str] | None = None) -> int:
     python_bin = tts_lib.resolve_tool_bin(repo_root, TOOL_NAME)
     index_tts_root = tts_lib.resolve_index_tts_root(repo_root, python_bin)
 
-    audio_dir = Path(args.audio_dir).expanduser()
-    audio_dir.mkdir(parents=True, exist_ok=True)
-    (audio_dir / "Chinese").mkdir(parents=True, exist_ok=True)
-    (audio_dir / "English").mkdir(parents=True, exist_ok=True)
-
     storyboard_path: Path | None = None
+    shots_path: Path | None = None
     if args.shots:
         shots_path = Path(args.shots).expanduser()
         if not shots_path.is_file():
@@ -282,12 +311,6 @@ def main(argv: list[str] | None = None) -> int:
         if data["shot_count"] == 0:
             print(f"No shots found in {storyboard_path}", file=sys.stderr)
             return 1
-        shots_out = audio_dir / "shots.json"
-        shots_out.write_text(
-            json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        print(f"Wrote {shots_out} ({data['shot_count']} shots)")
 
     voice_default = Path(args.voice).expanduser() if args.voice else None
     voice_zh = Path(args.voice_zh).expanduser() if args.voice_zh else None
@@ -297,6 +320,28 @@ def main(argv: list[str] | None = None) -> int:
         if path is not None and not path.is_file():
             print(f"Voice not found ({label}): {path}", file=sys.stderr)
             return 1
+
+    audio_dir = resolve_audio_dir(
+        args, storyboard_path, shots_path, voice_default, voice_zh, voice_en
+    )
+    if audio_dir is None:
+        print(
+            "Need --audio-dir, or --storyboard plus a voice path to name "
+            "<storyboard-dir>/<voice-stem>/.",
+            file=sys.stderr,
+        )
+        return 1
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    (audio_dir / "Chinese").mkdir(parents=True, exist_ok=True)
+    (audio_dir / "English").mkdir(parents=True, exist_ok=True)
+
+    if storyboard_path is not None:
+        shots_out = audio_dir / "shots.json"
+        shots_out.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"Wrote {shots_out} ({data['shot_count']} shots)")
 
     if voice_default is None:
         # Dummy not used when both langs have dedicated voices; pick any existing for default fallback

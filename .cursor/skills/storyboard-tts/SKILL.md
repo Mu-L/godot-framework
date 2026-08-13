@@ -16,11 +16,11 @@ Take a **[storyboard](../storyboard/SKILL.md)** deliverable and batch-synthesize
 
 | Output | Path |
 |--------|------|
-| Chinese VO | `<audio-dir>/Chinese/<shot-id>.wav` |
-| English VO | `<audio-dir>/English/<shot-id>.wav` |
-| Duration doc | `<audio-dir>/speech-timeline.md` |
-| Chinese subs | `<audio-dir>/Chinese.srt` |
-| English subs | `<audio-dir>/English.srt` |
+| Chinese VO | `<storyboard-dir>/<voice-stem>/Chinese/<shot-id>.wav` |
+| English VO | `<storyboard-dir>/<voice-stem>/English/<shot-id>.wav` |
+| Duration doc | `<storyboard-dir>/<voice-stem>/speech-timeline.md` |
+| Chinese subs | `<storyboard-dir>/<voice-stem>/Chinese.srt` |
+| English subs | `<storyboard-dir>/<voice-stem>/English.srt` |
 
 Shot id from headers (`### Shot 01 — …` → `01.wav`).
 
@@ -35,6 +35,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 5. Never overwrite the storyboard source. Write only under `<audio-dir>/`.
 6. Skip `(no VO)` / empty lines — no empty WAVs or empty subtitle cues.
 7. Confirm **voice reference** (and output dir if unclear) before a full batch.
+8. 第一层目录使用音频的名字作为第一层目录的名字。子目录的名字都是不变. Default `<audio-dir>` is `<storyboard-dir>/<voice-stem>/`. Do **not** use `<storyboard-stem>-speech`.
 
 ## Inputs
 
@@ -45,7 +46,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 
 | Optional | Default |
 |----------|---------|
-| Output dir | `<storyboard-dir>/<storyboard-stem>-speech/` |
+| Output dir | `<storyboard-dir>/<voice-stem>/` (reference audio filename, no extension) |
 | Language | both (`--lang chinese` / `english`) |
 | `--fp16` / emotion / `--device` | same meaning as ai-text-to-speech |
 | `--force` | off (skip existing WAVs) |
@@ -56,7 +57,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 ## Layout
 
 ```
-<audio-dir>/
+<storyboard-dir>/<voice-stem>/   # e.g. 哪吒-自己-快/ from 哪吒-自己-快.wav
   Chinese/
     01.wav
     …
@@ -90,9 +91,10 @@ From project root (Windows; use `.venv/bin/python` on Unix):
   .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --storyboard path/to/storyboard.md \
   --voice path/to/ref.wav \
-  --audio-dir path/to/<storyboard-stem>-speech \
   --fp16 --report
 ```
+
+Writes under `<storyboard-dir>/<voice-stem>/` (override with `--audio-dir` only when needed).
 
 This will:
 
@@ -108,7 +110,6 @@ This will:
   .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --storyboard path/to/storyboard.md \
   --voice path/to/ref.wav \
-  --audio-dir path/to/<audio-dir> \
   --fp16 --limit 1
 ```
 
@@ -147,7 +148,6 @@ Resume from an existing `shots.json`:
   .cursor/skills/storyboard-tts/scripts/synthesize.py \
   --shots path/to/<audio-dir>/shots.json \
   --voice path/to/ref.wav \
-  --audio-dir path/to/<audio-dir> \
   --fp16 --report
 ```
 
@@ -156,7 +156,7 @@ Resume from an existing `shots.json`:
 | Flag | Notes |
 |------|--------|
 | `--storyboard` / `--shots` | Source (one required) |
-| `--audio-dir` | Output root (required) |
+| `--audio-dir` | Output root (default: `<storyboard-dir>/<voice-stem>/`) |
 | `--voice` | Shared speaker ref |
 | `--voice-zh` / `--voice-en` | Per-language refs |
 | `--lang` | `both` (default), `chinese`, `english` |
@@ -175,7 +175,7 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 
 1. Do **not** invent narration — use storyboard Chinese/English fields as-is (audio and subtitles).
 2. Prefer **one** `synthesize.py` invocation for a full board; model reload cost is the reason.
-3. Chat summary: `audio-dir`, counts, path to `speech-timeline.md`, `Chinese.srt` / `English.srt`, Chinese/English total seconds — no full transcripts unless asked.
+3. Chat summary: `audio-dir` (`<storyboard-dir>/<voice-stem>/`), counts, path to `speech-timeline.md`, `Chinese.srt` / `English.srt`, Chinese/English total seconds — no full transcripts unless asked. Omit `--audio-dir` unless overriding.
 4. IndexTTS install lives in [ai-text-to-speech](../ai-text-to-speech/SKILL.md); do not duplicate Setup here beyond “populate index-tts if missing”.
 5. Loudnorm / OGG / trim are separate skills after this one.
 6. If audio already exists and only subtitles are needed, run `write_subtitles.py` alone (stdlib python).
