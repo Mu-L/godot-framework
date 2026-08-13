@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
-"""Batch pad leading/trailing silence so each end meets a minimum blank duration."""
+"""In-place leading/trailing silence padding used by synthesize.py after TTS."""
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
 SILENCE_START_RE = re.compile(r"silence_start:\s*([-\d.]+)")
 SILENCE_END_RE = re.compile(r"silence_end:\s*([-\d.]+)")
 EDGE_EPSILON = 0.02
+DEFAULT_DURATION = 0.4
+DEFAULT_THRESHOLD = -50.0
 
 
 def find_repo_root(start: Path) -> Path | None:
@@ -92,30 +91,6 @@ def resolve_ffprobe(ffmpeg: Path) -> Path:
     sys.exit(1)
 
 
-def get_audio_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in AUDIO_EXTENSIONS:
-            print(f"Not a supported audio file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    if recurse:
-        candidates = path.rglob("*")
-    else:
-        candidates = path.iterdir()
-
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in AUDIO_EXTENSIONS
-    ]
-    return sorted(files)
-
-
 def get_duration(ffprobe: Path, file_path: Path) -> float:
     result = subprocess.run(
         [
@@ -154,7 +129,6 @@ def parse_silence_intervals(ffmpeg_stderr: str) -> list[tuple[float, float]]:
             intervals.append((current_start, float(end_match.group(1))))
             current_start = None
     if current_start is not None:
-        # Silence runs to EOF without a silence_end line in some builds.
         intervals.append((current_start, -1.0))
     return intervals
 
@@ -180,7 +154,6 @@ def measure_edge_silence(
         encoding="utf-8",
         errors="replace",
     )
-    # silencedetect writes to stderr; non-zero is still a hard failure.
     if result.returncode != 0:
         raise RuntimeError(f"FFmpeg silencedetect failed for: {file_path}")
 
@@ -251,171 +224,47 @@ def pad_file(ffmpeg: Path, file_path: Path, out_path: Path, filter_str: str) -> 
         )
 
 
-def copy_file(file_path: Path, out_path: Path) -> None:
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(file_path, out_path)
+def ensure_padded(
+    file_path: Path,
+    *,
+    duration: float = DEFAULT_DURATION,
+    threshold: float = DEFAULT_THRESHOLD,
+    pad_start: bool = True,
+    pad_end: bool = True,
+    ffmpeg: Path | None = None,
+    ffprobe: Path | None = None,
+) -> tuple[float, float]:
+    """Pad a file in place so each enabled edge has at least `duration` seconds of silence.
 
-
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Batch pad leading/trailing silence so each end has at least "
-            "a target blank duration (default 0.4 s)."
-        )
-    )
-    parser.add_argument("input", help="Path to a single audio file or directory")
-    parser.add_argument(
-        "-d",
-        "--duration",
-        type=float,
-        default=0.4,
-        help="Target silence duration in seconds per side (default: 0.4)",
-    )
-    parser.add_argument(
-        "-t",
-        "--threshold",
-        type=float,
-        default=-50,
-        help="Silence threshold in dB (default: -50)",
-    )
-    parser.add_argument("--no-start", action="store_true", help="Do not pad start")
-    parser.add_argument("--no-end", action="store_true", help="Do not pad end")
-    parser.add_argument("-o", "--output-dir", default="", help="Output directory")
-    parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
-    )
-    return parser.parse_args()
-
-
-def main() -> int:
-    args = parse_args()
-    ffmpeg = resolve_ffmpeg()
-    ffprobe = resolve_ffprobe(ffmpeg)
-
-    pad_start = not args.no_start
-    pad_end = not args.no_end
+    Returns ``(start_pad, end_pad)`` actually added. Both ``0`` means the file
+    already met the target and was left unchanged.
+    """
+    if duration <= 0:
+        raise ValueError("duration must be greater than 0")
     if not pad_start and not pad_end:
-        print(
-            "At least one of start or end pad must remain enabled.",
-            file=sys.stderr,
-        )
-        return 1
-    if args.duration <= 0:
-        print("Duration must be greater than 0.", file=sys.stderr)
-        return 1
+        raise ValueError("at least one of pad_start or pad_end must be enabled")
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
-        return 1
+    if ffmpeg is None:
+        ffmpeg = resolve_ffmpeg()
+    if ffprobe is None:
+        ffprobe = resolve_ffprobe(ffmpeg)
 
-    input_path = input_path.resolve()
-    files = get_audio_files(input_path, args.recurse)
-    if not files:
-        print(f"No supported audio files found under: {args.input}")
-        return 0
+    file_path = file_path.resolve()
+    total = get_duration(ffprobe, file_path)
+    leading, trailing = measure_edge_silence(ffmpeg, file_path, total, threshold)
+    start_pad, end_pad = compute_pads(
+        leading, trailing, duration, pad_start, pad_end
+    )
+    filter_str = build_filter(start_pad, end_pad)
+    if filter_str is None:
+        return 0.0, 0.0
 
-    if input_path.is_file():
-        input_root = input_path.parent
-    else:
-        input_root = input_path
-
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else input_root / "padded"
-
-    sides: list[str] = []
-    if pad_start:
-        sides.append("start")
-    if pad_end:
-        sides.append("end")
-
-    print(f"Input:     {args.input}")
-    print(f"Files:     {len(files)}")
-    print(f"Target:    {args.duration} s")
-    print(f"Threshold: {args.threshold} dB")
-    print(f"Pad:       {', '.join(sides)}")
-    print(f"Output:    {output_dir}")
-    if args.dry_run:
-        print("Mode:      DRY RUN")
-    print()
-
-    ok = 0
-    skip = 0
-    fail = 0
-
-    for file_path in files:
-        rel = relative_path(file_path, input_root)
-        out_path = output_dir / rel
-
-        if out_path.exists() and not args.overwrite and not args.dry_run:
-            print(f"[skip] {rel}")
-            skip += 1
-            continue
-
-        try:
-            duration = get_duration(ffprobe, file_path)
-            leading, trailing = measure_edge_silence(
-                ffmpeg, file_path, duration, args.threshold
-            )
-            start_pad, end_pad = compute_pads(
-                leading, trailing, args.duration, pad_start, pad_end
-            )
-            filter_str = build_filter(start_pad, end_pad)
-        except RuntimeError as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
-            continue
-
-        if args.dry_run:
-            print(
-                f"[plan] {rel} ({duration:.3f}s) "
-                f"lead={leading:.3f}s trail={trailing:.3f}s "
-                f"pad_start={start_pad:.3f}s pad_end={end_pad:.3f}s"
-            )
-            if filter_str:
-                print(f"       filter: {filter_str}")
-            else:
-                print("       action: copy (already enough silence)")
-            print(f"       -> {out_path}")
-            ok += 1
-            continue
-
-        try:
-            if filter_str is None:
-                print(
-                    f"[copy] {rel} ({duration:.3f}s) "
-                    f"lead={leading:.3f}s trail={trailing:.3f}s"
-                )
-                copy_file(file_path, out_path)
-            else:
-                print(
-                    f"[run]  {rel} ({duration:.3f}s) "
-                    f"pad_start={start_pad:.3f}s pad_end={end_pad:.3f}s"
-                )
-                pad_file(ffmpeg, file_path, out_path, filter_str)
-            ok += 1
-        except (RuntimeError, OSError) as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
-
-    print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
-    return 1 if fail else 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    tmp_path = file_path.with_name(f"{file_path.stem}.__padtmp{file_path.suffix}")
+    try:
+        pad_file(ffmpeg, file_path, tmp_path, filter_str)
+        tmp_path.replace(file_path)
+    except Exception:
+        if tmp_path.is_file():
+            tmp_path.unlink(missing_ok=True)
+        raise
+    return start_pad, end_pad

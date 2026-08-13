@@ -3,11 +3,11 @@ name: storyboard-tts
 description: >-
   Converts storyboard markdown (bilingual Chinese + English narration per shot)
   into speech audio via IndexTTS2 (same stack as ai-text-to-speech). Batch-writes
-  WAVs under Chinese/ and English/ named by shot id (model loaded once), then a
-  speech-timeline.md and one concatenated SRT per language (Chinese.srt /
-  English.srt). Use when the user wants storyboard TTS, 分镜转语音, 旁白配音,
-  storyboard-to-speech, bilingual VO export, subtitles, 字幕, or batch TTS from
-  a storyboard.md.
+  WAVs under Chinese/ and English/ named by shot id (model loaded once), pads
+  0.4 s edge silence in place, then a speech-timeline.md and one concatenated
+  SRT per language (Chinese.srt / English.srt). Use when the user wants
+  storyboard TTS, 分镜转语音, 旁白配音, storyboard-to-speech, bilingual VO export,
+  subtitles, 字幕, or batch TTS from a storyboard.md.
 ---
 
 # Storyboard TTS
@@ -53,6 +53,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 | `--limit N` | 0 = all jobs (use `1` for trial) |
 | `--report` | write `speech-timeline.md` + `Chinese.srt` / `English.srt` after synth |
 | `--no-subtitles` | with `--report`, skip SRT files |
+| Edge pad | on (`0.4` s); `--no-pad` / `--pad-duration` / `--pad-threshold` |
 
 ## Layout
 
@@ -77,6 +78,7 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 Task Progress:
 - [ ] Confirm storyboard path + voice (+ audio-dir if needed)
 - [ ] Ensure index-tts populated (ai-text-to-speech Setup if missing)
+- [ ] Ensure ffmpeg populated (needed for in-place edge padding)
 - [ ] Optional trial: synthesize.py --limit 1 --fp16
 - [ ] Full batch: synthesize.py --fp16 --report
 - [ ] Chat: audio-dir, shot count, totals from speech-timeline.md, SRT paths
@@ -101,7 +103,8 @@ This will:
 1. Parse the storyboard → `<audio-dir>/shots.json`
 2. Load IndexTTS2 **once**
 3. Write `Chinese/<id>.wav` and `English/<id>.wav` (skip existing unless `--force`)
-4. Write `speech-timeline.md` and `Chinese.srt` / `English.srt` when `--report`
+4. Pad each WAV in place to **0.4 s** leading/trailing silence (`--no-pad` to skip)
+5. Write `speech-timeline.md` and `Chinese.srt` / `English.srt` when `--report`
 
 ### Trial one line
 
@@ -166,6 +169,9 @@ Resume from an existing `shots.json`:
 | `--report-out` | Custom timeline path |
 | `--no-subtitles` | Skip SRT when using `--report` |
 | `--write-text` | Dump lines under `_text/` |
+| `--no-pad` | Skip in-place 0.4 s edge padding (off by default — padding is on) |
+| `--pad-duration` | Target silence per edge in seconds (default: `0.4`) |
+| `--pad-threshold` | Silence detect threshold in dB (default: `-50`) |
 | `--fp16` / `--device` | Runtime |
 | `--emotion-*` / `--random` / `--verbose` | Same role as `tts.py` |
 
@@ -177,11 +183,12 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 2. Prefer **one** `synthesize.py` invocation for a full board; model reload cost is the reason.
 3. Chat summary: `audio-dir` (`<storyboard-dir>/<voice-stem>/`), counts, path to `speech-timeline.md`, `Chinese.srt` / `English.srt`, Chinese/English total seconds — no full transcripts unless asked. Omit `--audio-dir` unless overriding.
 4. IndexTTS install lives in [ai-text-to-speech](../ai-text-to-speech/SKILL.md); do not duplicate Setup here beyond “populate index-tts if missing”.
-5. Loudnorm / OGG / trim are separate skills after this one.
-6. If audio already exists and only subtitles are needed, run `write_subtitles.py` alone (stdlib python).
+5. Edge padding is **built in** (default 0.4 s, in place via `scripts/pad.py`). Use `--no-pad` only when they want raw TTS with no extra silence; `--pad-duration` if they want a different length.
+6. Loudnorm / OGG / trim remain separate skills after this one.
+7. If audio already exists and only subtitles are needed, run `write_subtitles.py` alone (stdlib python). Re-running `synthesize.py --report` without `--force` still pads existing WAVs, then rewrites the timeline/SRT.
 
 ## Related
 
 - [storyboard](../storyboard/SKILL.md) — source markdown
 - [ai-text-to-speech](../ai-text-to-speech/SKILL.md) — single-line TTS + IndexTTS setup
-- Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md), [audio-padding](../audio-padding/SKILL.md)
+- Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md)

@@ -7,7 +7,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | Category | Pipeline | Skills |
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
-| [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
+| [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
 | [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 11 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / video → VO → AV mix → merge → publish | 4 skills |
@@ -28,7 +28,7 @@ Source audio
     ↓
 ① audio-to-wav — working format (WAV recommended)
     ↓
-② audio-trim  ·or·  audio-padding — ensure min blank (default 0.4 s)
+② audio-trim — trim leading/trailing silence
     ↓
 ③ audio-split — cut / splice (optional)
     ↓
@@ -47,7 +47,6 @@ Source audio
 |-------|---------|
 | [audio-to-wav](audio-to-wav/SKILL.md) | Audio → WAV |
 | [audio-trim](audio-trim/SKILL.md) | Trim leading/trailing silence |
-| [audio-padding](audio-padding/SKILL.md) | Pad leading/trailing silence (ensure min blank) |
 | [audio-split](audio-split/SKILL.md) | Split at a timestamp |
 | [audio-denoise](audio-denoise/SKILL.md) | Denoise / de-clip |
 | [audio-fade](audio-fade/SKILL.md) | Fade in/out |
@@ -159,26 +158,24 @@ Materials / copy / images
     │
     └─ audio branch
           ↓
-       ⑧ storyboard-tts → Chinese/ + English/ WAVs
+       ⑧ storyboard-tts → Chinese/ + English/ WAVs (0.4 s edge pad included)
           ↓
        ⑨ audio-loudness-normalization
-          ↓
-       ⑩ audio-padding — ensure edge blank (default 0.4 s)
     ↓
-⑪ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑩ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑫ video-merge ·or· video-merge-gpu → final film
+⑪ video-merge ·or· video-merge-gpu → final film
     ↓
-⑬ video-compress-to-size — re-encode under max size (optional)
+⑫ video-compress-to-size — re-encode under max size (optional)
     ↓
-⑭ video-publish — platform copy / covers
+⑬ video-publish — platform copy / covers
 ```
 
 | Skill | Purpose |
 |-------|---------|
 | [storyboard](storyboard/SKILL.md) | Materials → shot-by-shot storyboard (CN+EN narration, video prompts, cover) |
 | [storyboard-shot-to-html](storyboard-shot-to-html/SKILL.md) | One shot (prompt + VO) → fullscreen HTML CSS animation preview (Space to play) |
-| [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/) |
+| [storyboard-tts](storyboard-tts/SKILL.md) | Storyboard.md → bilingual VO WAVs (IndexTTS2 batch; Chinese/ + English/; 0.4 s edge pad) |
 | [storyboard-av-mix](storyboard-av-mix/SKILL.md) | Video/ + Chinese/ + English/ → Video-Chinese/ + Video-English/ (retime to VO) |
 
 ## Other

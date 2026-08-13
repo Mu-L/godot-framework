@@ -7,6 +7,9 @@ Loads the model **once**, then writes:
     <storyboard-dir>/<voice-stem>/Chinese/<shot-id>.wav
     <storyboard-dir>/<voice-stem>/English/<shot-id>.wav
 
+Each WAV is padded in place (default 0.4 s leading/trailing silence) via
+`pad.py` `ensure_padded`, unless `--no-pad`.
+
 Run through the **index-tts** interpreter only:
 
     .dependency/index-tts/.venv/Scripts/python.exe \\
@@ -59,6 +62,14 @@ def load_duration_report():
 
 def load_write_subtitles():
     return load_module("write_subtitles", SCRIPT_DIR / "write_subtitles.py")
+
+
+def load_pad():
+    pad_path = SCRIPT_DIR / "pad.py"
+    if not pad_path.is_file():
+        print(f"storyboard-tts pad.py not found: {pad_path}", file=sys.stderr)
+        sys.exit(1)
+    return load_module("storyboard_tts_pad", pad_path)
 
 
 @dataclass
@@ -221,6 +232,23 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Also save line text under <audio-dir>/_text/ (debug)",
     )
     parser.add_argument(
+        "--no-pad",
+        action="store_true",
+        help="Skip in-place edge silence padding after synthesis",
+    )
+    parser.add_argument(
+        "--pad-duration",
+        type=float,
+        default=0.4,
+        help="Target leading/trailing silence in seconds (default: 0.4)",
+    )
+    parser.add_argument(
+        "--pad-threshold",
+        type=float,
+        default=-50.0,
+        help="Silence threshold in dB for padding (default: -50)",
+    )
+    parser.add_argument(
         "--model-dir",
         default=None,
         help="IndexTTS-2 checkpoints dir (default: <index-tts>/checkpoints)",
@@ -353,24 +381,55 @@ def main(argv: list[str] | None = None) -> int:
         print("No VO jobs to run (all skipped or empty).", file=sys.stderr)
         return 1
 
+    pad_mod = None
+    ffmpeg = None
+    ffprobe = None
+    if not args.no_pad:
+        if args.pad_duration <= 0:
+            print("--pad-duration must be greater than 0.", file=sys.stderr)
+            return 1
+        pad_mod = load_pad()
+        ffmpeg = pad_mod.resolve_ffmpeg()
+        ffprobe = pad_mod.resolve_ffprobe(ffmpeg)
+        print(
+            f"Pad:     {args.pad_duration} s each edge "
+            f"(threshold {args.pad_threshold} dB)"
+        )
+
     pending: list[Job] = []
-    skipped = 0
+    skipped_jobs: list[Job] = []
     for job in jobs:
         if job.output.is_file() and not args.force:
-            skipped += 1
+            skipped_jobs.append(job)
             print(f"[skip exists] {job.lang} {job.shot_id} -> {job.output.name}")
             continue
         pending.append(job)
+    skipped = len(skipped_jobs)
 
     if args.limit and args.limit > 0:
         pending = pending[: args.limit]
         print(f"Limit: processing {len(pending)} job(s)")
 
+    pad_failed: list[str] = []
+    if pad_mod is not None and skipped_jobs:
+        print(f"Padding {len(skipped_jobs)} existing WAV(s)…")
+        for job in skipped_jobs:
+            if not apply_padding(
+                pad_mod,
+                ffmpeg,
+                ffprobe,
+                job,
+                args.pad_duration,
+                args.pad_threshold,
+            ):
+                pad_failed.append(f"{job.shot_id}.{job.lang}")
+
     if not pending:
         print(f"Nothing to synthesize (skipped={skipped}, total={len(jobs)}).")
         if args.report:
-            return write_report(args, data, audio_dir, storyboard_path)
-        return 0
+            report_rc = write_report(args, data, audio_dir, storyboard_path)
+            return 1 if pad_failed else report_rc
+        return 1 if pad_failed else 0
 
     model_dir = (
         Path(args.model_dir).expanduser()
@@ -459,17 +518,60 @@ def main(argv: list[str] | None = None) -> int:
             continue
 
         print(f"Wrote {job.output}")
+        if pad_mod is not None:
+            if not apply_padding(
+                pad_mod,
+                ffmpeg,
+                ffprobe,
+                job,
+                args.pad_duration,
+                args.pad_threshold,
+            ):
+                pad_failed.append(label)
+                failed.append(label)
+                continue
         ok += 1
 
     print(f"\nDone. ok={ok} failed={len(failed)} skipped={skipped}")
     if failed:
         print(f"Failed jobs: {', '.join(failed)}", file=sys.stderr)
+    if pad_failed:
+        print(f"Failed padding: {', '.join(pad_failed)}", file=sys.stderr)
 
     report_rc = 0
     if args.report:
         report_rc = write_report(args, data, audio_dir, storyboard_path)
 
-    return 1 if failed else report_rc
+    return 1 if failed or pad_failed else report_rc
+
+
+def apply_padding(
+    pad_mod,
+    ffmpeg: Path,
+    ffprobe: Path,
+    job: Job,
+    duration: float,
+    threshold: float,
+) -> bool:
+    try:
+        start_pad, end_pad = pad_mod.ensure_padded(
+            job.output,
+            duration=duration,
+            threshold=threshold,
+            ffmpeg=ffmpeg,
+            ffprobe=ffprobe,
+        )
+    except Exception as exc:
+        print(f"FAILED pad {job.shot_id}.{job.lang}: {exc}", file=sys.stderr)
+        return False
+    if start_pad > 0 or end_pad > 0:
+        print(
+            f"Padded {job.output.name} "
+            f"start={start_pad:.3f}s end={end_pad:.3f}s"
+        )
+    else:
+        print(f"Pad ok (enough silence) {job.output.name}")
+    return True
 
 
 def write_report(
