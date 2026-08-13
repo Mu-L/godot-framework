@@ -9,7 +9,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
-| [Video](#video) | watermark → mute / wav → 4K → merge → compress / OGV | 9 skills |
+| [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 10 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
@@ -103,15 +103,17 @@ Source video (Veo / Gemini generated)
 ② video-to-wav — extract audio (optional)
    ·or·  video-remove-audio — mute (optional)
     ↓
-③ video-to-4k — upscale to 4K master (optional)
+③ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
     ↓
-④ video-4k-normalization — unify color / fps before merge (optional)
+④ video-to-4k — upscale to 4K master (optional; keeps fps)
     ↓
-⑤ video-merge — random 0.5s xfade (optional)
+⑤ video-4k-normalization — unify color / fps before merge (optional)
     ↓
-⑥ video-compress-to-size — re-encode under max size (optional; GPU preferred)
+⑥ video-merge — random 0.5s xfade (optional)
     ↓
-⑦ video-to-ogv — Godot export
+⑦ video-compress-to-size — re-encode under max size (optional; GPU preferred)
+    ↓
+⑧ video-to-ogv — Godot export
 ```
 
 | Skill | Purpose |
@@ -119,6 +121,7 @@ Source video (Veo / Gemini generated)
 | [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
+| [video-to-60fps](video-to-60fps/SKILL.md) | Interpolate → 60fps at source resolution (Video2X RIFE; skip if already 60) |
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K H.265 Main10 master, source fps kept (Video2X + FFmpeg) |
 | [video-4k-normalization](video-4k-normalization/SKILL.md) | Normalize mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
 | [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |

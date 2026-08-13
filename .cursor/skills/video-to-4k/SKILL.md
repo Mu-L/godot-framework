@@ -114,5 +114,5 @@ Anime / cartoon content (Real-ESRGAN anime model):
 2. Missing Python / FFmpeg / Video2X → populate `.dependency/`, set `populated: true`, retry the same command.
 3. Tell the user where `4k/` (and `4k-upscaled/` if used) outputs are; they swap assets manually.
 4. Default model is **general** (`realesrgan-plus`). Pass `--anime` for anime/cartoon.
-5. Do **not** force fps. Keep the source frame rate. Interpolation (RIFE) is a separate step, not this skill.
+5. Do **not** force fps. Keep the source frame rate. Need 60fps interpolation → **video-to-60fps** first (RIFE at source resolution).
 6. Pipeline / FFmpeg / Video2X details: [reference.md](reference.md)
