@@ -10,7 +10,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
 | [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 11 skills |
-| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
+| [Storyboard](#storyboard) | Storyboard → HTML preview / video → VO → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
 ## AI
@@ -133,7 +133,7 @@ Source video (Veo / Gemini generated)
 
 ## Storyboard
 
-Video production pipeline: write bilingual narration, generate per-shot AI video, then mux VO with video and merge into a final film.
+Video production pipeline: write bilingual narration, generate per-shot AI video first, then VO, then mux and merge into a final film.
 
 ```
 Materials / copy / images
@@ -143,27 +143,27 @@ Materials / copy / images
     │     ↓
     │  storyboard-shot-to-html — one shot → fullscreen HTML motion sketch
     │
-    ├─ audio branch
+    ├─ video branch
     │     ↓
-    │  ② storyboard-tts → Chinese/ + English/ WAVs
+    │  ② Generate AI video (external; from prompts)
     │     ↓
-    │  ③ audio-loudness-normalization
+    │  ③ video-remove-watermark-gemini
     │     ↓
-    │  ④ audio-padding — ensure edge blank (default 0.4 s)
+    │  ④ video-remove-audio — mute (drop source track before VO mux)
+    │     ↓
+    │  ⑤ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
+    │     ↓
+    │  ⑥ video-to-4k → Video/
+    │     ↓
+    │  ⑦ video-4k-normalization (optional)
     │
-    └─ video branch
+    └─ audio branch
           ↓
-       ⑤ Generate AI video (external; from prompts)
+       ⑧ storyboard-tts → Chinese/ + English/ WAVs
           ↓
-       ⑥ video-remove-watermark-gemini
+       ⑨ audio-loudness-normalization
           ↓
-       ⑦ video-remove-audio — mute (drop source track before VO mux)
-          ↓
-       ⑧ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
-          ↓
-       ⑨ video-to-4k → Video/
-          ↓
-       ⑩ video-4k-normalization (optional)
+       ⑩ audio-padding — ensure edge blank (default 0.4 s)
     ↓
 ⑪ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
