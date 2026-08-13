@@ -1,4 +1,4 @@
-# Sync .cursor and zfoo from godot-fun/godot-framework into this project.
+# Sync .cursor, zfoo, AGENTS.md, and opencode.json from godot-fun/godot-framework into this project.
 # Usage (from project root):
 #   .\sync-godot-framework.ps1
 
@@ -55,6 +55,20 @@ function Copy-DirOverlay {
 	Copy-Item -Path (Join-Path $Source "*") -Destination $Destination -Recurse -Force
 }
 
+function Copy-FileReplace {
+	param(
+		[string]$Source,
+		[string]$Destination
+	)
+
+	if (-not (Test-Path $Source)) {
+		throw "File not found: $Source"
+	}
+
+	Write-Host "Replacing $Destination"
+	Copy-Item -Path $Source -Destination $Destination -Force
+}
+
 function Copy-FrameworkDirs {
 	param(
 		[string]$SourceRoot
@@ -62,6 +76,8 @@ function Copy-FrameworkDirs {
 
 	Copy-DirOverlay -Source (Join-Path $SourceRoot ".cursor") -Destination (Join-Path $ProjectRoot ".cursor")
 	Copy-DirReplace -Source (Join-Path $SourceRoot "zfoo") -Destination (Join-Path $ProjectRoot "zfoo")
+	Copy-FileReplace -Source (Join-Path $SourceRoot "AGENTS.md") -Destination (Join-Path $ProjectRoot "AGENTS.md")
+	Copy-FileReplace -Source (Join-Path $SourceRoot "opencode.json") -Destination (Join-Path $ProjectRoot "opencode.json")
 }
 
 try {

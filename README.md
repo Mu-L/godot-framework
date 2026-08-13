@@ -263,7 +263,7 @@ Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from rep
 
 # Sync framework into your project
 
-Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `zfoo/` and `.cursor/` from [godot-fun/godot-framework](https://github.com/godot-fun/godot-framework) into a game project.
+Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `zfoo/`, `.cursor/`, `AGENTS.md`, and `opencode.json` from [godot-fun/godot-framework](https://github.com/godot-fun/godot-framework) into a game project.
 
 1. Copy `sync-godot-framework.ps1` into your Godot project root (same level as `project.godot`).
 2. From that root, run:
@@ -275,8 +275,8 @@ Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `z
 What it does:
 
 - Shallow-clones the framework repo into a temp folder
-- **Overlays** `.cursor/` (skills) and root `AGENTS.md` onto your project
-- **Replaces** `zfoo/` entirely with the upstream copy
+- **Overlays** `.cursor/` (skills) onto your project
+- **Replaces** `zfoo/`, root `AGENTS.md`, and `opencode.json` with the upstream copies
 - Deletes the temp clone when finished
 
 
