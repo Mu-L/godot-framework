@@ -119,7 +119,7 @@ Source video (Veo / Gemini generated)
 | [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
-| [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K 60fps H.265 Main10 master (Video2X + FFmpeg) |
+| [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K H.265 Main10 master, source fps kept (Video2X + FFmpeg) |
 | [video-4k-normalization](video-4k-normalization/SKILL.md) | Normalize mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
 | [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
 | [video-compress-to-size](video-compress-to-size/SKILL.md) | Re-encode under a max file size (GPU VBR preferred; CPU two-pass fallback) |

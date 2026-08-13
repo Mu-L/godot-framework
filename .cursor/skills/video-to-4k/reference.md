@@ -39,7 +39,7 @@ Intermediate aims for quality over size so the final 40 Mbps encode has a clean 
 
 ```bash
 ffmpeg -i SOURCE \
-  -vf "scale=3840:2160:flags=lanczos,fps=60,format=yuv420p10le" \
+  -vf "scale=3840:2160:flags=lanczos,format=yuv420p10le" \
   -c:v libx265 -profile:v main10 -pix_fmt yuv420p10le \
   -b:v 40M -maxrate 40M -bufsize 80M \
   -tag:v hvc1 -x265-params "profile=main10" \
@@ -48,13 +48,15 @@ ffmpeg -i SOURCE \
   4k/clip.mp4
 ```
 
+No `fps=` filter: timestamps and frame count stay with the source. 24fps in → 24fps out.
+
 `SOURCE` is the Video2X intermediate when upscaling ran; otherwise the original file.
 
 No audio streams → video-only output (`-an`).
 
 ## Why split Video2X and FFmpeg?
 
-Video2X owns ML upscaling. The unified master (exact 3840×2160, 60 FPS, Main10 @ 40 Mbps, AAC 320k) is enforced in one FFmpeg pass so already-4K and upscaled paths share identical output specs.
+Video2X owns ML upscaling. The unified master (exact 3840×2160, source fps, Main10 @ 40 Mbps, AAC 320k) is enforced in one FFmpeg pass so already-4K and upscaled paths share identical output specs. Frame-rate conversion (RIFE or `fps=`) is out of scope.
 
 ## Hardware
 

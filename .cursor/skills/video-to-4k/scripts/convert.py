@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Upscale below-4K video with Video2X, then encode unified 4K H.265 Main10 masters."""
+"""Upscale below-4K video with Video2X, then encode unified 4K H.265 Main10 masters.
+
+Preserves source frame rate. Does not interpolate or duplicate frames to 60fps.
+"""
 
 from __future__ import annotations
 
@@ -31,7 +34,6 @@ VIDEO_EXTENSIONS = {
 
 TARGET_WIDTH = 3840
 TARGET_HEIGHT = 2160
-TARGET_FPS = 60
 VIDEO_BITRATE = "40M"
 AUDIO_BITRATE = "320k"
 DEFAULT_MODEL = "realesrgan-plus"
@@ -342,7 +344,7 @@ def build_ffmpeg_final_args(
         "-i",
         str(file_path),
         "-vf",
-        f"scale={TARGET_WIDTH}:{TARGET_HEIGHT}:flags=lanczos,fps={TARGET_FPS},format=yuv420p10le",
+        f"scale={TARGET_WIDTH}:{TARGET_HEIGHT}:flags=lanczos,format=yuv420p10le",
         "-c:v",
         "libx265",
         "-profile:v",
@@ -386,7 +388,7 @@ def convert_file(
     fps_label = f"{fps:.3g}" if fps else "?"
 
     if already_4k:
-        plan = f"ffmpeg-only ({width}x{height} @{fps_label}fps → 4K60 Main10)"
+        plan = f"ffmpeg-only ({width}x{height} @{fps_label}fps → 4K Main10, fps kept)"
         encode_src = file_path
         if dry_run:
             return plan
@@ -400,7 +402,7 @@ def convert_file(
     scale = pick_scale(width, height, model)
     plan = (
         f"video2x×{scale} ({width}x{height} @{fps_label}fps, {model}) → "
-        f"ffmpeg 4K60 Main10"
+        f"ffmpeg 4K Main10 (fps kept)"
     )
     if dry_run:
         return plan
@@ -447,7 +449,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Upscale below-4K video with Video2X, then encode unified "
-            "3840x2160 60FPS H.265 Main10 40Mbps + AAC 320kbps MP4."
+            "3840x2160 H.265 Main10 40Mbps + AAC 320kbps MP4 "
+            "(source frame rate preserved)."
         )
     )
     parser.add_argument("input", help="Path to a single video file or directory")
@@ -547,7 +550,10 @@ def main() -> int:
     print(f"Input:     {args.input}")
     print(f"Files:     {len(files)}")
     print(f"Model:     {model}")
-    print(f"Target:    {TARGET_WIDTH}x{TARGET_HEIGHT} @{TARGET_FPS}fps H.265 Main10 {VIDEO_BITRATE} + AAC {AUDIO_BITRATE}")
+    print(
+        f"Target:    {TARGET_WIDTH}x{TARGET_HEIGHT} H.265 Main10 {VIDEO_BITRATE} "
+        f"+ AAC {AUDIO_BITRATE} (source fps kept)"
+    )
     print(f"Output:    {output_dir}")
     print(f"Upscaled:  {upscaled_dir}")
     if args.gpu is not None:

@@ -2,10 +2,11 @@
 name: video-to-4k
 description: >-
   Upscales low-resolution video to 4K with Video2X (Real-ESRGAN), then encodes
-  to a unified 3840×2160 60FPS H.265 Main10 40Mbps + AAC 320kbps MP4. Already-4K
-  sources skip Video2X and go straight to FFmpeg. Use when the user wants
-  video-to-4k, 4K upscale, UHD export, Video2X, Real-ESRGAN, H.265 Main10,
-  or batch convert SD/HD clips to 4K.
+  to a unified 3840×2160 H.265 Main10 40Mbps + AAC 320kbps MP4. Source frame
+  rate is preserved (no fps=60 duplication, no RIFE). Already-4K sources skip
+  Video2X and go straight to FFmpeg. Use when the user wants video-to-4k, 4K
+  upscale, UHD export, Video2X, Real-ESRGAN, H.265 Main10, or batch convert
+  SD/HD clips to 4K.
 ---
 
 # Video to 4K
@@ -15,7 +16,7 @@ Convert supported videos to a **unified 4K master**:
 | Spec | Value |
 |------|-------|
 | Resolution | 3840×2160 |
-| Frame rate | 60 FPS |
+| Frame rate | **Source fps kept** (no `fps=` filter, no RIFE) |
 | Video | H.265 Main10 (`libx265`, `yuv420p10le`) |
 | Video bitrate | 40 Mbps |
 | Audio | AAC 320 kbps |
@@ -113,5 +114,5 @@ Anime / cartoon content (Real-ESRGAN anime model):
 2. Missing Python / FFmpeg / Video2X → populate `.dependency/`, set `populated: true`, retry the same command.
 3. Tell the user where `4k/` (and `4k-upscaled/` if used) outputs are; they swap assets manually.
 4. Default model is **general** (`realesrgan-plus`). Pass `--anime` for anime/cartoon.
-5. FPS is forced to 60 via FFmpeg (`fps=60`) — frame duplication/drop, not RIFE. Say so if the source is not already ~60.
+5. Do **not** force fps. Keep the source frame rate. Interpolation (RIFE) is a separate step, not this skill.
 6. Pipeline / FFmpeg / Video2X details: [reference.md](reference.md)
