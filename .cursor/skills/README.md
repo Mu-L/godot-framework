@@ -9,7 +9,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
-| [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 10 skills |
+| [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 11 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
@@ -110,6 +110,7 @@ Source video (Veo / Gemini generated)
 ⑤ video-4k-normalization — unify color / fps before merge (optional)
     ↓
 ⑥ video-merge — random 0.5s xfade (optional)
+   ·or·  video-merge-gpu — same, GPU HEVC only (no CPU fallback)
     ↓
 ⑦ video-compress-to-size — re-encode under max size (optional; GPU preferred)
     ↓
@@ -124,7 +125,8 @@ Source video (Veo / Gemini generated)
 | [video-to-60fps](video-to-60fps/SKILL.md) | Interpolate → 60fps at source resolution (Video2X RIFE; skip if already 60) |
 | [video-to-4k](video-to-4k/SKILL.md) | Upscale → unified 4K H.265 Main10 master, source fps kept (Video2X + FFmpeg) |
 | [video-4k-normalization](video-4k-normalization/SKILL.md) | Normalize mixed clips → merge-safe 4K60 Main10 BT.709 SDR (FFmpeg; HDR tone-mapped) |
-| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions |
+| [video-merge](video-merge/SKILL.md) | Merge folder of clips → one MP4 with random 0.5s xfade transitions (CPU `libx265`) |
+| [video-merge-gpu](video-merge-gpu/SKILL.md) | Same merge, GPU HEVC only (`hevc_nvenc` / `hevc_amf` / `hevc_qsv`; no CPU fallback) |
 | [video-compress-to-size](video-compress-to-size/SKILL.md) | Re-encode under a max file size (GPU VBR preferred; CPU two-pass fallback) |
 | [video-to-ogv](video-to-ogv/SKILL.md) | Video → OGV |
 | [video-publish](video-publish/SKILL.md) | Materials → multi-platform publish pack (知乎 / Reddit / covers / 8 platforms) |
@@ -157,17 +159,19 @@ Materials / copy / images
           ↓
        ⑦ video-remove-audio — mute (drop source track before VO mux)
           ↓
-       ⑧ video-to-4k → Video/
+       ⑧ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
           ↓
-       ⑨ video-4k-normalization (optional)
+       ⑨ video-to-4k → Video/
+          ↓
+       ⑩ video-4k-normalization (optional)
     ↓
-⑩ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑪ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑪ video-merge → final film
+⑫ video-merge ·or· video-merge-gpu → final film
     ↓
-⑫ video-compress-to-size — re-encode under max size (optional)
+⑬ video-compress-to-size — re-encode under max size (optional)
     ↓
-⑬ video-publish — platform copy / covers
+⑭ video-publish — platform copy / covers
 ```
 
 | Skill | Purpose |
