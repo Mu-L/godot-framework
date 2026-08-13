@@ -160,7 +160,7 @@ Do **not** use one universal tag format. The Tags fence must match how that plat
 |----------|--------------------------|---------------|
 | **Bilibili** | Plain keywords, **comma-separated**, **no `#`** (投稿标签栏) | ~8–12；中文为主；含分区向词 + 内容专有词；勿堆无关热词 |
 | **Douyin** | `#话题` space-separated，**有 `#`、无结尾 `#`** | ~5–8；可混 1–2 个较热话题 + 精准词；勿刷屏式 # |
-| **Xiaohongshu** | `#话题#` space-separated（**开闭都有 `#`**） | ~8–15；笔记发现流常用；生活/教程向词优先 |
+| **Xiaohongshu** | `#话题` space-separated，**有 `#`、无结尾 `#`** | ~8–15；笔记发现流常用；生活/教程向词优先 |
 | **Weibo** | `#话题#` space-separated（**开闭都有 `#`**） | ~3–6；偏短、可上热搜向；勿超长句当话题 |
 | **YouTube** | Comma-separated SEO phrases，**no `#`** (YouTube Studio tags field) | ~8–15；可含 2–4 词短语；英/专有名保留原样 |
 | **X** | `#Hashtag` space-separated，**有 `#`** | **2–4 only**；克制；CamelCase 或短词；禁止一串标签墙 |
@@ -210,7 +210,7 @@ Godot, GDScript, 游戏开发, …
 ### Tags
 
 ```
-#Godot# #游戏开发# #独立游戏#
+#Godot #游戏开发 #独立游戏
 ```
 
 ## Weibo

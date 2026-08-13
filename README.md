@@ -253,7 +253,7 @@ Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from rep
 | Category | Pipeline | Skills |
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
-| [Audio](#audio) | to-wav → trim / padding → loudness → export | 10 skills |
+| [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
 | [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
 | [Video](#video) | watermark → mute / wav → 4K → merge → compress / OGV | 9 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
