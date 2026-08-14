@@ -8,7 +8,7 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
-| [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
+| [Image](#image) | to-png → watermark → split → background → trim / resize | 9 skills |
 | [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 11 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / video → VO → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
@@ -65,6 +65,7 @@ Source image (AI art / sprite sheet)
 ① image-to-png (optional)
     ↓
 ② image-remove-watermark-gemini (optional)
+   ·or·  image-remove-watermark-by-lama-inpainting — LaMa fill (fallback / opaque marks)
     ↓
 ③ image-sprite-sheet-split — grid → frames (optional)
     ↓
@@ -83,6 +84,7 @@ Source image (AI art / sprite sheet)
 |-------|---------|
 | [image-to-png](image-to-png/SKILL.md) | Image → PNG |
 | [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark |
+| [image-remove-watermark-by-lama-inpainting](image-remove-watermark-by-lama-inpainting/SKILL.md) | Remove corner / region watermark with LaMa inpainting (IOPaint) |
 | [image-sprite-sheet-split](image-sprite-sheet-split/SKILL.md) | Split sprite sheet grid → individual frame PNGs |
 | [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove flat white / green / magenta backgrounds (color key; default `global` mode; also `border` / `center` / `both`) |
 | [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG (AI matting) |

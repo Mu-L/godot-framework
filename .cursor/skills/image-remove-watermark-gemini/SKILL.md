@@ -145,10 +145,11 @@ Direct CLI equivalent (single file):
 | Watermark faint or halo | Try `--denoise ai` (GPU) or `--denoise telea` |
 | Dark patch in corner | Use default `--denoise soft` (already on); avoid `--denoise off` on dark backgrounds |
 | Legacy Gemini image skipped | Re-run with `--legacy` |
-| Watermark not removed | Image may not be a Gemini visible watermark |
+| Watermark not removed | Image may not be a Gemini visible watermark — or reverse alpha left a dark remnant. Use [image-remove-watermark-by-lama-inpainting](../image-remove-watermark-by-lama-inpainting/SKILL.md) on the **originals**. |
 
 ## Related
 
 - Script: [scripts/remove_watermark.py](scripts/remove_watermark.py)
+- Fallback when reverse alpha fails: [image-remove-watermark-by-lama-inpainting](../image-remove-watermark-by-lama-inpainting/SKILL.md)
 - Engine: [allenk/GeminiWatermarkTool](https://github.com/allenk/GeminiWatermarkTool)
 - Algorithm write-up: [Reverse Alpha Blending (Medium)](https://allenkuo.medium.com/removing-gemini-ai-watermarks-a-deep-dive-into-reverse-alpha-blending-bbbd83af2a3f)
