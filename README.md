@@ -214,6 +214,9 @@ var item = RandomUtils.random_ele(items)
 
 # ThreadUtils — non-blocking wait on main thread
 await ThreadUtils.async_sleep(500)
+
+# NodeUtils
+var node := NodeUtils.load_and_instantiate("res://scene/Popup.tscn")
 ```
 
 ---
