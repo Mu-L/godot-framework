@@ -12,6 +12,7 @@ from pathlib import Path
 IMAGE_EXTENSIONS = {
     ".jpg",
     ".jpeg",
+    ".jfif",
     ".png",
     ".webp",
     ".gif",
