@@ -97,13 +97,13 @@ Use `.dependency/index-tts/.venv/bin/python` on Unix. Confirm `checkpoints/confi
 
 ## Quick Start
 
-**Voice reference + text → WAV** (default output: `<voice-dir>/tts/speech.wav`):
+**Voice reference + text → WAV** (default output: `<voice-dir>/tts/<voice-stem>.wav`):
 
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "你好，欢迎来到这个世界。"
-# → audio/voice/tts/speech.wav
+# → audio/voice/tts/ref.wav
 ```
 
 Explicit output path:
@@ -113,6 +113,12 @@ Explicit output path:
   --voice audio/voice/ref.wav \
   --text "Hello, this is a test." \
   --output audio/voice/tts/hello.wav
+```
+
+Directory (writes `<voice-stem>.wav` inside, e.g. `audio/voice/tts/ref.wav`):
+
+```bash
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "Hello, this is a test." --output audio/voice/tts
 ```
 
 Long script from a UTF-8 text file:
@@ -167,7 +173,7 @@ Do not combine `--emotion-audio`, `--emotion-vector`, and `--emotion-text` / `--
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| Output | `<voice-dir>/tts/speech.wav` | Auto-create `tts/`; use `--output` to override |
+| Output | `<voice-dir>/tts/<voice-stem>.wav` | `--output` file uses that name; `--output` directory uses the voice file's stem |
 | Model | `.dependency/index-tts/checkpoints` | IndexTTS-2 |
 | `--fp16` | off | Enable on GPU when VRAM is tight |
 | `--emotion-weight` | `1.0` | Lower (~0.6) for text emotion modes |

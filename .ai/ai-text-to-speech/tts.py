@@ -2,21 +2,15 @@
 """
 Zero-shot TTS with voice cloning via IndexTTS2.
 
-Run through the index-tts manifest entry (.dependency/index-tts/.venv/) —
-see SKILL.md and skill-dependency-manager. Never use host python/py.
+Not default python. Run through the index-tts manifest bin
+(Python 3.11 venv at .dependency/index-tts/.venv/).
+Never use default python or host python/py.
 
 Usage
 -----
-    .dependency/index-tts/.venv/Scripts/python \\
-        .ai/ai-text-to-speech/tts.py \\
-        --voice audio/voice/ref.wav \\
-        --text "你好"
-
-    .dependency/index-tts/.venv/Scripts/python \\
-        .ai/ai-text-to-speech/tts.py \\
-        --voice audio/voice/ref.wav \\
-        --text-file script.txt \\
-        --output audio/voice/tts/line.wav
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "你好"
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text-file script.txt --output audio/voice/tts/line.wav
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "你好" --output audio/voice/tts
 """
 
 from __future__ import annotations
@@ -28,7 +22,6 @@ from pathlib import Path
 
 
 TOOL_NAME = "index-tts"
-DEFAULT_OUTPUT_NAME = "speech.wav"
 DEFAULT_OUTPUT_SUBDIR = "tts"
 EMO_VECTOR_SIZE = 8
 
@@ -141,8 +134,24 @@ def parse_emotion_vector(raw: str) -> list[float]:
         sys.exit(1)
 
 
+def output_wav_name(voice: Path) -> str:
+    return f"{voice.stem}.wav"
+
+
 def default_output_path(voice: Path) -> Path:
-    return voice.parent / DEFAULT_OUTPUT_SUBDIR / DEFAULT_OUTPUT_NAME
+    return voice.parent / DEFAULT_OUTPUT_SUBDIR / output_wav_name(voice)
+
+
+def resolve_output_path(raw: str | None, voice: Path) -> Path:
+    if not raw:
+        return default_output_path(voice)
+    output = Path(raw).expanduser()
+    name = output_wav_name(voice)
+    if output.exists() and output.is_dir():
+        return output / name
+    if raw.endswith(("/", "\\")) or output.suffix == "":
+        return output / name
+    return output
 
 
 def build_infer_kwargs(args: argparse.Namespace, text: str, voice: Path, output: Path) -> dict:
@@ -201,7 +210,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "-o",
         "--output",
-        help=f"Output WAV path (default: <voice-dir>/{DEFAULT_OUTPUT_SUBDIR}/{DEFAULT_OUTPUT_NAME})",
+        help="Output WAV file, or a directory (writes <voice-stem>.wav inside). "
+        f"Default: <voice-dir>/{DEFAULT_OUTPUT_SUBDIR}/<voice-stem>.wav",
     )
     parser.add_argument(
         "--model-dir",
@@ -285,7 +295,14 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     text = read_text_arg(args)
-    output = Path(args.output).expanduser() if args.output else default_output_path(voice)
+    output = resolve_output_path(args.output, voice)
+    if output.resolve() == voice.resolve():
+        print(
+            "Refusing to overwrite the voice reference. "
+            "Pass --output to a file or another directory.",
+            file=sys.stderr,
+        )
+        return 1
     if output.exists() and not args.force:
         print(
             f"Output already exists: {output}. Pass --force to overwrite.",

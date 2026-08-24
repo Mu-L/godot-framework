@@ -32,7 +32,7 @@ Source audio
     ↓
 ③ audio-split — cut / splice (optional)
     ↓
-④ audio-denoise — denoise / de-clip (optional)
+④ audio-denoise — denoise (optional)
     ↓
 ⑤ audio-fade — fade in/out (optional)
     ↓
@@ -48,7 +48,7 @@ Source audio
 | [audio-to-wav](audio-to-wav/SKILL.md) | Audio → WAV |
 | [audio-trim](audio-trim/SKILL.md) | Trim leading/trailing silence |
 | [audio-split](audio-split/SKILL.md) | Split at a timestamp |
-| [audio-denoise](audio-denoise/SKILL.md) | Denoise / de-clip |
+| [audio-denoise](audio-denoise/SKILL.md) | Denoise |
 | [audio-fade](audio-fade/SKILL.md) | Fade in/out |
 | [audio-loudness-normalization](audio-loudness-normalization/SKILL.md) | LUFS loudness normalize |
 | [audio-volume-adjust](audio-volume-adjust/SKILL.md) | Fixed dB gain (alternative) |

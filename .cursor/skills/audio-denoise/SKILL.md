@@ -1,11 +1,11 @@
 ---
 name: audio-denoise
-description: Reduces background noise and optionally repairs clipped peaks in audio files using FFmpeg afftdn and adeclip. Use when the user wants audio denoise, noise reduction, hiss removal, room noise cleanup, de-clip, declipping, or batch SFX/voice cleanup before normalization.
+description: Reduces background noise in audio files using FFmpeg afftdn. Use when the user wants audio denoise, noise reduction, hiss removal, room noise cleanup, or batch SFX/voice cleanup before normalization.
 ---
 
 # Audio Denoise
 
-Reduce background noise via FFmpeg `afftdn`. Optionally repair clipped peaks with `adeclip`.
+Reduce background noise via FFmpeg `afftdn`.
 
 ## Rules
 
@@ -13,47 +13,40 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Default: **denoise only** (`afftdn`), output to `denoised/`:
+Denoise a file or folder, output to `denoised/`:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-denoise/scripts/denoise.py path/to/audio_or_folder
-```
-
-Clipped source (de-clip then denoise):
-
-```bash
-.dependency/python/python .cursor/skills/audio-denoise/scripts/denoise.py path/to/audio.wav --declip
-```
-
-De-clip only:
-
-```bash
-.dependency/python/python .cursor/skills/audio-denoise/scripts/denoise.py path/to/audio.wav --declip-only
+.dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio_or_folder
 ```
 
 ## Defaults
 
 | Setting | Default | Notes |
 |---------|---------|-------|
-| Denoise | On (`afftdn`) | `nr=10` dB, `nf=-25` dB — conservative for SFX |
-| De-clip | Off | Pass `--declip` or `--declip-only` when needed |
+| Denoise | `afftdn` | `nr=10` dB, `nf=-25` dB — conservative for SFX |
 
 ## Common Flags
 
-`--declip` · `--declip-only` · `--no-denoise` · `--nr` · `--nf` · `-r` · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`--nr` · `--nf` · `-r` · `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-denoise/scripts/denoise.py Audio/SFX -r --dry-run
-.dependency/python/python .cursor/skills/audio-denoise/scripts/denoise.py Audio/Voice -nr 8 --declip
+.dependency/python/python.exe .ai/audio-denoise/denoise.py Audio/SFX -r
+.dependency/python/python.exe .ai/audio-denoise/denoise.py Audio/Voice --nr 8
 ```
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 
-1. Use the bundled script, not hand-written `afftdn` / `adeclip` filters.
+1. Use the bundled script, not hand-written `afftdn` filters.
 2. **Default is light denoise** — do not raise `--nr` unless the user asks; heavy denoise dulls transients.
-3. **Use `--declip`** only when peaks are visibly or audibly clipped; skip for clean recordings.
-4. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-5. **Do not copy, move, or replace the source with denoised output** — tell the user where `denoised/` files are; they swap assets manually when ready.
-6. FFmpeg filter details: [reference.md](reference.md)
+3. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
+4. **Do not copy, move, or replace the source with denoised output** — tell the user where `denoised/` files are; they swap assets manually when ready.
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python.exe .ai/audio-denoise/test_denoise.py
+```

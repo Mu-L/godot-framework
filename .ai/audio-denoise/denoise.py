@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Batch denoise and optionally de-clip audio files using FFmpeg."""
+"""
+Batch denoise audio files using FFmpeg afftdn.
+
+Run through default python from .dependency/manifest.json. Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio_or_folder
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio.wav --nr 8
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio.wav --output path/to/out
+"""
 
 from __future__ import annotations
 
@@ -35,7 +45,7 @@ def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
     if not entry:
         print(
             f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
+            "See skill-dependency-manager and this skill's SKILL.md.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -67,7 +77,7 @@ def resolve_ffmpeg() -> Path:
     if repo_root is None:
         print(
             "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
+            "Run from the project that owns this skill.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -105,28 +115,8 @@ def relative_path(file_path: Path, input_root: Path) -> str:
         return file_path.name
 
 
-def build_filter(declip: bool, denoise: bool, nr: float, nf: float) -> str:
-    if not declip and not denoise:
-        print(
-            "Nothing to apply: enable denoise (default) and/or --declip / --declip-only.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    parts: list[str] = []
-    if declip:
-        parts.append("adeclip")
-    if denoise:
-        parts.append(f"afftdn=nr={nr}:nf={nf}")
-    return ",".join(parts)
-
-
-def describe_mode(declip: bool, denoise: bool) -> str:
-    if declip and denoise:
-        return "de-clip + denoise"
-    if declip:
-        return "de-clip only"
-    return "denoise only"
+def build_filter(nr: float, nf: float) -> str:
+    return f"afftdn=nr={nr}:nf={nf}"
 
 
 def denoise_file(
@@ -159,25 +149,8 @@ def denoise_file(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Batch denoise and optionally de-clip audio files."
-    )
+    parser = argparse.ArgumentParser(description="Batch denoise audio files with FFmpeg afftdn.")
     parser.add_argument("input", help="Path to a single audio file or directory")
-    parser.add_argument(
-        "--declip",
-        action="store_true",
-        help="Apply adeclip before denoise (clipped peaks)",
-    )
-    parser.add_argument(
-        "--declip-only",
-        action="store_true",
-        help="Apply adeclip only (skip afftdn denoise)",
-    )
-    parser.add_argument(
-        "--no-denoise",
-        action="store_true",
-        help="Skip afftdn denoise (use with --declip)",
-    )
     parser.add_argument(
         "--nr",
         type=float,
@@ -190,38 +163,16 @@ def parse_args() -> argparse.Namespace:
         default=-25,
         help="afftdn noise floor in dB (default: -25)",
     )
-    parser.add_argument("-o", "--output-dir", default="", help="Output directory")
+    parser.add_argument("--output", default="", help="Output directory")
     parser.add_argument(
         "-r", "--recurse", action="store_true", help="Process subdirectories"
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
     )
     return parser.parse_args()
 
 
-def resolve_modes(args: argparse.Namespace) -> tuple[bool, bool]:
-    if args.declip_only:
-        return True, False
-    declip = args.declip
-    denoise = not args.no_denoise
-    if not declip and not denoise:
-        denoise = True
-    return declip, denoise
-
-
 def main() -> int:
     args = parse_args()
-    if args.declip_only and (args.declip or args.no_denoise):
-        print("--declip-only cannot be combined with --declip or --no-denoise", file=sys.stderr)
-        return 1
-
-    declip, denoise = resolve_modes(args)
-    filter_str = build_filter(declip, denoise, args.nr, args.nf)
-    mode_label = describe_mode(declip, denoise)
+    filter_str = build_filter(args.nr, args.nf)
 
     ffmpeg = resolve_ffmpeg()
 
@@ -242,37 +193,22 @@ def main() -> int:
         input_root = input_path
 
     output_dir = (
-        Path(args.output_dir).resolve() if args.output_dir else input_root / "denoised"
+        Path(args.output).resolve() if args.output else input_root / "denoised"
     )
 
     print(f"Input:  {args.input}")
     print(f"Files:  {len(files)}")
-    print(f"Mode:   {mode_label}")
-    if denoise:
-        print(f"afftdn: nr={args.nr} dB, nf={args.nf} dB")
+    print(f"afftdn: nr={args.nr} dB, nf={args.nf} dB")
     print(f"Filter: {filter_str}")
     print(f"Output: {output_dir}")
-    if args.dry_run:
-        print("Run:    DRY RUN")
     print()
 
     ok = 0
-    skip = 0
     fail = 0
 
     for file_path in files:
         rel = relative_path(file_path, input_root)
         out_path = output_dir / rel
-
-        if out_path.exists() and not args.overwrite and not args.dry_run:
-            print(f"[skip] {rel}")
-            skip += 1
-            continue
-
-        if args.dry_run:
-            print(f"[plan] {rel} -> {out_path}")
-            ok += 1
-            continue
 
         try:
             print(f"[run]  {rel}")
@@ -284,7 +220,7 @@ def main() -> int:
             fail += 1
 
     print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
+    print(f"Done. processed={ok} failed={fail}")
     return 1 if fail else 0
 
 

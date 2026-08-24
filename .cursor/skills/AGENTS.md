@@ -30,6 +30,41 @@ project-root/
 - **Non-default runtime** (a tool venv or `python-3.11`, etc.): do **not** add `test_*.py`. Put a `test.md` in the same folder with the CLI command that uses that runtime's `bin`. Write the command as **one line** (no `\` line breaks) so it pastes into the console as a single command.
 - Do **not** put executable scripts next to `SKILL.md`.
 - SKILL.md commands must point at `.ai/<skill-name>/...`.
+- Every skill script must start with a module docstring that includes **Usage**: full commands from the repo root, using the manifest interpreter. Write each command as **one line** (no `\` line breaks). Never use host `python`.
+- If the skill uses the **default** `python` entry, say so in the docstring.
+- If the skill does **not** use default Python, the docstring **must** say that explicitly: which manifest entry, which version (e.g. Python 3.11), and that default `python` must not be used.
+
+Default `python`:
+
+```
+"""
+Short description.
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/<skill-name>/<script>.py input [flags]
+"""
+```
+
+Non-default runtime (must state version + entry):
+
+```
+"""
+Short description.
+
+Not default python. Run through the <entry> manifest bin
+(Python 3.11 venv at .dependency/<entry>/.venv/).
+Never use default python or host python/py.
+
+Usage
+-----
+    .dependency/<entry>/.venv/Scripts/python.exe .ai/<skill-name>/<script>.py input [flags]
+"""
+```
+
 - New skills follow this layout. When relocating an existing skill, move `scripts/` contents to `.ai/<skill-name>/`, add the test file or `test.md` as above, and update the commands in that skill's `SKILL.md`.
 
 Until a skill is relocated, run the path its `SKILL.md` documents (some still keep a local `scripts/` folder).
