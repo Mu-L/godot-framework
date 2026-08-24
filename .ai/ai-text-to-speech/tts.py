@@ -16,68 +16,19 @@ Usage
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
+
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
 
 TOOL_NAME = "index-tts"
 DEFAULT_OUTPUT_SUBDIR = "tts"
 EMO_VECTOR_SIZE = 8
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_entry(repo_root: Path, tool_name: str) -> dict:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See skill-dependency-manager and this skill's SKILL.md Setup.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return entry
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    entry = resolve_tool_entry(repo_root, tool_name)
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
 
 def resolve_index_tts_root(repo_root: Path, python_bin: Path) -> Path:
