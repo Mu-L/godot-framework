@@ -53,10 +53,25 @@ Fade-in + fade-out must stay **shorter than file duration**. Very short clips ne
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
+## Curve Guidelines
+
+- `tri` — linear and predictable; default for most SFX.
+- `exp` — softer, more natural decay for impacts and tails.
+- `qsin` / `hsin` — smooth envelopes for ambience and music.
+- `log` — slower start and faster finish.
+- `des` — double-exponential S-curve.
+
+The script probes each clip duration and automatically places fade-out at `duration - fade_out`.
+
+## Scope
+
+- **Fade** shapes volume at clip boundaries without changing its duration.
+- **Trim** removes silence or crops boundaries; use the `audio-trim` skill.
+- **Crossfade** overlaps two clips and is not performed by this skill.
+
 ## Agent Notes
 
 1. Use the bundled script, not hand-written `afade` filters.
 2. **Looping BGM** — avoid fade-out on loop assets; use `--no-fade-out` or fade-in only for one-shot intros.
 3. Clicks with instant attack → `--no-fade-in` or lower `-fi` (e.g. `0.01`).
 4. Tail cut off abruptly after fade → increase `-fo`; tail too soft → decrease `-fo`.
-5. FFmpeg filter details and curves: [reference.md](reference.md)
