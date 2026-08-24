@@ -45,7 +45,7 @@ def load_module(name: str, path: Path):
 
 
 def load_tts_helpers(repo_root: Path):
-    tts_path = repo_root / ".cursor" / "skills" / "ai-text-to-speech" / "scripts" / "tts.py"
+    tts_path = repo_root / ".ai" / "ai-text-to-speech" / "tts.py"
     if not tts_path.is_file():
         print(f"ai-text-to-speech tts.py not found: {tts_path}", file=sys.stderr)
         sys.exit(1)

@@ -8,25 +8,29 @@ Keep **docs** and **code** separate. Skill instructions (`SKILL.md`) stay with t
 |------|-------|
 | Skill instructions (`SKILL.md`, references) | The skill's own folder (next to `SKILL.md`) |
 | Skill scripts (Python / shell / etc.) | `.ai/<skill-name>/` |
-| Script tests (`test_<script>.py`) | `.ai/<skill-name>/` (same folder as the script) |
+| Script tests (`test_<script>.py`) | `.ai/<skill-name>/` — default `python` skills only |
+| CLI notes (`test.md`) | `.ai/<skill-name>/` — non-default runtime (tool venv / versioned Python) |
 | Toolchains (Python, FFmpeg, venvs) | `.dependency/` |
 
 ```
 project-root/
-├── .ai/                          # Skill scripts and their tests
-│   └── audio-to-wav/
-│       ├── convert.py
-│       └── test_convert.py
-└── .dependency/                  # Runtimes and CLIs
+├── .ai/
+│   ├── audio-to-wav/             # default python → test file
+│   │   ├── convert.py
+│   │   └── test_convert.py
+│   └── ai-text-to-speech/        # tool venv → test.md with CLI
+│       ├── tts.py
+│       └── test.md
+└── .dependency/
 ```
 
 - The folder name under `.ai/` **must match** the skill name.
 - Put scripts **directly** under `.ai/<skill-name>/` — do not add an extra `scripts/` directory.
-- Each script directory **must** include a test file for that skill's scripts.
-- Name the test after the script it covers: `convert.py` → `test_convert.py`. If a directory has several scripts, give each one a matching `test_<script>.py`.
+- **Default `python` skills:** include a test file named after the script (`convert.py` → `test_convert.py`). If a directory has several scripts, give each one a matching `test_<script>.py`.
+- **Non-default runtime** (a tool venv or `python-3.11`, etc.): do **not** add `test_*.py`. Put a `test.md` in the same folder with the CLI command that uses that runtime's `bin`. Write the command as **one line** (no `\` line breaks) so it pastes into the console as a single command.
 - Do **not** put executable scripts next to `SKILL.md`.
 - SKILL.md commands must point at `.ai/<skill-name>/...`.
-- New skills follow this layout. When relocating an existing skill, move `scripts/` contents to `.ai/<skill-name>/`, add the missing test file, and update the commands in that skill's `SKILL.md`.
+- New skills follow this layout. When relocating an existing skill, move `scripts/` contents to `.ai/<skill-name>/`, add the test file or `test.md` as above, and update the commands in that skill's `SKILL.md`.
 
 Until a skill is relocated, run the path its `SKILL.md` documents (some still keep a local `scripts/` folder).
 
@@ -39,6 +43,8 @@ Run tests the same way — same interpreter from `.dependency/manifest.json`, fr
 ```bash
 .dependency/python/python.exe .ai/audio-to-wav/test_convert.py
 ```
+
+If a skill uses a **non-default** runtime, skip `test_*.py`. Use the CLI in that folder's `test.md` (that runtime's `bin`).
 
 Do not use host `python` / `pytest` to run skill tests.
 

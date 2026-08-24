@@ -8,12 +8,12 @@ see SKILL.md and skill-dependency-manager. Never use host python/py.
 Usage
 -----
     .dependency/index-tts/.venv/Scripts/python \\
-        .cursor/skills/ai-text-to-speech/scripts/tts.py \\
+        .ai/ai-text-to-speech/tts.py \\
         --voice audio/voice/ref.wav \\
         --text "你好"
 
     .dependency/index-tts/.venv/Scripts/python \\
-        .cursor/skills/ai-text-to-speech/scripts/tts.py \\
+        .ai/ai-text-to-speech/tts.py \\
         --voice audio/voice/ref.wav \\
         --text-file script.txt \\
         --output audio/voice/tts/line.wav
@@ -56,8 +56,7 @@ def resolve_tool_entry(repo_root: Path, tool_name: str) -> dict:
     if not entry:
         print(
             f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md and "
-            ".cursor/skills/ai-text-to-speech/SKILL.md Setup.",
+            "See skill-dependency-manager and this skill's SKILL.md Setup.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -271,7 +270,7 @@ def main(argv: list[str] | None = None) -> int:
     if repo_root is None:
         print(
             "Could not find repo root (.dependency/manifest.json). "
-            "Run from the Godot project that owns this skill.",
+            "Run from the project that owns this skill.",
             file=sys.stderr,
         )
         return 1

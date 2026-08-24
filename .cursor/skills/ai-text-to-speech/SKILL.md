@@ -15,12 +15,11 @@ Clone a speaker from a **reference audio**, then synthesize speech from **text**
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
-- Run `tts.py` through the **`index-tts` manifest entry** (`.dependency/index-tts/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
+- Run `tts.py` at `.ai/ai-text-to-speech/tts.py` through the **`index-tts` manifest entry** (`.dependency/index-tts/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write IndexTTS Python snippets or `uv run webui.py` for synthesis — use the bundled script.
 - IndexTTS **requires `uv`** for install (`pip`/`conda` are unsupported upstream). Python must be **`>=3.10,<3.12`** (use **`python-3.11`**).
 - `populated: false` for `index-tts` (or missing models) is not a reason to skip. Install / download first, set `populated: true`, retry the same command.
 - **Never overwrite sources.** Pass the user's real voice path and text; write only to `-o` / `--output`.
-- **Never use Cursor attachment cache paths** under `.cursor/projects/.../assets/` as the voice source — use the path the user provides.
 
 ## Setup (first run)
 
@@ -101,7 +100,7 @@ Use `.dependency/index-tts/.venv/bin/python` on Unix. Confirm `checkpoints/confi
 **Voice reference + text → WAV** (default output: `<voice-dir>/tts/speech.wav`):
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "你好，欢迎来到这个世界。"
 # → audio/voice/tts/speech.wav
@@ -110,7 +109,7 @@ Use `.dependency/index-tts/.venv/bin/python` on Unix. Confirm `checkpoints/confi
 Explicit output path:
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "Hello, this is a test." \
   --output audio/voice/tts/hello.wav
@@ -119,7 +118,7 @@ Explicit output path:
 Long script from a UTF-8 text file:
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text-file script/lines/intro.txt \
   --output audio/voice/tts/intro.wav
@@ -128,7 +127,7 @@ Long script from a UTF-8 text file:
 FP16 (faster, less VRAM):
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "测试半精度推理。" \
   --fp16
@@ -146,7 +145,7 @@ FP16 (faster, less VRAM):
 
 ```bash
 # Emotion reference audio
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --emotion-audio audio/voice/emo_sad.wav \
   --emotion-weight 0.9 \
@@ -154,7 +153,7 @@ FP16 (faster, less VRAM):
   --output audio/voice/tts/sad_line.wav
 
 # Emotion description text
-.dependency/index-tts/.venv/Scripts/python.exe .cursor/skills/ai-text-to-speech/scripts/tts.py \
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --emotion-text "害怕、紧张" \
   --emotion-weight 0.6 \
