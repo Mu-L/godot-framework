@@ -1,8 +1,46 @@
 # Skill Dependency Manager
 
+## Skill layout
+
+Keep **docs** and **code** separate. Skill instructions (`SKILL.md`) stay with the skill definition; executable scripts live at the repo root under `.ai/`, named after the skill.
+
+| What | Where |
+|------|-------|
+| Skill instructions (`SKILL.md`, references) | The skill's own folder (next to `SKILL.md`) |
+| Skill scripts (Python / shell / etc.) | `.ai/<skill-name>/` |
+| Script tests (`test_<script>.py`) | `.ai/<skill-name>/` (same folder as the script) |
+| Toolchains (Python, FFmpeg, venvs) | `.dependency/` |
+
+```
+project-root/
+├── .ai/                          # Skill scripts and their tests
+│   └── audio-to-wav/
+│       ├── convert.py
+│       └── test_convert.py
+└── .dependency/                  # Runtimes and CLIs
+```
+
+- The folder name under `.ai/` **must match** the skill name.
+- Put scripts **directly** under `.ai/<skill-name>/` — do not add an extra `scripts/` directory.
+- Each script directory **must** include a test file for that skill's scripts.
+- Name the test after the script it covers: `convert.py` → `test_convert.py`. If a directory has several scripts, give each one a matching `test_<script>.py`.
+- Do **not** put executable scripts next to `SKILL.md`.
+- SKILL.md commands must point at `.ai/<skill-name>/...`.
+- New skills follow this layout. When relocating an existing skill, move `scripts/` contents to `.ai/<skill-name>/`, add the missing test file, and update the commands in that skill's `SKILL.md`.
+
+Until a skill is relocated, run the path its `SKILL.md` documents (some still keep a local `scripts/` folder).
+
 ## Run skill scripts
 
-When a skill has scripts, run them from the project root as the skill docs say. Do not use your own commands unless the skill says the script is for reference only.
+When a skill has scripts, run them from the project root as the skill docs say. Do not use your own commands unless the skill says the script is for reference only. Canonical script path: `.ai/<skill-name>/`.
+
+Run tests the same way — same interpreter from `.dependency/manifest.json`, from the repo root:
+
+```bash
+.dependency/python/python.exe .ai/audio-to-wav/test_convert.py
+```
+
+Do not use host `python` / `pytest` to run skill tests.
 
 ### No bypass
 
@@ -45,7 +83,7 @@ This applies to every runtime in the table above (`python`, `python-3.11`, `node
 - **Any absolute path** to an interpreter outside `.dependency/` — e.g. `C:\Python314\python.exe`, `/usr/bin/python3`, `~/miniconda3/python`
 - **Host virtual environments** anywhere on disk — `.venv/`, `venv/`, `env/` under the user profile, other repos, Desktop, Downloads, `AppData`, `Program Files`, `~/.local`, etc.
 - **Conda / Miniconda / Anaconda** base or named envs
-- **IDE- or editor-bundled** runtimes (Cursor, VS Code, PyCharm, etc.)
+- **IDE- or editor-bundled** runtimes (VS Code, PyCharm, etc.)
 - **Other projects'** Python/Node installs, even if they already have the package you need
 
 The **only** allowed interpreter paths are `bin` values in `.dependency/manifest.json` (which must live under `.dependency/`). For Python third-party tools, that includes venvs at `.dependency/<tool-name>/.venv/` only.
@@ -93,7 +131,7 @@ When a skill depends on a portable upstream binary (e.g. FFmpeg), follow this or
 4. **Run** through the skill script when one exists — do not hand-write equivalent CLI unless the skill says the script is reference-only:
 
    ```bash
-   .dependency/python/python.exe .cursor/skills/audio-to-wav/scripts/convert.py audio/input.flac
+   .dependency/python/python.exe .ai/audio-to-wav/convert.py audio/input.flac
    ```
 
    Some skills wrap the binary with a stdlib Python script (`python` manifest entry); others invoke the CLI binary directly via its own manifest entry (`ffmpeg`).
@@ -142,7 +180,7 @@ When a skill depends on a Python package or a GitHub project with pip dependenci
 7. **Run** skill scripts and tool CLIs through the venv interpreter:
 
    ```bash
-   .dependency/rembg/.venv/Scripts/python.exe .cursor/skills/image-remove-background/scripts/remove_background.py ...
+   .dependency/rembg/.venv/Scripts/python.exe .ai/image-remove-background/remove_background.py ...
    ```
 
    Prefer the venv's `python -m <module>` when a console script is missing.
