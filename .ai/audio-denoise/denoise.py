@@ -22,52 +22,11 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
-
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from the project that owns this skill.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
-def get_audio_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in AUDIO_EXTENSIONS:
-            print(f"Not a supported audio file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    if recurse:
-        candidates = path.rglob("*")
-    else:
-        candidates = path.iterdir()
-
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in AUDIO_EXTENSIONS
-    ]
-    return sorted(files)
-
-
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
+from common.audio_utils import (  # noqa: E402
+    find_audio_files,
+    relative_audio_path,
+)
+from common.cli_tools import resolve_ffmpeg  # noqa: E402
 
 
 def build_filter(nr: float, nf: float) -> str:
@@ -129,7 +88,7 @@ def main() -> int:
     args = parse_args()
     filter_str = build_filter(args.nr, args.nf)
 
-    ffmpeg = resolve_ffmpeg()
+    ffmpeg = resolve_ffmpeg(Path(__file__))
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -137,7 +96,7 @@ def main() -> int:
         return 1
 
     input_path = input_path.resolve()
-    files = get_audio_files(input_path, args.recurse)
+    files = find_audio_files(input_path, args.recurse)
     if not files:
         print(f"No supported audio files found under: {args.input}")
         return 0
@@ -162,7 +121,7 @@ def main() -> int:
     fail = 0
 
     for file_path in files:
-        rel = relative_path(file_path, input_root)
+        rel = relative_audio_path(file_path, input_root)
         out_path = output_dir / rel
 
         try:

@@ -43,15 +43,15 @@ Use `tri` or `exp` for gameplay SFX; `qsin`/`hsin` for ambience and music beds.
 | **Trim** | Remove silence or crop boundaries (see `audio-trim` skill) |
 | **Crossfade** | Overlap two clips with complementary fades — not covered here |
 
-## Manual Fallback (single file)
+## Single-file command
 
-When you need a one-off tweak outside batch processing:
+Use the skill script for one-off files as well:
 
 ```bash
-ffmpeg -i input.wav -af "afade=t=in:st=0:d=1,afade=t=out:st=4.0:d=1" -y output.wav
+.dependency/python/python.exe .ai/audio-fade/fade.py input.wav -fi 1 -fo 1 --output-dir output
 ```
 
-Replace `4.0` with `duration - fade_out_seconds`. Prefer the bundled script for folders and duration probing.
+The script probes the clip duration and calculates the fade-out start time.
 
 ## Category Notes
 

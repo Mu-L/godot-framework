@@ -16,19 +16,19 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: **1 s** fade-in and fade-out, output to `faded/`:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-fade/scripts/fade.py path/to/audio_or_folder
+.dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio_or_folder
 ```
 
 Fade-in only (keep full end level):
 
 ```bash
-.dependency/python/python .cursor/skills/audio-fade/scripts/fade.py path/to/audio.wav --no-fade-out
+.dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio.wav --no-fade-out
 ```
 
 Custom durations (seconds):
 
 ```bash
-.dependency/python/python .cursor/skills/audio-fade/scripts/fade.py Audio/SFX -fi 0.05 -fo 0.15 -r
+.dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.05 -fo 0.15 -r
 ```
 
 ## Duration Guidelines
@@ -48,7 +48,7 @@ Fade-in + fade-out must stay **shorter than file duration**. Very short clips ne
 `-fi` / `--fade-in` · `-fo` / `--fade-out` · `--no-fade-in` · `--no-fade-out` · `-c` / `--curve` · `-r` · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-fade/scripts/fade.py Audio/SFX -fi 0.03 -fo 0.08 -c exp -r --dry-run
+.dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.03 -fo 0.08 -c exp -r --dry-run
 ```
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.

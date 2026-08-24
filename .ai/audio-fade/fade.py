@@ -1,15 +1,34 @@
 #!/usr/bin/env python3
-"""Batch apply fade-in and/or fade-out to audio files using FFmpeg afade."""
+"""
+Batch apply fade-in and/or fade-out to audio files using FFmpeg afade.
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio_or_folder
+    .dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio.wav --no-fade-out
+    .dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.05 -fo 0.15 -r
+"""
 
 from __future__ import annotations
 
 import argparse
-import json
 import subprocess
 import sys
 from pathlib import Path
 
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.audio_utils import (  # noqa: E402
+    find_audio_files,
+    relative_audio_path,
+)
+from common.cli_tools import resolve_ffmpeg  # noqa: E402
+
 VALID_CURVES = {
     "tri",
     "qsin",
@@ -29,68 +48,6 @@ VALID_CURVES = {
 }
 
 
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
 def resolve_ffprobe(ffmpeg: Path) -> Path:
     name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
     probe = ffmpeg.parent / name
@@ -102,30 +59,6 @@ def resolve_ffprobe(ffmpeg: Path) -> Path:
         file=sys.stderr,
     )
     sys.exit(1)
-
-
-def get_audio_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in AUDIO_EXTENSIONS:
-            print(f"Not a supported audio file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    if recurse:
-        candidates = path.rglob("*")
-    else:
-        candidates = path.iterdir()
-
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in AUDIO_EXTENSIONS
-    ]
-    return sorted(files)
 
 
 def get_duration(ffprobe: Path, file_path: Path) -> float:
@@ -217,17 +150,14 @@ def fade_file(
         errors="replace",
     )
     if result.returncode != 0:
-        raise RuntimeError(f"FFmpeg fade failed for: {file_path}")
+        detail = result.stderr.strip() or result.stdout.strip()
+        raise RuntimeError(
+            f"FFmpeg fade failed for: {file_path}"
+            + (f"\n{detail}" if detail else "")
+        )
 
 
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
-
-
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Batch apply fade-in and/or fade-out to audio files."
     )
@@ -269,12 +199,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dry-run", action="store_true", help="Preview without writing files"
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
-    args = parse_args()
-    ffmpeg = resolve_ffmpeg()
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    ffmpeg = resolve_ffmpeg(Path(__file__))
     ffprobe = resolve_ffprobe(ffmpeg)
 
     fade_in_enabled = not args.no_fade_in
@@ -292,17 +222,17 @@ def main() -> int:
         return 1
 
     input_path = input_path.resolve()
-    files = get_audio_files(input_path, args.recurse)
+    files = find_audio_files(input_path, args.recurse)
     if not files:
         print(f"No supported audio files found under: {args.input}")
         return 0
 
-    if input_path.is_file():
-        input_root = input_path.parent
-    else:
-        input_root = input_path
-
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else input_root / "faded"
+    input_root = input_path.parent if input_path.is_file() else input_path
+    output_dir = (
+        Path(args.output_dir).resolve()
+        if args.output_dir
+        else input_root / "faded"
+    )
 
     fade_sides = []
     if fade_in_enabled:
@@ -324,7 +254,7 @@ def main() -> int:
     fail = 0
 
     for file_path in files:
-        rel = relative_path(file_path, input_root)
+        rel = relative_audio_path(file_path, input_root)
         out_path = output_dir / rel
 
         if out_path.exists() and not args.overwrite and not args.dry_run:
@@ -377,4 +307,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
