@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Batch denoise audio files using FFmpeg afftdn.
+Denoise a single audio file using FFmpeg afftdn.
 
 Run through default python from .dependency/manifest.json. Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio_or_folder
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio.wav --nr 8
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py path/to/audio.wav --output path/to/out
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav --nr 8
+    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav --output path/to/out.wav
 """
 
 from __future__ import annotations
@@ -22,11 +22,30 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import (  # noqa: E402
-    find_audio_files,
-    relative_audio_path,
-)
+from common.audio_utils import AUDIO_EXTENSIONS  # noqa: E402
 from common.cli_tools import resolve_ffmpeg  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+
+
+DEFAULT_OUTPUT_SUBDIR = "audio-denoise"
+
+
+def resolve_audio_file(raw: str) -> Path | None:
+    path = Path(raw).expanduser()
+    if not path.exists():
+        print(f"Audio file not found: {raw}", file=sys.stderr)
+        return None
+    path = path.resolve()
+    if not path.is_file():
+        print(
+            f"Not an audio file (directories are not supported): {raw}",
+            file=sys.stderr,
+        )
+        return None
+    if path.suffix.lower() not in AUDIO_EXTENSIONS:
+        print(f"Not a supported audio file: {path}", file=sys.stderr)
+        return None
+    return path
 
 
 def build_filter(nr: float, nf: float) -> str:
@@ -63,8 +82,14 @@ def denoise_file(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Batch denoise audio files with FFmpeg afftdn.")
-    parser.add_argument("input", help="Path to a single audio file or directory")
+    parser = argparse.ArgumentParser(
+        description="Denoise a single audio file with FFmpeg afftdn."
+    )
+    parser.add_argument(
+        "--audio",
+        required=True,
+        help="Path to a single audio file",
+    )
     parser.add_argument(
         "--nr",
         type=float,
@@ -77,9 +102,13 @@ def parse_args() -> argparse.Namespace:
         default=-25,
         help="afftdn noise floor in dB (default: -25)",
     )
-    parser.add_argument("--output", default="", help="Output directory")
     parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
+        "--output",
+        default="",
+        help=(
+            "Output WAV file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}"
+        ),
     )
     return parser.parse_args()
 
@@ -90,52 +119,34 @@ def main() -> int:
 
     ffmpeg = resolve_ffmpeg(Path(__file__))
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
+    audio_path = resolve_audio_file(args.audio)
+    if audio_path is None:
         return 1
 
-    input_path = input_path.resolve()
-    files = find_audio_files(input_path, args.recurse)
-    if not files:
-        print(f"No supported audio files found under: {args.input}")
-        return 0
-
-    if input_path.is_file():
-        input_root = input_path.parent
-    else:
-        input_root = input_path
-
-    output_dir = (
-        Path(args.output).resolve() if args.output else input_root / "denoised"
+    out_path = resolve_output_path(
+        args.output,
+        audio_path,
+        output_subdir=DEFAULT_OUTPUT_SUBDIR,
+        output_name=audio_path.name,
     )
 
-    print(f"Input:  {args.input}")
-    print(f"Files:  {len(files)}")
+    print(f"Audio:  {audio_path}")
     print(f"afftdn: nr={args.nr} dB, nf={args.nf} dB")
     print(f"Filter: {filter_str}")
-    print(f"Output: {output_dir}")
+    print(f"Output: {out_path}")
     print()
 
-    ok = 0
-    fail = 0
-
-    for file_path in files:
-        rel = relative_audio_path(file_path, input_root)
-        out_path = output_dir / rel
-
-        try:
-            print(f"[run]  {rel}")
-            denoise_file(ffmpeg, file_path, out_path, filter_str)
-            ok += 1
-        except RuntimeError as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
+    try:
+        print(f"[run]  {audio_path.name}")
+        denoise_file(ffmpeg, audio_path, out_path, filter_str)
+    except RuntimeError as exc:
+        print(f"[fail] {audio_path.name}")
+        print(exc)
+        return 1
 
     print()
-    print(f"Done. processed={ok} failed={fail}")
-    return 1 if fail else 0
+    print(f"Done. wrote {out_path}")
+    return 0
 
 
 if __name__ == "__main__":

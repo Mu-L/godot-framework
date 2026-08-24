@@ -9,8 +9,8 @@ Never use default python or host python/py.
 Usage
 -----
     .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "你好"
-    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text-file script.txt --output audio/voice/tts/line.wav
-    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "你好" --output audio/voice/tts
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text-file script.txt --output audio/voice/ai-text-to-speech/line.wav
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "你好" --output audio/voice/ai-text-to-speech
 """
 
 from __future__ import annotations
@@ -24,10 +24,11 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
 
 TOOL_NAME = "index-tts"
-DEFAULT_OUTPUT_SUBDIR = "tts"
+DEFAULT_OUTPUT_SUBDIR = "ai-text-to-speech"
 EMO_VECTOR_SIZE = 8
 
 
@@ -89,22 +90,6 @@ def output_wav_name(voice: Path) -> str:
     return f"{voice.stem}.wav"
 
 
-def default_output_path(voice: Path) -> Path:
-    return voice.parent / DEFAULT_OUTPUT_SUBDIR / output_wav_name(voice)
-
-
-def resolve_output_path(raw: str | None, voice: Path) -> Path:
-    if not raw:
-        return default_output_path(voice)
-    output = Path(raw).expanduser()
-    name = output_wav_name(voice)
-    if output.exists() and output.is_dir():
-        return output / name
-    if raw.endswith(("/", "\\")) or output.suffix == "":
-        return output / name
-    return output
-
-
 def build_infer_kwargs(args: argparse.Namespace, text: str, voice: Path, output: Path) -> dict:
     kwargs: dict = {
         "spk_audio_prompt": str(voice),
@@ -162,7 +147,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "-o",
         "--output",
         help="Output WAV file, or a directory (writes <voice-stem>.wav inside). "
-        f"Default: <voice-dir>/{DEFAULT_OUTPUT_SUBDIR}/<voice-stem>.wav",
+        f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR, source_dir_label='voice-dir', output_name_label='voice-stem.wav')}",
     )
     parser.add_argument(
         "--model-dir",
@@ -246,7 +231,12 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     text = read_text_arg(args)
-    output = resolve_output_path(args.output, voice)
+    output = resolve_output_path(
+        args.output,
+        voice,
+        output_subdir=DEFAULT_OUTPUT_SUBDIR,
+        output_name=output_wav_name(voice),
+    )
     if output.resolve() == voice.resolve():
         print(
             "Refusing to overwrite the voice reference. "

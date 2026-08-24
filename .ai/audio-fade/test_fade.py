@@ -69,22 +69,44 @@ class FadeCliTest(unittest.TestCase):
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
+        self.assertIn("--audio", result.stdout)
         self.assertIn("--fade-in", result.stdout)
         self.assertIn("--fade-out", result.stdout)
 
-    def test_input_not_found(self) -> None:
-        result = self.run_cli("missing-no-such.wav")
+    def test_missing_audio(self) -> None:
+        result = self.run_cli()
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_audio_not_found(self) -> None:
+        result = self.run_cli("--audio", "missing-no-such.wav")
         self.assertEqual(result.returncode, 1)
-        self.assertIn("Input path not found", result.stderr)
+        self.assertIn("Audio file not found", result.stderr)
+
+    def test_rejects_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_cli("--audio", tmp)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("directories are not supported", result.stderr)
 
     def test_writes_faded_wav(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             wav = Path(tmp) / "tone.wav"
             out_dir = Path(tmp) / "out"
             write_silent_wav(wav)
-            result = self.run_cli(str(wav), "--output-dir", str(out_dir))
+            result = self.run_cli("--audio", str(wav), "--output", str(out_dir))
             self.assertEqual(result.returncode, 0, result.stderr)
             out_file = out_dir / "tone.wav"
+            self.assertTrue(out_file.is_file())
+            self.assertGreater(out_file.stat().st_size, 0)
+
+    def test_default_output_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            wav = root / "tone.wav"
+            write_silent_wav(wav)
+            result = self.run_cli("--audio", str(wav))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            out_file = root / "audio-fade" / "tone.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
 

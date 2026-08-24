@@ -97,13 +97,13 @@ Use `.dependency/index-tts/.venv/bin/python` on Unix. Confirm `checkpoints/confi
 
 ## Quick Start
 
-**Voice reference + text → WAV** (default output: `<voice-dir>/tts/<voice-stem>.wav`):
+**Voice reference + text → WAV** (default output: `<voice-dir>/ai-text-to-speech/<voice-stem>.wav`):
 
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "你好，欢迎来到这个世界。"
-# → audio/voice/tts/ref.wav
+# → audio/voice/ai-text-to-speech/ref.wav
 ```
 
 Explicit output path:
@@ -112,13 +112,13 @@ Explicit output path:
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text "Hello, this is a test." \
-  --output audio/voice/tts/hello.wav
+  --output audio/voice/ai-text-to-speech/hello.wav
 ```
 
-Directory (writes `<voice-stem>.wav` inside, e.g. `audio/voice/tts/ref.wav`):
+Directory (writes `<voice-stem>.wav` inside, e.g. `audio/voice/ai-text-to-speech/ref.wav`):
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "Hello, this is a test." --output audio/voice/tts
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice audio/voice/ref.wav --text "Hello, this is a test." --output audio/voice/ai-text-to-speech
 ```
 
 Long script from a UTF-8 text file:
@@ -127,7 +127,7 @@ Long script from a UTF-8 text file:
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
   --voice audio/voice/ref.wav \
   --text-file script/lines/intro.txt \
-  --output audio/voice/tts/intro.wav
+  --output audio/voice/ai-text-to-speech/intro.wav
 ```
 
 FP16 (faster, less VRAM):
@@ -156,7 +156,7 @@ FP16 (faster, less VRAM):
   --emotion-audio audio/voice/emo_sad.wav \
   --emotion-weight 0.9 \
   --text "酒楼丧尽天良，开始借机竞拍房间。" \
-  --output audio/voice/tts/sad_line.wav
+  --output audio/voice/ai-text-to-speech/sad_line.wav
 
 # Emotion description text
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py \
@@ -164,7 +164,7 @@ FP16 (faster, less VRAM):
   --emotion-text "害怕、紧张" \
   --emotion-weight 0.6 \
   --text "快躲起来！是他要来了！" \
-  --output audio/voice/tts/afraid_line.wav
+  --output audio/voice/ai-text-to-speech/afraid_line.wav
 ```
 
 Do not combine `--emotion-audio`, `--emotion-vector`, and `--emotion-text` / `--emotion-from-text` in conflicting ways — pick one emotion source.
@@ -173,7 +173,7 @@ Do not combine `--emotion-audio`, `--emotion-vector`, and `--emotion-text` / `--
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| Output | `<voice-dir>/tts/<voice-stem>.wav` | `--output` file uses that name; `--output` directory uses the voice file's stem |
+| Output | `<voice-dir>/ai-text-to-speech/<voice-stem>.wav` | `--output` file uses that name; `--output` directory uses the voice file's stem |
 | Model | `.dependency/index-tts/checkpoints` | IndexTTS-2 |
 | `--fp16` | off | Enable on GPU when VRAM is tight |
 | `--emotion-weight` | `1.0` | Lower (~0.6) for text emotion modes |
@@ -187,7 +187,7 @@ Do not combine `--emotion-audio`, `--emotion-vector`, and `--emotion-text` / `--
 4. **Reference audio tips** — clean, single-speaker, little noise; a few seconds of clear speech works best.
 5. **Missing install** — follow **Setup**; register `index-tts` in `manifest.json`; retry the same command.
 6. **GPU** — prefer CUDA + `--fp16` for speed; CPU is acceptable for short tests only.
-7. **Revert** — delete files under `tts/`; sources are never modified.
+7. **Revert** — delete files under `ai-text-to-speech/`; sources are never modified.
 
 ## Troubleshooting
 

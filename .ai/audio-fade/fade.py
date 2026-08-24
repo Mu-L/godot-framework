@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Batch apply fade-in and/or fade-out to audio files using FFmpeg afade.
+Apply fade-in and/or fade-out to a single audio file using FFmpeg afade.
 
 Run through default python from .dependency/manifest.json.
 Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio_or_folder
-    .dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio.wav --no-fade-out
-    .dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.05 -fo 0.15 -r
+    .dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav
+    .dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
+    .dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
 """
 
 from __future__ import annotations
@@ -23,29 +23,13 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import (  # noqa: E402
-    find_audio_files,
-    relative_audio_path,
-)
+from common.audio_utils import AUDIO_EXTENSIONS  # noqa: E402
 from common.cli_tools import resolve_ffmpeg  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
-VALID_CURVES = {
-    "tri",
-    "qsin",
-    "hsin",
-    "esin",
-    "log",
-    "ipar",
-    "qua",
-    "cub",
-    "squ",
-    "cbr",
-    "par",
-    "exp",
-    "iqsin",
-    "deci",
-    "des",
-}
+
+DEFAULT_OUTPUT_SUBDIR = "audio-fade"
+DEFAULT_CURVE = "tri"
 
 
 def resolve_ffprobe(ffmpeg: Path) -> Path:
@@ -59,6 +43,24 @@ def resolve_ffprobe(ffmpeg: Path) -> Path:
         file=sys.stderr,
     )
     sys.exit(1)
+
+
+def resolve_audio_file(raw: str) -> Path | None:
+    path = Path(raw).expanduser()
+    if not path.exists():
+        print(f"Audio file not found: {raw}", file=sys.stderr)
+        return None
+    path = path.resolve()
+    if not path.is_file():
+        print(
+            f"Not an audio file (directories are not supported): {raw}",
+            file=sys.stderr,
+        )
+        return None
+    if path.suffix.lower() not in AUDIO_EXTENSIONS:
+        print(f"Not a supported audio file: {path}", file=sys.stderr)
+        return None
+    return path
 
 
 def get_duration(ffprobe: Path, file_path: Path) -> float:
@@ -159,9 +161,13 @@ def fade_file(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Batch apply fade-in and/or fade-out to audio files."
+        description="Apply fade-in and/or fade-out to a single audio file."
     )
-    parser.add_argument("input", help="Path to a single audio file or directory")
+    parser.add_argument(
+        "--audio",
+        required=True,
+        help="Path to a single audio file",
+    )
     parser.add_argument(
         "-fi",
         "--fade-in",
@@ -183,21 +189,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--no-fade-out", action="store_true", help="Do not apply fade-out"
     )
     parser.add_argument(
-        "-c",
-        "--curve",
-        default="tri",
-        choices=sorted(VALID_CURVES),
-        help="Fade curve (default: tri)",
-    )
-    parser.add_argument("-o", "--output-dir", default="", help="Output directory")
-    parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
+        "-o",
+        "--output",
+        default="",
+        help=(
+            "Output WAV file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}"
+        ),
     )
     return parser.parse_args(argv)
 
@@ -216,22 +214,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
+    audio_path = resolve_audio_file(args.audio)
+    if audio_path is None:
         return 1
 
-    input_path = input_path.resolve()
-    files = find_audio_files(input_path, args.recurse)
-    if not files:
-        print(f"No supported audio files found under: {args.input}")
-        return 0
-
-    input_root = input_path.parent if input_path.is_file() else input_path
-    output_dir = (
-        Path(args.output_dir).resolve()
-        if args.output_dir
-        else input_root / "faded"
+    out_path = resolve_output_path(
+        args.output,
+        audio_path,
+        output_subdir=DEFAULT_OUTPUT_SUBDIR,
+        output_name=audio_path.name,
     )
 
     fade_sides = []
@@ -240,70 +231,44 @@ def main(argv: list[str] | None = None) -> int:
     if fade_out_enabled:
         fade_sides.append(f"out {args.fade_out}s")
 
-    print(f"Input:  {args.input}")
-    print(f"Files:  {len(files)}")
+    print(f"Audio:  {audio_path}")
     print(f"Fade:   {', '.join(fade_sides)}")
-    print(f"Curve:  {args.curve}")
-    print(f"Output: {output_dir}")
-    if args.dry_run:
-        print("Mode:   DRY RUN")
+    print(f"Output: {out_path}")
     print()
 
-    ok = 0
-    skip = 0
-    fail = 0
+    try:
+        duration = get_duration(ffprobe, audio_path)
+        validate_fades(
+            duration,
+            args.fade_in,
+            args.fade_out,
+            fade_in_enabled,
+            fade_out_enabled,
+        )
+        filter_str = build_filter(
+            duration,
+            args.fade_in,
+            args.fade_out,
+            DEFAULT_CURVE,
+            fade_in_enabled,
+            fade_out_enabled,
+        )
+    except (RuntimeError, ValueError) as exc:
+        print(f"[fail] {audio_path.name}")
+        print(exc)
+        return 1
 
-    for file_path in files:
-        rel = relative_audio_path(file_path, input_root)
-        out_path = output_dir / rel
-
-        if out_path.exists() and not args.overwrite and not args.dry_run:
-            print(f"[skip] {rel}")
-            skip += 1
-            continue
-
-        try:
-            duration = get_duration(ffprobe, file_path)
-            validate_fades(
-                duration,
-                args.fade_in,
-                args.fade_out,
-                fade_in_enabled,
-                fade_out_enabled,
-            )
-            filter_str = build_filter(
-                duration,
-                args.fade_in,
-                args.fade_out,
-                args.curve,
-                fade_in_enabled,
-                fade_out_enabled,
-            )
-        except (RuntimeError, ValueError) as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
-            continue
-
-        if args.dry_run:
-            print(f"[plan] {rel} ({duration:.3f}s)")
-            print(f"       filter: {filter_str}")
-            print(f"       -> {out_path}")
-            ok += 1
-            continue
-
-        try:
-            print(f"[run]  {rel} ({duration:.3f}s)")
-            fade_file(ffmpeg, file_path, out_path, filter_str)
-            ok += 1
-        except RuntimeError as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
+    try:
+        print(f"[run]  {audio_path.name} ({duration:.3f}s)")
+        fade_file(ffmpeg, audio_path, out_path, filter_str)
+    except RuntimeError as exc:
+        print(f"[fail] {audio_path.name}")
+        print(exc)
+        return 1
 
     print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
-    return 1 if fail else 0
+    print(f"Done. wrote {out_path}")
+    return 0
 
 
 if __name__ == "__main__":

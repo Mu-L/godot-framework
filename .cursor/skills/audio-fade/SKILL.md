@@ -13,22 +13,22 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Default: **1 s** fade-in and fade-out, output to `faded/`:
+Default: **1 s** fade-in and fade-out, output to `<audio-dir>/audio-fade/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio_or_folder
+.dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav
 ```
 
 Fade-in only (keep full end level):
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py path/to/audio.wav --no-fade-out
+.dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
 ```
 
 Custom durations (seconds):
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.05 -fo 0.15 -r
+.dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
 ```
 
 ## Duration Guidelines
@@ -45,23 +45,15 @@ Fade-in + fade-out must stay **shorter than file duration**. Very short clips ne
 
 ## Common Flags
 
-`-fi` / `--fade-in` · `-fo` / `--fade-out` · `--no-fade-in` · `--no-fade-out` · `-c` / `--curve` · `-r` · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`--audio` · `-fi` / `--fade-in` · `-fo` / `--fade-out` · `--no-fade-in` · `--no-fade-out` · `-o` / `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py audio/sfx -fi 0.03 -fo 0.08 -c exp -r --dry-run
+.dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.03 -fo 0.08
 ```
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
-## Curve Guidelines
-
-- `tri` — linear and predictable; default for most SFX.
-- `exp` — softer, more natural decay for impacts and tails.
-- `qsin` / `hsin` — smooth envelopes for ambience and music.
-- `log` — slower start and faster finish.
-- `des` — double-exponential S-curve.
-
-The script probes each clip duration and automatically places fade-out at `duration - fade_out`.
+Fades use FFmpeg `afade` with the linear `tri` curve. The script probes clip duration and places fade-out at `duration - fade_out`.
 
 ## Scope
 

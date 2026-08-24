@@ -4,12 +4,13 @@ Zero-shot TTS with IndexTTS2. Uses the **`index-tts`** venv (Python 3.11), not d
 
 From repo root. Reference voice: `zhu_ba_jie.wav` in this folder. Needs a populated `index-tts` install.
 
+Unix: `.dependency/index-tts/.venv/bin/python`
+
 ```bash
 .dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。" --output .ai/test/tts
 ```
 
-Writes `.ai/test/tts/zhu_ba_jie.wav`. Unix: `.dependency/index-tts/.venv/bin/python`
 
-Re-run: add `--force` to overwrite.
-
-Full flags and setup: this skill's `SKILL.md`.
+```bash
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。"
+```
