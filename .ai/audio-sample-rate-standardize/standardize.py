@@ -23,7 +23,7 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import resolve_audio_file  # noqa: E402
+from common.audio_utils import audio_output_name, resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
@@ -82,10 +82,6 @@ def describe_output_format(source_rate: int | None, output_rate: int) -> str:
     if source_rate == output_rate:
         return f"{output_rate} Hz (preserved), 16-bit PCM WAV"
     return f"{output_rate} Hz (from {source_rate} Hz), 16-bit PCM WAV"
-
-
-def output_wav_name(source: Path) -> str:
-    return source.with_suffix(".wav").name
 
 
 def standardize_file(
@@ -155,8 +151,8 @@ def main() -> int:
     out_path = resolve_output_path(
         args.output,
         audio_path,
-        output_subdir=DEFAULT_OUTPUT_SUBDIR,
-        output_name=output_wav_name(audio_path),
+        DEFAULT_OUTPUT_SUBDIR,
+        audio_output_name(audio_path, suffix=".wav"),
     )
     if out_path.resolve() == audio_path.resolve():
         print(

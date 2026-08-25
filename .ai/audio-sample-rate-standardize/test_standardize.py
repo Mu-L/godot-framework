@@ -17,6 +17,7 @@ AI_ROOT = SCRIPT_DIR.parent
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
+from common.audio_utils import audio_output_name  # noqa: E402
 import standardize  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
@@ -46,9 +47,9 @@ class SampleRateRuleTest(unittest.TestCase):
             "44100 Hz (preserved), 16-bit PCM WAV",
         )
 
-    def test_output_wav_name_changes_extension(self) -> None:
+    def test_output_name_uses_wav_suffix(self) -> None:
         self.assertEqual(
-            standardize.output_wav_name(Path("tank_move.mp3")),
+            audio_output_name(Path("tank_move.mp3"), suffix=".wav"),
             "tank_move.wav",
         )
 

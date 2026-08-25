@@ -23,6 +23,7 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
+from common.audio_utils import audio_output_name  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
@@ -84,10 +85,6 @@ def parse_emotion_vector(raw: str) -> list[float]:
     except ValueError as exc:
         print(f"Invalid --emotion-vector value: {exc}", file=sys.stderr)
         sys.exit(1)
-
-
-def output_wav_name(voice: Path) -> str:
-    return f"{voice.stem}.wav"
 
 
 def build_infer_kwargs(args: argparse.Namespace, text: str, voice: Path, output: Path) -> dict:
@@ -234,8 +231,8 @@ def main(argv: list[str] | None = None) -> int:
     output = resolve_output_path(
         args.output,
         voice,
-        output_subdir=DEFAULT_OUTPUT_SUBDIR,
-        output_name=output_wav_name(voice),
+        DEFAULT_OUTPUT_SUBDIR,
+        audio_output_name(voice, suffix=".wav"),
     )
     if output.resolve() == voice.resolve():
         print(

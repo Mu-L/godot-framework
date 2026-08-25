@@ -8,16 +8,16 @@ from pathlib import Path
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
 
 
-def resolve_audio_file(raw: str) -> Path | None:
+def resolve_audio_file(args_audio: str) -> Path | None:
     """Resolve a single audio file path, or print an error and return None."""
-    path = Path(raw).expanduser()
+    path = Path(args_audio).expanduser()
     if not path.exists():
-        print(f"Audio file not found: {raw}", file=sys.stderr)
+        print(f"Audio file not found: {args_audio}", file=sys.stderr)
         return None
     path = path.resolve()
     if not path.is_file():
         print(
-            f"Not an audio file (directories are not supported): {raw}",
+            f"Not an audio file (directories are not supported): {args_audio}",
             file=sys.stderr,
         )
         return None
@@ -54,3 +54,10 @@ def relative_audio_path(file_path: Path, input_root: Path) -> str:
         return file_path.relative_to(input_root).as_posix()
     except ValueError:
         return file_path.name
+
+
+def audio_output_name(source: Path, *, suffix: str | None = None) -> str:
+    """Return the default output filename for a single-file audio skill."""
+    if suffix is None:
+        return source.name
+    return source.with_suffix(suffix).name
