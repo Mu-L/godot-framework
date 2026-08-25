@@ -32,13 +32,13 @@ DEFAULT_OUTPUT_SUBDIR = "audio-trim"
 
 
 def build_filter(threshold: float) -> str:
-    return (
-        "silenceremove="
-        "start_periods=1:start_duration=0:"
-        f"start_threshold={threshold}dB:"
-        "stop_periods=1:stop_duration=0:"
-        f"stop_threshold={threshold}dB"
+    start = (
+        f"silenceremove=start_periods=1:start_duration=0:"
+        f"start_threshold={threshold}dB"
     )
+    # Trim both ends with start_periods only. Positive stop_periods keeps just
+    # one trailing non-silence period and over-trims long clips.
+    return f"areverse,{start},areverse,{start}"
 
 
 def trim_file(

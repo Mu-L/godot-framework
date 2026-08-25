@@ -15,6 +15,8 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import trim  # noqa: E402
+from common.audio_utils import get_duration  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
@@ -36,15 +38,15 @@ class TrimFilterTest(unittest.TestCase):
     def test_builds_filter(self) -> None:
         self.assertEqual(
             trim.build_filter(-50),
-            "silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:"
-            "stop_periods=1:stop_duration=0:stop_threshold=-50dB",
+            "areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB,"
+            "areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB",
         )
 
     def test_builds_custom_threshold(self) -> None:
         self.assertEqual(
             trim.build_filter(-45),
-            "silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB:"
-            "stop_periods=1:stop_duration=0:stop_threshold=-45dB",
+            "areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB,"
+            "areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-45dB",
         )
 
 
@@ -104,6 +106,26 @@ class TrimCliTest(unittest.TestCase):
             out_file = root / "audio-trim" / "tone.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
+
+    def test_does_not_overtrim_speech(self) -> None:
+        source = REPO_ROOT / ".ai/test/audio/han.wav"
+        if not source.is_file():
+            self.skipTest("sample audio missing")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "han.wav"
+            result = self.run_cli("--audio", str(source), "--output", str(out))
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+            ffmpeg = resolve_ffmpeg(TRIM_SCRIPT)
+            ffprobe = resolve_ffprobe(ffmpeg)
+            source_duration = get_duration(ffprobe, source)
+            output_duration = get_duration(ffprobe, out)
+            self.assertGreater(
+                output_duration,
+                source_duration * 0.8,
+                "trimmed speech shorter than 80% of source; likely over-trimmed",
+            )
 
 
 if __name__ == "__main__":
