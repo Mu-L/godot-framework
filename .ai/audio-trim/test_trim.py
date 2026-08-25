@@ -23,15 +23,7 @@ REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 TRIM_SCRIPT = SCRIPT_DIR / "trim.py"
-
-
-def write_silent_wav(path: Path, duration_seconds: int = 1) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "w") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b"\x00\x00" * 44100 * duration_seconds)
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
 
 
 class TrimFilterTest(unittest.TestCase):
@@ -61,6 +53,37 @@ class TrimCliTest(unittest.TestCase):
             cwd=str(REPO_ROOT),
         )
 
+    def assert_trimmed_wav(self, source: Path, output: Path) -> None:
+        self.assertEqual(output.suffix.lower(), ".wav")
+
+        with wave.open(str(source), "rb") as src_wav, wave.open(str(output), "rb") as out_wav:
+            self.assertEqual(out_wav.getnchannels(), src_wav.getnchannels())
+            self.assertEqual(out_wav.getframerate(), src_wav.getframerate())
+            self.assertEqual(out_wav.getsampwidth(), src_wav.getsampwidth())
+            self.assertGreater(out_wav.getnframes(), 0)
+
+        ffmpeg = resolve_ffmpeg(TRIM_SCRIPT)
+        ffprobe = resolve_ffprobe(ffmpeg)
+        source_duration = get_duration(ffprobe, source)
+        output_duration = get_duration(ffprobe, output)
+        print(
+            f"duration: {source_duration:.3f}s -> {output_duration:.3f}s "
+            f"(trimmed {source_duration - output_duration:.3f}s)",
+            file=sys.stderr,
+            flush=True,
+        )
+        self.assertGreater(output_duration, 0)
+        self.assertLessEqual(
+            output_duration,
+            source_duration + 0.01,
+            "trimmed audio should not be longer than source",
+        )
+        self.assertGreater(
+            output_duration,
+            source_duration * 0.8,
+            "trimmed speech shorter than 80% of source; likely over-trimmed",
+        )
+
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
@@ -86,46 +109,36 @@ class TrimCliTest(unittest.TestCase):
             self.assertIn("directories are not supported", result.stderr)
 
     def test_writes_trimmed_wav(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            wav = Path(tmp) / "tone.wav"
-            out_dir = Path(tmp) / "out"
-            write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav), "--output", str(out_dir))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = out_dir / "tone.wav"
-            self.assertTrue(out_file.is_file())
-            self.assertGreater(out_file.stat().st_size, 0)
-
-    def test_default_output_path(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / "tone.wav"
-            write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-trim" / "tone.wav"
-            self.assertTrue(out_file.is_file())
-            self.assertGreater(out_file.stat().st_size, 0)
-
-    def test_does_not_overtrim_speech(self) -> None:
-        source = REPO_ROOT / ".ai/test/audio/han.wav"
-        if not source.is_file():
+        if not SAMPLE_AUDIO.is_file():
             self.skipTest("sample audio missing")
 
         with tempfile.TemporaryDirectory() as tmp:
-            out = Path(tmp) / "han.wav"
-            result = self.run_cli("--audio", str(source), "--output", str(out))
-            self.assertEqual(result.returncode, 0, result.stderr)
-
-            ffmpeg = resolve_ffmpeg(TRIM_SCRIPT)
-            ffprobe = resolve_ffprobe(ffmpeg)
-            source_duration = get_duration(ffprobe, source)
-            output_duration = get_duration(ffprobe, out)
-            self.assertGreater(
-                output_duration,
-                source_duration * 0.8,
-                "trimmed speech shorter than 80% of source; likely over-trimmed",
+            out_file = Path(tmp) / "test.wav"
+            result = self.run_cli(
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--output",
+                str(out_file),
             )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(out_file.is_file())
+            self.assertGreater(out_file.stat().st_size, 0)
+            self.assert_trimmed_wav(SAMPLE_AUDIO, out_file)
+
+    def test_default_output_path(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            wav = root / SAMPLE_AUDIO.name
+            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
+            result = self.run_cli("--audio", str(wav))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            out_file = root / "audio-trim" / SAMPLE_AUDIO.name
+            self.assertTrue(out_file.is_file())
+            self.assertGreater(out_file.stat().st_size, 0)
+            self.assert_trimmed_wav(wav, out_file)
 
 
 if __name__ == "__main__":
