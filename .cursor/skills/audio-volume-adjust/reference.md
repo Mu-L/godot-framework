@@ -43,14 +43,14 @@ Boosting raises all samples proportionally. If the source already peaks near 0 d
 
 ## Manual Fallback (single file)
 
-When you need a one-off tweak outside batch processing:
+When you need a one-off tweak outside the skill script:
 
 ```bash
 ffmpeg -i input.wav -af "volume=-6dB" -y output.wav
 ffmpeg -i input.wav -af "volume=3dB" -y output.wav
 ```
 
-Prefer the bundled script for folders and output safety checks.
+Prefer the bundled script for consistent output paths and source safety checks.
 
 ## Category Notes
 

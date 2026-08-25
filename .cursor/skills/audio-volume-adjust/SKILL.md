@@ -13,25 +13,25 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Reduce by 6 dB (~half amplitude), output to `adjust/`:
+Reduce by 6 dB (~half amplitude), output to `<audio-dir>/audio-volume-adjust/<audio-name>`:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py path/to/audio_or_folder -d -6
+.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav -d -6
 ```
 
-Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/adjust/tank_move.wav`
+Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-volume-adjust/tank_move.wav`
 
 Boost by 3 dB:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py Audio/SFX -d 3 -r
+.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav -d 3
 ```
 
 Linear gain (50% level / 200% level):
 
 ```bash
-.dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py Audio/UI -g 0.5 -r
-.dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py Audio/UI -g 2.0 -r
+.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/ui.wav -g 0.5
+.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/ui.wav -g 2.0
 ```
 
 ## Adjustment Guidelines
@@ -49,20 +49,20 @@ Use **dB** for perceptual steps; use **gain** when matching a known multiplier.
 
 ## Common Flags
 
-`-d` / `--decibels` · `-g` / `--gain` · `-r` · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`--audio` · `-d` / `--decibels` · `-g` / `--gain` · `-o` / `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-volume-adjust/scripts/adjust.py Audio/SFX -d -9 -r --dry-run
+.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav -d -9
 ```
 
-**Never overwrite source files.** The script writes only to `adjust/` (or `-o`). Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 
 1. Use the bundled script, not hand-written `volume` filters.
 2. Always pass `-d` or `-g` to match the user's intent (reduce vs boost).
 3. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-4. **Do not copy, move, or replace the source with the adjusted output** — tell the user where `adjust/` files are; they swap assets manually when ready.
-5. Do not use `-o` pointing at the source folder; the script refuses output paths that would overwrite inputs.
+4. **Do not copy, move, or replace the source with the adjusted output** — tell the user where `audio-volume-adjust/` files are; they swap assets manually when ready.
+5. Do not use `--output` pointing at the source file; the script refuses output paths that would overwrite inputs.
 6. **Boosting** (+dB or gain > 1) can clip peaks — warn the user; prefer small boosts (+3 dB or less).
 7. FFmpeg filter details and dB math: [reference.md](reference.md)

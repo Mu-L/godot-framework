@@ -2,25 +2,20 @@
 
 ## FFmpeg Filter
 
-The bundled scripts use `silenceremove`:
+The bundled script trims **both ends** by running `silenceremove` on the start twice, with `areverse` in between:
 
 ```
-# Both sides (default)
-silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:stop_periods=1:stop_duration=0:stop_threshold=-50dB
-
-# Trim start only (Remove leading silence)
-silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB
-
-# Trim end only (Remove trailing silence)
-silenceremove=stop_periods=1:stop_duration=0:stop_threshold=-50dB
+areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB,areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB
 ```
+
+Do **not** combine `start_periods=1` with positive `stop_periods=1`. In FFmpeg, positive `stop_periods` does not mean “remove one trailing silence block”; with both start and stop enabled it can keep only a short middle segment and cut the rest (e.g. 6.7 s → 0.4 s).
 
 | Parameter | Meaning |
 |-----------|---------|
-| `start_periods=1` | Trim one silence run from the beginning |
-| `stop_periods=1` | Trim one silence run from the end |
-| `start_duration=0` / `stop_duration=0` | No minimum non-silence before trimming begins |
-| `start_threshold` / `stop_threshold` | Levels at or below this are treated as silence (use `dB` suffix) |
+| `start_periods=1` | Skip one leading silence run, then keep the rest |
+| `start_duration=0` | No minimum silence length before trimming begins |
+| `start_threshold` | Levels at or below this are treated as silence (use `dB` suffix) |
+| `areverse` | Flip audio so “start trim” can target the original tail |
 
 ## Trim vs Silence Removal
 
