@@ -15,22 +15,15 @@ ffmpeg -i input.mp3 -c:a pcm_f32le output.wav
 ffmpeg -i input.wav -c:a copy output.wav
 ```
 
-## Optional Downconvert
-
-Use only when the user wants a smaller/project-standard batch:
-
-```bash
-ffmpeg -i input.flac -ar 48000 -c:a pcm_s16le output.wav
-# or: --standardize
-```
+## Flags
 
 | Flag | Effect |
 |------|--------|
 | (default) | Preserve sample rate and bit depth |
-| `-s 48000` | Force resample |
 | `-b 16` / `-b 24` / `-b 32` | Force PCM bit depth |
-| `--standardize` | Shorthand for 48 kHz + 16-bit |
 | `--mono` / `--stereo` | Force channel layout |
+
+Sample rate is always preserved. For resampling, use the `audio-sample-rate-standardize` skill first.
 
 ## Bit Depth Resolution
 
@@ -48,7 +41,7 @@ Lossy sources cannot exceed their encoded quality, but 32-bit float PCM avoids t
 
 | Bit depth | FFmpeg codec | Typical use |
 |-----------|--------------|-------------|
-| 16 | `pcm_s16le` | Project batch (`--standardize`) |
+| 16 | `pcm_s16le` | Smaller WAV exports |
 | 24 | `pcm_s24le` | Source masters |
 | 32 int | `pcm_s32le` | High-resolution PCM |
 | 32 float | `pcm_f32le` | Lossy decode, float sources |
@@ -59,10 +52,10 @@ Lossy sources cannot exceed their encoded quality, but 32-bit float PCM avoids t
 
 ## Output Layout
 
-For `Audio/SFX/click.mp3` with default output dir:
+For `Audio/SFX/click.mp3` with default output:
 
 ```
-Audio/SFX/wav/click.wav
+Audio/SFX/audio-to-wav/click.wav
 ```
 
-Batch with `-r` preserves subdirectory structure under the output root.
+Pass `--output` for an explicit file or directory.
