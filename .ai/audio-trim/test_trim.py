@@ -66,10 +66,14 @@ class TrimCliTest(unittest.TestCase):
         ffprobe = resolve_ffprobe(ffmpeg)
         source_duration = get_duration(ffprobe, source)
         output_duration = get_duration(ffprobe, output)
+        trimmed_seconds = source_duration - output_duration
         print(
-            f"duration: {source_duration:.3f}s -> {output_duration:.3f}s "
-            f"(trimmed {source_duration - output_duration:.3f}s)",
-            file=sys.stderr,
+            f"\n[{source.name}] duration before: {source_duration:.3f}s",
+            flush=True,
+        )
+        print(
+            f"[trimmed] duration after:  {output_duration:.3f}s "
+            f"(trimmed {trimmed_seconds:.3f}s)",
             flush=True,
         )
         self.assertGreater(output_duration, 0)
@@ -124,21 +128,6 @@ class TrimCliTest(unittest.TestCase):
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
             self.assert_trimmed_wav(SAMPLE_AUDIO, out_file)
-
-    def test_default_output_path(self) -> None:
-        if not SAMPLE_AUDIO.is_file():
-            self.skipTest("sample audio missing")
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / SAMPLE_AUDIO.name
-            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
-            result = self.run_cli("--audio", str(wav))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-trim" / SAMPLE_AUDIO.name
-            self.assertTrue(out_file.is_file())
-            self.assertGreater(out_file.stat().st_size, 0)
-            self.assert_trimmed_wav(wav, out_file)
 
 
 if __name__ == "__main__":

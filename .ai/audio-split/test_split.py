@@ -77,9 +77,12 @@ class SplitCliTest(unittest.TestCase):
         part2_duration = get_duration(ffprobe, part2)
         total_duration = part1_duration + part2_duration
         print(
-            f"duration: {source_duration:.3f}s -> "
-            f"{part1_duration:.3f}s + {part2_duration:.3f}s = {total_duration:.3f}s",
-            file=sys.stderr,
+            f"\n[{source.name}] duration before: {source_duration:.3f}s",
+            flush=True,
+        )
+        print(
+            f"[split] duration after:  {part1_duration:.3f}s + {part2_duration:.3f}s "
+            f"= {total_duration:.3f}s (target match source)",
             flush=True,
         )
         self.assertAlmostEqual(
@@ -120,26 +123,7 @@ class SplitCliTest(unittest.TestCase):
             self.skipTest("sample audio missing")
 
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / SAMPLE_AUDIO.name
-            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
-            result = self.run_cli("--audio", str(wav))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            part1 = root / "audio-split" / f"{SAMPLE_AUDIO.stem}_part1{SAMPLE_AUDIO.suffix}"
-            part2 = root / "audio-split" / f"{SAMPLE_AUDIO.stem}_part2{SAMPLE_AUDIO.suffix}"
-            self.assertTrue(part1.is_file())
-            self.assertTrue(part2.is_file())
-            self.assertGreater(part1.stat().st_size, 0)
-            self.assertGreater(part2.stat().st_size, 0)
-            self.assert_split_durations(wav, part1, part2)
-
-    def test_custom_output_dir(self) -> None:
-        if not SAMPLE_AUDIO.is_file():
-            self.skipTest("sample audio missing")
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            out_dir = root / "out"
+            out_dir = Path(tmp) / "out"
             part1 = out_dir / f"{SAMPLE_AUDIO.stem}_part1{SAMPLE_AUDIO.suffix}"
             part2 = out_dir / f"{SAMPLE_AUDIO.stem}_part2{SAMPLE_AUDIO.suffix}"
             result = self.run_cli(

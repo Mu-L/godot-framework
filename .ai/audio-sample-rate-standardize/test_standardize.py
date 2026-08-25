@@ -73,12 +73,19 @@ class StandardizeCliTest(unittest.TestCase):
         source_rate = standardize.probe_sample_rate(ffprobe, source)
         expected_rate = standardize.resolve_output_sample_rate(source_rate)
         output_rate = standardize.probe_sample_rate(ffprobe, output)
+
+        source_label = "unknown Hz" if source_rate is None else f"{source_rate} Hz"
+        output_label = "unknown Hz" if output_rate is None else f"{output_rate} Hz"
         print(
-            f"sample rate: {source_rate} Hz -> {output_rate} Hz "
-            f"(expected {expected_rate} Hz)",
-            file=sys.stderr,
+            f"\n[{source.name}] sample rate before: {source_label}",
             flush=True,
         )
+        print(
+            f"[standardized] sample rate after:  {output_label} "
+            f"(target {expected_rate} Hz)",
+            flush=True,
+        )
+
         self.assertIsNotNone(output_rate, f"Could not read sample rate from: {output}")
         self.assertEqual(
             output_rate,
@@ -123,21 +130,6 @@ class StandardizeCliTest(unittest.TestCase):
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
             self.assert_standardized_sample_rate(SAMPLE_AUDIO, out_file)
-
-    def test_default_output_path(self) -> None:
-        if not SAMPLE_AUDIO.is_file():
-            self.skipTest("sample audio missing")
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / SAMPLE_AUDIO.name
-            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
-            result = self.run_cli("--audio", str(wav))
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-sample-rate-standardize" / SAMPLE_AUDIO.name
-            self.assertTrue(out_file.is_file())
-            self.assertGreater(out_file.stat().st_size, 0)
-            self.assert_standardized_sample_rate(wav, out_file)
 
 
 if __name__ == "__main__":

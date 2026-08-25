@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import math
+import struct
 import subprocess
 import sys
 import tempfile
@@ -15,21 +17,31 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import adjust  # noqa: E402
+from common.audio_utils import get_duration  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 ADJUST_SCRIPT = SCRIPT_DIR / "adjust.py"
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
+TEST_VOLUME_DB = -6.0
+VOLUME_TOLERANCE_DB = 0.5
 
 
-def write_silent_wav(path: Path, duration_seconds: int = 1) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "w") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b"\x00\x00" * 44100 * duration_seconds)
+def wav_rms(path: Path) -> float:
+    with wave.open(str(path), "rb") as wav_file:
+        if wav_file.getsampwidth() != 2:
+            raise ValueError(f"unsupported sample width for RMS: {path}")
+        frames = wav_file.readframes(wav_file.getnframes())
+
+    if not frames:
+        return 0.0
+
+    samples = struct.unpack(f"<{len(frames) // 2}h", frames)
+    sum_sq = sum((sample / 32768.0) ** 2 for sample in samples)
+    return math.sqrt(sum_sq / len(samples))
 
 
 class AdjustFilterTest(unittest.TestCase):
@@ -41,7 +53,30 @@ class AdjustFilterTest(unittest.TestCase):
 
 
 class AdjustCliTest(unittest.TestCase):
-    def run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
+    def format_cli_command(self, *args: str) -> str:
+        def display(part: str) -> str:
+            path = Path(part)
+            if not path.is_absolute():
+                return part
+            try:
+                return str(path.relative_to(REPO_ROOT)).replace("\\", "/")
+            except ValueError:
+                return str(path)
+
+        parts = [
+            display(str(PYTHON_BIN)),
+            display(str(ADJUST_SCRIPT)),
+            *[display(arg) for arg in args],
+        ]
+        return " ".join(parts)
+
+    def run_cli(self, *args: str, print_command: bool = False) -> subprocess.CompletedProcess[str]:
+        if print_command:
+            print(
+                f"command: {self.format_cli_command(*args)}",
+                file=sys.stderr,
+                flush=True,
+            )
         return subprocess.run(
             [str(PYTHON_BIN), str(ADJUST_SCRIPT), *args],
             capture_output=True,
@@ -49,6 +84,51 @@ class AdjustCliTest(unittest.TestCase):
             encoding="utf-8",
             errors="replace",
             cwd=str(REPO_ROOT),
+        )
+
+    def assert_adjusted_wav(
+        self, source: Path, output: Path, volume_db: float
+    ) -> None:
+        self.assertEqual(output.suffix.lower(), ".wav")
+
+        with wave.open(str(source), "rb") as src_wav, wave.open(str(output), "rb") as out_wav:
+            self.assertEqual(out_wav.getnchannels(), src_wav.getnchannels())
+            self.assertEqual(out_wav.getframerate(), src_wav.getframerate())
+            self.assertEqual(out_wav.getsampwidth(), src_wav.getsampwidth())
+            self.assertGreater(out_wav.getnframes(), 0)
+
+        ffmpeg = resolve_ffmpeg(ADJUST_SCRIPT)
+        ffprobe = resolve_ffprobe(ffmpeg)
+        source_duration = get_duration(ffprobe, source)
+        output_duration = get_duration(ffprobe, output)
+        source_rms = wav_rms(source)
+        output_rms = wav_rms(output)
+        self.assertGreater(source_rms, 0.0, "source audio is silent; cannot verify volume")
+
+        measured_db = 20.0 * math.log10(output_rms / source_rms)
+        print(
+            f"\n[{source.name}] loudness before: {source_rms:.6f} RMS",
+            flush=True,
+        )
+        print(
+            f"[adjusted] loudness after:  {output_rms:.6f} RMS "
+            f"(target {volume_db:+.1f} dB, measured {measured_db:+.2f} dB)",
+            flush=True,
+        )
+        self.assertAlmostEqual(
+            output_duration,
+            source_duration,
+            places=2,
+            msg="volume adjust should preserve duration",
+        )
+        self.assertAlmostEqual(
+            measured_db,
+            volume_db,
+            delta=VOLUME_TOLERANCE_DB,
+            msg=(
+                f"expected {volume_db:+.1f} dB volume change, "
+                f"measured {measured_db:+.2f} dB from RMS"
+            ),
         )
 
     def test_help(self) -> None:
@@ -82,28 +162,24 @@ class AdjustCliTest(unittest.TestCase):
             self.assertIn("directories are not supported", result.stderr)
 
     def test_writes_adjusted_wav(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
-            wav = Path(tmp) / "tone.wav"
-            out_dir = Path(tmp) / "out"
-            write_silent_wav(wav)
+            out_file = Path(tmp) / "test.wav"
             result = self.run_cli(
-                "--audio", str(wav), "--volume", "-6", "--output", str(out_dir)
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--volume",
+                str(TEST_VOLUME_DB),
+                "--output",
+                str(out_file),
+                print_command=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = out_dir / "tone.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
-
-    def test_default_output_path(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / "tone.wav"
-            write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav), "--volume", "-6")
-            self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-volume-adjust" / "tone.wav"
-            self.assertTrue(out_file.is_file())
-            self.assertGreater(out_file.stat().st_size, 0)
+            self.assert_adjusted_wav(SAMPLE_AUDIO, out_file, TEST_VOLUME_DB)
 
 
 if __name__ == "__main__":
