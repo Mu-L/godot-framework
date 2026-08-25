@@ -7,7 +7,6 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import wave
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -21,15 +20,7 @@ REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 FADE_SCRIPT = SCRIPT_DIR / "fade.py"
-
-
-def write_silent_wav(path: Path, duration_seconds: int = 3) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "w") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b"\x00\x00" * 44100 * duration_seconds)
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
 
 
 class FadeFilterTest(unittest.TestCase):
@@ -89,24 +80,32 @@ class FadeCliTest(unittest.TestCase):
             self.assertIn("directories are not supported", result.stderr)
 
     def test_writes_faded_wav(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
-            wav = Path(tmp) / "tone.wav"
-            out_dir = Path(tmp) / "out"
-            write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav), "--output", str(out_dir))
+            out_file = Path(tmp) / "test.wav"
+            result = self.run_cli(
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--output",
+                str(out_file),
+            )
             self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = out_dir / "tone.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
 
     def test_default_output_path(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            wav = root / "tone.wav"
-            write_silent_wav(wav)
+            wav = root / SAMPLE_AUDIO.name
+            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
             result = self.run_cli("--audio", str(wav))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-fade" / "tone.wav"
+            out_file = root / "audio-fade" / SAMPLE_AUDIO.name
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
 
