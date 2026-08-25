@@ -1,6 +1,6 @@
 ---
 name: audio-denoise
-description: Reduces background noise in audio files using FFmpeg afftdn. Use when the user wants audio denoise, noise reduction, hiss removal, room noise cleanup, or batch SFX/voice cleanup before normalization.
+description: Reduces background noise in a single audio file using FFmpeg afftdn. Use when the user wants audio denoise, noise reduction, hiss removal, room noise cleanup, or SFX/voice cleanup before normalization.
 ---
 
 # Audio Denoise
@@ -34,7 +34,7 @@ Denoise a single audio file, output to `<audio-dir>/audio-denoise/<audio-name>`:
 .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio Audio/Voice/line.wav --nr 8
 ```
 
-Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 

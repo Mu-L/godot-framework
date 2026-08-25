@@ -172,7 +172,7 @@ When a skill depends on a portable upstream binary (e.g. FFmpeg), follow this or
 4. **Run** through the skill script when one exists — do not hand-write equivalent CLI unless the skill says the script is reference-only:
 
    ```bash
-   .dependency/python/python.exe .ai/audio-to-wav/convert.py audio/input.flac
+   .dependency/python/python.exe .ai/audio-to-wav/convert.py --audio audio/input.flac
    ```
 
    Some skills wrap the binary with a stdlib Python script (`python` manifest entry); others invoke the CLI binary directly via its own manifest entry (`ffmpeg`).

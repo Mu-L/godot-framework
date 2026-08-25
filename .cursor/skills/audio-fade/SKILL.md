@@ -1,6 +1,6 @@
 ---
 name: audio-fade
-description: Applies fade-in and fade-out at the start and end of audio files using FFmpeg. Use when the user wants audio fade, fade in/out, smooth attack/release, crossfade prep, batch SFX envelope shaping, or mentions afade.
+description: Applies fade-in and fade-out at the start and end of a single audio file using FFmpeg. Use when the user wants audio fade, fade in/out, smooth attack/release, crossfade prep, SFX envelope shaping, or mentions afade.
 ---
 
 # Audio Fade
@@ -51,7 +51,7 @@ Fade-in + fade-out must stay **shorter than file duration**. Very short clips ne
 .dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.03 -fo 0.08
 ```
 
-Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 Fades use FFmpeg `afade` with the linear `tri` curve. The script probes clip duration and places fade-out at `duration - fade_out`.
 

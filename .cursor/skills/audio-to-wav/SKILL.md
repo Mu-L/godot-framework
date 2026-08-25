@@ -1,6 +1,6 @@
 ---
 name: audio-to-wav
-description: Converts audio files to WAV (PCM) using FFmpeg while preserving source quality. Use when the user wants to convert audio to WAV, transcode MP3/OGG/FLAC/AAC to WAV without downgrading sample rate or bit depth, or batch-export lossless WAV source assets.
+description: Converts a single audio file to WAV (PCM) using FFmpeg while preserving source quality. Use when the user wants to convert audio to WAV, transcode MP3/OGG/FLAC/AAC to WAV without downgrading sample rate or bit depth, or export a lossless WAV source asset.
 ---
 
 # Audio to WAV
