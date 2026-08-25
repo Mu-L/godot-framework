@@ -34,14 +34,10 @@ def write_silent_wav(path: Path, duration_seconds: int = 1) -> None:
 
 class AdjustFilterTest(unittest.TestCase):
     def test_builds_decibel_filter(self) -> None:
-        self.assertEqual(adjust.build_filter(-6, None), "volume=-6.000000dB")
+        self.assertEqual(adjust.build_filter(-6), "volume=-6.000000dB")
 
-    def test_builds_gain_filter(self) -> None:
-        self.assertEqual(adjust.build_filter(None, 0.5), "volume=0.500000")
-
-    def test_rejects_negative_gain(self) -> None:
-        with self.assertRaises(ValueError):
-            adjust.build_filter(None, -1.0)
+    def test_builds_positive_decibel_filter(self) -> None:
+        self.assertEqual(adjust.build_filter(3), "volume=3.000000dB")
 
 
 class AdjustCliTest(unittest.TestCase):
@@ -59,26 +55,29 @@ class AdjustCliTest(unittest.TestCase):
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
         self.assertIn("--audio", result.stdout)
+        self.assertIn("--volume", result.stdout)
         self.assertIn("--output", result.stdout)
+        self.assertNotIn("--linear", result.stdout)
+        self.assertNotIn("--decibels", result.stdout)
+        self.assertNotIn("--gain", result.stdout)
         self.assertNotIn("--output-dir", result.stdout)
-        self.assertNotIn("--recurse", result.stdout)
 
     def test_missing_audio(self) -> None:
-        result = self.run_cli("-d", "-6")
+        result = self.run_cli("--volume", "-6")
         self.assertNotEqual(result.returncode, 0)
 
-    def test_missing_gain(self) -> None:
+    def test_missing_volume(self) -> None:
         result = self.run_cli("--audio", "missing-no-such.wav")
         self.assertNotEqual(result.returncode, 0)
 
     def test_audio_not_found(self) -> None:
-        result = self.run_cli("--audio", "missing-no-such.wav", "-d", "-6")
+        result = self.run_cli("--audio", "missing-no-such.wav", "--volume", "-6")
         self.assertEqual(result.returncode, 1)
         self.assertIn("Audio file not found", result.stderr)
 
     def test_rejects_directory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            result = self.run_cli("--audio", tmp, "-d", "-6")
+            result = self.run_cli("--audio", tmp, "--volume", "-6")
             self.assertEqual(result.returncode, 1)
             self.assertIn("directories are not supported", result.stderr)
 
@@ -88,7 +87,7 @@ class AdjustCliTest(unittest.TestCase):
             out_dir = Path(tmp) / "out"
             write_silent_wav(wav)
             result = self.run_cli(
-                "--audio", str(wav), "-d", "-6", "--output", str(out_dir)
+                "--audio", str(wav), "--volume", "-6", "--output", str(out_dir)
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             out_file = out_dir / "tone.wav"
@@ -100,7 +99,7 @@ class AdjustCliTest(unittest.TestCase):
             root = Path(tmp)
             wav = root / "tone.wav"
             write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav), "-d", "-6")
+            result = self.run_cli("--audio", str(wav), "--volume", "-6")
             self.assertEqual(result.returncode, 0, result.stderr)
             out_file = root / "audio-volume-adjust" / "tone.wav"
             self.assertTrue(out_file.is_file())

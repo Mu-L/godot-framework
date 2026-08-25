@@ -7,9 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav -d -6
-    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav -g 0.5
-    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav -d 3 --output path/to/out.wav
+    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav --volume -6
+    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume 3 --output path/to/out.wav
 """
 
 from __future__ import annotations
@@ -31,14 +30,8 @@ from common.output_utils import format_default_output_help, resolve_output_path 
 DEFAULT_OUTPUT_SUBDIR = "audio-volume-adjust"
 
 
-def build_filter(decibels: float | None, gain: float | None) -> str:
-    if gain is not None:
-        if gain < 0:
-            raise ValueError("Gain must be zero or positive.")
-        return f"volume={gain:.6f}"
-    if decibels is None:
-        raise ValueError("Either decibels or gain must be set.")
-    return f"volume={decibels:.6f}dB"
+def build_filter(volume_db: float) -> str:
+    return f"volume={volume_db:.6f}dB"
 
 
 def adjust_file(
@@ -72,25 +65,18 @@ def adjust_file(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Adjust volume of a single audio file with a fixed dB or linear gain."
+        description="Adjust volume of a single audio file (dB by default)."
     )
     parser.add_argument(
         "--audio",
         required=True,
         help="Path to a single audio file",
     )
-    gain_group = parser.add_mutually_exclusive_group(required=True)
-    gain_group.add_argument(
-        "-d",
-        "--decibels",
+    parser.add_argument(
+        "--volume",
         type=float,
+        required=True,
         help="Volume change in dB (negative reduces, positive boosts)",
-    )
-    gain_group.add_argument(
-        "-g",
-        "--gain",
-        type=float,
-        help="Linear gain multiplier (e.g. 0.5 = half, 2.0 = double)",
     )
     parser.add_argument(
         "-o",
@@ -102,12 +88,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     return parser.parse_args(argv)
-
-
-def describe_gain(args: argparse.Namespace) -> str:
-    if args.gain is not None:
-        return f"gain {args.gain}"
-    return f"{args.decibels} dB"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -133,14 +113,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    try:
-        filter_str = build_filter(args.decibels, args.gain)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return 1
+    filter_str = build_filter(args.volume)
 
     print(f"Audio:  {audio_path}")
-    print(f"Gain:   {describe_gain(args)}")
+    print(f"Volume: {args.volume} dB")
     print(f"Filter: {filter_str}")
     print(f"Output: {out_path}")
     print()

@@ -23,7 +23,14 @@ volume=2.0
 | Gain | `volume=0.5` | Multiply amplitude by 0.50 |
 | Gain | `volume=2.0` | Multiply amplitude by 2.00 |
 
-Negative dB / gain < 1 reduces level; positive dB / gain > 1 increases it.
+Negative dB reduces level; positive dB increases it.
+
+## CLI
+
+| Flag | Meaning |
+|------|---------|
+| `--volume -6` | Reduce by 6 dB |
+| `--volume 3` | Boost by 3 dB |
 
 ## dB vs Linear Gain
 
