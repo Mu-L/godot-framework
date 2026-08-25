@@ -7,10 +7,10 @@ From repo root. Reference voice: `zhu_ba_jie.wav` in this folder. Needs a popula
 Unix: `.dependency/index-tts/.venv/bin/python`
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。" --output .ai/test/tts
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/audio/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。" --output .ai/test/tts
 ```
 
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。"
+.dependency/index-tts/.venv/Scripts/python.exe .ai/ai-text-to-speech/tts.py --voice .ai/test/audio/zhu_ba_jie.wav --text "你好，欢迎来到这个世界。"
 ```

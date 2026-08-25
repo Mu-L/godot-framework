@@ -9,11 +9,11 @@ unit tests:
 Manual CLI (default output: `<audio-dir>/audio-denoise/<audio-name>`):
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/zhu_ba_jie.wav
+.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/audio/zhu_ba_jie.wav
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/zhu_ba_jie.wav --output .ai/test/denoise
+.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/audio/zhu_ba_jie.wav --output .ai/test/denoise
 ```
