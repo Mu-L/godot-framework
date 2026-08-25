@@ -13,13 +13,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Default: **-14 LUFS**, **-1.5 dBTP**, output to a sibling `normalized/` folder (source files are read-only):
+Default: **-14 LUFS**, **-1.5 dBTP**, output to a sibling `audio-loudness-normalization/` folder (source files are read-only):
 
 ```bash
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py path/to/audio_or_folder
+.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py path/to/audio_or_folder
 ```
 
-Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/normalized/tank_move.wav`
+Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-loudness-normalization/tank_move.wav`
 
 ## LUFS Targets
 
@@ -35,20 +35,28 @@ One category per folder. Mixed folders: split first, then batch with matching `-
 
 ## Common Flags
 
-`-t` / `--target-lufs` · `-r` (recursive) · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`-t` / `--target-lufs` · `-o` / `--output-dir`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-loudness-normalization/scripts/normalize.py Audio/SFX -t -14 -r --dry-run
+.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py Audio/SFX -t -14
 ```
 
-**Never overwrite source files.** The script writes only to `normalized/` (or `-o`). Supported inputs: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+**Never overwrite source files.** The script writes only to `audio-loudness-normalization/` (or `-o`). Directory inputs include subfolders. Supported inputs: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 
 1. Use the bundled script (two-pass `loudnorm`), not hand-written FFmpeg.
 2. **Preserves input format** — same extension and sample rate (`-ar` forced to source); does not resample.
 3. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-4. **Do not copy, move, or replace the source with the normalized output** — tell the user where `normalized/` files are; they swap assets manually when ready.
+4. **Do not copy, move, or replace the source with the normalized output** — tell the user where `audio-loudness-normalization/` files are; they swap assets manually when ready.
 5. Do not use `-o` pointing at the source folder; the script refuses output paths that would overwrite inputs.
 6. Do not fix uneven levels with per-asset volume in game code — re-normalize sources.
 7. Engine bus defaults and rationale: [reference.md](reference.md)
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python.exe .ai/audio-loudness-normalization/test_normalize.py
+```

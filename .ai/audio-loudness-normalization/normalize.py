@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Batch loudness-normalize audio files to a target LUFS using FFmpeg two-pass loudnorm."""
+"""
+Batch loudness-normalize audio files to a target LUFS using FFmpeg two-pass loudnorm.
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py path/to/audio_or_folder
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py Audio/SFX -t -14
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py audio/sfx/click.wav -o path/to/out_dir
+"""
 
 from __future__ import annotations
 
@@ -10,83 +21,19 @@ import subprocess
 import sys
 from pathlib import Path
 
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.audio_utils import find_audio_files, relative_audio_path  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+
+
+DEFAULT_OUTPUT_SUBDIR = "audio-loudness-normalization"
 DEFAULT_TARGET_LUFS = -14.0
 DEFAULT_TRUE_PEAK = -1.5
 DEFAULT_LRA = 11
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
-def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    candidate = ffmpeg.with_name(name)
-    if candidate.is_file():
-        return candidate
-    raise FileNotFoundError(
-        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
-        "Install a full FFmpeg build that includes ffprobe."
-    )
 
 
 def probe_sample_rate(ffprobe: Path, file_path: Path) -> int:
@@ -131,37 +78,6 @@ def probe_sample_rate(ffprobe: Path, file_path: Path) -> int:
     return rate
 
 
-def get_audio_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in AUDIO_EXTENSIONS:
-            print(f"Not a supported audio file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    if recurse:
-        candidates = path.rglob("*")
-    else:
-        candidates = path.iterdir()
-
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in AUDIO_EXTENSIONS
-    ]
-    return sorted(files)
-
-
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
-
-
 def filter_output_files(files: list[Path], output_dir: Path) -> list[Path]:
     out = output_dir.resolve()
     kept: list[Path] = []
@@ -178,11 +94,29 @@ def find_source_collisions(
 ) -> list[tuple[Path, Path]]:
     collisions: list[tuple[Path, Path]] = []
     for file_path in files:
-        rel = relative_path(file_path, input_root)
+        rel = relative_audio_path(file_path, input_root)
         out_path = output_dir / rel
         if out_path.resolve() == file_path.resolve():
             collisions.append((file_path, out_path))
     return collisions
+
+
+def build_loudnorm_filter(
+    target_lufs: float,
+    measured: dict[str, str],
+    *,
+    true_peak: float = DEFAULT_TRUE_PEAK,
+    lra: float = DEFAULT_LRA,
+) -> str:
+    return (
+        f"loudnorm=I={target_lufs}:TP={true_peak}:LRA={lra}"
+        f":measured_I={measured['input_i']}"
+        f":measured_LRA={measured['input_lra']}"
+        f":measured_TP={measured['input_tp']}"
+        f":measured_thresh={measured['input_thresh']}"
+        f":offset={measured['target_offset']}"
+        ":linear=true"
+    )
 
 
 def measure_loudnorm(ffmpeg: Path, file_path: Path, target_lufs: float) -> dict:
@@ -228,15 +162,7 @@ def normalize_file(
     measured: dict,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    filter_str = (
-        f"loudnorm=I={target_lufs}:TP={DEFAULT_TRUE_PEAK}:LRA={DEFAULT_LRA}"
-        f":measured_I={measured['input_i']}"
-        f":measured_LRA={measured['input_lra']}"
-        f":measured_TP={measured['input_tp']}"
-        f":measured_thresh={measured['input_thresh']}"
-        f":offset={measured['target_offset']}"
-        ":linear=true"
-    )
+    filter_str = build_loudnorm_filter(target_lufs, measured)
     result = subprocess.run(
         [
             str(ffmpeg),
@@ -265,6 +191,7 @@ def normalize_file(
 
 
 def parse_args() -> argparse.Namespace:
+    default_out_help = format_default_output_dir_help(DEFAULT_OUTPUT_SUBDIR)
     parser = argparse.ArgumentParser(
         description="Batch loudness-normalize audio files to a target LUFS."
     )
@@ -280,28 +207,18 @@ def parse_args() -> argparse.Namespace:
         "-o",
         "--output-dir",
         default="",
-        help="Output directory (must not overwrite sources; default: <input>/normalized)",
-    )
-    parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
+        help=(
+            "Output directory (must not overwrite sources; "
+            f"default: {default_out_help})"
+        ),
     )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    ffmpeg = resolve_ffmpeg()
-    try:
-        ffprobe = resolve_ffprobe(ffmpeg)
-    except FileNotFoundError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
+    ffmpeg = resolve_ffmpeg(Path(__file__))
+    ffprobe = resolve_ffprobe(ffmpeg)
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -309,20 +226,16 @@ def main() -> int:
         return 1
 
     input_path = input_path.resolve()
-    files = get_audio_files(input_path, args.recurse)
+    files = find_audio_files(input_path, recurse=True)
     if not files:
         print(f"No supported audio files found under: {args.input}")
         return 0
 
-    if input_path.is_file():
-        input_root = input_path.parent
-    else:
-        input_root = input_path
-
-    output_dir = (
-        Path(args.output_dir).resolve()
-        if args.output_dir
-        else input_root / "normalized"
+    input_root = input_path.parent if input_path.is_file() else input_path
+    output_dir = resolve_output_dir(
+        args.output_dir,
+        input_root,
+        output_subdir=DEFAULT_OUTPUT_SUBDIR,
     )
 
     initial_count = len(files)
@@ -331,7 +244,8 @@ def main() -> int:
         if initial_count:
             print(
                 "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: normalized/).",
+                "Choose a separate output directory "
+                f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
                 file=sys.stderr,
             )
             return 1
@@ -342,7 +256,7 @@ def main() -> int:
     if collisions:
         print(
             "Refusing to overwrite source files. Use a separate output directory "
-            "(default: normalized/).",
+            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
             file=sys.stderr,
         )
         for source, dest in collisions:
@@ -355,27 +269,14 @@ def main() -> int:
     print(f"True Peak:   {DEFAULT_TRUE_PEAK} dBTP")
     print(f"Sample rate: preserve source")
     print(f"Output:      {output_dir}")
-    if args.dry_run:
-        print("Mode:        DRY RUN")
     print()
 
     ok = 0
-    skip = 0
     fail = 0
 
     for file_path in files:
-        rel = relative_path(file_path, input_root)
+        rel = relative_audio_path(file_path, input_root)
         out_path = output_dir / rel
-
-        if out_path.exists() and not args.overwrite and not args.dry_run:
-            print(f"[skip] {rel}")
-            skip += 1
-            continue
-
-        if args.dry_run:
-            print(f"[plan] {rel} -> {out_path}")
-            ok += 1
-            continue
 
         try:
             print(f"[run]  {rel}")
@@ -396,7 +297,7 @@ def main() -> int:
             fail += 1
 
     print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
+    print(f"Done. processed={ok} failed={fail}")
     return 1 if fail else 0
 
 

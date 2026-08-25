@@ -24,25 +24,12 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from common.audio_utils import resolve_audio_file  # noqa: E402
-from common.cli_tools import resolve_ffmpeg  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
 
 DEFAULT_OUTPUT_SUBDIR = "audio-fade"
 DEFAULT_CURVE = "tri"
-
-
-def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    probe = ffmpeg.parent / name
-    if probe.is_file():
-        return probe
-    print(
-        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
-        "Install a full FFmpeg build that includes ffprobe.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
 
 
 def get_duration(ffprobe: Path, file_path: Path) -> float:

@@ -19,3 +19,17 @@ def resolve_ffmpeg(script_path: Path) -> Path:
         )
         sys.exit(1)
     return resolve_tool_bin(repo_root, "ffmpeg")
+
+
+def resolve_ffprobe(ffmpeg: Path) -> Path:
+    """Resolve ffprobe next to a manifest-resolved ffmpeg binary."""
+    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
+    probe = ffmpeg.parent / name
+    if probe.is_file():
+        return probe
+    print(
+        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
+        "Install a full FFmpeg build that includes ffprobe.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
