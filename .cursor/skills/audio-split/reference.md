@@ -5,8 +5,8 @@
 For `Audio/SFX/click.wav` with default output dir:
 
 ```
-Audio/SFX/split/click_part1.wav   # start → split point
-Audio/SFX/split/click_part2.wav   # split point → end
+Audio/SFX/audio-split/click_part1.wav   # start → split point
+Audio/SFX/audio-split/click_part2.wav   # split point → end
 ```
 
 | Segment | Range | Typical use |

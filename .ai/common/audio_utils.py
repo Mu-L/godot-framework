@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
@@ -61,3 +62,29 @@ def audio_output_name(source: Path, *, suffix: str | None = None) -> str:
     if suffix is None:
         return source.name
     return source.with_suffix(suffix).name
+
+
+def get_duration(ffprobe: Path, file_path: Path) -> float:
+    """Return audio duration in seconds via ffprobe."""
+    result = subprocess.run(
+        [
+            str(ffprobe),
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration",
+            "-of",
+            "default=noprint_wrappers=1:nokey=1",
+            str(file_path),
+        ],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Could not read duration for: {file_path}")
+    try:
+        return float(result.stdout.strip())
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid duration for: {file_path}") from exc

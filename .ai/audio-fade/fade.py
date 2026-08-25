@@ -23,38 +23,13 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import audio_output_name, resolve_audio_file  # noqa: E402
+from common.audio_utils import audio_output_name, get_duration, resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
 
 DEFAULT_OUTPUT_SUBDIR = "audio-fade"
 DEFAULT_CURVE = "tri"
-
-
-def get_duration(ffprobe: Path, file_path: Path) -> float:
-    result = subprocess.run(
-        [
-            str(ffprobe),
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            str(file_path),
-        ],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if result.returncode != 0:
-        raise RuntimeError(f"Could not read duration for: {file_path}")
-    try:
-        return float(result.stdout.strip())
-    except ValueError as exc:
-        raise RuntimeError(f"Invalid duration for: {file_path}") from exc
 
 
 def validate_fades(
