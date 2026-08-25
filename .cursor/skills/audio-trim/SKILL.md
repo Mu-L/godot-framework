@@ -13,10 +13,16 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Default: threshold **-50 dB**, both sides, output to `trimmed/`:
+Default: threshold **-50 dB**, both sides, output to `<audio-dir>/audio-trim/<audio-name>`:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-trim/scripts/trim.py path/to/audio_or_folder
+.dependency/python/python.exe .ai/audio-trim/trim.py --audio path/to/audio.wav
+```
+
+Custom threshold:
+
+```bash
+.dependency/python/python.exe .ai/audio-trim/trim.py --audio audio/sfx.wav -t -45
 ```
 
 ## Thresholds
@@ -29,17 +35,17 @@ Default: threshold **-50 dB**, both sides, output to `trimmed/`:
 
 ## Common Flags
 
-`-t` (threshold dB) · `--no-start` · `--no-end` · `-r` · `-o` / `--output-dir` · `--dry-run` · `--overwrite`
+`--audio` · `-t` / `--threshold` · `-o` / `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-trim/scripts/trim.py Audio/SFX -t -50 --no-end -r --dry-run
+.dependency/python/python.exe .ai/audio-trim/trim.py --audio audio/sfx.wav -t -50
 ```
 
-Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
+Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
 
 ## Agent Notes
 
 1. Use the bundled script, not ad-hoc `-ss`/`-to`.
-2. **Looping BGM** — avoid batch end-trim; can break loop seams.
-3. Attack or reverb cut off → raise `-t` or use `--no-end`.
+2. **Looping BGM** — avoid end-trim; can break loop seams. Skip this skill or trim manually.
+3. Attack or reverb cut off → raise `-t` (e.g. `-45` or `-40`).
 4. FFmpeg filter details: [reference.md](reference.md)

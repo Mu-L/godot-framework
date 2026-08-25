@@ -43,7 +43,7 @@ Or time-based cut:
 ffmpeg -ss 0.05 -to 1.2 -i input.wav -c copy -y output.wav
 ```
 
-Prefer `silenceremove` for batch folders; use `atrim` or `-ss`/`-to` for single files with known boundaries.
+Prefer `silenceremove` for automated silence trimming; use `atrim` or `-ss`/`-to` when boundaries are known.
 
 ## Category Guidance
 
