@@ -7,7 +7,6 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import wave
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -15,21 +14,16 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import split  # noqa: E402
+from common.audio_utils import get_duration  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 SPLIT_SCRIPT = SCRIPT_DIR / "split.py"
-
-
-def write_silent_wav(path: Path, duration_seconds: int = 2) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "w") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b"\x00\x00" * 44100 * duration_seconds)
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
+DURATION_TOLERANCE_SECONDS = 0.05
 
 
 class SplitLogicTest(unittest.TestCase):
@@ -73,6 +67,31 @@ class SplitCliTest(unittest.TestCase):
             cwd=str(REPO_ROOT),
         )
 
+    def assert_split_durations(
+        self, source: Path, part1: Path, part2: Path
+    ) -> None:
+        ffmpeg = resolve_ffmpeg(SPLIT_SCRIPT)
+        ffprobe = resolve_ffprobe(ffmpeg)
+        source_duration = get_duration(ffprobe, source)
+        part1_duration = get_duration(ffprobe, part1)
+        part2_duration = get_duration(ffprobe, part2)
+        total_duration = part1_duration + part2_duration
+        print(
+            f"duration: {source_duration:.3f}s -> "
+            f"{part1_duration:.3f}s + {part2_duration:.3f}s = {total_duration:.3f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+        self.assertAlmostEqual(
+            total_duration,
+            source_duration,
+            delta=DURATION_TOLERANCE_SECONDS,
+            msg=(
+                f"split parts total {total_duration:.3f}s != source "
+                f"{source_duration:.3f}s"
+            ),
+        )
+
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
@@ -97,29 +116,44 @@ class SplitCliTest(unittest.TestCase):
             self.assertIn("directories are not supported", result.stderr)
 
     def test_splits_wav_at_half(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            wav = root / "tone.wav"
-            write_silent_wav(wav, duration_seconds=2)
+            wav = root / SAMPLE_AUDIO.name
+            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
             result = self.run_cli("--audio", str(wav))
             self.assertEqual(result.returncode, 0, result.stderr)
-            part1 = root / "audio-split" / "tone_part1.wav"
-            part2 = root / "audio-split" / "tone_part2.wav"
+            part1 = root / "audio-split" / f"{SAMPLE_AUDIO.stem}_part1{SAMPLE_AUDIO.suffix}"
+            part2 = root / "audio-split" / f"{SAMPLE_AUDIO.stem}_part2{SAMPLE_AUDIO.suffix}"
             self.assertTrue(part1.is_file())
             self.assertTrue(part2.is_file())
             self.assertGreater(part1.stat().st_size, 0)
             self.assertGreater(part2.stat().st_size, 0)
+            self.assert_split_durations(wav, part1, part2)
 
     def test_custom_output_dir(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            wav = root / "tone.wav"
             out_dir = root / "out"
-            write_silent_wav(wav, duration_seconds=2)
-            result = self.run_cli("--audio", str(wav), "--output", str(out_dir))
+            part1 = out_dir / f"{SAMPLE_AUDIO.stem}_part1{SAMPLE_AUDIO.suffix}"
+            part2 = out_dir / f"{SAMPLE_AUDIO.stem}_part2{SAMPLE_AUDIO.suffix}"
+            result = self.run_cli(
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--output",
+                str(out_dir),
+            )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue((out_dir / "tone_part1.wav").is_file())
-            self.assertTrue((out_dir / "tone_part2.wav").is_file())
+            self.assertTrue(part1.is_file())
+            self.assertTrue(part2.is_file())
+            self.assertGreater(part1.stat().st_size, 0)
+            self.assertGreater(part2.stat().st_size, 0)
+            self.assert_split_durations(SAMPLE_AUDIO, part1, part2)
 
 
 if __name__ == "__main__":
