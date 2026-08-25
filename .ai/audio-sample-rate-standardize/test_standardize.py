@@ -18,6 +18,7 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from common.audio_utils import audio_output_name  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 import standardize  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
@@ -25,6 +26,7 @@ REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 STANDARDIZE_SCRIPT = SCRIPT_DIR / "standardize.py"
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
 
 
 class SampleRateRuleTest(unittest.TestCase):
@@ -65,6 +67,25 @@ class StandardizeCliTest(unittest.TestCase):
             cwd=str(REPO_ROOT),
         )
 
+    def assert_standardized_sample_rate(self, source: Path, output: Path) -> None:
+        ffmpeg = resolve_ffmpeg(STANDARDIZE_SCRIPT)
+        ffprobe = resolve_ffprobe(ffmpeg)
+        source_rate = standardize.probe_sample_rate(ffprobe, source)
+        expected_rate = standardize.resolve_output_sample_rate(source_rate)
+        output_rate = standardize.probe_sample_rate(ffprobe, output)
+        print(
+            f"sample rate: {source_rate} Hz -> {output_rate} Hz "
+            f"(expected {expected_rate} Hz)",
+            file=sys.stderr,
+            flush=True,
+        )
+        self.assertIsNotNone(output_rate, f"Could not read sample rate from: {output}")
+        self.assertEqual(
+            output_rate,
+            expected_rate,
+            f"expected {expected_rate} Hz (from source {source_rate} Hz), got {output_rate} Hz",
+        )
+
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
@@ -86,29 +107,37 @@ class StandardizeCliTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("directories are not supported", result.stderr)
 
-    def test_standardizes_single_file(self) -> None:
-        source = REPO_ROOT / ".ai" / "test" / "audio" / "han.wav"
-        self.assertTrue(source.is_file(), f"Missing fixture: {source}")
+    def test_writes_standardized_wav(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
-            out_dir = Path(tmp) / "out"
-            result = self.run_cli("--audio", str(source), "--output", str(out_dir))
+            out_file = Path(tmp) / "test.wav"
+            result = self.run_cli(
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--output",
+                str(out_file),
+            )
             self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = out_dir / "han.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
+            self.assert_standardized_sample_rate(SAMPLE_AUDIO, out_file)
 
     def test_default_output_path(self) -> None:
-        source = REPO_ROOT / ".ai" / "test" / "audio" / "han.wav"
-        self.assertTrue(source.is_file(), f"Missing fixture: {source}")
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            wav = root / "han.wav"
-            wav.write_bytes(source.read_bytes())
+            wav = root / SAMPLE_AUDIO.name
+            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
             result = self.run_cli("--audio", str(wav))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out_file = root / "audio-sample-rate-standardize" / "han.wav"
+            out_file = root / "audio-sample-rate-standardize" / SAMPLE_AUDIO.name
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
+            self.assert_standardized_sample_rate(wav, out_file)
 
 
 if __name__ == "__main__":
