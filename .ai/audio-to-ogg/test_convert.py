@@ -7,7 +7,6 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import wave
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -15,21 +14,14 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import convert  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 CONVERT_SCRIPT = SCRIPT_DIR / "convert.py"
-
-
-def write_silent_wav(path: Path, duration_seconds: int = 1) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "w") as wav:
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b"\x00\x00" * 44100 * duration_seconds)
+SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
 
 
 class ConvertLogicTest(unittest.TestCase):
@@ -58,6 +50,31 @@ class ConvertCliTest(unittest.TestCase):
             cwd=str(REPO_ROOT),
         )
 
+    def assert_ogg_vorbis(self, source: Path, output: Path) -> None:
+        ffmpeg = resolve_ffmpeg(CONVERT_SCRIPT)
+        ffprobe = resolve_ffprobe(ffmpeg)
+        source_probe = convert.probe_audio(ffprobe, source)
+        output_probe = convert.probe_audio(ffprobe, output)
+
+        self.assertTrue(source_probe, f"Could not probe source audio: {source}")
+        self.assertTrue(output_probe, f"Could not probe output audio: {output}")
+        self.assertEqual(output.suffix.lower(), ".ogg")
+        self.assertEqual(
+            output_probe.get("codec"),
+            "vorbis",
+            f"expected Vorbis codec, got {output_probe.get('codec')!r}",
+        )
+        self.assertEqual(
+            output_probe.get("sample_rate"),
+            source_probe.get("sample_rate"),
+            "output sample rate should match source",
+        )
+        self.assertEqual(
+            output_probe.get("channels"),
+            source_probe.get("channels"),
+            "output channel count should match source",
+        )
+
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
@@ -82,25 +99,37 @@ class ConvertCliTest(unittest.TestCase):
             self.assertIn("directories are not supported", result.stderr)
 
     def test_converts_wav_to_ogg(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            wav = root / "tone.wav"
-            write_silent_wav(wav)
+            wav = root / SAMPLE_AUDIO.name
+            wav.write_bytes(SAMPLE_AUDIO.read_bytes())
             result = self.run_cli("--audio", str(wav))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out = root / "audio-to-ogg" / "tone.ogg"
+            out = root / "audio-to-ogg" / "han.ogg"
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
+            self.assert_ogg_vorbis(wav, out)
 
     def test_custom_output_file(self) -> None:
+        if not SAMPLE_AUDIO.is_file():
+            self.skipTest("sample audio missing")
+
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            wav = root / "tone.wav"
-            out = root / "custom.ogg"
-            write_silent_wav(wav)
-            result = self.run_cli("--audio", str(wav), "--output", str(out))
+            out = Path(tmp) / "test.ogg"
+            result = self.run_cli(
+                "--audio",
+                str(SAMPLE_AUDIO),
+                "--output",
+                str(out),
+            )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(out.is_file())
+            self.assertGreater(out.stat().st_size, 0)
+            self.assert_ogg_vorbis(SAMPLE_AUDIO, out)
+
 
 if __name__ == "__main__":
     raise SystemExit(unittest.main())
