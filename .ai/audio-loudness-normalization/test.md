@@ -6,20 +6,20 @@ unit tests:
 .dependency/python/python.exe .ai/audio-loudness-normalization/test_normalize.py
 ```
 
-Manual CLI (default output: `<input-path>/audio-loudness-normalization/`):
+Manual CLI (default output: `<audio-dir>/audio-loudness-normalization/<audio-name>`):
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py .ai/test/audio/han.wav
+.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio .ai/test/audio/han.wav
 ```
 
-Batch folder with custom LUFS:
+Custom LUFS:
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py .ai/test/audio -t -14
+.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio .ai/test/audio/han.wav -t -16
 ```
 
-Custom output directory:
+Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py .ai/test/audio/han.wav -o .ai/test/loudness
+.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio .ai/test/audio/han.wav -output .ai/test/loudness
 ```

@@ -63,26 +63,46 @@ class NormalizeCliTest(unittest.TestCase):
     def test_help(self) -> None:
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
+        self.assertIn("--audio", result.stdout)
         self.assertIn("--target-lufs", result.stdout)
-        self.assertIn("--output-dir", result.stdout)
+        self.assertIn("-output", result.stdout)
 
-    def test_missing_input(self) -> None:
+    def test_missing_audio(self) -> None:
         result = self.run_cli()
         self.assertNotEqual(result.returncode, 0)
 
-    def test_input_not_found(self) -> None:
-        result = self.run_cli("missing-no-such-path")
+    def test_audio_not_found(self) -> None:
+        result = self.run_cli("--audio", "missing-no-such.wav")
         self.assertEqual(result.returncode, 1)
-        self.assertIn("Input path not found", result.stderr)
+        self.assertIn("Audio file not found", result.stderr)
+
+    def test_rejects_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            result = self.run_cli("--audio", tmp)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("directories are not supported", result.stderr)
 
     def test_normalizes_single_wav(self) -> None:
         source = REPO_ROOT / ".ai" / "test" / "audio" / "han.wav"
         self.assertTrue(source.is_file(), f"Missing fixture: {source}")
         with tempfile.TemporaryDirectory() as tmp:
             out_dir = Path(tmp) / "out"
-            result = self.run_cli(str(source), "-o", str(out_dir))
+            result = self.run_cli("--audio", str(source), "-output", str(out_dir))
             self.assertEqual(result.returncode, 0, result.stderr)
             out_file = out_dir / "han.wav"
+            self.assertTrue(out_file.is_file())
+            self.assertGreater(out_file.stat().st_size, 0)
+
+    def test_default_output_path(self) -> None:
+        source = REPO_ROOT / ".ai" / "test" / "audio" / "han.wav"
+        self.assertTrue(source.is_file(), f"Missing fixture: {source}")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            wav = root / "han.wav"
+            wav.write_bytes(source.read_bytes())
+            result = self.run_cli("--audio", str(wav))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            out_file = root / "audio-loudness-normalization" / "han.wav"
             self.assertTrue(out_file.is_file())
             self.assertGreater(out_file.stat().st_size, 0)
 

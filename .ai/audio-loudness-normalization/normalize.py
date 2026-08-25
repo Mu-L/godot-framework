@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Batch loudness-normalize audio files to a target LUFS using FFmpeg two-pass loudnorm.
+Loudness-normalize a single audio file to a target LUFS using FFmpeg two-pass loudnorm.
 
 Run through default python from .dependency/manifest.json.
 Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py path/to/audio_or_folder
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py Audio/SFX -t -14
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py audio/sfx/click.wav -o path/to/out_dir
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -t -16
+    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -output path/to/out.wav
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import find_audio_files, relative_audio_path  # noqa: E402
+from common.audio_utils import resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
@@ -76,29 +76,6 @@ def probe_sample_rate(ffprobe: Path, file_path: Path) -> int:
     if rate <= 0:
         raise RuntimeError(f"Missing sample rate for: {file_path}")
     return rate
-
-
-def filter_output_files(files: list[Path], output_dir: Path) -> list[Path]:
-    out = output_dir.resolve()
-    kept: list[Path] = []
-    for file_path in files:
-        try:
-            file_path.resolve().relative_to(out)
-        except ValueError:
-            kept.append(file_path)
-    return kept
-
-
-def find_source_collisions(
-    files: list[Path], input_root: Path, output_dir: Path
-) -> list[tuple[Path, Path]]:
-    collisions: list[tuple[Path, Path]] = []
-    for file_path in files:
-        rel = relative_audio_path(file_path, input_root)
-        out_path = output_dir / rel
-        if out_path.resolve() == file_path.resolve():
-            collisions.append((file_path, out_path))
-    return collisions
 
 
 def build_loudnorm_filter(
@@ -191,11 +168,14 @@ def normalize_file(
 
 
 def parse_args() -> argparse.Namespace:
-    default_out_help = format_default_output_dir_help(DEFAULT_OUTPUT_SUBDIR)
     parser = argparse.ArgumentParser(
-        description="Batch loudness-normalize audio files to a target LUFS."
+        description="Loudness-normalize a single audio file to a target LUFS."
     )
-    parser.add_argument("input", help="Path to a single audio file or directory")
+    parser.add_argument(
+        "--audio",
+        required=True,
+        help="Path to a single audio file",
+    )
     parser.add_argument(
         "-t",
         "--target-lufs",
@@ -204,12 +184,12 @@ def parse_args() -> argparse.Namespace:
         help=f"Target integrated loudness in LUFS (default: {DEFAULT_TARGET_LUFS:g})",
     )
     parser.add_argument(
-        "-o",
-        "--output-dir",
+        "-output",
+        dest="output",
         default="",
         help=(
-            "Output directory (must not overwrite sources; "
-            f"default: {default_out_help})"
+            "Output audio file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}"
         ),
     )
     return parser.parse_args()
@@ -220,85 +200,51 @@ def main() -> int:
     ffmpeg = resolve_ffmpeg(Path(__file__))
     ffprobe = resolve_ffprobe(ffmpeg)
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
+    audio_path = resolve_audio_file(args.audio)
+    if audio_path is None:
         return 1
 
-    input_path = input_path.resolve()
-    files = find_audio_files(input_path, recurse=True)
-    if not files:
-        print(f"No supported audio files found under: {args.input}")
-        return 0
-
-    input_root = input_path.parent if input_path.is_file() else input_path
-    output_dir = resolve_output_dir(
-        args.output_dir,
-        input_root,
+    out_path = resolve_output_path(
+        args.output,
+        audio_path,
         output_subdir=DEFAULT_OUTPUT_SUBDIR,
+        output_name=audio_path.name,
     )
-
-    initial_count = len(files)
-    files = filter_output_files(files, output_dir)
-    if not files:
-        if initial_count:
-            print(
-                "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory "
-                f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
-                file=sys.stderr,
-            )
-            return 1
-        print(f"No supported audio files found under: {args.input}")
-        return 0
-
-    collisions = find_source_collisions(files, input_root, output_dir)
-    if collisions:
+    if out_path.resolve() == audio_path.resolve():
         print(
-            "Refusing to overwrite source files. Use a separate output directory "
-            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
+            "Refusing to overwrite source file. Use a separate output path "
+            f"(default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}).",
             file=sys.stderr,
         )
-        for source, dest in collisions:
-            print(f"  {source} -> {dest}", file=sys.stderr)
         return 1
 
-    print(f"Input:       {args.input}")
-    print(f"Files:       {len(files)}")
+    print(f"Audio:       {audio_path}")
     print(f"Target LUFS: {args.target_lufs}")
     print(f"True Peak:   {DEFAULT_TRUE_PEAK} dBTP")
     print(f"Sample rate: preserve source")
-    print(f"Output:      {output_dir}")
+    print(f"Output:      {out_path}")
     print()
 
-    ok = 0
-    fail = 0
-
-    for file_path in files:
-        rel = relative_audio_path(file_path, input_root)
-        out_path = output_dir / rel
-
-        try:
-            print(f"[run]  {rel}")
-            sample_rate = probe_sample_rate(ffprobe, file_path)
-            measured = measure_loudnorm(ffmpeg, file_path, args.target_lufs)
-            normalize_file(
-                ffmpeg,
-                file_path,
-                out_path,
-                args.target_lufs,
-                sample_rate,
-                measured,
-            )
-            ok += 1
-        except (RuntimeError, FileNotFoundError) as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
+    try:
+        print(f"[run]  {audio_path.name}")
+        sample_rate = probe_sample_rate(ffprobe, audio_path)
+        measured = measure_loudnorm(ffmpeg, audio_path, args.target_lufs)
+        normalize_file(
+            ffmpeg,
+            audio_path,
+            out_path,
+            args.target_lufs,
+            sample_rate,
+            measured,
+        )
+    except RuntimeError as exc:
+        print(f"[fail] {audio_path.name}")
+        print(exc)
+        return 1
 
     print()
-    print(f"Done. processed={ok} failed={fail}")
-    return 1 if fail else 0
+    print(f"Done. wrote {out_path}")
+    return 0
 
 
 if __name__ == "__main__":
