@@ -1,6 +1,6 @@
 # audio-denoise
 
-From the repository root, run unit tests:
+unit tests:
 
 ```bash
 .dependency/python/python.exe .ai/audio-denoise/test_denoise.py
@@ -9,11 +9,11 @@ From the repository root, run unit tests:
 Manual CLI (default output: `<audio-dir>/audio-denoise/<audio-name>`):
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav
+.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/zhu_ba_jie.wav
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav --output path/to/out.wav
+.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio .ai/test/zhu_ba_jie.wav --output .ai/test/denoise
 ```

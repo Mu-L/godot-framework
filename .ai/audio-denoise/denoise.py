@@ -22,30 +22,12 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import AUDIO_EXTENSIONS  # noqa: E402
+from common.audio_utils import resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
 
 DEFAULT_OUTPUT_SUBDIR = "audio-denoise"
-
-
-def resolve_audio_file(raw: str) -> Path | None:
-    path = Path(raw).expanduser()
-    if not path.exists():
-        print(f"Audio file not found: {raw}", file=sys.stderr)
-        return None
-    path = path.resolve()
-    if not path.is_file():
-        print(
-            f"Not an audio file (directories are not supported): {raw}",
-            file=sys.stderr,
-        )
-        return None
-    if path.suffix.lower() not in AUDIO_EXTENSIONS:
-        print(f"Not a supported audio file: {path}", file=sys.stderr)
-        return None
-    return path
 
 
 def build_filter(nr: float, nf: float) -> str:

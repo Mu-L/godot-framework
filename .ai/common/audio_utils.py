@@ -8,6 +8,25 @@ from pathlib import Path
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
 
 
+def resolve_audio_file(raw: str) -> Path | None:
+    """Resolve a single audio file path, or print an error and return None."""
+    path = Path(raw).expanduser()
+    if not path.exists():
+        print(f"Audio file not found: {raw}", file=sys.stderr)
+        return None
+    path = path.resolve()
+    if not path.is_file():
+        print(
+            f"Not an audio file (directories are not supported): {raw}",
+            file=sys.stderr,
+        )
+        return None
+    if path.suffix.lower() not in AUDIO_EXTENSIONS:
+        print(f"Not a supported audio file: {path}", file=sys.stderr)
+        return None
+    return path
+
+
 def find_audio_files(path: Path, recurse: bool = False) -> list[Path]:
     """Find supported audio files at a path, optionally recursing directories."""
     if path.is_file():
