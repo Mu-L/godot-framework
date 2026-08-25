@@ -5,30 +5,23 @@
 Per file, the script probes with `ffprobe` then builds:
 
 ```bash
-# Lossless or lossy source — preserve rate, Vorbis q=6
-ffmpeg -i input.wav -c:a libvorbis -q:a 6 output.ogg
+# Lossless or lossy source — preserve rate, Vorbis q=10
+ffmpeg -i input.wav -c:a libvorbis -q:a 10 output.ogg
 
 # Already Vorbis OGG — stream copy (no generation loss)
 ffmpeg -i input.ogg -c:a copy output.ogg
 ```
 
-## Optional Resample
-
-Use only when the user wants a project-standard batch:
-
-```bash
-ffmpeg -i input.wav -ar 48000 -c:a libvorbis -q:a 6 output.ogg
-# or: --standardize
-```
+## Flags
 
 | Flag | Effect |
 |------|--------|
-| (default) | Preserve sample rate, Vorbis q=6 |
+| (default) | Preserve sample rate, Vorbis q=10 |
+| `-q 6` | Balanced quality (~192 kbps) |
 | `-q 4` | Lower quality (~128 kbps) |
-| `-q 8` | Higher quality (~256 kbps) |
-| `-s 48000` | Force resample |
-| `--standardize` | Shorthand for 48 kHz |
 | `--mono` / `--stereo` | Force channel layout |
+
+Sample rate is always preserved. For resampling, use the `audio-sample-rate-standardize` skill first.
 
 ## Vorbis Quality Scale
 
@@ -53,13 +46,13 @@ Actual bitrate varies by content (VBR).
 
 ## Output Layout
 
-For `Audio/SFX/click.wav` with default output dir:
+For `Audio/SFX/click.wav` with default output:
 
 ```
-Audio/SFX/ogg/click.ogg
+Audio/SFX/audio-to-ogg/click.ogg
 ```
 
-Batch with `-r` preserves subdirectory structure under the output root.
+Pass `--output` for an explicit file or directory.
 
 ## Godot Notes
 

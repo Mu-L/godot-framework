@@ -5,7 +5,7 @@ description: Converts audio files to OGG Vorbis using FFmpeg for Godot-ready com
 
 # Audio to OGG
 
-Convert supported audio formats to **OGG Vorbis** via FFmpeg. **Defaults preserve source sample rate** and encode at **Vorbis quality 6** — a balanced preset for game SFX and BGM.
+Convert a supported audio file to **OGG Vorbis** via FFmpeg. **Defaults preserve source sample rate** and encode at **Vorbis quality 10** (maximum) for minimal generation loss.
 
 ## Rules
 
@@ -13,27 +13,21 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ## Quick Start
 
-Convert a file or folder, output to `ogg/`:
+Default output: `<audio-dir>/audio-to-ogg/<basename>.ogg`
 
 ```bash
-.dependency/python/python .cursor/skills/audio-to-ogg/scripts/convert.py path/to/audio_or_folder
+.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav
 ```
 
-Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/ogg/tank_move.ogg`
-
-Batch with subfolders:
-
-```bash
-.dependency/python/python .cursor/skills/audio-to-ogg/scripts/convert.py Audio/SFX -r
-```
+Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-to-ogg/tank_move.ogg`
 
 ## Format Defaults
 
 | Setting | Default | Notes |
 |---------|---------|-------|
 | Codec | OGG Vorbis (`libvorbis`) | Godot-native compressed format |
-| Sample rate | Preserve source | No resampling unless `-s` or `--standardize` |
-| Quality | `6` (`-q 6`) | ~192 kbps VBR; use `-q` to adjust |
+| Sample rate | Preserve source | Always keeps source rate; no resampling |
+| Quality | `10` (`-q 10`) | Maximum Vorbis quality (~500 kbps VBR); use lower `-q` to shrink files |
 | Channels | Preserve source | Use `--mono` or `--stereo` to force |
 | Existing Vorbis OGG | Stream copy | Bit-perfect when no overrides |
 
@@ -41,35 +35,44 @@ Batch with subfolders:
 
 | `-q` | Approx. bitrate | Typical use |
 |------|-----------------|-------------|
+| 10 | ~500 kbps | **Default** — highest fidelity |
+| 7–8 | ~224–256 kbps | Smaller music/voice exports |
+| 5–6 | ~160–192 kbps | Gameplay SFX, BGM |
 | 3–4 | ~96–128 kbps | Short UI clicks, ambient loops |
-| 5–6 | ~160–192 kbps | Gameplay SFX, BGM (default) |
-| 7–8 | ~224–256 kbps | Music masters, voice dialogue |
-| 9–10 | ~320–500 kbps | Archival; rarely needed in games |
 
 ## Common Flags
 
-`-r` · `-o` / `--output-dir` · `-s` / `--sample-rate` · `-q` / `--quality` · `--standardize` · `--mono` · `--stereo` · `--dry-run` · `--overwrite`
-
-Project batch preset (48 kHz Vorbis):
-
-```bash
-.dependency/python/python .cursor/skills/audio-to-ogg/scripts/convert.py Audio/SFX -r --standardize
-```
+`--audio` · `-o` / `--output` · `-q` / `--quality` · `--mono` · `--stereo`
 
 Lower quality for UI sounds:
 
 ```bash
-.dependency/python/python .cursor/skills/audio-to-ogg/scripts/convert.py Audio/UI -q 4 --dry-run
+.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/click.wav -q 4
 ```
 
-**Never overwrite source files.** The script writes only to `ogg/` (or `-o`). Supported inputs: `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`, `.wav`.
+Custom output path:
+
+```bash
+.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav --output path/to/out.ogg
+```
+
+**Never overwrite source files.** The script writes only under `audio-to-ogg/` (or `--output`). Input must be a single audio file (`--audio`), not a directory. Supported inputs: `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`, `.wav`.
 
 ## Agent Notes
 
 1. Use the bundled script, not hand-written `ffmpeg -i …` commands.
-2. **Do not resample** unless the user explicitly asks — omit `-s` and `--standardize`.
+2. **Sample rate is always preserved** — use the `audio-sample-rate-standardize` skill if resampling is needed.
 3. **Already Vorbis OGG?** Stream-copied by default (no generation loss).
 4. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-5. **Do not copy, move, or replace the source with converted output** — tell the user where `ogg/` files are; they swap assets manually when ready.
-6. Need **48 kHz project batch** → pass `--standardize`.
-7. FFmpeg codec and quality details: [reference.md](reference.md)
+5. **Do not copy, move, or replace the source with converted output** — tell the user where output files are; they swap assets manually when ready.
+6. FFmpeg codec and quality details: [reference.md](reference.md)
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python.exe .ai/audio-to-ogg/test_convert.py
+```
+
+Manual CLI examples: [.ai/audio-to-ogg/test.md](../../../.ai/audio-to-ogg/test.md)
