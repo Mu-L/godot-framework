@@ -23,7 +23,7 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.cli_tools import read_image_size, resolve_magick  # noqa: E402
+from common.cli_tools import resolve_magick  # noqa: E402
 from common.image_utils import image_output_name, resolve_image_file  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
@@ -163,15 +163,8 @@ def main() -> int:
     magick = resolve_magick(Path(__file__))
     mode_desc = describe_mode(args.mode, args.width, args.height)
 
-    try:
-        before_w, before_h = read_image_size(magick, image_path)
-    except RuntimeError as exc:
-        print(exc, file=sys.stderr)
-        return 1
-
     print(f"Image:  {image_path}")
-    print(f"Before: {before_w}x{before_h}")
-    print(f"Target: {args.width}x{args.height}")
+    print(f"Size:   {args.width}x{args.height}")
     print(f"Mode:   {mode_desc}")
     print(f"Output: {out_path}")
     print()
@@ -186,15 +179,13 @@ def main() -> int:
             args.height,
             args.mode,
         )
-        after_w, after_h = read_image_size(magick, out_path)
     except RuntimeError as exc:
         print(f"[fail] {out_path.name}")
         print(exc)
         return 1
 
-    print(f"After:  {after_w}x{after_h}")
     print()
-    print(f"Done. wrote {out_path.name} ({before_w}x{before_h} -> {after_w}x{after_h})")
+    print(f"Done. wrote {out_path.name}")
     return 0
 
 

@@ -3,7 +3,7 @@ name: image-remove-background
 description: >-
   Removes image backgrounds and exports transparent PNGs using rembg (U2Net / BiRefNet).
   Use when the user wants background removal, matting, cutout, 抠图, transparent sprites,
-  alpha PNG export, or batch-remove backgrounds from game/UI assets.
+  alpha PNG export, or remove background from a game/UI asset.
 ---
 
 # Image Remove Background (rembg)
@@ -16,22 +16,24 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 - Run `remove_background.py` through the **`rembg` manifest entry** (`.dependency/rembg/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write `rembg i` / `rembg p` — use the bundled script.
+- **Single file only.** Pass one image with `--image`; directories are not supported.
 - `populated: false` for `rembg` is not a reason to skip. Install first, set `populated: true`, retry the same command.
-- Pass the input path as-is (chat attachment path, `Downloads/foo.png`, project folder, etc.). Output goes to `<input>/transparent/` by default — no path rewriting.
+- Pass the input path as-is (chat attachment path, `Downloads/foo.png`, project folder, etc.). Output goes to `<image-dir>/image-remove-background/` by default — no path rewriting.
+- **Never overwrite source files.** Output lands in `image-remove-background/` or `--output`.
 
 ## Setup (first run)
 
 From project root:
 
 ```bash
-.dependency/python/python -m venv .dependency/rembg/.venv
-.dependency/rembg/.venv/Scripts/python -m pip install "rembg[cpu]"
+.dependency/python/python.exe -m venv .dependency/rembg/.venv
+.dependency/rembg/.venv/Scripts/python.exe -m pip install "rembg[cpu]"
 ```
 
-GPU (CUDA) — faster batch processing:
+GPU (CUDA) — faster processing:
 
 ```bash
-.dependency/rembg/.venv/Scripts/python -m pip install "rembg[gpu]"
+.dependency/rembg/.venv/Scripts/python.exe -m pip install "rembg[gpu]"
 ```
 
 Register in `.dependency/manifest.json`:
@@ -47,22 +49,17 @@ Use `bin/python` on Unix. Model weights download on first run (~hundreds of MB).
 
 ## Quick Start
 
-**Default: create a `transparent/` folder under the input path** and write outputs there (never overwrites sources):
+**Default: create an `image-remove-background/` folder beside the input file** and write the PNG there (never overwrites sources):
 
 ```bash
-# Single file → image/sprites/transparent/hero.png
-.dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/sprites/hero.png
-
-# Directory batch → image/sprites/hero/transparent/<relative-path>.png
-.dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/sprites/hero -r
-# e.g. image/sprites/hero/sub/foo.png → image/sprites/hero/transparent/sub/foo.png
+# image/sprites/hero.png → image/sprites/image-remove-background/hero.png
+.dependency/rembg/.venv/Scripts/python.exe .ai/image-remove-background/remove_background.py --image image/sprites/hero.png
 ```
 
-Custom output directory:
+Custom output path:
 
 ```bash
-.dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/sprites/hero \
-  --output-dir image/sprites/hero_cutout
+.dependency/rembg/.venv/Scripts/python.exe .ai/image-remove-background/remove_background.py --image image/sprites/hero.png -o image/sprites/hero_cutout
 ```
 
 ## Model selection
@@ -77,8 +74,7 @@ Custom output directory:
 | `u2net_human_seg` | Human figures only |
 
 ```bash
-.dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/characters \
-  --model birefnet-portrait --output-dir image/characters_cutout
+.dependency/rembg/.venv/Scripts/python.exe .ai/image-remove-background/remove_background.py --image image/character.png --model birefnet-portrait
 ```
 
 ## Edge quality (alpha matting)
@@ -86,36 +82,45 @@ Custom output directory:
 For hair, fur, or soft edges, enable alpha matting:
 
 ```bash
-.dependency/rembg/.venv/Scripts/python .cursor/skills/image-remove-background/scripts/remove_background.py image/portrait.png \
-  --alpha-matting --output-dir image/portrait_cutout
+.dependency/rembg/.venv/Scripts/python.exe .ai/image-remove-background/remove_background.py --image image/portrait.png --alpha-matting
 ```
 
 ## Defaults
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| Output | `<input-path>/transparent/` | Folder is auto-created under the file or directory you pass; use `--output-dir` for a custom path |
+| `--image` | **Required** | Single supported image file |
+| Output | `<image-dir>/image-remove-background/<name>.png` | Use `-o` / `--output` for custom file or directory |
 | `--model` | `u2net` | See table above |
-| `--pattern` | `*.png` | Also matches `.jpg`, `.jpeg`, `.webp` |
 | `--alpha-matting` | off | Enable for fine edge detail |
 | `--crop` | off | Trim transparent borders after matting |
-| Overwrite | off | Pass `--overwrite` to replace existing outputs |
 
-## Agent workflow
+Supported inputs: `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`, `.avif`, `.ico`.
 
-1. **Paths** — Pass whatever path the user gives or the chat `<image_files>` path directly. Output lands in `transparent/` next to that input.
-2. **Trial first** — run on 1 image, inspect the `transparent/` or `--output-dir` result before batch.
+## Agent Workflow
+
+1. **Paths** — Pass whatever image path the user gives or the chat `<image_files>` path directly. Output lands in `image-remove-background/` next to that file by default.
+2. **One file per run** — process one image, verify the result, then repeat for additional files if needed.
 3. **Pick model** — `u2net` for generic assets; `birefnet-portrait` for characters; `birefnet-general` when quality matters.
 4. **Soft edges** — try `--alpha-matting` if halos or jagged hair/fur appear.
-5. **Sprite sheets** — skip `*_sheet.png` by default; process individual frames unless the user asks otherwise.
-6. **Already transparent** — script still runs; rembg re-mats from visible RGB. Warn user if source already has alpha.
-7. **Revert** — delete output folder or `git restore` if needed; sources are never modified.
+5. **Already transparent** — script still runs; rembg re-mats from visible RGB. Warn user if source already has alpha.
+6. **Revert** — delete output file or `git restore` if needed; sources are never modified.
+
+## Agent Notes
+
+1. Use the bundled script, not hand-written `rembg` CLI commands.
+2. Missing rembg venv → populate `.dependency/` per skill-dependency-manager, retry same command.
+3. **Do not copy, move, or replace the source with cutout output** — tell the user where the output file is.
+4. Flat white/green/magenta AI backgrounds → prefer [image-remove-white-background](../image-remove-white-background/SKILL.md) over rembg.
+5. Need **trim borders** after matting → [image-trim](../image-trim/SKILL.md).
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | `rembg` missing | Follow **Setup**; update manifest |
+| Directory passed to `--image` | Run once per file; this skill accepts image files only |
+| Output already exists | Delete the existing output or choose a different `-o` path |
 | Very slow | Install `rembg[gpu]`; try `--model u2netp` |
 | Jagged edges | `--alpha-matting` |
 | Wrong subject removed | Switch model; try `birefnet-general` |

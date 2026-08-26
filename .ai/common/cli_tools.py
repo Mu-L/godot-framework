@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
@@ -33,28 +32,6 @@ def resolve_magick(script_path: Path) -> Path:
         )
         sys.exit(1)
     return resolve_tool_bin(repo_root, "imagemagick")
-
-
-def read_image_size(magick: Path, image_path: Path) -> tuple[int, int]:
-    """Return image width and height in pixels via ImageMagick identify."""
-    result = subprocess.run(
-        [str(magick), "identify", "-format", "%wx%h", str(image_path)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(
-            f"Could not read image size for: {image_path}"
-            + (f"\n{detail}" if detail else "")
-        )
-    width_text, _, height_text = result.stdout.partition("x")
-    try:
-        return int(width_text), int(height_text)
-    except ValueError as exc:
-        raise RuntimeError(f"Invalid image size for: {image_path}") from exc
 
 
 def resolve_ffprobe(ffmpeg: Path) -> Path:

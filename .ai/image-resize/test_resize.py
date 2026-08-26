@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -17,28 +19,17 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import resize  # noqa: E402
-from common.cli_tools import read_image_size, resolve_magick  # noqa: E402
+from common.cli_tools import resolve_magick  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common.image_utils import read_image_size  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 RESIZE_SCRIPT = SCRIPT_DIR / "resize.py"
-SAMPLE_IMAGE = REPO_ROOT / ".ai/test/image/tank1.jpg"
-
-
-def create_test_image(magick: Path, image_path: Path, width: int, height: int) -> None:
-    result = subprocess.run(
-        [str(magick), "-size", f"{width}x{height}", "xc:red", str(image_path)],
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(f"Could not create test image: {image_path}\n{detail}")
+TANK1 = REPO_ROOT / ".ai/test/image/tank1.jpg"
+TANK2 = REPO_ROOT / ".ai/test/image/tank2.jpg"
+TANK3 = REPO_ROOT / ".ai/test/image/tank3.jpg"
 
 
 class BuildResizeGeometryTest(unittest.TestCase):
@@ -144,118 +135,112 @@ class ResizeCliTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("positive integers", result.stderr)
 
-    def assert_image_size(
+
+class ResizeOutputSizeTest(unittest.TestCase):
+    size_changes: list[tuple[str, str, str, str]] = []
+    report_order = ("fit square", "fit non-square", "fill", "exact")
+
+    def run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [str(PYTHON_BIN), str(RESIZE_SCRIPT), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(REPO_ROOT),
+        )
+
+    def assert_size_change(
         self,
-        image_path: Path,
+        label: str,
+        src: Path,
+        out: Path,
         expected_width: int,
         expected_height: int,
     ) -> None:
         magick = resolve_magick(RESIZE_SCRIPT)
-        width, height = read_image_size(magick, image_path)
+        before_w, before_h = read_image_size(magick, src)
+        after_w, after_h = read_image_size(magick, out)
+        before = f"{before_w}x{before_h}"
+        after = f"{after_w}x{after_h}"
+        self.__class__.size_changes.append((label, src.name, before, after))
         self.assertEqual(
-            (width, height),
+            (after_w, after_h),
             (expected_width, expected_height),
-            f"expected {expected_width}x{expected_height}, got {width}x{height}",
+            f"expected {expected_width}x{expected_height}, got {after}",
         )
 
-    def test_resize_output_size_fit_square(self) -> None:
-        if not SAMPLE_IMAGE.is_file():
-            self.skipTest("sample image missing")
+    @classmethod
+    def tearDownClass(cls) -> None:
+        if not cls.size_changes:
+            return
+
+        order = {label: index for index, label in enumerate(cls.report_order)}
+        rows = sorted(cls.size_changes, key=lambda item: order.get(item[0], len(order)))
+        label_w = max(len(label) for label, _, _, _ in rows)
+        name_w = max(len(name) for _, name, _, _ in rows)
+
+        lines = ["", "Resize output sizes:"]
+        for label, name, before, after in rows:
+            lines.append(f"  {label:<{label_w}}  {name:<{name_w}}  {before} -> {after}")
+        print("\n".join(lines), file=sys.stderr)
+
+    @contextmanager
+    def resize_sample(
+        self,
+        sample: Path,
+        width: int,
+        height: int,
+        *,
+        mode: str | None = None,
+    ) -> Iterator[tuple[Path, Path, subprocess.CompletedProcess[str]]]:
+        if not sample.is_file():
+            self.skipTest(f"sample image missing: {sample}")
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            src = root / SAMPLE_IMAGE.name
-            src.write_bytes(SAMPLE_IMAGE.read_bytes())
+            src = root / sample.name
+            src.write_bytes(sample.read_bytes())
 
-            result = self.run_cli(
+            args = [
                 "--image",
                 str(src),
                 "--width",
-                "128",
+                str(width),
                 "--height",
-                "128",
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
+                str(height),
+            ]
+            if mode is not None:
+                args.extend(["--mode", mode])
 
-            out = root / "image-resize" / SAMPLE_IMAGE.name
+            result = self.run_cli(*args)
+            out = root / "image-resize" / sample.name
+            yield src, out, result
+
+    def test_resize_output_size_fit_square(self) -> None:
+        with self.resize_sample(TANK1, 128, 128) as (src, out, result):
+            self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
-            self.assertIn("Before: 1024x1024", result.stdout)
-            self.assertIn("After:  128x128", result.stdout)
-            self.assertIn("Done. wrote tank1.jpg (1024x1024 -> 128x128)", result.stdout)
-            self.assert_image_size(out, 128, 128)
+            self.assert_size_change("fit square", src, out, 128, 128)
 
     def test_resize_output_size_fit_non_square(self) -> None:
-        magick = resolve_magick(RESIZE_SCRIPT)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            src = root / "wide.png"
-            create_test_image(magick, src, 200, 100)
-
-            result = self.run_cli(
-                "--image",
-                str(src),
-                "--width",
-                "128",
-                "--height",
-                "128",
-                "--mode",
-                "fit",
-            )
+        with self.resize_sample(TANK2, 128, 64, mode="fit") as (src, out, result):
             self.assertEqual(result.returncode, 0, result.stderr)
-
-            out = root / "image-resize" / "wide.png"
             self.assertTrue(out.is_file())
-            self.assert_image_size(out, 128, 64)
+            self.assert_size_change("fit non-square", src, out, 64, 64)
 
     def test_resize_output_size_fill(self) -> None:
-        magick = resolve_magick(RESIZE_SCRIPT)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            src = root / "wide.png"
-            create_test_image(magick, src, 200, 100)
-
-            result = self.run_cli(
-                "--image",
-                str(src),
-                "--width",
-                "128",
-                "--height",
-                "128",
-                "--mode",
-                "fill",
-            )
+        with self.resize_sample(TANK2, 128, 128, mode="fill") as (src, out, result):
             self.assertEqual(result.returncode, 0, result.stderr)
-
-            out = root / "image-resize" / "wide.png"
             self.assertTrue(out.is_file())
-            self.assert_image_size(out, 128, 128)
+            self.assert_size_change("fill", src, out, 128, 128)
 
     def test_resize_output_size_exact(self) -> None:
-        magick = resolve_magick(RESIZE_SCRIPT)
-
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            src = root / "wide.png"
-            create_test_image(magick, src, 200, 100)
-
-            result = self.run_cli(
-                "--image",
-                str(src),
-                "--width",
-                "128",
-                "--height",
-                "128",
-                "--mode",
-                "exact",
-            )
+        with self.resize_sample(TANK3, 128, 128, mode="exact") as (src, out, result):
             self.assertEqual(result.returncode, 0, result.stderr)
-
-            out = root / "image-resize" / "wide.png"
             self.assertTrue(out.is_file())
-            self.assert_image_size(out, 128, 128)
+            self.assert_size_change("exact", src, out, 128, 128)
 
 
 if __name__ == "__main__":

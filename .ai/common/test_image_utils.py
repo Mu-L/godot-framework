@@ -13,6 +13,12 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from common import image_utils  # noqa: E402
+from common.cli_tools import resolve_magick  # noqa: E402
+from common.dependency_utils import find_repo_root  # noqa: E402
+
+REPO_ROOT = find_repo_root(Path(__file__))
+assert REPO_ROOT is not None
+SAMPLE_IMAGE = REPO_ROOT / ".ai/test/image/tank1.jpg"
 
 
 class RelativeImagePathTest(unittest.TestCase):
@@ -132,6 +138,15 @@ class ResolveImageFileTest(unittest.TestCase):
             path = Path(tmp) / "notes.txt"
             path.write_text("hello", encoding="utf-8")
             self.assertIsNone(image_utils.resolve_image_file(str(path)))
+
+
+class ReadImageSizeTest(unittest.TestCase):
+    def test_reads_sample_image_dimensions(self) -> None:
+        if not SAMPLE_IMAGE.is_file():
+            self.skipTest("sample image missing")
+
+        magick = resolve_magick(Path(__file__))
+        self.assertEqual(image_utils.read_image_size(magick, SAMPLE_IMAGE), (1024, 1024))
 
 
 if __name__ == "__main__":
