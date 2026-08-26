@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Batch resize image files using ImageMagick.
+Resize a single image file using ImageMagick.
 
 Run through default python from .dependency/manifest.json.
 Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/image-resize/resize.py assets/sprites/hero.png --width 128 --height 128
-    .dependency/python/python.exe .ai/image-resize/resize.py assets/textures --width 256 --height 256
-    .dependency/python/python.exe .ai/image-resize/resize.py assets/icons -o assets/icons_64 --width 64 --height 64
+    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
+    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/ui/icon.png --width 64 --height 64 --mode fill
+    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
 """
 
 from __future__ import annotations
@@ -23,10 +23,11 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.cli_tools import resolve_magick  # noqa: E402
-from common.image_utils import filter_output_files, find_image_files, find_source_collisions, relative_image_path, resolve_input_root  # noqa: E402
-from common.output_utils import resolve_output_dir  # noqa: E402
+from common.cli_tools import read_image_size, resolve_magick  # noqa: E402
+from common.image_utils import image_output_name, resolve_image_file  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
 
+DEFAULT_OUTPUT_SUBDIR = "image-resize"
 RESIZE_MODES = ("fit", "fill", "exact")
 
 
@@ -90,9 +91,13 @@ def resize_file(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Batch resize image files using ImageMagick."
+        description="Resize a single image file using ImageMagick."
     )
-    parser.add_argument("input", help="Path to a single image file or directory")
+    parser.add_argument(
+        "--image",
+        required=True,
+        help="Path to a single image file",
+    )
     parser.add_argument(
         "-W",
         "--width",
@@ -117,7 +122,10 @@ def parse_args() -> argparse.Namespace:
         "-o",
         "--output",
         default="",
-        help="Output directory (default: <input>/resized)",
+        help=(
+            "Output image file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}"
+        ),
     )
     return parser.parse_args()
 
@@ -129,85 +137,65 @@ def main() -> int:
         print("Width and height must be positive integers.", file=sys.stderr)
         return 1
 
-    magick = resolve_magick(Path(__file__))
-
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
+    image_path = resolve_image_file(args.image)
+    if image_path is None:
         return 1
 
-    input_path = input_path.resolve()
-    files = find_image_files(input_path)
-    if not files:
-        print(f"No supported image files found under: {args.input}")
-        return 0
-
-    input_root = resolve_input_root(input_path)
-    output_dir = resolve_output_dir(
+    out_path = resolve_output_path(
         args.output,
-        input_root,
-        output_subdir="resized",
+        image_path,
+        DEFAULT_OUTPUT_SUBDIR,
+        image_output_name(image_path),
     )
 
-    initial_count = len(files)
-    files = filter_output_files(files, output_dir)
-    if not files:
-        if initial_count:
-            print(
-                "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: resized/).",
-                file=sys.stderr,
-            )
-            return 1
-        print(f"No supported image files found under: {args.input}")
-        return 0
-
-    collisions = find_source_collisions(files, input_root, output_dir)
-    if collisions:
+    if out_path.resolve() == image_path.resolve():
         print(
-            "Refusing to overwrite source files. Use a separate output directory "
-            "(default: resized/).",
+            "Refusing to overwrite source file. Choose a separate output path "
+            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
             file=sys.stderr,
         )
-        for source, dest in collisions:
-            print(f"  {source} -> {dest}", file=sys.stderr)
         return 1
 
+    if out_path.exists():
+        print(f"Output already exists: {out_path}", file=sys.stderr)
+        return 1
+
+    magick = resolve_magick(Path(__file__))
     mode_desc = describe_mode(args.mode, args.width, args.height)
-    print(f"Input:  {args.input}")
-    print(f"Files:  {len(files)}")
-    print(f"Size:   {args.width}x{args.height}")
+
+    try:
+        before_w, before_h = read_image_size(magick, image_path)
+    except RuntimeError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+
+    print(f"Image:  {image_path}")
+    print(f"Before: {before_w}x{before_h}")
+    print(f"Target: {args.width}x{args.height}")
     print(f"Mode:   {mode_desc}")
-    print(f"Output: {output_dir}")
+    print(f"Output: {out_path}")
     print()
 
-    ok = 0
-    skip = 0
-    fail = 0
+    try:
+        print(f"[run]  {image_path.name} -> {out_path.name} ({mode_desc})")
+        resize_file(
+            magick,
+            image_path,
+            out_path,
+            args.width,
+            args.height,
+            args.mode,
+        )
+        after_w, after_h = read_image_size(magick, out_path)
+    except RuntimeError as exc:
+        print(f"[fail] {out_path.name}")
+        print(exc)
+        return 1
 
-    for file_path in files:
-        rel = relative_image_path(file_path, input_root)
-        out_path = output_dir / rel
-
-        if out_path.exists():
-            print(f"[skip] {rel}")
-            skip += 1
-            continue
-
-        try:
-            print(f"[run]  {rel} -> {rel} ({mode_desc})")
-            resize_file(
-                magick, file_path, out_path, args.width, args.height, args.mode
-            )
-            ok += 1
-        except RuntimeError as exc:
-            print(f"[fail] {rel}")
-            print(exc)
-            fail += 1
-
+    print(f"After:  {after_w}x{after_h}")
     print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
-    return 1 if fail else 0
+    print(f"Done. wrote {out_path.name} ({before_w}x{before_h} -> {after_w}x{after_h})")
+    return 0
 
 
 if __name__ == "__main__":

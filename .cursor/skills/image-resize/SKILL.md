@@ -1,19 +1,20 @@
 ---
 name: image-resize
-description: Resizes images to explicit width and height using ImageMagick. Use when the user wants image resize, scale sprites/textures, batch-resize UI assets, set icon dimensions, or mentions ImageMagick resize — target size must be specified before running.
+description: Resizes a single image to explicit width and height using ImageMagick. Use when the user wants image resize, scale a sprite/texture, resize a UI asset or icon, or mentions ImageMagick resize — target size must be specified before running.
 ---
 
 # Image Resize
 
-Resize images to a **user-specified width and height** via **ImageMagick**. **Both dimensions are required** — do not run this skill until the user (or task) provides target pixel size.
+Resize **one image file** to a **user-specified width and height** via **ImageMagick**. **Both dimensions are required** — do not run this skill until the user (or task) provides target pixel size.
 
 ## Rules
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - **Require target size first.** If width/height are missing, ask the user before running.
+- **Single file only.** Pass one image with `--image`; directories are not supported.
 - Run `resize.py` through the bundled script — do not hand-write `magick -resize` commands.
-- **Never overwrite source files.** Output goes to `resized/` (or `-o`) by default.
+- **Never overwrite source files.** Output goes to `image-resize/` (or `--output`) by default.
 - `populated: false` for `imagemagick` is not a reason to skip. Install first, set `populated: true`, retry the same command.
 
 ## Setup (first run)
@@ -38,21 +39,15 @@ Use `bin/magick` on Unix (no `.exe`).
 **Both `--width` and `--height` are required:**
 
 ```bash
-.dependency/python/python.exe .ai/image-resize/resize.py assets/sprites/hero.png --width 128 --height 128
+.dependency/python/python.exe .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
 ```
 
-Example: `assets/ui/icon.png` → `assets/ui/resized/icon.png` at 64×64
+Example: `assets/ui/icon.png` → `assets/ui/image-resize/icon.png` at 64×64
 
-Batch a directory (top level only):
-
-```bash
-.dependency/python/python.exe .ai/image-resize/resize.py assets/textures --width 256 --height 256
-```
-
-Custom output directory:
+Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/image-resize/resize.py assets/icons -o assets/icons_64 --width 64 --height 64
+.dependency/python/python.exe .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
 ```
 
 ## Resize Modes
@@ -65,22 +60,23 @@ Custom output directory:
 
 ```bash
 # Fit within 128×128 (default — no distortion)
-.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128
+.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128
 
 # Cover 128×128, crop center
-.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128 --mode fill
+.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode fill
 
 # Stretch to exactly 128×128
-.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128 --mode exact
+.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode exact
 ```
 
 ## Defaults
 
 | Option | Default | Notes |
 |--------|---------|-------|
+| `--image` | **Required** | Single supported image file |
 | `--width` / `--height` | **Required** | Must be positive integers |
 | `--mode` | `fit` | `fill` or `exact` when user needs crop or stretch |
-| Output | `<input-path>/resized/` | Use `--output` for custom path |
+| Output | `<source-dir>/image-resize/<source-name>` | Use `--output` for custom file or directory |
 | Format | Same as source | Extension preserved (`.png`, `.jpg`, etc.) |
 
 Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`, `.avif`, `.ico`.
@@ -89,15 +85,15 @@ Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 
 1. **Confirm size** — get explicit width and height from the user (e.g. "128×128", "64 wide and 64 tall"). Do not guess from context unless the user already stated dimensions.
 2. **Pick mode** — default `fit`; use `fill` for square thumbnails from non-square art; use `exact` only when the user accepts distortion.
-3. **Trial first** — run on one image, verify dimensions before batching a folder.
-4. **Paths** — pass whatever path the user gives; output lands in `resized/` next to that input.
-5. **Revert** — delete output folder or `git restore`; sources are never modified.
+3. **One file per run** — resize one image, verify dimensions, then repeat for additional files if needed.
+4. **Paths** — pass whatever image path the user gives; output lands in `image-resize/` next to that file by default.
+5. **Revert** — delete output file or `git restore`; sources are never modified.
 
 ## Agent Notes
 
 1. Use the bundled script, not hand-written ImageMagick commands.
 2. Missing Python/ImageMagick → populate `.dependency/` per skill-dependency-manager, retry same command.
-3. **Do not copy, move, or replace the source with resized output** — tell the user where `resized/` files are.
+3. **Do not copy, move, or replace the source with resized output** — tell the user where the output file is.
 4. Need **format conversion only** (no resize) → [image-to-png](../image-to-png/SKILL.md).
 5. Need **trim borders** after resize → [image-trim](../image-trim/SKILL.md).
 
@@ -107,6 +103,7 @@ Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 |-------|-----|
 | `imagemagick` missing in manifest | Follow **Setup**; update manifest |
 | Missing `--width` / `--height` | Ask user for target size; both flags are required |
+| Directory passed to `--image` | Run once per file; this skill accepts image files only |
 | Output larger/smaller than expected | Check `--mode` — `fit` preserves aspect inside the box |
 | Distorted sprite | Switch from `exact` to `fit` or `fill` |
 | Animated GIF | Only first frame is processed by default ImageMagick behavior |
