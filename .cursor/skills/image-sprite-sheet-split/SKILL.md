@@ -13,36 +13,38 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 - Run `split_frames.py` through the **`python` manifest entry** (`.dependency/python/`). Never use host `python`, `py`, or `python3`.
 - Do not hand-write FFmpeg crop commands — use the bundled script.
+- **Single file only.** Pass one sprite sheet with `--image`; directories are not supported.
+- **Grid size required.** Supply `--grid COLSxROWS` (or `--cols` + `--rows`) before running.
 - `populated: false` is not a reason to skip. Install first, set `populated: true`, retry the same command.
-- **Never overwrite sources.** Output goes into a `frames/<sheet-stem>/` folder beside each sheet (or under `--output-dir`).
-- **Never copy or move input images.** Pass the user's actual file or directory path.
+- **Never overwrite sources.** Output goes into `<image-dir>/image-sprite-sheet-split/<sheet-stem>/` by default (or under `-o`).
+- **Never copy or move input images.** Pass the user's actual file path.
+
+## Setup (first run)
+
+1. Ensure `python` and `ffmpeg` are populated in `.dependency/manifest.json` (see skill-dependency-manager).
+
+2. FFmpeg must include `ffprobe` beside `ffmpeg` in the same `bin/` folder.
 
 ## Quick Start
 
-**Default: `<source-dir>/frames/<sheet-stem>/`** next to each input sheet:
+**Default: `<image-dir>/image-sprite-sheet-split/<sheet-stem>/`** beside the input sheet:
 
 ```bash
-# 4×4 sheet → Downloads/frames/explosion/explosion_001.png … explosion_016.png
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  C:/Users/me/Downloads/explosion.png --grid 4x4
-
-# Project-relative path
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  image/effects/fire_sheet.png --cols 4 --rows 4
+# 4×4 sheet → image/effects/image-sprite-sheet-split/fire_sheet/fire_sheet_001.png … fire_sheet_016.png
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4
 ```
 
-Directory batch:
+Alternative grid flags:
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  image/effects -r --grid 4x4
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --cols 4 --rows 4
 ```
 
 Custom output root:
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  image/effects -r --grid 4x4 --output-dir image/effects/frames
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4 -o image/effects/frames/
+# → image/effects/frames/fire_sheet/fire_sheet_001.png …
 ```
 
 ## Grid layout
@@ -56,9 +58,7 @@ Custom output root:
 | `--cell-width`, `--cell-height` | auto | Override when auto division leaves remainder pixels |
 | `--trim` | `0` | Shrink each cell crop to skip 1 px grid lines |
 | `--start-index` | `1` | Frame numbering in filenames |
-| Output | `frames/<stem>/` | Use `--output-dir` or `--output-subdir` to customize |
-| `--overwrite` | off | Replace existing frame files |
-| `--dry-run` | off | Preview crop plan without writing |
+| Output | `image-sprite-sheet-split/<stem>/` | Use `-o` / `--output` for a custom root directory |
 
 Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, …
 
@@ -73,53 +73,62 @@ Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, �
 
 **rembg on whole sheets removes animation content** — split frames first, then remove backgrounds per frame if needed.
 
-## Agent workflow
+## Agent Workflow
 
-1. **Confirm grid size** — ask or infer from context (`4x4`, `3x6`, etc.). Use `--dry-run` to verify cell size.
-2. **Trial first** — split one sheet, inspect `frames/<stem>/001.png` and the last frame.
+1. **Confirm grid size** — ask or infer from context (`4x4`, `3x6`, etc.).
+2. **Trial first** — split one sheet, inspect `image-sprite-sheet-split/<stem>/001.png` and the last frame.
 3. **Check remainder warnings** — if image size is not evenly divisible, set `--cell-width` / `--cell-height` or adjust `--offset-*`.
 4. **Grid lines** — if black dividers appear in frames, retry with `--trim 1`.
-5. **Batch** — run on the directory with `-r` once the trial looks correct.
-6. **Revert** — delete the `frames/` output folder; sources are never modified.
+5. **More sheets** — run once per file with the same grid settings.
+6. **Revert** — delete the output folder; sources are never modified.
 
 ## Examples
 
 4×4 explosion sheet (2048×2048 → 16 × 512×512):
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  sheet.png --grid 4x4 --dry-run
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
 ```
 
 3×6 sheet with 1 px grid lines (`6` columns × `3` rows):
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  sheet.png --grid 6x3 --trim 1
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 --trim 1
 ```
 
 Sheet with 2 px gutters and 4 px outer border:
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  sheet.png --grid 4x4 --offset-x 4 --offset-y 4 --gutter 2
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4 --offset-x 4 --offset-y 4 --gutter 2
 ```
 
 Non-uniform cell width (2816×1536, 6 columns × 3 rows):
 
 ```bash
-.dependency/python/python .cursor/skills/image-sprite-sheet-split/scripts/split_frames.py \
-  sheet.png --grid 6x3 --cell-width 469 --cell-height 512
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 --cell-width 469 --cell-height 512
 ```
+
+## Agent Notes
+
+1. Use the bundled script, not hand-written FFmpeg crop commands.
+2. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
+3. **Do not copy, move, or replace the source with frame outputs** — tell the user where the output folder is.
+4. Need **transparent frames** → split first, then [image-remove-background](../image-remove-background/SKILL.md) on each frame.
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | `FFmpeg not found` | Populate `ffmpeg` in `.dependency/manifest.json` |
+| Directory passed to `--image` | Run once per sheet; this skill accepts image files only |
+| Output already exists | Delete the existing frame folder or choose a different `-o` path |
 | Wrong frame count | Verify `--grid` matches the sheet layout |
 | Grid lines in frames | Add `--trim 1` (or `2` for thick dividers) |
 | Cropped too much / misaligned | Adjust `--offset-x/y`, `--gutter-*`, or set explicit `--cell-width/height` |
 | Unused pixels warning | Set explicit cell dimensions or offsets |
-| Need transparent frames | Split first, then [image-remove-background](../image-remove-background/SKILL.md) on `frames/` |
+| Need transparent frames | Split first, then [image-remove-background](../image-remove-background/SKILL.md) on frames |
 
+## Related
+
+- Transparent cutouts per frame: [image-remove-background](../image-remove-background/SKILL.md)
+- Trim frame borders: [image-trim](../image-trim/SKILL.md)

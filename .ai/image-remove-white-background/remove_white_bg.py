@@ -1,37 +1,38 @@
 """
-Remove solid-color backgrounds (white, green, magenta) via color key + border flood fill.
+Remove solid-color backgrounds (white, green, magenta) via color key + flood fill.
 
-Exports RGBA PNG with transparent background. Run via manifest image-remove-white-background.bin
-(.dependency/image-remove-white-background/.venv/) — see SKILL.md and skill-dependency-manager.
-Never use host python/py.
+Not default python. Run through the image-remove-white-background manifest bin
+(Python venv at .dependency/image-remove-white-background/.venv/).
+Never use default python or host python/py.
 
 Usage
 -----
-    .dependency/image-remove-white-background/.venv/Scripts/python \\
-        .cursor/skills/image-remove-white-background/scripts/remove_white_bg.py image/foo.png
-
-    .dependency/image-remove-white-background/.venv/Scripts/python \\
-        .cursor/skills/image-remove-white-background/scripts/remove_white_bg.py image/sprites -r \\
-        --preset green --tolerance 30
+    .dependency/image-remove-white-background/.venv/Scripts/python.exe .ai/image-remove-white-background/remove_white_bg.py --image image/foo.png
+    .dependency/image-remove-white-background/.venv/Scripts/python.exe .ai/image-remove-white-background/remove_white_bg.py --image image/foo.png --preset green --tolerance 30
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from collections import deque
 from pathlib import Path
 
 from PIL import Image
 
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
-DEFAULT_PATTERN = "*.png"
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common.image_utils import image_output_name, resolve_image_file  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+
+DEFAULT_OUTPUT_SUBDIR = "image-remove-white-background"
 DEFAULT_PRESET = "white"
 DEFAULT_TOLERANCE = 25
 DEFAULT_FEATHER = 2
 DEFAULT_MODE = "global"
-DEFAULT_EXCLUDES: tuple[str, ...] = ("*_sheet.png", "*_mask.png", "transparent/*")
 
 PRESETS: dict[str, tuple[int, int, int]] = {
     "white": (255, 255, 255),
@@ -46,56 +47,6 @@ PRESET_DEFAULT_TOLERANCE: dict[str, int] = {
 }
 
 
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
 def parse_color(value: str) -> tuple[int, int, int]:
     cleaned = value.strip().lstrip("#")
     if len(cleaned) != 6:
@@ -107,59 +58,6 @@ def parse_color(value: str) -> tuple[int, int, int]:
     except ValueError as exc:
         raise ValueError(f"Invalid hex color: {value!r}") from exc
     return r, g, b
-
-
-def collect_images(
-    target: Path,
-    pattern: str,
-    excludes: tuple[str, ...],
-    recursive: bool,
-) -> list[Path]:
-    if target.is_file():
-        if target.suffix.lower() not in IMAGE_EXTENSIONS:
-            print(f"Unsupported image type: {target}", file=sys.stderr)
-            sys.exit(1)
-        return [target.resolve()]
-
-    if not target.is_dir():
-        print(f"Input path not found: {target}", file=sys.stderr)
-        sys.exit(1)
-
-    excluded: set[Path] = set()
-    for exclude in excludes:
-        excluded.update(target.rglob(exclude) if recursive else target.glob(exclude))
-
-    globber = target.rglob if recursive else target.glob
-    patterns = {pattern}
-    if pattern == "*.png":
-        patterns.update(["*.jpg", "*.jpeg", "*.webp", "*.bmp"])
-
-    images: list[Path] = []
-    seen: set[Path] = set()
-    for pat in patterns:
-        for path in globber(pat):
-            resolved = path.resolve()
-            if resolved in seen or resolved in excluded or not path.is_file():
-                continue
-            if path.suffix.lower() not in IMAGE_EXTENSIONS:
-                continue
-            seen.add(resolved)
-            images.append(resolved)
-    return sorted(images)
-
-
-def resolve_output_path(
-    source: Path,
-    input_root: Path,
-    output_dir: Path | None,
-) -> Path:
-    try:
-        rel = source.relative_to(input_root)
-    except ValueError:
-        rel = Path(source.name)
-
-    base = output_dir if output_dir is not None else input_root / "transparent"
-    return (base / rel).with_suffix(".png")
 
 
 def is_key_pixel(
@@ -388,27 +286,21 @@ def remove_solid_background(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Remove solid-color backgrounds (white/green/magenta) and export transparent PNGs."
+        description="Remove solid-color backgrounds (white/green/magenta) from a single image."
     )
     parser.add_argument(
-        "input",
-        help="Image file or directory containing images",
-    )
-    parser.add_argument(
-        "-r",
-        "--recursive",
-        action="store_true",
-        help="Recurse into subdirectories when input is a directory",
+        "--image",
+        required=True,
+        help="Path to a single image file",
     )
     parser.add_argument(
         "-o",
-        "--output-dir",
-        help="Output directory (default: <input-path>/transparent/)",
-    )
-    parser.add_argument(
-        "--pattern",
-        default=DEFAULT_PATTERN,
-        help=f"Glob pattern for directory input (default: {DEFAULT_PATTERN})",
+        "--output",
+        default="",
+        help=(
+            "Output PNG file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR, output_name_label='source-name.png')}"
+        ),
     )
     parser.add_argument(
         "--preset",
@@ -445,38 +337,33 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Crop transparent borders after keying",
     )
-    parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Overwrite existing output files",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print planned outputs without processing",
-    )
     return parser.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
+
     repo_root = find_repo_root(Path(__file__))
     if repo_root is None:
         print(
             "Could not find .dependency/manifest.json. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
+            "Run from a repo that follows skill-dependency-manager.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        return 1
 
     resolve_tool_bin(repo_root, "image-remove-white-background")
+
+    image_path = resolve_image_file(args.image)
+    if image_path is None:
+        return 1
 
     if args.color:
         try:
             key = parse_color(args.color)
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
-            sys.exit(1)
+            return 1
         preset = "custom"
     else:
         preset = args.preset
@@ -489,57 +376,57 @@ def main() -> None:
     )
     if not 0 <= tolerance <= 255:
         print("--tolerance must be between 0 and 255", file=sys.stderr)
-        sys.exit(1)
+        return 1
     if args.feather < 0:
         print("--feather must be >= 0", file=sys.stderr)
-        sys.exit(1)
+        return 1
 
-    input_path = Path(args.input).resolve()
-    images = collect_images(input_path, args.pattern, DEFAULT_EXCLUDES, args.recursive)
-    if not images:
-        print(f"No images found under {input_path}", file=sys.stderr)
-        sys.exit(1)
+    out_path = resolve_output_path(
+        args.output,
+        image_path,
+        DEFAULT_OUTPUT_SUBDIR,
+        image_output_name(image_path, suffix=".png"),
+    )
 
-    input_root = input_path if input_path.is_dir() else input_path.parent
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else None
+    if out_path.resolve() == image_path.resolve():
+        print(
+            "Refusing to overwrite source file. Choose a separate output path "
+            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
+            file=sys.stderr,
+        )
+        return 1
 
-    planned: list[tuple[Path, Path]] = []
-    for source in images:
-        dest = resolve_output_path(source, input_root, output_dir)
-        planned.append((source, dest))
+    if out_path.exists():
+        print(f"Output already exists: {out_path}", file=sys.stderr)
+        return 1
 
-    if args.dry_run:
-        print(f"preset={preset} key={key} tolerance={tolerance} mode={args.mode} feather={args.feather}")
-        for source, dest in planned:
-            print(f"{source} -> {dest}")
-        print(f"{len(planned)} file(s)")
-        return
+    print(f"Image:  {image_path}")
+    print(f"Preset: {preset} key={key} tolerance={tolerance} mode={args.mode} feather={args.feather}")
+    print(f"Output: {out_path}")
+    print()
 
-    processed = 0
-    skipped = 0
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    for source, dest in planned:
-        if dest.exists() and not args.overwrite:
-            print(f"Skip (exists): {dest}")
-            skipped += 1
-            continue
-
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        print(f"Processing: {source}")
+    try:
+        print(f"[run]  {image_path.name} -> {out_path.name}")
         result = remove_solid_background(
-            source,
+            image_path,
             key=key,
             tolerance=tolerance,
             feather=args.feather,
             mode=args.mode,
             crop=args.crop,
         )
-        result.save(dest, format="PNG")
-        processed += 1
-        print(f"  -> {dest}")
+        result.save(out_path, format="PNG")
+    except Exception as exc:
+        print(f"[fail] {out_path.name}")
+        print(exc, file=sys.stderr)
+        return 1
 
-    print(f"Done: {processed} processed, {skipped} skipped, {len(planned)} total")
+    print()
+    print(f"Done. wrote {out_path.name}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

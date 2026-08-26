@@ -64,7 +64,7 @@ Source image (AI art / sprite sheet)
     ↓
 ① image-to-png (optional)
     ↓
-② image-remove-watermark-by-lama-inpainting — LaMa fill (optional)
+② image-inpaint-region — LaMa local inpaint (optional)
     ↓
 ③ image-sprite-sheet-split — grid → frames (optional)
     ↓
@@ -82,7 +82,7 @@ Source image (AI art / sprite sheet)
 | Skill | Purpose |
 |-------|---------|
 | [image-to-png](image-to-png/SKILL.md) | Image → PNG |
-| [image-remove-watermark-by-lama-inpainting](image-remove-watermark-by-lama-inpainting/SKILL.md) | Remove corner / region watermark with LaMa inpainting (IOPaint) |
+| [image-inpaint-region](image-inpaint-region/SKILL.md) | Local region inpainting with LaMa (IOPaint) |
 | [image-sprite-sheet-split](image-sprite-sheet-split/SKILL.md) | Split sprite sheet grid → individual frame PNGs |
 | [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove flat white / green / magenta backgrounds (color key; default `global` mode; also `border` / `center` / `both`) |
 | [image-remove-background](image-remove-background/SKILL.md) | Remove background / image → transparent PNG (AI matting) |
