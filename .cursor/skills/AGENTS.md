@@ -65,6 +65,14 @@ Usage
 """
 ```
 
+## Python style (`.ai/` skill scripts)
+
+- **One-line imports.** Each `import` or `from … import` must stay on a **single line** — do not wrap imports in parentheses across multiple lines.
+
+```python
+from common.image_utils import filter_output_files, find_image_files, find_source_collisions, relative_image_path, resolve_input_root  # noqa: E402
+```
+
 - New skills follow this layout. When relocating an existing skill, move `scripts/` contents to `.ai/<skill-name>/`, add the test file or `test.md` as above, and update the commands in that skill's `SKILL.md`.
 
 Until a skill is relocated, run the path its `SKILL.md` documents (some still keep a local `scripts/` folder).

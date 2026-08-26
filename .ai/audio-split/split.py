@@ -25,10 +25,7 @@ if str(AI_ROOT) not in sys.path:
 
 from common.audio_utils import get_duration, resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
-from common.output_utils import (  # noqa: E402
-    format_default_output_dir_help,
-    resolve_output_dir,
-)
+from common.output_utils import format_default_output_dir_help, resolve_output_dir  # noqa: E402
 
 DEFAULT_OUTPUT_SUBDIR = "audio-split"
 

@@ -38,27 +38,21 @@ Use `bin/magick` on Unix (no `.exe`).
 **Both `--width` and `--height` are required:**
 
 ```bash
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/sprites/hero.png --width 128 --height 128
+.dependency/python/python.exe .ai/image-resize/resize.py assets/sprites/hero.png --width 128 --height 128
 ```
 
 Example: `assets/ui/icon.png` → `assets/ui/resized/icon.png` at 64×64
 
-Batch with subfolders:
+Batch a directory (top level only):
 
 ```bash
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/textures -r --width 256 --height 256
-```
-
-Preview without writing:
-
-```bash
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/ui -r --width 32 --height 32 --dry-run
+.dependency/python/python.exe .ai/image-resize/resize.py assets/textures --width 256 --height 256
 ```
 
 Custom output directory:
 
 ```bash
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/icons -o assets/icons_64 --width 64 --height 64
+.dependency/python/python.exe .ai/image-resize/resize.py assets/icons -o assets/icons_64 --width 64 --height 64
 ```
 
 ## Resize Modes
@@ -71,13 +65,13 @@ Custom output directory:
 
 ```bash
 # Fit within 128×128 (default — no distortion)
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/hero.png --width 128 --height 128
+.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128
 
 # Cover 128×128, crop center
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/hero.png --width 128 --height 128 --mode fill
+.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128 --mode fill
 
 # Stretch to exactly 128×128
-.dependency/python/python .cursor/skills/image-resize/scripts/resize.py assets/hero.png --width 128 --height 128 --mode exact
+.dependency/python/python.exe .ai/image-resize/resize.py assets/hero.png --width 128 --height 128 --mode exact
 ```
 
 ## Defaults
@@ -86,8 +80,7 @@ Custom output directory:
 |--------|---------|-------|
 | `--width` / `--height` | **Required** | Must be positive integers |
 | `--mode` | `fit` | `fill` or `exact` when user needs crop or stretch |
-| Output | `<input-path>/resized/` | Use `--output-dir` for custom path |
-| Overwrite | off | Pass `--overwrite` to replace existing outputs |
+| Output | `<input-path>/resized/` | Use `--output` for custom path |
 | Format | Same as source | Extension preserved (`.png`, `.jpg`, etc.) |
 
 Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`, `.avif`, `.ico`.
@@ -96,7 +89,7 @@ Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 
 1. **Confirm size** — get explicit width and height from the user (e.g. "128×128", "64 wide and 64 tall"). Do not guess from context unless the user already stated dimensions.
 2. **Pick mode** — default `fit`; use `fill` for square thumbnails from non-square art; use `exact` only when the user accepts distortion.
-3. **Trial first** — run on one image, verify dimensions before batch (`-r`).
+3. **Trial first** — run on one image, verify dimensions before batching a folder.
 4. **Paths** — pass whatever path the user gives; output lands in `resized/` next to that input.
 5. **Revert** — delete output folder or `git restore`; sources are never modified.
 
@@ -117,4 +110,3 @@ Supported inputs: `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 | Output larger/smaller than expected | Check `--mode` — `fit` preserves aspect inside the box |
 | Distorted sprite | Switch from `exact` to `fit` or `fill` |
 | Animated GIF | Only first frame is processed by default ImageMagick behavior |
-

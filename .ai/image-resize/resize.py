@@ -1,140 +1,33 @@
 #!/usr/bin/env python3
-"""Batch resize image files using ImageMagick."""
+"""
+Batch resize image files using ImageMagick.
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/image-resize/resize.py assets/sprites/hero.png --width 128 --height 128
+    .dependency/python/python.exe .ai/image-resize/resize.py assets/textures --width 256 --height 256
+    .dependency/python/python.exe .ai/image-resize/resize.py assets/icons -o assets/icons_64 --width 64 --height 64
+"""
 
 from __future__ import annotations
 
 import argparse
-import json
 import subprocess
 import sys
 from pathlib import Path
 
-IMAGE_EXTENSIONS = {
-    ".jpg",
-    ".jpeg",
-    ".png",
-    ".webp",
-    ".gif",
-    ".bmp",
-    ".tif",
-    ".tiff",
-    ".avif",
-    ".ico",
-}
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.cli_tools import resolve_magick  # noqa: E402
+from common.image_utils import filter_output_files, find_image_files, find_source_collisions, relative_image_path, resolve_input_root  # noqa: E402
+from common.output_utils import resolve_output_dir  # noqa: E402
 
 RESIZE_MODES = ("fit", "fill", "exact")
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_magick() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "imagemagick")
-
-
-def get_image_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in IMAGE_EXTENSIONS:
-            print(f"Not a supported image file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    candidates = path.rglob("*") if recurse else path.iterdir()
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in IMAGE_EXTENSIONS
-    ]
-    return sorted(files)
-
-
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
-
-
-def filter_output_files(files: list[Path], output_dir: Path) -> list[Path]:
-    out = output_dir.resolve()
-    kept: list[Path] = []
-    for file_path in files:
-        try:
-            file_path.resolve().relative_to(out)
-        except ValueError:
-            kept.append(file_path)
-    return kept
-
-
-def find_source_collisions(
-    files: list[Path], input_root: Path, output_dir: Path
-) -> list[tuple[Path, Path]]:
-    collisions: list[tuple[Path, Path]] = []
-    for file_path in files:
-        rel = relative_path(file_path, input_root)
-        out_path = output_dir / rel
-        if out_path.resolve() == file_path.resolve():
-            collisions.append((file_path, out_path))
-    return collisions
 
 
 def build_resize_geometry(width: int, height: int, mode: str) -> str:
@@ -222,18 +115,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "-o",
-        "--output-dir",
+        "--output",
         default="",
         help="Output directory (default: <input>/resized)",
-    )
-    parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
-    )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
     )
     return parser.parse_args()
 
@@ -245,7 +129,7 @@ def main() -> int:
         print("Width and height must be positive integers.", file=sys.stderr)
         return 1
 
-    magick = resolve_magick()
+    magick = resolve_magick(Path(__file__))
 
     input_path = Path(args.input)
     if not input_path.exists():
@@ -253,16 +137,16 @@ def main() -> int:
         return 1
 
     input_path = input_path.resolve()
-    files = get_image_files(input_path, args.recurse)
+    files = find_image_files(input_path)
     if not files:
         print(f"No supported image files found under: {args.input}")
         return 0
 
-    input_root = input_path.parent if input_path.is_file() else input_path
-    output_dir = (
-        Path(args.output_dir).resolve()
-        if args.output_dir
-        else input_root / "resized"
+    input_root = resolve_input_root(input_path)
+    output_dir = resolve_output_dir(
+        args.output,
+        input_root,
+        output_subdir="resized",
     )
 
     initial_count = len(files)
@@ -295,8 +179,6 @@ def main() -> int:
     print(f"Size:   {args.width}x{args.height}")
     print(f"Mode:   {mode_desc}")
     print(f"Output: {output_dir}")
-    if args.dry_run:
-        print("Run:    DRY RUN")
     print()
 
     ok = 0
@@ -304,17 +186,12 @@ def main() -> int:
     fail = 0
 
     for file_path in files:
-        rel = relative_path(file_path, input_root)
+        rel = relative_image_path(file_path, input_root)
         out_path = output_dir / rel
 
-        if out_path.exists() and not args.overwrite and not args.dry_run:
+        if out_path.exists():
             print(f"[skip] {rel}")
             skip += 1
-            continue
-
-        if args.dry_run:
-            print(f"[plan] {rel} -> {rel} ({mode_desc})")
-            ok += 1
             continue
 
         try:
