@@ -14,7 +14,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 - Run `split_frames.py` through the **`python` manifest entry** (`.dependency/python/`). Never use host `python`, `py`, or `python3`.
 - Do not hand-write FFmpeg crop commands — use the bundled script.
 - **Single file only.** Pass one sprite sheet with `--image`; directories are not supported.
-- **Grid size required.** Supply `--grid COLSxROWS` (or `--cols` + `--rows`) before running.
+- **Grid size required.** Supply `--grid COLSxROWS` before running (e.g. `4x4`, `6x3`).
 - `populated: false` is not a reason to skip. Install first, set `populated: true`, retry the same command.
 - **Never overwrite sources.** Output goes into `<image-dir>/image-sprite-sheet-split/<sheet-stem>/` by default (or under `-o`).
 - **Never copy or move input images.** Pass the user's actual file path.
@@ -34,12 +34,6 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 .dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4
 ```
 
-Alternative grid flags:
-
-```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --cols 4 --rows 4
-```
-
 Custom output root:
 
 ```bash
@@ -47,20 +41,17 @@ Custom output root:
 # → image/effects/frames/fire_sheet/fire_sheet_001.png …
 ```
 
-## Grid layout
+## Defaults
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| `--grid` | *(required)* | Shorthand **COLSxROWS** (columns first), e.g. `4x4`, `6x3` |
-| `--cols` / `--rows` | — | Alternative to `--grid` |
-| `--offset-x`, `--offset-y` | `0` | Skip border padding before the grid |
-| `--gutter` / `--gutter-x` / `--gutter-y` | `0` | Spacing between cells |
-| `--cell-width`, `--cell-height` | auto | Override when auto division leaves remainder pixels |
-| `--trim` | `0` | Shrink each cell crop to skip 1 px grid lines |
-| `--start-index` | `1` | Frame numbering in filenames |
+| `--image` | **Required** | Single sprite sheet image file |
+| `--grid` | **Required** | **COLSxROWS** (columns first), e.g. `4x4`, `6x3` |
 | Output | `image-sprite-sheet-split/<stem>/` | Use `-o` / `--output` for a custom root directory |
 
-Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, …
+Frames are exported **row-major** (left→right, top→bottom): `_001`, `_002`, …
+
+Supported inputs: `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`, `.avif`, `.ico`.
 
 ## When to use
 
@@ -68,7 +59,7 @@ Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, �
 |----------|----------|
 | Uniform N×M grid (4×4, 3×6, 8×1) | Irregular / free-form layouts |
 | Gemini or Aseprite-style sheets | Packed texture atlases with variable frame sizes |
-| Sheets with optional fixed gutters | Single full-frame images |
+| Sheets without gutters or border padding | Sheets with grid lines, gutters, or outer padding |
 | Preparing frames for per-frame background removal | Auto-detecting grid size (must be supplied) |
 
 **rembg on whole sheets removes animation content** — split frames first, then remove backgrounds per frame if needed.
@@ -77,10 +68,9 @@ Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, �
 
 1. **Confirm grid size** — ask or infer from context (`4x4`, `3x6`, etc.).
 2. **Trial first** — split one sheet, inspect `image-sprite-sheet-split/<stem>/001.png` and the last frame.
-3. **Check remainder warnings** — if image size is not evenly divisible, set `--cell-width` / `--cell-height` or adjust `--offset-*`.
-4. **Grid lines** — if black dividers appear in frames, retry with `--trim 1`.
-5. **More sheets** — run once per file with the same grid settings.
-6. **Revert** — delete the output folder; sources are never modified.
+3. **Check warnings** — if image size is not evenly divisible, verify cell crops still look correct.
+4. **More sheets** — run once per file with the same grid settings.
+5. **Revert** — delete the output folder; sources are never modified.
 
 ## Examples
 
@@ -90,22 +80,10 @@ Frames are exported **row-major** (left→right, top→bottom): `001`, `002`, �
 .dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
 ```
 
-3×6 sheet with 1 px grid lines (`6` columns × `3` rows):
+6×3 sheet:
 
 ```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 --trim 1
-```
-
-Sheet with 2 px gutters and 4 px outer border:
-
-```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4 --offset-x 4 --offset-y 4 --gutter 2
-```
-
-Non-uniform cell width (2816×1536, 6 columns × 3 rows):
-
-```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 --cell-width 469 --cell-height 512
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3
 ```
 
 ## Agent Notes
@@ -123,9 +101,8 @@ Non-uniform cell width (2816×1536, 6 columns × 3 rows):
 | Directory passed to `--image` | Run once per sheet; this skill accepts image files only |
 | Output already exists | Delete the existing frame folder or choose a different `-o` path |
 | Wrong frame count | Verify `--grid` matches the sheet layout |
-| Grid lines in frames | Add `--trim 1` (or `2` for thick dividers) |
-| Cropped too much / misaligned | Adjust `--offset-x/y`, `--gutter-*`, or set explicit `--cell-width/height` |
-| Unused pixels warning | Set explicit cell dimensions or offsets |
+| Misaligned crops | Sheet may have gutters/padding — this skill expects a clean uniform grid |
+| Unused pixels warning | Image size is not evenly divisible by the grid; inspect output frames |
 | Need transparent frames | Split first, then [image-remove-background](../image-remove-background/SKILL.md) on frames |
 
 ## Related

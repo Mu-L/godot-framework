@@ -18,16 +18,10 @@ Manual CLI (default output: `<image-dir>/image-sprite-sheet-split/<sheet-stem>/`
 .dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
 ```
 
-3×6 grid with 1 px grid-line trim:
+3×6 grid:
 
 ```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 --trim 1
-```
-
-Sheet with border offset and gutters:
-
-```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4 --offset-x 4 --offset-y 4 --gutter 2
+.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3
 ```
 
 Custom output root:

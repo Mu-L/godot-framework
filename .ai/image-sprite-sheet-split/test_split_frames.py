@@ -39,40 +39,18 @@ class ParseGridTest(unittest.TestCase):
 
 class ComputeLayoutTest(unittest.TestCase):
     def test_even_4x4(self) -> None:
-        cell_w, cell_h, crops, warnings = split_frames.compute_layout(
-            2048,
-            2048,
-            4,
-            4,
-            0,
-            0,
-            0,
-            0,
-            None,
-            None,
-            0,
-        )
+        cell_w, cell_h, crops, warnings = split_frames.compute_layout(2048, 2048, 4, 4)
         self.assertEqual((cell_w, cell_h), (512, 512))
         self.assertEqual(len(crops), 16)
         self.assertEqual(crops[0], (0, 0, 512, 512))
         self.assertEqual(crops[-1], (1536, 1536, 512, 512))
         self.assertEqual(warnings, [])
 
-    def test_trim(self) -> None:
-        _, _, crops, _ = split_frames.compute_layout(
-            2048,
-            2048,
-            4,
-            4,
-            0,
-            0,
-            0,
-            0,
-            None,
-            None,
-            1,
-        )
-        self.assertEqual(crops[0], (1, 1, 510, 510))
+    def test_remainder_warning(self) -> None:
+        _, _, crops, warnings = split_frames.compute_layout(100, 100, 3, 3)
+        self.assertEqual(len(crops), 9)
+        self.assertTrue(any("unused horizontally" in warning for warning in warnings))
+        self.assertTrue(any("unused vertically" in warning for warning in warnings))
 
 
 class ResolveFramesDirTest(unittest.TestCase):
@@ -103,6 +81,8 @@ class SplitFramesCliTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("--image", result.stdout)
         self.assertIn("--grid", result.stdout)
+        self.assertNotIn("--trim", result.stdout)
+        self.assertNotIn("--cols", result.stdout)
 
     def test_image_not_found(self) -> None:
         result = self.run_cli("--image", "missing-no-such-file.png", "--grid", "4x4")
