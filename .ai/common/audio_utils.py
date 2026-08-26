@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".wma"}
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".ogg", ".flac", ".aac", ".m4a", ".opus", ".wma"}
 
 
 def resolve_audio_file(args_audio: str) -> Path | None:

@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Mux storyboard shot video with bilingual VO; retime video only (audio master)."""
+"""
+Mux storyboard shot video with bilingual VO; retime video only (audio master).
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root>
+    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --limit 1
+    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
+"""
 
 from __future__ import annotations
 
@@ -9,6 +20,13 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.audio_utils import AUDIO_EXTENSIONS  # noqa: E402
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 
 VIDEO_EXTENSIONS = {
     ".mp4",
@@ -26,17 +44,6 @@ VIDEO_EXTENSIONS = {
     ".m2ts",
     ".3gp",
     ".ogv",
-}
-
-AUDIO_EXTENSIONS = {
-    ".wav",
-    ".mp3",
-    ".ogg",
-    ".m4a",
-    ".aac",
-    ".flac",
-    ".opus",
-    ".wma",
 }
 
 LANG_DIRS = {
@@ -66,79 +73,6 @@ class VideoProbe:
     bit_rate: int | None
     mastering: dict = field(default_factory=dict)
     cll: dict = field(default_factory=dict)
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
-def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    candidate = ffmpeg.with_name(name)
-    if candidate.is_file():
-        return candidate
-    raise FileNotFoundError(
-        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
-        "Install a full FFmpeg build under .dependency/ffmpeg/."
-    )
 
 
 def run_cmd(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -313,7 +247,6 @@ def video_encode_args(
     if crf is not None:
         args.extend(["-crf", str(crf)])
     elif probe.bit_rate and probe.bit_rate > 0:
-        # Match source bitrate so retime does not silently crush quality.
         rate = str(probe.bit_rate)
         args.extend(["-b:v", rate, "-maxrate", rate, "-bufsize", str(probe.bit_rate * 2)])
     else:
@@ -331,7 +264,6 @@ def audio_encode_args(ffprobe: Path, audio: Path, video_ext: str) -> list[str]:
     webm = ext == ".webm"
 
     if mp4_family and (pcm_like or codec in {"opus", "vorbis", "flac"}):
-        # Duration-preserving encode for MP4-family containers (e.g. WAV VO → MP4).
         return ["-c:a", "aac", "-b:a", "320k"]
     if webm and pcm_like:
         return ["-c:a", "libopus", "-b:a", "192k"]
@@ -424,11 +356,6 @@ def mux_job(
 
     job.output.parent.mkdir(parents=True, exist_ok=True)
 
-    # Video serves audio: setpts to VO length, then clone a short tail so the
-    # filtered video is always longer than the VO. -shortest ends the mux at
-    # the VO input EOF → format duration == audio duration. Never atempo/atrim
-    # the VO; do not use a fixed -t (frame quantize can make video the longer
-    # track and inflate container duration).
     vf = (
         f"setpts=PTS*{ratio:.12f},"
         f"tpad=stop_mode=clone:stop_duration=1"
@@ -450,7 +377,6 @@ def mux_job(
         "0:v:0",
         "-map",
         "1:a:0",
-        # Keep container + video-stream metadata from the source clip.
         "-map_metadata",
         "0",
         "-map_metadata:s:v:0",
@@ -543,12 +469,8 @@ def main() -> None:
         print(f"Root not found: {root}", file=sys.stderr)
         sys.exit(1)
 
-    ffmpeg = resolve_ffmpeg()
-    try:
-        ffprobe = resolve_ffprobe(ffmpeg)
-    except FileNotFoundError as exc:
-        print(str(exc), file=sys.stderr)
-        sys.exit(1)
+    ffmpeg = resolve_ffmpeg(Path(__file__))
+    ffprobe = resolve_ffprobe(ffmpeg)
 
     jobs = build_jobs(root, args.lang, args.limit)
     if not jobs:

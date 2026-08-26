@@ -25,14 +25,42 @@ Take a work directory with **per-shot** video and bilingual VO. For each shot, *
 
 ## Rules
 
-1. Follow [skill-dependency-manager](../skill-dependency-manager.md).
-2. **VO timing is immutable.** Never stretch, shrink, pad, trim, or `atempo` the voice-over. Duration of the VO file is the master clock.
-3. **Video serves audio.** Only change video duration (FFmpeg `setpts`) so it equals that shot’s VO length, then mux.
-4. Drop all audio from the source video; replace with the VO track. Prefer `-c:a copy`; if the container cannot hold the VO codec (e.g. WAV→MP4), encode AAC **without** changing length.
-5. **Do not downgrade video.** `setpts` requires a re-encode, but match the source: codec family (H.265 Main10 when source is 10-bit HEVC), `pix_fmt`, bitrate, color tags, and HDR side data (mastering display / MaxCLL). Copy container + video-stream metadata from the source clip.
-6. Match shots by **filename stem** (`01.mp4` ↔ `01.wav`).
-7. Batch only via `scripts/mix.py` — do not hand-write FFmpeg mux/retime commands.
-8. Never overwrite inputs under `Video/`, `Chinese/`, or `English/`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+
+1. **VO timing is immutable.** Never stretch, shrink, pad, trim, or `atempo` the voice-over. Duration of the VO file is the master clock.
+2. **Video serves audio.** Only change video duration (FFmpeg `setpts`) so it equals that shot’s VO length, then mux.
+3. Drop all audio from the source video; replace with the VO track. Prefer `-c:a copy`; if the container cannot hold the VO codec (e.g. WAV→MP4), encode AAC **without** changing length.
+4. **Do not downgrade video.** `setpts` requires a re-encode, but match the source: codec family (H.265 Main10 when source is 10-bit HEVC), `pix_fmt`, bitrate, color tags, and HDR side data (mastering display / MaxCLL). Copy container + video-stream metadata from the source clip.
+5. Match shots by **filename stem** (`01.mp4` ↔ `01.wav`).
+6. Batch only via `.ai/storyboard-av-mix/mix.py` — do not hand-write FFmpeg mux/retime commands.
+7. Never overwrite inputs under `Video/`, `Chinese/`, or `English/`.
+
+## Quick Start
+
+From project root:
+
+```bash
+.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root>
+```
+
+Trial run (first shot only):
+
+```bash
+.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --limit 1
+```
+
+Single language:
+
+```bash
+.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
+```
+
+Per shot / language the script:
+
+1. Probes VO duration (source of truth) and video duration
+2. Applies `setpts=PTS*(vo_dur/video_dur)` — stretch or compress **video only** (plus short freeze-tail so video ≥ VO)
+3. Muxes with `-shortest` so **container duration == VO duration**
+4. Writes `<root>/Video-Chinese|` or `Video-English/` / `<shot-id>.<same-ext>`
 
 ## Layout
 
@@ -55,42 +83,9 @@ Take a work directory with **per-shot** video and bilingual VO. For each shot, *
     02.mp4
 ```
 
-Typical `<root>` is a storyboard-tts audio dir that also has a sibling or nested `Video/` of cut clips — confirm the folder that contains `Video/`, `Chinese/`, and `English/`.
+Typical `<root>` is a [storyboard-tts](../storyboard-tts/SKILL.md) audio dir that also has a sibling or nested `Video/` of cut clips — confirm the folder that contains `Video/`, `Chinese/`, and `English/`.
 
-## Workflow
-
-```
-Task Progress:
-- [ ] Confirm <root> (has Video/, Chinese/, English/)
-- [ ] Ensure .dependency python + ffmpeg populated
-- [ ] Optional trial: mix.py <root> --limit 1
-- [ ] Full batch: mix.py <root>
-- [ ] Chat: counts written, output dirs, any skipped shots
-```
-
-### One command
-
-From project root:
-
-```bash
-.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/<root>
-```
-
-Per shot / language:
-
-1. Probe VO duration (source of truth) and video duration
-2. `setpts=PTS*(vo_dur/video_dur)` — stretch or compress **video only** (plus short freeze-tail so video ≥ VO)
-3. Mux with `-shortest` so **container duration == VO duration** (never cut VO by making video the short side)
-4. Write `<root>/Video-Chinese|<Video-English>/<shot-id>.<same-ext>`
-
-### Trial / one language
-
-```bash
-.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/<root> --limit 1
-.dependency/python/python .cursor/skills/storyboard-av-mix/scripts/mix.py path/to/<root> --lang chinese
-```
-
-## Flags
+## Common Flags
 
 | Flag | Notes |
 |------|--------|
@@ -104,13 +99,22 @@ Per shot / language:
 
 Skip existing outputs unless `--force`. Missing VO for a language → skip that job with a warning. Missing video → skip shot.
 
-## Agent notes
+## Agent Notes
 
 1. Audio first: if durations disagree, change **video**, never VO.
 2. Prefer one `mix.py` run for the whole board.
 3. Re-encode must preserve source quality tags (Main10 / HDR / bitrate) — never force 8-bit H.264.
 4. Chat summary: `<root>`, jobs done / skipped, paths to `Video-Chinese/` and `Video-English/`.
 5. Upstream VO usually from [storyboard-tts](../storyboard-tts/SKILL.md); this skill does not synthesize speech.
+6. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python.exe .ai/storyboard-av-mix/test_mix.py
+```
 
 ## Related
 
