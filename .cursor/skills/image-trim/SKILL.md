@@ -19,8 +19,9 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 - Run `trim.py` through the **`image-trim` manifest entry** (`.dependency/image-trim/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
 - Do not hand-write ImageMagick / FFmpeg crop commands — use the bundled script.
+- **Single file only.** Pass one image with `--image`; directories are not supported.
 - `populated: false` for `image-trim` is not a reason to skip. Install first, set `populated: true`, retry the same command.
-- Pass the input path as-is. Output goes to `<input>/trimmed/` by default — no path rewriting; **never overwrite sources**.
+- Pass the input path as-is. Output goes to `<image-dir>/image-trim/` by default — no path rewriting; **never overwrite sources**.
 - **Crop only** — preserve source pixel data and alpha; never composite onto black/white or fill background colors.
 - Output filenames keep the **original asset name** (e.g. `bullet_speed.png`). Cursor chat attachment paths like `empty-window_images_bullet_speed-<uuid>.png` are shortened automatically.
 
@@ -29,8 +30,8 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python -m venv .dependency/image-trim/.venv
-.dependency/image-trim/.venv/Scripts/python -m pip install Pillow
+.dependency/python/python.exe -m venv .dependency/image-trim/.venv
+.dependency/image-trim/.venv/Scripts/python.exe -m pip install Pillow
 ```
 
 Register in `.dependency/manifest.json`:
@@ -46,24 +47,18 @@ Use `bin/python` on Unix.
 
 ## Quick Start
 
-**Default: create a `trimmed/` folder under the input path** and write outputs there:
+**Default: create an `image-trim/` folder beside the input file** and write the output there:
 
 ```bash
 # Auto-detect transparent or solid-color borders (default)
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites/hero.png
-
-# Directory batch
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites -r
-
-# Preview without writing
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites --dry-run
+# image/sprites/hero.png → image/sprites/image-trim/hero.png
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/sprites/hero.png
 ```
 
-Custom output directory:
+Custom output path:
 
 ```bash
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites \
-  --output-dir image/sprites_trimmed
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/sprites/hero.png -o image/sprites_trimmed
 ```
 
 ## Detection Modes
@@ -76,24 +71,25 @@ Custom output directory:
 
 ```bash
 # Force alpha-only trim on RGBA cutouts
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/cutout.png --mode alpha
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/cutout.png --mode alpha
 
 # Trim white padding on opaque JPG/PNG
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/foo.jpg --mode color --color FFFFFF
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/foo.jpg --mode color --color FFFFFF
 ```
 
 ## Defaults
 
 | Option | Default | Notes |
 |--------|---------|-------|
-| Output | `<input-path>/trimmed/` | Use `--output-dir` for a custom path |
+| `--image` | **Required** | Single supported image file |
+| Output | `<image-dir>/image-trim/<name>` | Use `-o` / `--output` for custom file or directory |
 | Aspect ratio | **Preserve source** | Pass `--tight` for tight bbox crop (no aspect lock) |
 | `--mode` | `auto` | `alpha` for transparent PNGs; `color` for flat backgrounds |
 | `--alpha-threshold` | `10` | Lower = stricter transparency detection |
 | `--tolerance` | `25` | Color distance for solid-border trim |
 | `--padding` | `0` | Extra pixels kept around detected content |
-| `--pattern` | `*.png` | Also matches `.jpg`, `.jpeg`, `.webp`, `.bmp` |
-| Overwrite | off | Pass `--overwrite` to replace existing outputs |
+
+Supported inputs: `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.bmp`, `.tif`, `.tiff`, `.avif`, `.ico`.
 
 ## Aspect Ratio Behavior
 
@@ -103,25 +99,34 @@ Custom output directory:
 
 ```bash
 # Tight crop — smallest rectangle around content
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites/hero.png --tight
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/sprites/hero.png --tight
 
 # Keep 4 px breathing room, still preserve aspect ratio
-.dependency/image-trim/.venv/Scripts/python .cursor/skills/image-trim/scripts/trim.py image/sprites -r --padding 4
+.dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/sprites/hero.png --padding 4
 ```
 
 ## Agent Workflow
 
 1. **Pick skill** — remove padding/margins → this skill; remove backgrounds → [image-remove-white-background](../image-remove-white-background/SKILL.md) or [image-remove-background](../image-remove-background/SKILL.md).
-2. **Paths** — Pass whatever path the user gives. Output lands in `trimmed/` next to that input.
-3. **Trial first** — run on 1 image, inspect dimensions before batch.
-4. **After background removal** — run on `transparent/` outputs to drop excess transparent canvas.
-5. **Revert** — delete output folder or `git restore`; sources are never modified.
+2. **Paths** — Pass whatever image path the user gives. Output lands in `image-trim/` next to that file by default.
+3. **One file per run** — trim one image, verify dimensions, then repeat for additional files if needed.
+4. **After background removal** — run on `image-remove-background/` outputs to drop excess transparent canvas.
+5. **Revert** — delete output file or `git restore`; sources are never modified.
+
+## Agent Notes
+
+1. Use the bundled script, not hand-written ImageMagick / FFmpeg crop commands.
+2. Missing image-trim venv → populate `.dependency/` per skill-dependency-manager, retry same command.
+3. **Do not copy, move, or replace the source with trimmed output** — tell the user where the output file is.
+4. Need **background removal** first → [image-remove-white-background](../image-remove-white-background/SKILL.md) or [image-remove-background](../image-remove-background/SKILL.md).
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | `image-trim` missing in manifest | Follow **Setup**; update manifest |
+| Directory passed to `--image` | Run once per file; this skill accepts image files only |
+| Output already exists | Delete the existing output or choose a different `-o` path |
 | Nothing trimmed | Content may already fill the canvas; try `--mode color` with `--color` |
 | Too much removed | Lower `--tolerance` or `--alpha-threshold`; add `--padding` |
 | Borders remain | Raise `--tolerance`; use `--mode color` with explicit `--color` |
@@ -130,3 +135,7 @@ Custom output directory:
 | Output has black instead of transparency | Source may be JPEG data saved with a `.png` extension (Cursor attachments) — re-supply the original RGBA PNG |
 | Long Cursor attachment filenames | Script auto-renames to the embedded asset name (`bullet_speed.png`, etc.) |
 
+## Related
+
+- Background removal: [image-remove-white-background](../image-remove-white-background/SKILL.md), [image-remove-background](../image-remove-background/SKILL.md)
+- Resize after trim: [image-resize](../image-resize/SKILL.md)

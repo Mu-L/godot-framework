@@ -1,90 +1,43 @@
 """
-Batch-trim invalid borders (transparent or solid-color padding) from images using Pillow.
+Trim invalid borders (transparent or solid-color padding) from a single image using Pillow.
 
-Default crop preserves the source aspect ratio. Run via manifest image-trim.bin
-(.dependency/image-trim/.venv/) — see SKILL.md and skill-dependency-manager.
-Never use host python/py.
+Default crop preserves the source aspect ratio. Not default python. Run through the
+image-trim manifest bin (Python venv at .dependency/image-trim/.venv/).
+Never use default python or host python/py.
 
 Usage
 -----
-    .dependency/image-trim/.venv/Scripts/python \\
-        .cursor/skills/image-trim/scripts/trim.py image/sprites/hero.png
-
-    .dependency/image-trim/.venv/Scripts/python \\
-        .cursor/skills/image-trim/scripts/trim.py image/sprites -r --padding 4
+    .dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/sprites/hero.png
+    .dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/cutout.png --mode alpha
+    .dependency/image-trim/.venv/Scripts/python.exe .ai/image-trim/trim.py --image image/foo.jpg --mode color --color FFFFFF --padding 4
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
 
 from PIL import Image
 
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
-DEFAULT_PATTERN = "*.png"
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common.image_utils import resolve_image_file  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+
+DEFAULT_OUTPUT_SUBDIR = "image-trim"
 DEFAULT_MODE = "auto"
 DEFAULT_ALPHA_THRESHOLD = 10
 DEFAULT_TOLERANCE = 25
 DEFAULT_PADDING = 0
-DEFAULT_EXCLUDES: tuple[str, ...] = ("*_sheet.png", "trimmed/*", "transparent/*")
 CURSOR_ATTACHMENT_RE = re.compile(
     r"empty-window_images_(?P<name>.+)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     re.IGNORECASE,
 )
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
 
 def parse_color(value: str) -> tuple[int, int, int]:
@@ -104,60 +57,11 @@ def color_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> int:
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]), abs(a[2] - b[2]))
 
 
-def collect_images(
-    target: Path,
-    pattern: str,
-    excludes: tuple[str, ...],
-    recursive: bool,
-) -> list[Path]:
-    if target.is_file():
-        if target.suffix.lower() not in IMAGE_EXTENSIONS:
-            print(f"Unsupported image type: {target}", file=sys.stderr)
-            sys.exit(1)
-        return [target.resolve()]
-
-    if not target.is_dir():
-        print(f"Input path not found: {target}", file=sys.stderr)
-        sys.exit(1)
-
-    if recursive:
-        candidates = target.rglob(pattern)
-    else:
-        candidates = target.glob(pattern)
-
-    images: list[Path] = []
-    for candidate in candidates:
-        if not candidate.is_file():
-            continue
-        if candidate.suffix.lower() not in IMAGE_EXTENSIONS:
-            continue
-        rel = candidate.relative_to(target)
-        if any(rel.match(exclude) for exclude in excludes):
-            continue
-        images.append(candidate.resolve())
-    return sorted(images)
-
-
 def output_filename(source: Path) -> str:
     match = CURSOR_ATTACHMENT_RE.search(source.stem)
     if match:
         return f"{match.group('name')}{source.suffix.lower()}"
     return source.name
-
-
-def resolve_output_path(
-    source: Path,
-    input_root: Path,
-    output_dir: Path | None,
-) -> Path:
-    try:
-        rel = source.relative_to(input_root)
-        rel = rel.parent / output_filename(source)
-    except ValueError:
-        rel = Path(output_filename(source))
-
-    base = output_dir if output_dir is not None else input_root / "trimmed"
-    return base / rel
 
 
 def prepare_image(image: Image.Image) -> Image.Image:
@@ -255,11 +159,6 @@ def detect_content_bbox(
 ) -> tuple[int, int, int, int] | None:
     if mode == "alpha":
         return bbox_from_alpha(image, alpha_threshold)
-
-    if mode == "color":
-        if background is None:
-            background = sample_corner_background(image)
-        return bbox_from_color(image, background, tolerance)
 
     if mode == "color":
         if background is None:
@@ -400,27 +299,21 @@ def save_trimmed(image: Image.Image, dest: Path) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Trim invalid borders from images (transparent or solid-color padding)."
+        description="Trim invalid borders from a single image (transparent or solid-color padding)."
     )
     parser.add_argument(
-        "input",
-        help="Image file or directory containing images",
-    )
-    parser.add_argument(
-        "-r",
-        "--recursive",
-        action="store_true",
-        help="Recurse into subdirectories when input is a directory",
+        "--image",
+        required=True,
+        help="Path to a single image file",
     )
     parser.add_argument(
         "-o",
-        "--output-dir",
-        help="Output directory (default: <input-path>/trimmed/)",
-    )
-    parser.add_argument(
-        "--pattern",
-        default=DEFAULT_PATTERN,
-        help=f"Glob pattern for directory input (default: {DEFAULT_PATTERN})",
+        "--output",
+        default="",
+        help=(
+            "Output image file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR)}"
+        ),
     )
     parser.add_argument(
         "--mode",
@@ -455,21 +348,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Tight crop to content bbox (do not preserve source aspect ratio)",
     )
-    parser.add_argument(
-        "--overwrite",
-        action="store_true",
-        help="Overwrite existing output files",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print planned outputs without processing",
-    )
     return parser.parse_args()
 
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
+
     repo_root = find_repo_root(Path(__file__))
     if repo_root is None:
         print(
@@ -477,7 +361,7 @@ def main() -> None:
             "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        return 1
 
     resolve_tool_bin(repo_root, "image-trim")
 
@@ -487,76 +371,72 @@ def main() -> None:
             background = parse_color(args.color)
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
-            sys.exit(1)
+            return 1
 
-    input_path = Path(args.input).resolve()
-    images = collect_images(input_path, args.pattern, DEFAULT_EXCLUDES, args.recursive)
-    if not images:
-        print(f"No images found under {input_path}", file=sys.stderr)
-        sys.exit(1)
+    image_path = resolve_image_file(args.image)
+    if image_path is None:
+        return 1
 
-    input_root = input_path if input_path.is_dir() else input_path.parent
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else None
+    out_path = resolve_output_path(
+        args.output,
+        image_path,
+        DEFAULT_OUTPUT_SUBDIR,
+        output_filename(image_path),
+    )
+
+    if out_path.resolve() == image_path.resolve():
+        print(
+            "Refusing to overwrite source file. Choose a separate output path "
+            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
+            file=sys.stderr,
+        )
+        return 1
+
+    if out_path.exists():
+        print(f"Output already exists: {out_path}", file=sys.stderr)
+        return 1
+
     preserve_aspect = not args.tight
+    print(f"Image:        {image_path}")
+    print(f"Mode:         {args.mode}")
+    print(f"Aspect ratio: {'preserve source' if preserve_aspect else 'tight bbox'}")
+    print(f"Padding:      {args.padding}px")
+    print(f"Output:       {out_path}")
+    print()
 
-    planned: list[tuple[Path, Path]] = []
-    for source in images:
-        dest = resolve_output_path(source, input_root, output_dir)
-        planned.append((source, dest))
-
-    if args.dry_run:
-        print(f"Mode:           {args.mode}")
-        print(f"Aspect ratio:   {'preserve source' if preserve_aspect else 'tight bbox'}")
-        print(f"Padding:        {args.padding}px")
-        for source, dest in planned:
-            print(f"{source} -> {dest}")
-        print(f"{len(planned)} file(s)")
-        return
-
-    processed = 0
-    skipped = 0
-    unchanged = 0
-
-    for source, dest in planned:
-        if dest.exists() and not args.overwrite:
-            print(f"Skip (exists): {dest}")
-            skipped += 1
-            continue
-
-        with Image.open(source) as img:
-            if img.format == "JPEG" and source.suffix.lower() == ".png":
-                print(
-                    f"Warning: {source.name} is JPEG data with a .png extension — "
-                    "transparency was already lost before trim. Use the original RGBA PNG.",
-                    file=sys.stderr,
-                )
-
-            prepared = prepare_image(img)
-            original_size = prepared.size
-            result, crop_box = trim_image(
-                prepared,
-                mode=args.mode,
-                preserve_aspect=preserve_aspect,
-                alpha_threshold=args.alpha_threshold,
-                background=background,
-                tolerance=args.tolerance,
-                padding=args.padding,
+    with Image.open(image_path) as img:
+        if img.format == "JPEG" and image_path.suffix.lower() == ".png":
+            print(
+                f"Warning: {image_path.name} is JPEG data with a .png extension — "
+                "transparency was already lost before trim. Use the original RGBA PNG.",
+                file=sys.stderr,
             )
 
-        if crop_box is None or result.size == original_size:
-            print(f"No trim needed: {source}")
-            unchanged += 1
-            continue
-
-        print(
-            f"Processing: {source} "
-            f"({original_size[0]}x{original_size[1]} -> {result.size[0]}x{result.size[1]})"
+        prepared = prepare_image(img)
+        original_size = prepared.size
+        result, crop_box = trim_image(
+            prepared,
+            mode=args.mode,
+            preserve_aspect=preserve_aspect,
+            alpha_threshold=args.alpha_threshold,
+            background=background,
+            tolerance=args.tolerance,
+            padding=args.padding,
         )
-        save_trimmed(result, dest)
-        processed += 1
 
-    print(f"Done: {processed} trimmed, {unchanged} unchanged, {skipped} skipped")
+    if crop_box is None or result.size == original_size:
+        print(f"No trim needed: {image_path} ({original_size[0]}x{original_size[1]})")
+        return 0
+
+    print(
+        f"[run]  {image_path.name} "
+        f"({original_size[0]}x{original_size[1]} -> {result.size[0]}x{result.size[1]})"
+    )
+    save_trimmed(result, out_path)
+    print()
+    print(f"Done. wrote {out_path.name}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
