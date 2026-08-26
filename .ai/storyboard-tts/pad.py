@@ -1,13 +1,28 @@
 #!/usr/bin/env python3
-"""In-place leading/trailing silence padding used by synthesize.py after TTS."""
+"""
+In-place leading/trailing silence padding used by synthesize.py after TTS.
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    (library — imported by synthesize.py; not a standalone CLI)
+"""
 
 from __future__ import annotations
 
-import json
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.cli_tools import resolve_ffmpeg as _resolve_ffmpeg  # noqa: E402
+from common.cli_tools import resolve_ffprobe as _resolve_ffprobe  # noqa: E402
 
 SILENCE_START_RE = re.compile(r"silence_start:\s*([-\d.]+)")
 SILENCE_END_RE = re.compile(r"silence_end:\s*([-\d.]+)")
@@ -16,79 +31,12 @@ DEFAULT_DURATION = 0.4
 DEFAULT_THRESHOLD = -50.0
 
 
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
 def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
+    return _resolve_ffmpeg(Path(__file__))
 
 
 def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    probe = ffmpeg.parent / name
-    if probe.is_file():
-        return probe
-    print(
-        f"ffprobe not found next to ffmpeg at {ffmpeg.parent}. "
-        "Install a full FFmpeg build that includes ffprobe.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
+    return _resolve_ffprobe(ffmpeg)
 
 
 def get_duration(ffprobe: Path, file_path: Path) -> float:

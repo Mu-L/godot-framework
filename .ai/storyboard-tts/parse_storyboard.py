@@ -2,13 +2,13 @@
 """
 Parse storyboard markdown into per-shot Chinese / English VO lines.
 
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
 Usage
 -----
-    .dependency/python/python \\
-        .cursor/skills/storyboard-tts/scripts/parse_storyboard.py \\
-        path/to/storyboard.md
-
-    .dependency/python/python .../parse_storyboard.py storyboard.md -o shots.json
+    .dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md
+    .dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py storyboard.md -o shots.json
 """
 
 from __future__ import annotations
@@ -24,7 +24,6 @@ SHOT_HEADER_RE = re.compile(
     r"^###\s+Shot\s+(\d+)\s*[—–\-]\s*(.+?)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
-# Supports both `- **Chinese:** text` (colon inside bold) and `- **Chinese**: text`.
 FIELD_RE = re.compile(
     r"^\s*[-*]\s+\*\*(?P<key>[^*]+)\*\*\s*:?\s*(?P<value>.*)\s*$",
     re.MULTILINE,
@@ -73,15 +72,12 @@ def parse_storyboard(markdown: str) -> dict:
     shots: list[dict] = []
 
     for i, header in enumerate(headers):
-        shot_id = header.group(1).zfill(2) if len(header.group(1)) <= 2 else header.group(1)
-        # Preserve padding if author already used 01; normalize to at least 2 digits.
         raw_id = header.group(1)
         shot_id = f"{int(raw_id):02d}" if raw_id.isdigit() else raw_id
         shot_title = header.group(2).strip()
 
         start = header.end()
         end = headers[i + 1].start() if i + 1 < len(headers) else len(markdown)
-        # Stop at top-level ## sections after shots (Cover / Assembly)
         next_section = re.search(r"^##\s+\S", markdown[start:end], re.MULTILINE)
         if next_section:
             end = start + next_section.start()

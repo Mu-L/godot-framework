@@ -28,14 +28,15 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
 
 ## Rules
 
-1. Follow [skill-dependency-manager](../skill-dependency-manager.md).
-2. **Batch synthesis only via** `scripts/synthesize.py` with the **`index-tts`** interpreter. Do **not** hand-write IndexTTS loops, temporary batch drivers, or N× single `tts.py` calls for a full storyboard.
-3. **Trial / single-line** checks may use [ai-text-to-speech](../ai-text-to-speech/SKILL.md) `tts.py`, or `synthesize.py --limit 1`.
-4. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python`).
-5. Never overwrite the storyboard source. Write only under `<audio-dir>/`.
-6. Skip `(no VO)` / empty lines — no empty WAVs or empty subtitle cues.
-7. Confirm **voice reference** (and output dir if unclear) before a full batch.
-8. 第一层目录使用音频的名字作为第一层目录的名字。子目录的名字都是不变. Default `<audio-dir>` is `<storyboard-dir>/<voice-stem>/`. Do **not** use `<storyboard-stem>-speech`.
+When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
+
+1. **Batch synthesis only via** `.ai/storyboard-tts/synthesize.py` with the **`index-tts`** interpreter. Do **not** hand-write IndexTTS loops, temporary batch drivers, or N× single `tts.py` calls for a full storyboard.
+2. **Trial / single-line** checks may use [ai-text-to-speech](../ai-text-to-speech/SKILL.md) `tts.py`, or `synthesize.py --limit 1`.
+3. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python.exe`).
+4. Never overwrite the storyboard source. Write only under `<audio-dir>/`.
+5. Skip `(no VO)` / empty lines — no empty WAVs or empty subtitle cues.
+6. Confirm **voice reference** (and output dir if unclear) before a full batch.
+7. 第一层目录使用音频的名字作为第一层目录的名字。子目录的名字都是不变. Default `<audio-dir>` is `<storyboard-dir>/<voice-stem>/`. Do **not** use `<storyboard-stem>-speech`.
 
 ## Inputs
 
@@ -72,28 +73,18 @@ Subtitles: **one SRT per language**. Shots are laid end-to-end on the VO timelin
   _text/                 # only with --write-text
 ```
 
-## Workflow
+## Quick Start
 
-```
-Task Progress:
-- [ ] Confirm storyboard path + voice (+ audio-dir if needed)
-- [ ] Ensure index-tts populated (ai-text-to-speech Setup if missing)
-- [ ] Ensure ffmpeg populated (needed for in-place edge padding)
-- [ ] Optional trial: synthesize.py --limit 1 --fp16
-- [ ] Full batch: synthesize.py --fp16 --report
-- [ ] Chat: audio-dir, shot count, totals from speech-timeline.md, SRT paths
-```
-
-### One command (preferred)
-
-From project root (Windows; use `.venv/bin/python` on Unix):
+From project root:
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/storyboard-tts/scripts/synthesize.py \
-  --storyboard path/to/storyboard.md \
-  --voice path/to/ref.wav \
-  --fp16 --report
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice path/to/ref.wav --fp16 --report
+```
+
+Trial run (first line only):
+
+```bash
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice path/to/ref.wav --fp16 --limit 1
 ```
 
 Writes under `<storyboard-dir>/<voice-stem>/` (override with `--audio-dir` only when needed).
@@ -106,55 +97,37 @@ This will:
 4. Pad each WAV in place to **0.4 s** leading/trailing silence (`--no-pad` to skip)
 5. Write `speech-timeline.md` and `Chinese.srt` / `English.srt` when `--report`
 
-### Trial one line
-
-```bash
-.dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/storyboard-tts/scripts/synthesize.py \
-  --storyboard path/to/storyboard.md \
-  --voice path/to/ref.wav \
-  --fp16 --limit 1
-```
-
 ### Separate voices / language
 
 ```bash
-# Chinese and English different refs
---voice-zh path/to/zh_ref.wav --voice-en path/to/en_ref.wav
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice-zh path/to/zh_ref.wav --voice-en path/to/en_ref.wav --fp16 --report
+```
 
-# Only Chinese track
---lang chinese
+```bash
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice path/to/ref.wav --lang chinese --fp16 --report
 ```
 
 ### Parse, report, or subtitles alone (stdlib python)
 
 ```bash
-.dependency/python/python .cursor/skills/storyboard-tts/scripts/parse_storyboard.py \
-  path/to/storyboard.md -o path/to/<audio-dir>/shots.json
+.dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md -o path/to/<audio-dir>/shots.json
+```
 
-.dependency/python/python .cursor/skills/storyboard-tts/scripts/duration_report.py \
-  --storyboard path/to/storyboard.md \
-  --audio-dir path/to/<audio-dir> \
-  --shots path/to/<audio-dir>/shots.json \
-  -o path/to/<audio-dir>/speech-timeline.md
+```bash
+.dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json -o path/to/<audio-dir>/speech-timeline.md
+```
 
-# Subtitles only (after WAVs exist) — one Chinese.srt + one English.srt
-.dependency/python/python .cursor/skills/storyboard-tts/scripts/write_subtitles.py \
-  --audio-dir path/to/<audio-dir> \
-  --shots path/to/<audio-dir>/shots.json
+```bash
+.dependency/python/python.exe .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json
 ```
 
 Resume from an existing `shots.json`:
 
 ```bash
-.dependency/index-tts/.venv/Scripts/python.exe \
-  .cursor/skills/storyboard-tts/scripts/synthesize.py \
-  --shots path/to/<audio-dir>/shots.json \
-  --voice path/to/ref.wav \
-  --fp16 --report
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --shots path/to/<audio-dir>/shots.json --voice path/to/ref.wav --fp16 --report
 ```
 
-## Flags (synthesize.py)
+## Common Flags (synthesize.py)
 
 | Flag | Notes |
 |------|--------|
@@ -177,18 +150,34 @@ Resume from an existing `shots.json`:
 
 On partial failure: script continues remaining jobs, prints `Failed jobs: …`, exit code `1`. Fix install/voice per ai-text-to-speech troubleshooting, re-run (existing OK files are skipped).
 
-## Agent notes
+## Agent Notes
 
 1. Do **not** invent narration — use storyboard Chinese/English fields as-is (audio and subtitles).
 2. Prefer **one** `synthesize.py` invocation for a full board; model reload cost is the reason.
 3. Chat summary: `audio-dir` (`<storyboard-dir>/<voice-stem>/`), counts, path to `speech-timeline.md`, `Chinese.srt` / `English.srt`, Chinese/English total seconds — no full transcripts unless asked. Omit `--audio-dir` unless overriding.
 4. IndexTTS install lives in [ai-text-to-speech](../ai-text-to-speech/SKILL.md); do not duplicate Setup here beyond “populate index-tts if missing”.
-5. Edge padding is **built in** (default 0.4 s, in place via `scripts/pad.py`). Use `--no-pad` only when they want raw TTS with no extra silence; `--pad-duration` if they want a different length.
+5. Edge padding is **built in** (default 0.4 s, in place via `pad.py`). Use `--no-pad` only when they want raw TTS with no extra silence; `--pad-duration` if they want a different length.
 6. Loudnorm / OGG / trim remain separate skills after this one.
 7. If audio already exists and only subtitles are needed, run `write_subtitles.py` alone (stdlib python). Re-running `synthesize.py --report` without `--force` still pads existing WAVs, then rewrites the timeline/SRT.
+
+## Tests
+
+Stdlib scripts (from repo root):
+
+```bash
+.dependency/python/python.exe .ai/storyboard-tts/test_parse_storyboard.py
+.dependency/python/python.exe .ai/storyboard-tts/test_write_subtitles.py
+```
+
+IndexTTS batch driver (requires populated `index-tts`; see `.ai/storyboard-tts/test.md`):
+
+```bash
+.dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice .ai/test/audio/han.wav --fp16 --limit 1 --report
+```
 
 ## Related
 
 - [storyboard](../storyboard/SKILL.md) — source markdown
 - [ai-text-to-speech](../ai-text-to-speech/SKILL.md) — single-line TTS + IndexTTS setup
+- [storyboard-av-mix](../storyboard-av-mix/SKILL.md) — mux VO with per-shot video
 - Optional after: [audio-loudness-normalization](../audio-loudness-normalization/SKILL.md)

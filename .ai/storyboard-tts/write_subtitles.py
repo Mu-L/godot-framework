@@ -2,17 +2,12 @@
 """
 Build one concatenated SRT per language from shot VO text + WAV durations.
 
-Timeline is the continuous VO track: each shot with audio starts when the
-previous ends (no gap). Within a shot, long narration is split on sentence
-punctuation into multiple cues; cue durations share the shot WAV length by
-character-count weight.
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python \\
-        .cursor/skills/storyboard-tts/scripts/write_subtitles.py \\
-        --audio-dir path/to/output \\
-        --shots path/to/output/shots.json
+    .dependency/python/python.exe .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/output --shots path/to/output/shots.json
 """
 
 from __future__ import annotations
@@ -23,15 +18,11 @@ import re
 import sys
 from pathlib import Path
 
-
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
-from duration_report import (  # noqa: E402
-    audio_duration_seconds,
-    find_audio,
-)
+from duration_report import audio_duration_seconds, find_audio  # noqa: E402
 from parse_storyboard import parse_storyboard  # noqa: E402
 
 
@@ -40,8 +31,6 @@ LANG_SPECS = (
     ("english", "English", "english", "english_skip", "English.srt"),
 )
 
-# Chinese / fullwidth terminators always end a sentence.
-# ASCII .!? end a sentence only at EOS or before whitespace / closing quote.
 _SENTENCE_END_RE = re.compile(
     r".+?(?:"
     r"[。！？；…]+|"
@@ -63,13 +52,11 @@ def srt_timestamp(seconds: float) -> str:
 
 
 def char_weight(text: str) -> int:
-    """Non-whitespace length; minimum 1 so empty-looking scraps still get time."""
     n = len(re.sub(r"\s+", "", text))
     return n if n > 0 else 1
 
 
 def split_sentences(text: str) -> list[str]:
-    """Split VO text on sentence punctuation; keep terminators with the sentence."""
     text = text.strip()
     if not text:
         return []
@@ -98,7 +85,6 @@ def split_sentences(text: str) -> list[str]:
 
 
 def allocate_durations(weights: list[int], total: float) -> list[float]:
-    """Split total seconds by integer weights; last slice absorbs rounding residue."""
     if not weights:
         return []
     if total <= 0:
@@ -118,7 +104,6 @@ def allocate_durations(weights: list[int], total: float) -> list[float]:
 
 
 def cues_for_shot(text: str, shot_start: float, shot_dur: float) -> list[tuple[float, float, str]]:
-    """Return (start, end, cue_text) rows inside one shot window."""
     sentences = split_sentences(text)
     weights = [char_weight(s) for s in sentences]
     durs = allocate_durations(weights, shot_dur)
@@ -159,7 +144,6 @@ def build_srt_for_lang(
     text_key: str,
     skip_key: str,
 ) -> tuple[str, int, float]:
-    """Return (srt_body, cue_count, total_seconds)."""
     lang_dir = audio_dir / lang_dir_name
     cues: list[str] = []
     cursor = 0.0

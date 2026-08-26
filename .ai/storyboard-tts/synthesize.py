@@ -2,21 +2,18 @@
 """
 Batch-synthesize storyboard VO (Chinese + English) with IndexTTS2.
 
-Loads the model **once**, then writes:
+Not default python. Run through the index-tts manifest bin
+(Python 3.11 venv at .dependency/index-tts/.venv/).
+Never use default python or host python/py.
 
-    <storyboard-dir>/<voice-stem>/Chinese/<shot-id>.wav
-    <storyboard-dir>/<voice-stem>/English/<shot-id>.wav
+Loads the model once, then writes Chinese/<shot-id>.wav and English/<shot-id>.wav
+under <storyboard-dir>/<voice-stem>/. Each WAV is padded in place (default 0.4 s
+leading/trailing silence) via pad.py unless --no-pad.
 
-Each WAV is padded in place (default 0.4 s leading/trailing silence) via
-`pad.py` `ensure_padded`, unless `--no-pad`.
-
-Run through the **index-tts** interpreter only:
-
-    .dependency/index-tts/.venv/Scripts/python.exe \\
-        .cursor/skills/storyboard-tts/scripts/synthesize.py \\
-        --storyboard path/to/storyboard.md \\
-        --voice path/to/ref.wav \\
-        --fp16 --report
+Usage
+-----
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice path/to/ref.wav --fp16 --report
+    .dependency/index-tts/.venv/Scripts/python.exe .ai/storyboard-tts/synthesize.py --storyboard path/to/storyboard.md --voice path/to/ref.wav --fp16 --limit 1
 """
 
 from __future__ import annotations

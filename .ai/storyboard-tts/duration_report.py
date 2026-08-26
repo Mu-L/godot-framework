@@ -2,17 +2,13 @@
 """
 Build a shot-to-audio duration report from Chinese/ and English/ WAV folders.
 
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
 Usage
 -----
-    .dependency/python/python \\
-        .cursor/skills/storyboard-tts/scripts/duration_report.py \\
-        --storyboard path/to/storyboard.md \\
-        --audio-dir path/to/output \\
-        -o path/to/output/speech-timeline.md
-
-Optional shots JSON from parse_storyboard.py (else re-parses storyboard):
-
-    --shots path/to/shots.json
+    .dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output -o path/to/output/speech-timeline.md
+    .dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output --shots path/to/shots.json -o path/to/output/speech-timeline.md
 """
 
 from __future__ import annotations
@@ -23,8 +19,6 @@ import sys
 import wave
 from pathlib import Path
 
-
-# Import sibling parser when run as a file
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
@@ -50,7 +44,6 @@ def wav_duration_seconds(path: Path) -> float | None:
 
 
 def pcm_duration_fallback(path: Path) -> float | None:
-    """Best-effort for non-WAV using file size is unreliable — skip."""
     return None
 
 
@@ -69,7 +62,6 @@ def find_audio(lang_dir: Path, shot_id: str) -> Path | None:
         candidate = lang_dir / f"{shot_id}{ext}"
         if candidate.is_file():
             return candidate
-    # Also accept unpadded numeric ids
     if shot_id.isdigit():
         bare = str(int(shot_id))
         for ext in AUDIO_EXTS:
