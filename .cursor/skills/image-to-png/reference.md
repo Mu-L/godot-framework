@@ -15,14 +15,14 @@ ffmpeg -i input.png -c:v copy output.png
 ffmpeg -i input.gif -frames:v 1 -c:v png output.png
 ```
 
-## Optional Flags
+## CLI Flags
 
 | Flag | Effect |
 |------|--------|
+| `--image` | **Required.** Single input image file |
 | (default) | Preserve dimensions and alpha |
 | `--strip-alpha` | Force RGB24 output (no alpha channel) |
-| `-o` / `--output-dir` | Custom output root |
-| `-r` / `--recurse` | Process subdirectories |
+| `-o` / `--output` | Custom output file or directory |
 
 ## Alpha Handling
 
@@ -38,10 +38,10 @@ ffmpeg -i input.gif -frames:v 1 -c:v png output.png
 
 ## Output Layout
 
-For `assets/ui/icon.webp` with default output dir:
+For `assets/ui/icon.webp` with default output:
 
 ```
-assets/ui/png/icon.png
+assets/ui/image-to-png/icon.png
 ```
 
-Batch with `-r` preserves subdirectory structure under the output root.
+Script path: `.ai/image-to-png/convert.py`
