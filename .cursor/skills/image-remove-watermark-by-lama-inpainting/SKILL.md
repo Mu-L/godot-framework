@@ -3,16 +3,15 @@ name: image-remove-watermark-by-lama-inpainting
 description: >-
   Removes corner or region watermarks from images with LaMa inpainting (IOPaint):
   feathered circular mask over the mark, then fill from surrounding pixels.
-  Use when reverse-alpha Gemini removal leaves a dark remnant, when the user
-  wants LaMa / IOPaint / inpaint 去水印 / 局部修复, or for general corner logos
-  that are not a semi-transparent Gemini sparkle overlay.
+  Use when the user wants LaMa / IOPaint / inpaint 去水印 / 局部修复, or for
+  corner logos and sparkle overlays that need region inpainting.
 ---
 
 # Image Remove Watermark by LaMa Inpainting
 
 Erase a **region watermark** (default: bottom-right corner sparkle) with **[IOPaint](https://github.com/Sanster/IOPaint) LaMa**. Builds a feathered circular mask, then inpaints from surrounding pixels.
 
-**When to use this instead of** [image-remove-watermark-gemini](../image-remove-watermark-gemini/SKILL.md): reverse alpha blending failed (dark remnant, skipped detection) or the mark is an opaque/baked-in corner logo. Prefer the Gemini skill first for typical semi-transparent Gemini sparkles.
+Best for opaque or baked-in corner logos, or when reverse-alpha removal left a dark remnant. For semi-transparent sparkle overlays, try a smaller `--radius` first; increase `--size` if the mark is larger.
 
 ## Rules
 
@@ -119,11 +118,10 @@ Default `br` box: `x = width - inset - size`, `y = height - inset - size` (`size
 | CUDA not available | Script falls back to `--device cpu` |
 | Sparkle still visible | Increase `--radius` or `--size`; confirm `--region` covers the mark |
 | Nearby art eaten | Smaller `--radius`; tighter `--region x,y,w,h` |
-| Dark remnant after Gemini skill | This skill is the fallback — run it on the **originals**, not the reverse-alpha output |
+| Dark remnant after other removal | Run this skill on the **originals**, not a failed prior output |
 | Wrong interpreter | Must use `.dependency/iopaint/.venv/Scripts/python.exe` |
 
 ## Related
 
 - Script: [scripts/inpaint.py](scripts/inpaint.py)
-- Gemini reverse-alpha (try first for sparkle overlays): [image-remove-watermark-gemini](../image-remove-watermark-gemini/SKILL.md)
 - Engine: [Sanster/IOPaint](https://github.com/Sanster/IOPaint) (LaMa)

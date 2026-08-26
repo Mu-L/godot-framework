@@ -8,8 +8,8 @@ Batch asset tools — run from repo root; use each skill's script; never overwri
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
-| [Image](#image) | to-png → watermark → split → background → trim / resize | 9 skills |
-| [Video](#video) | watermark → mute / wav → 60fps → 4K → merge → compress / OGV | 11 skills |
+| [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
+| [Video](#video) | mute / wav → 60fps → 4K → merge → compress / OGV | 10 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / video → VO → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
@@ -64,8 +64,7 @@ Source image (AI art / sprite sheet)
     ↓
 ① image-to-png (optional)
     ↓
-② image-remove-watermark-gemini (optional)
-   ·or·  image-remove-watermark-by-lama-inpainting — LaMa fill (fallback / opaque marks)
+② image-remove-watermark-by-lama-inpainting — LaMa fill (optional)
     ↓
 ③ image-sprite-sheet-split — grid → frames (optional)
     ↓
@@ -83,7 +82,6 @@ Source image (AI art / sprite sheet)
 | Skill | Purpose |
 |-------|---------|
 | [image-to-png](image-to-png/SKILL.md) | Image → PNG |
-| [image-remove-watermark-gemini](image-remove-watermark-gemini/SKILL.md) | Remove Gemini sparkle watermark |
 | [image-remove-watermark-by-lama-inpainting](image-remove-watermark-by-lama-inpainting/SKILL.md) | Remove corner / region watermark with LaMa inpainting (IOPaint) |
 | [image-sprite-sheet-split](image-sprite-sheet-split/SKILL.md) | Split sprite sheet grid → individual frame PNGs |
 | [image-remove-white-background](image-remove-white-background/SKILL.md) | Remove flat white / green / magenta backgrounds (color key; default `global` mode; also `border` / `center` / `both`) |
@@ -94,33 +92,30 @@ Source image (AI art / sprite sheet)
 
 ## Video
 
-Veo / Gemini cutscenes and UI clips — remove corner watermark, optionally mute or rip audio, upscale / normalize / merge, compress to a size cap, then export Godot-ready OGV. Publish pack for multi-platform release.
+Veo / Gemini cutscenes and UI clips — optionally mute or rip audio, upscale / normalize / merge, compress to a size cap, then export Godot-ready OGV. Publish pack for multi-platform release.
 
 ```
 Source video (Veo / Gemini generated)
     ↓
-① video-remove-watermark-gemini (optional)
-    ↓
-② video-to-wav — extract audio (optional)
+① video-to-wav — extract audio (optional)
    ·or·  video-remove-audio — mute (optional)
     ↓
-③ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
+② video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
     ↓
-④ video-to-4k — upscale to 4K master (optional; keeps fps)
+③ video-to-4k — upscale to 4K master (optional; keeps fps)
     ↓
-⑤ video-4k-normalization — unify color / fps before merge (optional)
+④ video-4k-normalization — unify color / fps before merge (optional)
     ↓
-⑥ video-merge — random 0.5s xfade (optional)
+⑤ video-merge — random 0.5s xfade (optional)
    ·or·  video-merge-gpu — same, GPU HEVC only (no CPU fallback)
     ↓
-⑦ video-compress-to-size — re-encode under max size (optional; GPU preferred)
+⑥ video-compress-to-size — re-encode under max size (optional; GPU preferred)
     ↓
-⑧ video-to-ogv — Godot export
+⑦ video-to-ogv — Godot export
 ```
 
 | Skill | Purpose |
 |-------|---------|
-| [video-remove-watermark-gemini](video-remove-watermark-gemini/SKILL.md) | Remove Gemini / Veo visible watermark (reverse alpha; audio passthrough) |
 | [video-to-wav](video-to-wav/SKILL.md) | Extract audio track → WAV |
 | [video-remove-audio](video-remove-audio/SKILL.md) | Remove all audio / mute video (stream copy) |
 | [video-to-60fps](video-to-60fps/SKILL.md) | Interpolate → 60fps at source resolution (Video2X RIFE; skip if already 60) |
@@ -148,29 +143,27 @@ Materials / copy / images
     │     ↓
     │  ② Generate AI video (external; from prompts)
     │     ↓
-    │  ③ video-remove-watermark-gemini
+    │  ③ video-remove-audio — mute (drop source track before VO mux)
     │     ↓
-    │  ④ video-remove-audio — mute (drop source track before VO mux)
+    │  ④ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
     │     ↓
-    │  ⑤ video-to-60fps — RIFE interpolate to 60fps at source res (optional; skip if already 60)
+    │  ⑤ video-to-4k → Video/
     │     ↓
-    │  ⑥ video-to-4k → Video/
-    │     ↓
-    │  ⑦ video-4k-normalization (optional)
+    │  ⑥ video-4k-normalization (optional)
     │
     └─ audio branch
           ↓
-       ⑧ storyboard-tts → Chinese/ + English/ WAVs (0.4 s edge pad included)
+       ⑦ storyboard-tts → Chinese/ + English/ WAVs (0.4 s edge pad included)
           ↓
-       ⑨ audio-loudness-normalization
+       ⑧ audio-loudness-normalization
     ↓
-⑩ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
+⑨ storyboard-av-mix — mux Video/ + Chinese|English/ → Video-Chinese/ + Video-English/
     ↓
-⑪ video-merge ·or· video-merge-gpu → final film
+⑩ video-merge ·or· video-merge-gpu → final film
     ↓
-⑫ video-compress-to-size — re-encode under max size (optional)
+⑪ video-compress-to-size — re-encode under max size (optional)
     ↓
-⑬ video-publish — platform copy / covers
+⑫ video-publish — platform copy / covers
 ```
 
 | Skill | Purpose |

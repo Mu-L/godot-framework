@@ -1,7 +1,14 @@
 """
-Gradio UI: paint a region, then remove key-color pixels only inside that region.
+Interactive Gradio UI: paint a region, remove key-color pixels only inside that region.
 
-Run via manifest image-region-remove-key-color-app.bin — see SKILL.md.
+Not default python. Run through the image-region-remove-key-color-app manifest bin
+(venv at .dependency/image-region-remove-key-color-app/.venv/).
+Never use default python or host python/py.
+
+Usage
+-----
+    .dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe .ai/image-region-remove-key-color-app/app.py path/to/sprite.png
+    .dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe .ai/image-region-remove-key-color-app/app.py path/to/sprite.png --port 7861 --no-browser
 """
 
 from __future__ import annotations

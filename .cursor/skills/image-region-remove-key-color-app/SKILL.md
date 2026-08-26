@@ -18,7 +18,7 @@ Use after [image-remove-white-background](../image-remove-white-background/SKILL
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
 - Run `app.py` through the **`image-region-remove-key-color-app` manifest entry** (`.dependency/image-region-remove-key-color-app/.venv/`). Never use host `python`, `py`, `python3`, or any interpreter outside `.dependency/`.
-- Do not hand-write a one-off Gradio app — use the bundled script.
+- Do not hand-write a one-off Gradio app — use the bundled script at `.ai/image-region-remove-key-color-app/app.py`.
 - `populated: false` is not a reason to skip. Install first, set `populated: true`, retry the same command.
 - This skill is **interactive**: launch the UI, give the user the local URL, wait for them to paint / Apply / Download.
 
@@ -27,16 +27,16 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python -m venv .dependency/image-region-remove-key-color-app/.venv
-.dependency/image-region-remove-key-color-app/.venv/Scripts/python -m pip install Pillow gradio
+.dependency/python/python.exe -m venv .dependency/image-region-remove-key-color-app/.venv
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe -m pip install Pillow gradio
 ```
 
 If `python -m venv` fails (missing `venv` / `ensurepip`), create the env with `virtualenv` from another populated skill venv, then install packages into the new env:
 
 ```bash
-.dependency/rembg/.venv/Scripts/python -m pip install virtualenv
-.dependency/rembg/.venv/Scripts/python -m virtualenv .dependency/image-region-remove-key-color-app/.venv
-.dependency/image-region-remove-key-color-app/.venv/Scripts/python -m pip install Pillow gradio
+.dependency/rembg/.venv/Scripts/python.exe -m pip install virtualenv
+.dependency/rembg/.venv/Scripts/python.exe -m virtualenv .dependency/image-region-remove-key-color-app/.venv
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe -m pip install Pillow gradio
 ```
 
 Register in `.dependency/manifest.json`:
@@ -54,15 +54,10 @@ Use `bin/python` on Unix.
 
 ```bash
 # Preload an image (opens http://127.0.0.1:7860)
-.dependency/image-region-remove-key-color-app/.venv/Scripts/python \
-  .cursor/skills/image-region-remove-key-color-app/scripts/app.py \
-  path/to/sprite.png
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe .ai/image-region-remove-key-color-app/app.py path/to/sprite.png
 
-# Custom port
-.dependency/image-region-remove-key-color-app/.venv/Scripts/python \
-  .cursor/skills/image-region-remove-key-color-app/scripts/app.py \
-  path/to/sprite.png \
-  --port 7861
+# Custom port, no auto-open browser (agent / headless)
+.dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe .ai/image-region-remove-key-color-app/app.py path/to/sprite.png --port 7861 --no-browser
 ```
 
 Download uses the **same filename** as the source (forced `.png`). No share / no save-to-disk folder.
