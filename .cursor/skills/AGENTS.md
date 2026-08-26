@@ -103,6 +103,27 @@ Even when a skill script wraps FFmpeg or another CLI, call it through the skill 
 
 After installing anything, say what you installed and which command you ran.
 
+## Skill pipelines
+
+When the user lists **multiple skills in sequence**, chain them: **each step's output is the next step's input**. Never point a later step back at the original source.
+
+Each skill writes beside its input into `<input-dir>/<skill-name>/`, so chained runs nest:
+
+```
+source/file.ext
+  → source/skill-a/out.ext
+  → source/skill-a/skill-b/out.ext
+  → source/skill-a/skill-b/skill-c/out.ext   ← final
+```
+
+1. **Order** — user's list, left to right (or top to bottom).
+2. **Input** — step 1 uses the source file; later steps pass the **prior output** using that skill's input flag from `SKILL.md` (`--image`, `--audio`, `--video`, etc.).
+3. **One file per run** — one input per invocation; repeat the full pipeline for each file when batching a folder.
+4. **No bypass** — run every step through its bundled script; do not merge steps into one hand-written command.
+5. **Sources untouched** — report the deepest nested path as the final result.
+
+The pipeline only wires **which file** each step receives.
+
 ## Dependencies
 
 External CLIs, language runtimes, and skill-only toolchains install into `.dependency/`. Do not put **project/business** packages here (Godot addons, game server deps, app `requirements.txt`, etc.).
