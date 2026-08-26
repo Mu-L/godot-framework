@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Normalize filenames: split on common separators, clean segments, join with hyphens."""
+"""
+Normalize asset filenames: split on separators, clean segments, join with underscores (snake_case).
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py path/to/file_or_folder
+    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Audio/SFX --dry-run
+    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets --strip SFX --strip UI -r
+    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets -o normalized/ -r
+"""
 
 from __future__ import annotations
 
@@ -42,7 +54,7 @@ def normalize_stem(stem: str, strip_strings: list[str], strip_case_insensitive: 
         if segment:
             cleaned.append(segment)
 
-    return "-".join(cleaned)
+    return "_".join(cleaned)
 
 
 def target_name(path: Path, strip_strings: list[str], strip_case_insensitive: bool) -> str | None:
@@ -77,7 +89,7 @@ def resolve_destination(src: Path, input_path: Path, new_name: str, output_dir: 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Normalize filenames by splitting, cleaning segments, and joining with hyphens."
+        description="Normalize filenames by splitting, cleaning segments, and joining with underscores."
     )
     parser.add_argument("path", type=Path, help="File or directory to process")
     parser.add_argument("-r", "--recursive", action="store_true", help="Process files in subdirectories")
