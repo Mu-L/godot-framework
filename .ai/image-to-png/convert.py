@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/image-to-png/convert.py --image assets/ui/icon.webp
-    .dependency/python/python.exe .ai/image-to-png/convert.py --image assets/sprites/hero.jpg --strip-alpha
-    .dependency/python/python.exe .ai/image-to-png/convert.py --image assets/ui/icon.webp -o assets/ui_png
+    .dependency/python/python .ai/image-to-png/convert.py --image assets/ui/icon.webp
+    .dependency/python/python .ai/image-to-png/convert.py --image assets/sprites/hero.jpg --strip-alpha
+    .dependency/python/python .ai/image-to-png/convert.py --image assets/ui/icon.webp -o assets/ui_png
 """
 
 from __future__ import annotations

@@ -6,9 +6,9 @@ Run through default python from .dependency/manifest.json. Never use host python
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav --nr 8
-    .dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav --output path/to/out.wav
+    .dependency/python/python .ai/audio-denoise/denoise.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-denoise/denoise.py --audio path/to/audio.wav --nr 8
+    .dependency/python/python .ai/audio-denoise/denoise.py --audio path/to/audio.wav --output path/to/out.wav
 """
 
 from __future__ import annotations

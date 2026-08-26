@@ -6,8 +6,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
-    .dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 -o image/effects/frames
+    .dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
+    .dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3 -o image/effects/frames
 """
 
 from __future__ import annotations

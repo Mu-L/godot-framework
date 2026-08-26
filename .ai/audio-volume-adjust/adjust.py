@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav --volume -6
-    .dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume 3 --output path/to/out.wav
+    .dependency/python/python .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav --volume -6
+    .dependency/python/python .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume 3 --output path/to/out.wav
 """
 
 from __future__ import annotations

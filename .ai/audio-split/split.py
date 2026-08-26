@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-split/split.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-split/split.py --audio path/to/audio.wav -s 1.25
-    .dependency/python/python.exe .ai/audio-split/split.py --audio path/to/audio.wav -p 25
+    .dependency/python/python .ai/audio-split/split.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-split/split.py --audio path/to/audio.wav -s 1.25
+    .dependency/python/python .ai/audio-split/split.py --audio path/to/audio.wav -p 25
 """
 
 from __future__ import annotations

@@ -7,10 +7,10 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py path/to/file_or_folder
-    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Audio/SFX --dry-run
-    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets --strip SFX --strip UI -r
-    .dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets -o normalized/ -r
+    .dependency/python/python .ai/file-naming-normalization/normalize.py path/to/file_or_folder
+    .dependency/python/python .ai/file-naming-normalization/normalize.py Audio/SFX --dry-run
+    .dependency/python/python .ai/file-naming-normalization/normalize.py Assets --strip SFX --strip UI -r
+    .dependency/python/python .ai/file-naming-normalization/normalize.py Assets -o normalized/ -r
 """
 
 from __future__ import annotations

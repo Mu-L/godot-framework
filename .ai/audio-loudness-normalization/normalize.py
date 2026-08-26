@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -t -16
-    .dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -output path/to/out.wav
+    .dependency/python/python .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -t -16
+    .dependency/python/python .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav -output path/to/out.wav
 """
 
 from __future__ import annotations

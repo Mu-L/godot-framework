@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
-    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/ui/icon.png --width 64 --height 64 --mode fill
-    .dependency/python/python.exe .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
+    .dependency/python/python .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
+    .dependency/python/python .ai/image-resize/resize.py --image assets/ui/icon.png --width 64 --height 64 --mode fill
+    .dependency/python/python .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
 """
 
 from __future__ import annotations

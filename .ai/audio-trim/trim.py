@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-trim/trim.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-trim/trim.py --audio path/to/audio.wav -t -45
-    .dependency/python/python.exe .ai/audio-trim/trim.py --audio audio/sfx.wav --output path/to/out.wav
+    .dependency/python/python .ai/audio-trim/trim.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-trim/trim.py --audio path/to/audio.wav -t -45
+    .dependency/python/python .ai/audio-trim/trim.py --audio audio/sfx.wav --output path/to/out.wav
 """
 
 from __future__ import annotations

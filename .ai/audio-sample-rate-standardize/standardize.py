@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3
-    .dependency/python/python.exe .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3 --output path/to/out.wav
+    .dependency/python/python .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3
+    .dependency/python/python .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3 --output path/to/out.wav
 """
 
 from __future__ import annotations

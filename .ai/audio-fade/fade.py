@@ -7,9 +7,9 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
-    .dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
+    .dependency/python/python .ai/audio-fade/fade.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
+    .dependency/python/python .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
 """
 
 from __future__ import annotations

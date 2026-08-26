@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-to-wav/convert.py --audio path/to/audio.flac
-    .dependency/python/python.exe .ai/audio-to-wav/convert.py --audio path/to/audio.mp3 -b 16
+    .dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.flac
+    .dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.mp3 -b 16
 """
 
 from __future__ import annotations

@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav
-    .dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav -q 4
+    .dependency/python/python .ai/audio-to-ogg/convert.py --audio path/to/audio.wav
+    .dependency/python/python .ai/audio-to-ogg/convert.py --audio path/to/audio.wav -q 4
 """
 
 from __future__ import annotations
