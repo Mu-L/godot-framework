@@ -40,8 +40,3 @@ def resolve_video_file(args_video: str) -> Path | None:
         print(f"Not a supported video file: {path}", file=sys.stderr)
         return None
     return path
-
-
-def video_output_name(source: Path, *, suffix: str = ".wav") -> str:
-    """Return the default output filename for a single-file video skill."""
-    return source.with_suffix(suffix).name

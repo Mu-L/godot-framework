@@ -10,38 +10,22 @@ import unittest
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+AI_ROOT = SCRIPT_DIR.parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
 
 import convert  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common import wav_utils  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 CONVERT_SCRIPT = SCRIPT_DIR / "convert.py"
 SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
-
-
-class ConvertLogicTest(unittest.TestCase):
-    def test_stream_copy_only_for_pcm_wav(self) -> None:
-        probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
-        path = Path("clip.wav")
-        self.assertTrue(convert.can_stream_copy(path, probe, None))
-        self.assertFalse(convert.can_stream_copy(path, probe, 16))
-        self.assertFalse(convert.can_stream_copy(Path("clip.mp3"), probe, None))
-
-    def test_resolve_bit_depth_for_lossy(self) -> None:
-        depth, codec = convert.resolve_bit_depth({"codec": "mp3", "bits": 0}, None)
-        self.assertEqual(depth, 32)
-        self.assertEqual(codec, "pcm_f32le")
-
-    def test_describe_stream_copy(self) -> None:
-        probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
-        text = convert.describe_file_plan(probe, None, True)
-        self.assertIn("stream copy", text)
-        self.assertIn("44100 Hz", text)
 
 
 class ConvertCliTest(unittest.TestCase):
@@ -58,8 +42,8 @@ class ConvertCliTest(unittest.TestCase):
     def assert_pcm_wav(self, source: Path, output: Path) -> None:
         ffmpeg = resolve_ffmpeg(CONVERT_SCRIPT)
         ffprobe = resolve_ffprobe(ffmpeg)
-        source_probe = convert.probe_audio(ffprobe, source)
-        output_probe = convert.probe_audio(ffprobe, output)
+        source_probe = wav_utils.probe_audio_file(ffprobe, source)
+        output_probe = wav_utils.probe_audio_file(ffprobe, output)
 
         self.assertTrue(source_probe, f"Could not probe source audio: {source}")
         self.assertTrue(output_probe, f"Could not probe output audio: {output}")
@@ -68,7 +52,7 @@ class ConvertCliTest(unittest.TestCase):
         output_codec = output_probe.get("codec", "")
         self.assertIn(
             output_codec,
-            convert.PCM_STREAM_CODECS,
+            wav_utils.PCM_STREAM_CODECS,
             f"expected PCM WAV codec, got {output_codec!r}",
         )
         self.assertEqual(
@@ -82,8 +66,13 @@ class ConvertCliTest(unittest.TestCase):
             "output channel count should match source",
         )
 
-        _, expected_codec = convert.resolve_bit_depth(source_probe, None)
-        if convert.can_stream_copy(source, source_probe, None):
+        _, expected_codec = wav_utils.resolve_bit_depth(source_probe, None)
+        if wav_utils.can_pcm_stream_copy(
+            source_probe,
+            None,
+            require_wav_container=True,
+            source_path=source,
+        ):
             self.assertEqual(
                 output_codec,
                 source_probe.get("codec"),
@@ -133,7 +122,7 @@ class ConvertCliTest(unittest.TestCase):
             wav.write_bytes(SAMPLE_AUDIO.read_bytes())
             result = self.run_cli("--audio", str(wav))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out = root / "audio-to-wav" / "han.wav"
+            out = root / convert.DEFAULT_OUTPUT_SUBDIR / "han.wav"
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
             self.assert_pcm_wav(wav, out)

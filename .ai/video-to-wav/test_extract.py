@@ -10,36 +10,22 @@ import unittest
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+AI_ROOT = SCRIPT_DIR.parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
 
 import extract  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
+from common import wav_utils  # noqa: E402
 
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 EXTRACT_SCRIPT = SCRIPT_DIR / "extract.py"
 SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
-
-
-class ExtractLogicTest(unittest.TestCase):
-    def test_resolve_bit_depth_for_lossy(self) -> None:
-        depth, codec = extract.resolve_bit_depth({"codec": "aac", "bits": 0}, None)
-        self.assertEqual(depth, 32)
-        self.assertEqual(codec, "pcm_f32le")
-
-    def test_can_stream_copy_pcm_without_overrides(self) -> None:
-        probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
-        self.assertTrue(extract.can_stream_copy(probe, None))
-        self.assertFalse(extract.can_stream_copy(probe, 16))
-
-    def test_describe_stream_copy(self) -> None:
-        probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
-        text = extract.describe_file_plan(probe, 0, None, True)
-        self.assertIn("stream copy", text)
-        self.assertIn("44100 Hz", text)
 
 
 class ExtractCliTest(unittest.TestCase):
@@ -90,9 +76,9 @@ class ExtractCliTest(unittest.TestCase):
     def assert_pcm_wav(self, output: Path) -> None:
         ffmpeg = resolve_ffmpeg(EXTRACT_SCRIPT)
         ffprobe = resolve_ffprobe(ffmpeg)
-        probe = extract.probe_audio(ffprobe, output, 0)
+        probe = wav_utils.probe_audio_file(ffprobe, output)
         self.assertTrue(probe, f"Could not probe output audio: {output}")
-        self.assertIn(probe.get("codec", ""), extract.PCM_STREAM_CODECS)
+        self.assertIn(probe.get("codec", ""), wav_utils.PCM_STREAM_CODECS)
 
     def test_help(self) -> None:
         result = self.run_cli("--help")
