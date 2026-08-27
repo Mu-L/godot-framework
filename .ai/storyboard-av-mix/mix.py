@@ -26,29 +26,15 @@ if str(AI_ROOT) not in sys.path:
 
 from common.audio_utils import AUDIO_EXTENSIONS  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
-
-VIDEO_EXTENSIONS = {
-    ".mp4",
-    ".mkv",
-    ".mov",
-    ".avi",
-    ".webm",
-    ".wmv",
-    ".flv",
-    ".m4v",
-    ".mpeg",
-    ".mpg",
-    ".ts",
-    ".mts",
-    ".m2ts",
-    ".3gp",
-    ".ogv",
-}
+from common.video_utils import VIDEO_EXTENSIONS  # noqa: E402
 
 LANG_DIRS = {
     "chinese": ("Chinese", "Video-Chinese"),
     "english": ("English", "Video-English"),
 }
+
+# x264/x265 preset: slower encode, better rate-distortion at matched source bitrate.
+VIDEO_ENCODE_PRESET = "slow"
 
 
 @dataclass(frozen=True)
@@ -204,12 +190,7 @@ def _master_display_x265(mastering: dict) -> str:
     return f"G({gx},{gy})B({bx},{by})R({rx},{ry})WP({wx},{wy})L({max_l},{min_l})"
 
 
-def video_encode_args(
-    probe: VideoProbe,
-    *,
-    crf: int | None,
-    preset: str,
-) -> list[str]:
+def video_encode_args(probe: VideoProbe) -> list[str]:
     """Match source codec / bit depth / HDR tags; setpts forces a re-encode."""
     args: list[str] = []
     is_10bit = "10" in probe.pix_fmt or "10" in probe.profile
@@ -219,7 +200,7 @@ def video_encode_args(
         args.extend(["-c:v", "libx265", "-tag:v", "hvc1"])
         if is_10bit:
             args.extend(["-profile:v", "main10"])
-        args.extend(["-preset", preset])
+        args.extend(["-preset", VIDEO_ENCODE_PRESET])
         x265: list[str] = []
         if probe.mastering:
             x265.append(f"master-display={_master_display_x265(probe.mastering)}")
@@ -230,7 +211,7 @@ def video_encode_args(
         if x265:
             args.extend(["-x265-params", ":".join(x265)])
     else:
-        args.extend(["-c:v", "libx264", "-preset", preset])
+        args.extend(["-c:v", "libx264", "-preset", VIDEO_ENCODE_PRESET])
 
     args.extend(["-pix_fmt", probe.pix_fmt])
 
@@ -243,9 +224,7 @@ def video_encode_args(
     if probe.color_transfer:
         args.extend(["-color_trc", probe.color_transfer])
 
-    if crf is not None:
-        args.extend(["-crf", str(crf)])
-    elif probe.bit_rate and probe.bit_rate > 0:
+    if probe.bit_rate and probe.bit_rate > 0:
         rate = str(probe.bit_rate)
         args.extend(["-b:v", rate, "-maxrate", rate, "-bufsize", str(probe.bit_rate * 2)])
     else:
@@ -335,15 +314,8 @@ def mux_job(
     ffmpeg: Path,
     ffprobe: Path,
     job: MixJob,
-    *,
-    crf: int | None,
-    preset: str,
-    force: bool,
-) -> str:
+) -> None:
     """Retime video to VO duration; preserve source video encode + tags."""
-    if job.output.exists() and not force:
-        return "skip-exists"
-
     vo_dur = probe_duration_seconds(ffprobe, job.audio)
     vid_dur = probe_duration_seconds(ffprobe, job.video)
     ratio = vo_dur / vid_dur
@@ -355,7 +327,7 @@ def mux_job(
         f"setpts=PTS*{ratio:.12f},"
         f"tpad=stop_mode=clone:stop_duration=1"
     )
-    video_args = video_encode_args(vprobe, crf=crf, preset=preset)
+    video_args = video_encode_args(vprobe)
     audio_args = audio_encode_args(ffprobe, job.audio, job.video.suffix)
     audio_lang = "chi" if job.lang == "chinese" else "eng"
 
@@ -402,7 +374,6 @@ def mux_job(
             f"ffmpeg failed for {job.shot_id} ({job.lang}):\n"
             f"{result.stderr.strip() or result.stdout.strip()}"
         )
-    return "ok"
 
 
 def parse_args() -> argparse.Namespace:
@@ -423,22 +394,6 @@ def parse_args() -> argparse.Namespace:
         default="both",
         help="Which VO language(s) to mux (default: both)",
     )
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Overwrite existing outputs",
-    )
-    parser.add_argument(
-        "--crf",
-        type=int,
-        default=None,
-        help="Optional CRF override (default: match source bitrate)",
-    )
-    parser.add_argument(
-        "--preset",
-        default="medium",
-        help="x264/x265 preset (default: medium)",
-    )
     return parser.parse_args()
 
 
@@ -457,31 +412,20 @@ def main() -> None:
         print("No mix jobs to run.", file=sys.stderr)
         sys.exit(1)
 
-    counts = {"ok": 0, "skip-exists": 0, "failed": 0}
+    counts = {"ok": 0, "failed": 0}
     failures: list[str] = []
 
     for job in jobs:
         try:
-            status = mux_job(
-                ffmpeg,
-                ffprobe,
-                job,
-                crf=args.crf,
-                preset=args.preset,
-                force=args.force,
-            )
-            counts[status] = counts.get(status, 0) + 1
-            if status == "skip-exists":
-                print(f"[skip] exists: {job.output} (use --force to overwrite)")
+            mux_job(ffmpeg, ffprobe, job)
+            counts["ok"] += 1
         except Exception as exc:  # noqa: BLE001 — continue batch; report at end
             counts["failed"] += 1
             failures.append(f"{job.shot_id}/{job.lang}: {exc}")
             print(f"[fail] {job.shot_id} {job.lang}: {exc}", file=sys.stderr)
 
     print(
-        f"Done. ok={counts['ok']} skip-exists={counts['skip-exists']} "
-        f"failed={counts['failed']} "
-        f"root={root}"
+        f"Done. ok={counts['ok']} failed={counts['failed']} root={root}"
     )
     if failures:
         print("Failed jobs:", file=sys.stderr)

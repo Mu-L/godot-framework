@@ -100,3 +100,5 @@ From repo root:
 ```bash
 .dependency/python/python .ai/video-4k-normalization/test_normalize.py
 ```
+
+Manual CLI examples: [.ai/video-4k-normalization/test.md](../../../.ai/video-4k-normalization/test.md)

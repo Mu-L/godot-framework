@@ -82,13 +82,14 @@ class VideoEncodeArgsTest(unittest.TestCase):
             },
             cll={"max_content": 1000, "max_average": 400},
         )
-        args = mix.video_encode_args(probe, crf=None, preset="medium")
+        args = mix.video_encode_args(probe)
         joined = " ".join(args)
         self.assertIn("libx265", joined)
         self.assertIn("main10", joined)
         self.assertIn("master-display=", joined)
         self.assertIn("max-cll=1000,400", joined)
         self.assertIn("-b:v 40000000", joined)
+        self.assertIn("-preset slow", joined)
 
     def test_h264_fallback(self) -> None:
         probe = mix.VideoProbe(
@@ -101,9 +102,11 @@ class VideoEncodeArgsTest(unittest.TestCase):
             color_primaries="",
             bit_rate=None,
         )
-        args = mix.video_encode_args(probe, crf=18, preset="fast")
-        self.assertIn("-c:v libx264", " ".join(args))
-        self.assertIn("-crf 18", " ".join(args))
+        args = mix.video_encode_args(probe)
+        joined = " ".join(args)
+        self.assertIn("-c:v libx264", joined)
+        self.assertIn("-crf 14", joined)
+        self.assertIn("-preset slow", joined)
 
 
 class MasterDisplayTest(unittest.TestCase):
@@ -141,7 +144,6 @@ class MixCliTest(unittest.TestCase):
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
         self.assertIn("--lang", result.stdout)
-        self.assertIn("--force", result.stdout)
 
     def test_missing_root(self) -> None:
         result = self.run_cli()

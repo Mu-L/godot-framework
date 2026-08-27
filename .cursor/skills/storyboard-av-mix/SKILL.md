@@ -85,11 +85,8 @@ Typical `<root>` is a [storyboard-tts](../storyboard-tts/SKILL.md) audio dir tha
 |------|--------|
 | `root` | Work dir with `Video/`, `Chinese/`, `English/` |
 | `--lang` | `both` (default), `chinese`, `english` |
-| `--force` | Overwrite existing outputs |
-| `--crf` | Optional CRF override (default: match source bitrate) |
-| `--preset` | x264/x265 preset (default `medium`) |
 
-Skip existing outputs unless `--force`. Missing VO for a language → skip that job with a warning. Missing video → skip shot.
+Existing outputs are overwritten. Missing VO for a language → skip that job with a warning. Missing video → skip shot.
 
 ## Agent Notes
 
