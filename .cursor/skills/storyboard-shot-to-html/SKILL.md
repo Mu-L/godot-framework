@@ -284,3 +284,7 @@ Only if the user asks for a full board:
 - [ ] Visible continuous life after play starts (not a still poster); ambient loops stay subtle
 - [ ] Self-contained; no storyboard overwrite; no video API calls
 - [ ] Chat stays short: path + shot + research takeaway
+
+## CLI
+
+Copy-paste commands: [cli/storyboard-shot-to-html.md](../../../cli/storyboard-shot-to-html.md)

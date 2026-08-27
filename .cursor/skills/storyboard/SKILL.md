@@ -163,3 +163,7 @@ Section order is fixed: Materials → Visual Style → Spine → Assembly → Sh
 - [ ] Facts trace to materials; style coherent; i2v points at the right still
 - [ ] No video/image generation APIs unless user separately asks
 - [ ] No invented output path when user gave none → chat delivery only
+
+## CLI
+
+Copy-paste commands: [cli/storyboard.md](../../../cli/storyboard.md)

@@ -90,6 +90,10 @@ feat[auth]: add jwt token refresh endpoint
 fix[ui]: prevent double submit on checkout form
 ```
 
+## CLI
+
+Copy-paste commands: [cli/git-commit-message.md](../../../cli/git-commit-message.md)
+
 ## Additional Resources
 
 - More examples: [examples.md](examples.md)

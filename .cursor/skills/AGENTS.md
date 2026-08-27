@@ -9,25 +9,28 @@ Keep **docs** and **code** separate. Skill instructions (`SKILL.md`) stay with t
 | Skill instructions (`SKILL.md`, references) | The skill's own folder (next to `SKILL.md`) |
 | Skill scripts (Python / shell / etc.) | `.ai/<skill-name>/` |
 | Script tests (`test_<script>.py`) | `.ai/<skill-name>/` — default `python` skills only |
-| CLI notes (`test.md`) | `.ai/<skill-name>/` — non-default runtime (tool venv / versioned Python) |
+| CLI manual (`<skill-name>.md`) | `cli/` — copy-paste unit-test and manual CLI commands |
 | Toolchains (Python, FFmpeg, venvs) | `.dependency/` |
 
 ```
 project-root/
+├── cli/
+│   ├── audio-to-wav.md           # unit tests + manual CLI
+│   └── ai-text-to-speech.md
 ├── .ai/
-│   ├── audio-to-wav/             # default python → test file
+│   ├── audio-to-wav/
 │   │   ├── convert.py
 │   │   └── test_convert.py
-│   └── ai-text-to-speech/        # tool venv → test.md with CLI
-│       ├── tts.py
-│       └── test.md
+│   └── ai-text-to-speech/
+│       └── tts.py
 └── .dependency/
 ```
 
 - The folder name under `.ai/` **must match** the skill name.
 - Put scripts **directly** under `.ai/<skill-name>/` — do not add an extra `scripts/` directory.
 - **Default `python` skills:** include a test file named after the script (`convert.py` → `test_convert.py`). If a directory has several scripts, give each one a matching `test_<script>.py`.
-- **Non-default runtime** (a tool venv or `python-3.11`, etc.): do **not** add `test_*.py`. Put a `test.md` in the same folder with the CLI command that uses that runtime's `bin`. Write the command as **one line** (no `\` line breaks) so it pastes into the console as a single command.
+- **Every skill with scripts** gets `cli/<skill-name>.md` — unit-test commands (when present) and manual CLI examples using the correct manifest `bin`. Write each command as **one line** (no `\` line breaks) so it pastes into the console as a single command.
+- **Non-default runtime** (a tool venv or `python-3.11`, etc.): do **not** add `test_*.py`. Put CLI commands in `cli/<skill-name>.md` only.
 - Do **not** put executable scripts next to `SKILL.md`.
 - SKILL.md commands must point at `.ai/<skill-name>/...`.
 - Every skill script must start with a module docstring that includes **Usage**: full commands from the repo root, using the manifest interpreter. Write each command as **one line** (no `\` line breaks). Never use host `python`.
@@ -79,7 +82,9 @@ Run tests the same way — same interpreter from `.dependency/manifest.json`, fr
 .dependency/python/python.exe .ai/audio-to-wav/test_convert.py
 ```
 
-If a skill uses a **non-default** runtime, skip `test_*.py`. Use the CLI in that folder's `test.md` (that runtime's `bin`).
+If a skill uses a **non-default** runtime, skip `test_*.py`. Use the CLI in `cli/<skill-name>.md` (that runtime's `bin`).
+
+Manual CLI examples for any skill live in `cli/<skill-name>.md`, not under `.ai/`.
 
 Do not use host `python` / `pytest` to run skill tests.
 

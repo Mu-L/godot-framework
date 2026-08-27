@@ -274,3 +274,7 @@ Use exact section headings `## Bilibili` … `## Instagram` (stable for copy-pas
 
 **Input:** paste brief only, no path  
 **Output dir:** project root → write the 5 files there.
+
+## CLI
+
+Copy-paste commands: [cli/video-publish.md](../../../cli/video-publish.md)
