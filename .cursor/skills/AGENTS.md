@@ -45,7 +45,7 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/<skill-name>/<script>.py input [flags]
+    .dependency/python/python .ai/<skill-name>/<script>.py input [flags]
 """
 ```
 
