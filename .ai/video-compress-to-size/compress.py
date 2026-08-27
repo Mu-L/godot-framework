@@ -1,5 +1,17 @@
 #!/usr/bin/env python3
-"""Compress video files to stay under a max file size via FFmpeg (GPU-first)."""
+"""
+Compress a single video to stay under a max file size via FFmpeg (GPU-first).
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python .ai/video-compress-to-size/compress.py --video path/to/clip.mp4 --max-size 50MB
+    .dependency/python/python .ai/video-compress-to-size/compress.py --video path/to/clip.mp4 --max-size 50
+    .dependency/python/python .ai/video-compress-to-size/compress.py --video path/to/clip.mp4 --max-size 50MB --cpu
+    .dependency/python/python .ai/video-compress-to-size/compress.py --video path/to/clip.mp4 --max-size 50MB -o path/to/out.mp4
+"""
 
 from __future__ import annotations
 
@@ -12,40 +24,29 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-VIDEO_EXTENSIONS = {
-    ".mp4",
-    ".mkv",
-    ".mov",
-    ".avi",
-    ".webm",
-    ".wmv",
-    ".flv",
-    ".m4v",
-    ".mpeg",
-    ".mpg",
-    ".ts",
-    ".mts",
-    ".m2ts",
-    ".3gp",
-    ".ogv",
-    ".ogg",
-}
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
+from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.video_utils import resolve_video_file, video_output_name  # noqa: E402
+
+DEFAULT_OUTPUT_SUBDIR = "video-compress-to-size"
 
 SIZE_RE = re.compile(
     r"^\s*(\d+(?:\.\d+)?)\s*(B|K|KB|KiB|M|MB|MiB|G|GB|GiB)?\s*$",
     re.IGNORECASE,
 )
 
-# Leave headroom for container/mux overhead vs declared max size.
 SAFETY_FACTOR_CPU = 0.92
-SAFETY_FACTOR_GPU = 0.90  # VBR is less precise than two-pass
-MIN_VIDEO_BITRATE = 50_000  # 50 kbps
+SAFETY_FACTOR_GPU = 0.90
+MIN_VIDEO_BITRATE = 50_000
 MAX_ATTEMPTS = 3
 KIB = 1024
 MIB = 1024 * 1024
 GIB = 1024 * 1024 * 1024
 
-# Map common x264-style names → NVENC/AMF/QSV presets.
 NVENC_PRESET_MAP = {
     "ultrafast": "p1",
     "superfast": "p1",
@@ -86,80 +87,10 @@ QSV_PRESET_MAP = {
 
 @dataclass(frozen=True)
 class EncoderChoice:
-    name: str  # ffmpeg -c:v name
-    kind: str  # nvenc | amf | qsv | cpu
+    name: str
+    kind: str
     hevc: bool
     label: str
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
-def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    candidate = ffmpeg.with_name(name)
-    if candidate.is_file():
-        return candidate
-    raise FileNotFoundError(candidate)
 
 
 def parse_size(text: str) -> int:
@@ -205,60 +136,6 @@ def format_bitrate(bits_per_sec: int) -> str:
     if bits_per_sec >= 1_000_000:
         return f"{bits_per_sec / 1_000_000:.3f}M"
     return f"{max(1, bits_per_sec // 1000)}k"
-
-
-def get_video_files(path: Path, recurse: bool) -> list[Path]:
-    if path.is_file():
-        if path.suffix.lower() not in VIDEO_EXTENSIONS:
-            print(f"Not a supported video file: {path}", file=sys.stderr)
-            sys.exit(1)
-        return [path.resolve()]
-
-    if not path.is_dir():
-        print(f"Input path not found: {path}", file=sys.stderr)
-        sys.exit(1)
-
-    if recurse:
-        candidates = path.rglob("*")
-    else:
-        candidates = path.iterdir()
-
-    files = [
-        item.resolve()
-        for item in candidates
-        if item.is_file() and item.suffix.lower() in VIDEO_EXTENSIONS
-    ]
-    return sorted(files)
-
-
-def relative_path(file_path: Path, input_root: Path) -> str:
-    try:
-        return file_path.relative_to(input_root).as_posix()
-    except ValueError:
-        return file_path.name
-
-
-def filter_output_files(files: list[Path], output_dir: Path) -> list[Path]:
-    out = output_dir.resolve()
-    kept: list[Path] = []
-    for file_path in files:
-        try:
-            file_path.resolve().relative_to(out)
-        except ValueError:
-            kept.append(file_path)
-    return kept
-
-
-def find_source_collisions(
-    files: list[Path], input_root: Path, output_dir: Path
-) -> list[tuple[Path, Path]]:
-    collisions: list[tuple[Path, Path]] = []
-    for file_path in files:
-        rel = Path(relative_path(file_path, input_root)).with_suffix(".mp4")
-        out_path = output_dir / rel
-        if out_path.resolve() == file_path.resolve():
-            collisions.append((file_path, out_path))
-    return collisions
 
 
 def probe_duration(ffprobe: Path, file_path: Path) -> float:
@@ -341,10 +218,6 @@ def run_ffmpeg(cmd: list[str]) -> None:
 
 
 def encoder_works(ffmpeg: Path, codec: str) -> bool:
-    """Tiny probe encode to a temp mp4 (null mux is unreliable for hw encoders).
-
-    Use ≥256x256 — NVENC rejects very small frames (e.g. 64x64).
-    """
     with tempfile.TemporaryDirectory(prefix="vcompress_probe_") as tmp:
         out = Path(tmp) / "probe.mp4"
         cmd = [
@@ -445,11 +318,9 @@ def build_video_encode_args(
     mapped = map_preset(encoder, preset)
     args = ["-c:v", encoder.name, "-b:v", vb]
 
-    # h264_* NVENC/AMF/QSV are 8-bit only; 10-bit sources (e.g. Main10 HEVC) must convert.
     if not encoder.hevc:
         args.extend(["-pix_fmt", "yuv420p"])
     elif encoder.kind == "nvenc":
-        # Prefer 8-bit for size targets; Main10 → 8-bit is fine for compression.
         args.extend(["-pix_fmt", "yuv420p"])
 
     if encoder.kind == "nvenc":
@@ -536,7 +407,6 @@ def compress_file_gpu(
         try:
             run_ffmpeg(cmd)
         except RuntimeError:
-            # Retry once without hwaccel decode (encode-only GPU).
             if build_hwaccel_args(encoder):
                 cmd = [str(ffmpeg), "-hide_banner", "-nostats", "-y", "-i", str(file_path)]
                 cmd.extend(["-map", "0:v:0"])
@@ -737,14 +607,18 @@ def compress_file(
     )
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Compress videos to stay under a max file size. "
+            "Compress a single video to stay under a max file size. "
             "Prefers GPU encoders (NVENC/AMF/QSV), falls back to CPU two-pass."
         )
     )
-    parser.add_argument("input", help="Path to a single video file or directory")
+    parser.add_argument(
+        "--video",
+        required=True,
+        help="Path to a single video file",
+    )
     parser.add_argument(
         "--max-size",
         required=True,
@@ -752,12 +626,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "-o",
-        "--output-dir",
+        "--output",
         default="",
-        help="Output directory (default: <input>/compressed)",
-    )
-    parser.add_argument(
-        "-r", "--recurse", action="store_true", help="Process subdirectories"
+        help=(
+            "Output MP4 file or directory. "
+            f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR, output_name_label='source.mp4')}"
+        ),
     )
     parser.add_argument(
         "--audio-bitrate",
@@ -779,17 +653,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Force CPU encoder (libx264/libx265 two-pass); skip GPU",
     )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output files"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
-    )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
-    args = parse_args()
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
 
     try:
         max_bytes = parse_size(args.max_size)
@@ -802,149 +670,83 @@ def main() -> int:
         print("--max-size must be positive", file=sys.stderr)
         return 1
 
-    ffmpeg = resolve_ffmpeg()
+    script_path = Path(__file__)
+    ffmpeg = resolve_ffmpeg(script_path)
     ffprobe = resolve_ffprobe(ffmpeg)
     encoder = select_encoder(ffmpeg, args.hevc, force_cpu=args.cpu)
     mapped_preset = map_preset(encoder, args.preset)
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
+    video_path = resolve_video_file(args.video)
+    if video_path is None:
         return 1
 
-    input_path = input_path.resolve()
-    files = get_video_files(input_path, args.recurse)
-    if not files:
-        print(f"No supported video files found under: {args.input}")
-        return 0
-
-    if input_path.is_file():
-        input_root = input_path.parent
-    else:
-        input_root = input_path
-
-    output_dir = (
-        Path(args.output_dir).resolve()
-        if args.output_dir
-        else input_root / "compressed"
+    out_path = resolve_output_path(
+        args.output,
+        video_path,
+        DEFAULT_OUTPUT_SUBDIR,
+        video_output_name(video_path, suffix=".mp4"),
     )
 
-    initial_count = len(files)
-    files = filter_output_files(files, output_dir)
-    if not files:
-        if initial_count:
-            print(
-                "No source files to process: all inputs lie under the output directory. "
-                "Choose a separate output directory (default: compressed/).",
-                file=sys.stderr,
-            )
-            return 1
-        print(f"No supported video files found under: {args.input}")
-        return 0
-
-    collisions = find_source_collisions(files, input_root, output_dir)
-    if collisions:
+    if out_path.resolve() == video_path.resolve():
         print(
-            "Refusing to overwrite source files. Use a separate output directory "
-            "(default: compressed/).",
+            "Refusing to overwrite source file. Choose a separate output path "
+            f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
             file=sys.stderr,
         )
-        for source, dest in collisions:
-            print(f"  {source} -> {dest}", file=sys.stderr)
         return 1
 
-    print(f"Input:    {args.input}")
-    print(f"Files:    {len(files)}")
+    src_size = video_path.stat().st_size
+    if src_size <= max_bytes:
+        print(
+            f"[skip] {video_path.name} (already under limit: "
+            f"{format_bytes(src_size)} <= {format_bytes(max_bytes)})"
+        )
+        return 0
+
+    print(f"Video:    {video_path}")
     print(f"Max size: {format_bytes(max_bytes)} ({args.max_size})")
     print(
         f"Encoder:  {encoder.label} ({encoder.name}), "
-        f"preset={args.preset}→{mapped_preset}, audio={args.audio_bitrate}"
+        f"preset={args.preset}->{mapped_preset}, audio={args.audio_bitrate}"
     )
-    print(f"Output:   {output_dir}")
-    if args.dry_run:
-        print("Run:      DRY RUN")
+    print(f"Output:   {out_path}")
     print()
 
-    ok = 0
-    skip = 0
-    fail = 0
-    safety = SAFETY_FACTOR_GPU if encoder.kind != "cpu" else SAFETY_FACTOR_CPU
-
-    for file_path in files:
-        rel_src = relative_path(file_path, input_root)
-        rel_out = str(Path(rel_src).with_suffix(".mp4"))
-        out_path = output_dir / rel_out
-        src_size = file_path.stat().st_size
-
-        if out_path.exists() and not args.overwrite and not args.dry_run:
-            print(f"[skip] {rel_out} (exists)")
-            skip += 1
-            continue
-
-        if src_size <= max_bytes:
-            print(
-                f"[skip] {rel_src} (already under limit: "
-                f"{format_bytes(src_size)} ≤ {format_bytes(max_bytes)})"
-            )
-            skip += 1
-            continue
-
-        if args.dry_run:
+    try:
+        print(
+            f"[run]  {video_path.name} -> {out_path.name} "
+            f"({format_bytes(src_size)} -> <= {format_bytes(max_bytes)}, {encoder.name})"
+        )
+        out_size, used_vb = compress_file(
+            ffmpeg,
+            ffprobe,
+            video_path,
+            out_path,
+            encoder,
+            max_bytes,
+            audio_bitrate,
+            args.preset,
+        )
+        print(
+            f"  [ok]   {format_bytes(out_size)} "
+            f"(video ~{format_bitrate(used_vb)})"
+        )
+    except RuntimeError as exc:
+        print(f"[fail] {out_path.name}")
+        print(exc)
+        if out_path.exists():
             try:
-                duration = probe_duration(ffprobe, file_path)
-                has_audio = has_audio_streams(ffprobe, file_path)
-                vb = compute_video_bitrate(
-                    max_bytes, duration, audio_bitrate, has_audio, safety
-                )
-                print(
-                    f"[plan] {rel_src} -> {rel_out} "
-                    f"({format_bytes(src_size)} → ≤{format_bytes(max_bytes)}, "
-                    f"~{format_bitrate(vb)} video, {duration:.1f}s, {encoder.name})"
-                )
-                ok += 1
-            except RuntimeError as exc:
-                print(f"[fail] {rel_src}")
-                print(exc)
-                fail += 1
-            continue
-
-        try:
-            print(
-                f"[run]  {rel_src} -> {rel_out} "
-                f"({format_bytes(src_size)} → ≤{format_bytes(max_bytes)}, {encoder.name})"
-            )
-            out_size, used_vb = compress_file(
-                ffmpeg,
-                ffprobe,
-                file_path,
-                out_path,
-                encoder,
-                max_bytes,
-                audio_bitrate,
-                args.preset,
-            )
-            print(
-                f"  [ok]   {format_bytes(out_size)} "
-                f"(video ~{format_bitrate(used_vb)})"
-            )
-            ok += 1
-        except RuntimeError as exc:
-            print(f"[fail] {rel_src}")
-            print(exc)
-            fail += 1
-            if out_path.exists():
-                try:
-                    out_path.unlink()
-                except OSError:
-                    pass
+                out_path.unlink()
+            except OSError:
+                pass
+        return 1
 
     print()
-    print(f"Done. processed={ok} skipped={skip} failed={fail}")
-    return 1 if fail else 0
+    print(f"Done. wrote {out_path.name}")
+    return 0
 
 
 if __name__ == "__main__":
-    # Line-buffer logs when stdout is piped (agent / CI).
     try:
         sys.stdout.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
         sys.stderr.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
