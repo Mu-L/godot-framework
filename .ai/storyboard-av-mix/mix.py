@@ -7,9 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root>
-    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --limit 1
-    .dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
+    .dependency/python/python .ai/storyboard-av-mix/mix.py path/to/<root>
+    .dependency/python/python .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
 """
 
 from __future__ import annotations
@@ -292,7 +291,7 @@ def list_by_stem(folder: Path, extensions: set[str]) -> dict[str, Path]:
     return found
 
 
-def build_jobs(root: Path, lang: str, limit: int) -> list[MixJob]:
+def build_jobs(root: Path, lang: str) -> list[MixJob]:
     video_dir = root / "Video"
     if not video_dir.is_dir():
         print(f"Missing required folder: {video_dir}", file=sys.stderr)
@@ -304,12 +303,9 @@ def build_jobs(root: Path, lang: str, limit: int) -> list[MixJob]:
         sys.exit(1)
 
     langs = ["chinese", "english"] if lang == "both" else [lang]
-    shot_ids = sorted(videos.keys())
-    if limit > 0:
-        shot_ids = shot_ids[:limit]
 
     jobs: list[MixJob] = []
-    for shot_id in shot_ids:
+    for shot_id in sorted(videos.keys()):
         video = videos[shot_id]
         for lang_key in langs:
             in_name, out_name = LANG_DIRS[lang_key]
@@ -342,7 +338,6 @@ def mux_job(
     *,
     crf: int | None,
     preset: str,
-    dry_run: bool,
     force: bool,
 ) -> str:
     """Retime video to VO duration; preserve source video encode + tags."""
@@ -401,10 +396,6 @@ def mux_job(
         f"{job.output.relative_to(job.output.parent.parent)}"
     )
 
-    if dry_run:
-        print("  dry-run:", " ".join(cmd))
-        return "dry-run"
-
     result = run_cmd(cmd)
     if result.returncode != 0:
         raise RuntimeError(
@@ -433,20 +424,9 @@ def parse_args() -> argparse.Namespace:
         help="Which VO language(s) to mux (default: both)",
     )
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=0,
-        help="Process only the first N shot ids (0 = all)",
-    )
-    parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite existing outputs",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Print plan and FFmpeg commands without writing",
     )
     parser.add_argument(
         "--crf",
@@ -472,12 +452,12 @@ def main() -> None:
     ffmpeg = resolve_ffmpeg(Path(__file__))
     ffprobe = resolve_ffprobe(ffmpeg)
 
-    jobs = build_jobs(root, args.lang, args.limit)
+    jobs = build_jobs(root, args.lang)
     if not jobs:
         print("No mix jobs to run.", file=sys.stderr)
         sys.exit(1)
 
-    counts = {"ok": 0, "skip-exists": 0, "dry-run": 0, "failed": 0}
+    counts = {"ok": 0, "skip-exists": 0, "failed": 0}
     failures: list[str] = []
 
     for job in jobs:
@@ -488,7 +468,6 @@ def main() -> None:
                 job,
                 crf=args.crf,
                 preset=args.preset,
-                dry_run=args.dry_run,
                 force=args.force,
             )
             counts[status] = counts.get(status, 0) + 1
@@ -501,7 +480,7 @@ def main() -> None:
 
     print(
         f"Done. ok={counts['ok']} skip-exists={counts['skip-exists']} "
-        f"dry-run={counts['dry-run']} failed={counts['failed']} "
+        f"failed={counts['failed']} "
         f"root={root}"
     )
     if failures:

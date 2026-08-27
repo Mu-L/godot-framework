@@ -23,7 +23,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Convert a single video file:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-ogv/convert.py --video path/to/video.mp4
+.dependency/python/python .ai/video-to-ogv/convert.py --video path/to/video.mp4
 ```
 
 Example:
@@ -57,7 +57,7 @@ Lossless intermediates are **much larger** than source MP4s (720p ≈ 50–200 M
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-ogv/convert.py --video path/to/video.mp4 --output path/to/out.ogv
+.dependency/python/python .ai/video-to-ogv/convert.py --video path/to/video.mp4 --output path/to/out.ogv
 ```
 
 **Never overwrite source files.** Input must be a single video file (`--video`), not a directory. Supported inputs: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`.
@@ -79,7 +79,7 @@ Custom output path:
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-ogv/test_convert.py
+.dependency/python/python .ai/video-to-ogv/test_convert.py
 ```
 
 Manual CLI examples: [.ai/video-to-ogv/test.md](../../../.ai/video-to-ogv/test.md)

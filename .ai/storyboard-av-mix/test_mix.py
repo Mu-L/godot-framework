@@ -51,27 +51,11 @@ class BuildJobsTest(unittest.TestCase):
             (root / "Chinese" / "01.wav").write_bytes(b"a")
             (root / "English" / "01.wav").write_bytes(b"a")
 
-            jobs = mix.build_jobs(root, "both", 0)
+            jobs = mix.build_jobs(root, "both")
             self.assertEqual(len(jobs), 2)
             langs = {job.lang for job in jobs}
             self.assertEqual(langs, {"chinese", "english"})
             self.assertEqual(jobs[0].output.parent.name, "Video-Chinese")
-
-    def test_limit_restricts_shot_ids(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "Video").mkdir()
-            (root / "Chinese").mkdir()
-            (root / "English").mkdir()
-            for shot in ("01", "02"):
-                (root / "Video" / f"{shot}.mp4").write_bytes(b"v")
-                (root / "Chinese" / f"{shot}.wav").write_bytes(b"a")
-                (root / "English" / f"{shot}.wav").write_bytes(b"a")
-
-            jobs = mix.build_jobs(root, "both", 1)
-            self.assertEqual(len(jobs), 2)
-            self.assertTrue(all(job.shot_id == "01" for job in jobs))
-
 
 class VideoEncodeArgsTest(unittest.TestCase):
     def test_hevc_main10_preserves_hdr_params(self) -> None:
@@ -157,7 +141,7 @@ class MixCliTest(unittest.TestCase):
         result = self.run_cli("--help")
         self.assertEqual(result.returncode, 0)
         self.assertIn("--lang", result.stdout)
-        self.assertIn("--limit", result.stdout)
+        self.assertIn("--force", result.stdout)
 
     def test_missing_root(self) -> None:
         result = self.run_cli()

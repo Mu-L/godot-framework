@@ -26,7 +26,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python.exe -m venv .dependency/rembg/.venv
+.dependency/python/python -m venv .dependency/rembg/.venv
 .dependency/rembg/.venv/Scripts/python.exe -m pip install "rembg[cpu]"
 ```
 

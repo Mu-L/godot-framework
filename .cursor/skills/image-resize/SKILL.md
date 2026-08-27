@@ -39,7 +39,7 @@ Use `bin/magick` on Unix (no `.exe`).
 **Both `--width` and `--height` are required:**
 
 ```bash
-.dependency/python/python.exe .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
+.dependency/python/python .ai/image-resize/resize.py --image assets/sprites/hero.png --width 128 --height 128
 ```
 
 Example: `assets/ui/icon.png` → `assets/ui/image-resize/icon.png` at 64×64
@@ -47,7 +47,7 @@ Example: `assets/ui/icon.png` → `assets/ui/image-resize/icon.png` at 64×64
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
+.dependency/python/python .ai/image-resize/resize.py --image assets/icons/badge.png -o assets/icons_64 --width 64 --height 64
 ```
 
 ## Resize Modes
@@ -60,13 +60,13 @@ Custom output path:
 
 ```bash
 # Fit within 128×128 (default — no distortion)
-.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128
+.dependency/python/python .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128
 
 # Cover 128×128, crop center
-.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode fill
+.dependency/python/python .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode fill
 
 # Stretch to exactly 128×128
-.dependency/python/python.exe .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode exact
+.dependency/python/python .ai/image-resize/resize.py --image assets/hero.png --width 128 --height 128 --mode exact
 ```
 
 ## Defaults

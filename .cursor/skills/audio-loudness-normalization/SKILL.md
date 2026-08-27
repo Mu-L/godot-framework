@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: **-14 LUFS**, **-1.5 dBTP**, output to `<audio-dir>/audio-loudness-normalization/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-loudness-normalization/normalize.py --audio path/to/audio.wav
 ```
 
 Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-loudness-normalization/tank_move.wav`
@@ -38,7 +38,7 @@ One category per folder. Mixed folders: split first, then normalize each file wi
 `--audio` · `-t` / `--target-lufs` · `-output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/normalize.py --audio Audio/SFX/click.wav -t -14
+.dependency/python/python .ai/audio-loudness-normalization/normalize.py --audio Audio/SFX/click.wav -t -14
 ```
 
 **Never overwrite source files.** The script writes only to `audio-loudness-normalization/` (or `-output`). Supported inputs: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
@@ -58,5 +58,5 @@ One category per folder. Mixed folders: split first, then normalize each file wi
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-loudness-normalization/test_normalize.py
+.dependency/python/python .ai/audio-loudness-normalization/test_normalize.py
 ```

@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Denoise a single audio file, output to `<audio-dir>/audio-denoise/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-denoise/denoise.py --audio path/to/audio.wav
 ```
 
 ## Defaults
@@ -30,8 +30,8 @@ Denoise a single audio file, output to `<audio-dir>/audio-denoise/<audio-name>`:
 `--audio` · `--nr` · `--nf` · `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio Audio/SFX/click.wav
-.dependency/python/python.exe .ai/audio-denoise/denoise.py --audio Audio/Voice/line.wav --nr 8
+.dependency/python/python .ai/audio-denoise/denoise.py --audio Audio/SFX/click.wav
+.dependency/python/python .ai/audio-denoise/denoise.py --audio Audio/Voice/line.wav --nr 8
 ```
 
 Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
@@ -48,5 +48,5 @@ Originals are never modified. Input must be a single audio file (`--audio`), not
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-denoise/test_denoise.py
+.dependency/python/python .ai/audio-denoise/test_denoise.py
 ```

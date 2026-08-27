@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default output: `<video-dir>/video-to-wav/<basename>.wav`
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/convert.py --video path/to/video.mp4
+.dependency/python/python .ai/video-to-wav/convert.py --video path/to/video.mp4
 ```
 
 Example: `assets/clip.mp4` → `assets/video-to-wav/clip.wav` (same rate/depth as embedded audio)
@@ -38,13 +38,13 @@ Example: `assets/clip.mp4` → `assets/video-to-wav/clip.wav` (same rate/depth a
 Alternate audio track:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/convert.py --video clip.mkv --track 1
+.dependency/python/python .ai/video-to-wav/convert.py --video clip.mkv --track 1
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/convert.py --video clip.mp4 --output path/to/out.wav
+.dependency/python/python .ai/video-to-wav/convert.py --video clip.mp4 --output path/to/out.wav
 ```
 
 **Never overwrite source files.** The script writes only under `video-to-wav/` (or `--output`). Input must be a single video file (`--video`), not a directory. Supported inputs: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`.
@@ -65,7 +65,7 @@ Custom output path:
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/test_convert.py
+.dependency/python/python .ai/video-to-wav/test_convert.py
 ```
 
 Manual CLI examples: [.ai/video-to-wav/test.md](../../../.ai/video-to-wav/test.md)

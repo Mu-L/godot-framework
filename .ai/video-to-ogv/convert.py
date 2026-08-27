@@ -7,7 +7,7 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/video-to-ogv/convert.py --video path/to/video.mp4
+    .dependency/python/python .ai/video-to-ogv/convert.py --video path/to/video.mp4
 """
 
 from __future__ import annotations

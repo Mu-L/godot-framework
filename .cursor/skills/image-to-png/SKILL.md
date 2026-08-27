@@ -40,19 +40,19 @@ Use `bin/ffmpeg` on Unix (no `.exe`).
 
 ```bash
 # assets/ui/icon.webp → assets/ui/image-to-png/icon.png
-.dependency/python/python.exe .ai/image-to-png/convert.py --image assets/ui/icon.webp
+.dependency/python/python .ai/image-to-png/convert.py --image assets/ui/icon.webp
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/image-to-png/convert.py --image assets/ui/icon.webp -o assets/ui_png
+.dependency/python/python .ai/image-to-png/convert.py --image assets/ui/icon.webp -o assets/ui_png
 ```
 
 Strip alpha (RGB output):
 
 ```bash
-.dependency/python/python.exe .ai/image-to-png/convert.py --image assets/sprites/hero.webp --strip-alpha
+.dependency/python/python .ai/image-to-png/convert.py --image assets/sprites/hero.webp --strip-alpha
 ```
 
 ## Format Defaults

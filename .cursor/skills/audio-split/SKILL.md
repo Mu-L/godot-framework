@@ -16,13 +16,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: split at **50%** of duration, output to `<audio-dir>/audio-split/`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-split/split.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-split/split.py --audio path/to/audio.wav
 ```
 
 Split at a specific time (seconds):
 
 ```bash
-.dependency/python/python.exe .ai/audio-split/split.py --audio path/to/audio.wav -s 1.25
+.dependency/python/python .ai/audio-split/split.py --audio path/to/audio.wav -s 1.25
 ```
 
 Outputs: `basename_part1.ext` and `basename_part2.ext`.
@@ -44,8 +44,8 @@ If both `-s` and `-p` are given, `-s` wins.
 `--audio` · `-s` / `--split-at` · `-p` / `--percent` · `-o` / `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-split/split.py --audio audio/sfx.wav -s 0.4
-.dependency/python/python.exe .ai/audio-split/split.py --audio audio/sfx.wav --output path/to/out/
+.dependency/python/python .ai/audio-split/split.py --audio audio/sfx.wav -s 0.4
+.dependency/python/python .ai/audio-split/split.py --audio audio/sfx.wav --output path/to/out/
 ```
 
 Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
@@ -63,5 +63,5 @@ Originals are never modified. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-split/test_split.py
+.dependency/python/python .ai/audio-split/test_split.py
 ```

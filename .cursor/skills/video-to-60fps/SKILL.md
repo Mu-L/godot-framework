@@ -37,7 +37,7 @@ Convert supported videos to **60fps at the source resolution** via [Video2X](htt
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
-- Run `convert.py` through **`.dependency/python/python.exe`**. Never use host `python` / `ffmpeg` / `video2x`.
+- Run `convert.py` through **`.dependency/python/python`**. Never use host `python` / `ffmpeg` / `video2x`.
 - **Never overwrite sources.** Outputs go under `60fps/`.
 - Use the bundled script — do not hand-write equivalent `video2x` / `ffmpeg` commands.
 - Do **not** use FFmpeg `fps=60` duplication to fake 60fps on below-60 sources.
@@ -49,7 +49,7 @@ Same Video2X CLI + FFmpeg + Python as `video-to-4k`. Populate `ffmpeg`, `python`
 ## Quick Start
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-60fps/scripts/convert.py path/to/video_or_folder
+.dependency/python/python .cursor/skills/video-to-60fps/scripts/convert.py path/to/video_or_folder
 ```
 
 Example:
@@ -64,13 +64,13 @@ Already-60fps source → no `60fps/` file; log `[skip]`.
 Batch with subfolders:
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-60fps/scripts/convert.py Video/Cutscenes -r
+.dependency/python/python .cursor/skills/video-to-60fps/scripts/convert.py Video/Cutscenes -r
 ```
 
 Then upscale (fps kept):
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-4k/scripts/convert.py assets/video/60fps/clip.mp4
+.dependency/python/python .cursor/skills/video-to-4k/scripts/convert.py assets/video/60fps/clip.mp4
 ```
 
 ## Defaults
@@ -88,8 +88,8 @@ Then upscale (fps kept):
 `-r` · `-o` / `--output-dir` · `--rife-model` · `--uhd` · `--gpu` · `--dry-run` · `--overwrite`
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-60fps/scripts/convert.py clip.mp4 --dry-run
-.dependency/python/python.exe .cursor/skills/video-to-60fps/scripts/convert.py clip.mp4 --gpu 0 --overwrite
+.dependency/python/python .cursor/skills/video-to-60fps/scripts/convert.py clip.mp4 --dry-run
+.dependency/python/python .cursor/skills/video-to-60fps/scripts/convert.py clip.mp4 --gpu 0 --overwrite
 ```
 
 **Never overwrite source files.** Supported inputs: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`, `.ogg`.

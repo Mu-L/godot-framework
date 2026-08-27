@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default output: `<audio-dir>/audio-to-wav/<basename>.wav`
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-wav/convert.py --audio path/to/audio.flac
+.dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.flac
 ```
 
 Example: `audio/sfx/tank/tank_move.flac` → `audio/sfx/tank/audio-to-wav/tank_move.wav` (same rate/depth)
@@ -37,13 +37,13 @@ Example: `audio/sfx/tank/tank_move.flac` → `audio/sfx/tank/audio-to-wav/tank_m
 Force 16-bit PCM:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-wav/convert.py --audio path/to/audio.mp3 -b 16
+.dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.mp3 -b 16
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-wav/convert.py --audio path/to/audio.flac --output path/to/out.wav
+.dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.flac --output path/to/out.wav
 ```
 
 **Never overwrite source files.** The script writes only under `audio-to-wav/` (or `--output`). Input must be a single audio file (`--audio`), not a directory. Supported inputs: `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`, `.wav`.
@@ -63,7 +63,7 @@ Custom output path:
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-wav/test_convert.py
+.dependency/python/python .ai/audio-to-wav/test_convert.py
 ```
 
 Manual CLI examples: [.ai/audio-to-wav/test.md](../../../.ai/audio-to-wav/test.md)

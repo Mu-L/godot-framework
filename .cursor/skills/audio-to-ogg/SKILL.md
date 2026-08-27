@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default output: `<audio-dir>/audio-to-ogg/<basename>.ogg`
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-to-ogg/convert.py --audio path/to/audio.wav
 ```
 
 Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-to-ogg/tank_move.ogg`
@@ -47,13 +47,13 @@ Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-to-ogg/tank_mo
 Lower quality for UI sounds:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/click.wav -q 4
+.dependency/python/python .ai/audio-to-ogg/convert.py --audio path/to/click.wav -q 4
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-ogg/convert.py --audio path/to/audio.wav --output path/to/out.ogg
+.dependency/python/python .ai/audio-to-ogg/convert.py --audio path/to/audio.wav --output path/to/out.ogg
 ```
 
 **Never overwrite source files.** The script writes only under `audio-to-ogg/` (or `--output`). Input must be a single audio file (`--audio`), not a directory. Supported inputs: `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`, `.wav`.
@@ -72,7 +72,7 @@ Custom output path:
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-to-ogg/test_convert.py
+.dependency/python/python .ai/audio-to-ogg/test_convert.py
 ```
 
 Manual CLI examples: [.ai/audio-to-ogg/test.md](../../../.ai/audio-to-ogg/test.md)

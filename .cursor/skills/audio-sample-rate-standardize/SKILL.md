@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default output: `<audio-dir>/audio-sample-rate-standardize/<name>.wav` (source files are read-only):
 
 ```bash
-.dependency/python/python.exe .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3
+.dependency/python/python .ai/audio-sample-rate-standardize/standardize.py --audio path/to/audio.mp3
 ```
 
 Example: `audio/sfx/tank/tank_move.mp3` → `audio/sfx/tank/audio-sample-rate-standardize/tank_move.wav`
@@ -38,7 +38,7 @@ Example: `audio/sfx/tank/tank_move.mp3` → `audio/sfx/tank/audio-sample-rate-st
 `--audio` · `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-sample-rate-standardize/standardize.py --audio Audio/SFX/tank_move.mp3 --output Audio/SFX/out
+.dependency/python/python .ai/audio-sample-rate-standardize/standardize.py --audio Audio/SFX/tank_move.mp3 --output Audio/SFX/out
 ```
 
 **Never overwrite source files.** The script writes only to `audio-sample-rate-standardize/` (or `--output`). All outputs are `.wav` regardless of input format. Supported inputs: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.
@@ -57,5 +57,5 @@ Example: `audio/sfx/tank/tank_move.mp3` → `audio/sfx/tank/audio-sample-rate-st
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/audio-sample-rate-standardize/test_standardize.py
+.dependency/python/python .ai/audio-sample-rate-standardize/test_standardize.py
 ```

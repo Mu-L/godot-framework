@@ -27,7 +27,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python.exe -m venv .dependency/image-region-remove-key-color-app/.venv
+.dependency/python/python -m venv .dependency/image-region-remove-key-color-app/.venv
 .dependency/image-region-remove-key-color-app/.venv/Scripts/python.exe -m pip install Pillow gradio
 ```
 

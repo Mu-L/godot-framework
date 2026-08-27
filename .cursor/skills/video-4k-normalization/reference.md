@@ -36,7 +36,7 @@ ffmpeg -i SOURCE \
   -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  normalized/clip.mp4
+  video-4k-normalization/clip.mp4
 ```
 
 ## FFmpeg — HDR → SDR path
@@ -53,7 +53,7 @@ ffmpeg -i SOURCE \
   -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  normalized/clip.mp4
+  video-4k-normalization/clip.mp4
 ```
 
 No audio → `-an`.
@@ -70,4 +70,4 @@ Typical storyboard flow: upscale with `video-to-4k` if needed → `video-4k-norm
 
 ## vs video-merge
 
-`video-merge` never re-encodes. If concat looks wrong (saturation jump) or `-c copy` fails, run this skill on the sources, then merge `normalized/`.
+`video-merge` never re-encodes. If concat looks wrong (saturation jump) or `-c copy` fails, run this skill on the sources, then merge `video-4k-normalization/`.

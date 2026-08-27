@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output -o path/to/output/speech-timeline.md
-    .dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output --shots path/to/shots.json -o path/to/output/speech-timeline.md
+    .dependency/python/python .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output -o path/to/output/speech-timeline.md
+    .dependency/python/python .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/output --shots path/to/shots.json -o path/to/output/speech-timeline.md
 """
 
 from __future__ import annotations

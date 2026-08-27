@@ -40,19 +40,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root>
-```
-
-Trial run (first shot only):
-
-```bash
-.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --limit 1
+.dependency/python/python .ai/storyboard-av-mix/mix.py path/to/<root>
 ```
 
 Single language:
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
+.dependency/python/python .ai/storyboard-av-mix/mix.py path/to/<root> --lang chinese
 ```
 
 Per shot / language the script:
@@ -91,9 +85,7 @@ Typical `<root>` is a [storyboard-tts](../storyboard-tts/SKILL.md) audio dir tha
 |------|--------|
 | `root` | Work dir with `Video/`, `Chinese/`, `English/` |
 | `--lang` | `both` (default), `chinese`, `english` |
-| `--limit N` | First N shot ids only (sorted) |
 | `--force` | Overwrite existing outputs |
-| `--dry-run` | Plan only |
 | `--crf` | Optional CRF override (default: match source bitrate) |
 | `--preset` | x264/x265 preset (default `medium`) |
 
@@ -113,7 +105,7 @@ Skip existing outputs unless `--force`. Missing VO for a language → skip that 
 From repo root:
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-av-mix/test_mix.py
+.dependency/python/python .ai/storyboard-av-mix/test_mix.py
 ```
 
 ## Related

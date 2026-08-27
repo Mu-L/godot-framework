@@ -16,19 +16,19 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: **1 s** fade-in and fade-out, output to `<audio-dir>/audio-fade/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-fade/fade.py --audio path/to/audio.wav
 ```
 
 Fade-in only (keep full end level):
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
+.dependency/python/python .ai/audio-fade/fade.py --audio path/to/audio.wav --no-fade-out
 ```
 
 Custom durations (seconds):
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
+.dependency/python/python .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.05 -fo 0.15
 ```
 
 ## Duration Guidelines
@@ -48,7 +48,7 @@ Fade-in + fade-out must stay **shorter than file duration**. Very short clips ne
 `--audio` · `-fi` / `--fade-in` · `-fo` / `--fade-out` · `--no-fade-in` · `--no-fade-out` · `-o` / `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.03 -fo 0.08
+.dependency/python/python .ai/audio-fade/fade.py --audio audio/sfx.wav -fi 0.03 -fo 0.08
 ```
 
 Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.

@@ -7,7 +7,7 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/output --shots path/to/output/shots.json
+    .dependency/python/python .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/output --shots path/to/output/shots.json
 """
 
 from __future__ import annotations

@@ -30,7 +30,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 From project root:
 
 ```bash
-.dependency/python/python.exe -m venv .dependency/image-remove-white-background/.venv
+.dependency/python/python -m venv .dependency/image-remove-white-background/.venv
 .dependency/image-remove-white-background/.venv/Scripts/python.exe -m pip install Pillow
 ```
 

@@ -31,13 +31,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 ```bash
 # 4×4 sheet → image/effects/image-sprite-sheet-split/fire_sheet/fire_sheet_001.png … fire_sheet_016.png
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4
+.dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4
 ```
 
 Custom output root:
 
 ```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4 -o image/effects/frames/
+.dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image image/effects/fire_sheet.png --grid 4x4 -o image/effects/frames/
 # → image/effects/frames/fire_sheet/fire_sheet_001.png …
 ```
 
@@ -77,13 +77,13 @@ Supported inputs: `.png`, `.jpg`, `.jpeg`, `.webp`, `.gif`, `.bmp`, `.tif`, `.ti
 4×4 explosion sheet (2048×2048 → 16 × 512×512):
 
 ```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
+.dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 4x4
 ```
 
 6×3 sheet:
 
 ```bash
-.dependency/python/python.exe .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3
+.dependency/python/python .ai/image-sprite-sheet-split/split_frames.py --image sheet.png --grid 6x3
 ```
 
 ## Agent Notes

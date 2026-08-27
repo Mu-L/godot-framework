@@ -16,13 +16,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: threshold **-50 dB**, both sides, output to `<audio-dir>/audio-trim/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-trim/trim.py --audio path/to/audio.wav
+.dependency/python/python .ai/audio-trim/trim.py --audio path/to/audio.wav
 ```
 
 Custom threshold:
 
 ```bash
-.dependency/python/python.exe .ai/audio-trim/trim.py --audio audio/sfx.wav -t -45
+.dependency/python/python .ai/audio-trim/trim.py --audio audio/sfx.wav -t -45
 ```
 
 ## Thresholds
@@ -38,7 +38,7 @@ Custom threshold:
 `--audio` · `-t` / `--threshold` · `-o` / `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-trim/trim.py --audio audio/sfx.wav -t -50
+.dependency/python/python .ai/audio-trim/trim.py --audio audio/sfx.wav -t -50
 ```
 
 Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.

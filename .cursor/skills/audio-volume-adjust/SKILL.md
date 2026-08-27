@@ -16,7 +16,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Reduce by 6 dB (~half amplitude), output to `<audio-dir>/audio-volume-adjust/<audio-name>`:
 
 ```bash
-.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav --volume -6
+.dependency/python/python .ai/audio-volume-adjust/adjust.py --audio path/to/audio.wav --volume -6
 ```
 
 Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-volume-adjust/tank_move.wav`
@@ -24,7 +24,7 @@ Example: `audio/sfx/tank/tank_move.wav` → `audio/sfx/tank/audio-volume-adjust/
 Boost by 3 dB:
 
 ```bash
-.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume 3
+.dependency/python/python .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume 3
 ```
 
 ## Adjustment Guidelines
@@ -43,7 +43,7 @@ Boost by 3 dB:
 `--audio` · `--volume` · `-o` / `--output`
 
 ```bash
-.dependency/python/python.exe .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume -9
+.dependency/python/python .ai/audio-volume-adjust/adjust.py --audio audio/sfx.wav --volume -9
 ```
 
 Originals are never modified. Input must be a single audio file (`--audio`), not a directory. Supported: `.wav`, `.mp3`, `.ogg`, `.flac`, `.aac`, `.m4a`, `.wma`.

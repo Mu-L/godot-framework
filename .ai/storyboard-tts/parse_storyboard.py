@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md
-    .dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py storyboard.md -o shots.json
+    .dependency/python/python .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md
+    .dependency/python/python .ai/storyboard-tts/parse_storyboard.py storyboard.md -o shots.json
 """
 
 from __future__ import annotations

@@ -33,7 +33,7 @@ Convert supported videos to a **unified 4K master**:
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
-- Run `convert.py` through **`.dependency/python/python.exe`**. Never use host `python` / `ffmpeg` / `video2x`.
+- Run `convert.py` through **`.dependency/python/python`**. Never use host `python` / `ffmpeg` / `video2x`.
 - **Never overwrite sources.** Outputs go under `4k/` (final) and `4k-upscaled/` (Video2X intermediate).
 - Use the bundled script — do not hand-write equivalent `video2x` / `ffmpeg` commands.
 
@@ -66,7 +66,7 @@ Use `video2x` (no `.exe`) or the AppImage path on Unix. Requires a **Vulkan** GP
 ## Quick Start
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-4k/scripts/convert.py path/to/video_or_folder
+.dependency/python/python .cursor/skills/video-to-4k/scripts/convert.py path/to/video_or_folder
 ```
 
 Example:
@@ -82,13 +82,13 @@ Already-4K source → only `4k/clip.mp4` (FFmpeg only).
 Batch with subfolders:
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-4k/scripts/convert.py Video/Cutscenes -r
+.dependency/python/python .cursor/skills/video-to-4k/scripts/convert.py Video/Cutscenes -r
 ```
 
 Anime / cartoon content (Real-ESRGAN anime model):
 
 ```bash
-.dependency/python/python.exe .cursor/skills/video-to-4k/scripts/convert.py clip.mp4 --anime
+.dependency/python/python .cursor/skills/video-to-4k/scripts/convert.py clip.mp4 --anime
 ```
 
 ## Defaults

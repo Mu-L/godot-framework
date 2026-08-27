@@ -32,7 +32,7 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 
 1. **Batch synthesis only via** `.ai/storyboard-tts/synthesize.py` with the **`index-tts`** interpreter. Do **not** hand-write IndexTTS loops, temporary batch drivers, or N× single `tts.py` calls for a full storyboard.
 2. **Trial / single-line** checks may use [ai-text-to-speech](../ai-text-to-speech/SKILL.md) `tts.py`, or `synthesize.py --limit 1`.
-3. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python.exe`).
+3. Parse-only / report-only / subtitle-only steps use stdlib **`python`** (`.dependency/python/python`).
 4. Never overwrite the storyboard source. Write only under `<audio-dir>/`.
 5. Skip `(no VO)` / empty lines — no empty WAVs or empty subtitle cues.
 6. Confirm **voice reference** (and output dir if unclear) before a full batch.
@@ -110,15 +110,15 @@ This will:
 ### Parse, report, or subtitles alone (stdlib python)
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md -o path/to/<audio-dir>/shots.json
+.dependency/python/python .ai/storyboard-tts/parse_storyboard.py path/to/storyboard.md -o path/to/<audio-dir>/shots.json
 ```
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json -o path/to/<audio-dir>/speech-timeline.md
+.dependency/python/python .ai/storyboard-tts/duration_report.py --storyboard path/to/storyboard.md --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json -o path/to/<audio-dir>/speech-timeline.md
 ```
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json
+.dependency/python/python .ai/storyboard-tts/write_subtitles.py --audio-dir path/to/<audio-dir> --shots path/to/<audio-dir>/shots.json
 ```
 
 Resume from an existing `shots.json`:
@@ -165,8 +165,8 @@ On partial failure: script continues remaining jobs, prints `Failed jobs: …`, 
 Stdlib scripts (from repo root):
 
 ```bash
-.dependency/python/python.exe .ai/storyboard-tts/test_parse_storyboard.py
-.dependency/python/python.exe .ai/storyboard-tts/test_write_subtitles.py
+.dependency/python/python .ai/storyboard-tts/test_parse_storyboard.py
+.dependency/python/python .ai/storyboard-tts/test_write_subtitles.py
 ```
 
 IndexTTS batch driver (requires populated `index-tts`; see `.ai/storyboard-tts/test.md`):

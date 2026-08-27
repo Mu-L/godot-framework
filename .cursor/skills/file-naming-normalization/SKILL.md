@@ -16,13 +16,13 @@ When this skill applies, read and follow [skill-dependency-manager](../skill-dep
 Default: split on `_`, `-`, `.`, and spaces; strip leading/trailing digits from each segment; join with `_`:
 
 ```bash
-.dependency/python/python.exe .ai/file-naming-normalization/normalize.py path/to/file_or_folder
+.dependency/python/python .ai/file-naming-normalization/normalize.py path/to/file_or_folder
 ```
 
 Preview without renaming:
 
 ```bash
-.dependency/python/python.exe .ai/file-naming-normalization/normalize.py Audio/SFX --dry-run
+.dependency/python/python .ai/file-naming-normalization/normalize.py Audio/SFX --dry-run
 ```
 
 ## Workflow
@@ -51,13 +51,13 @@ Preview without renaming:
 
 ```bash
 # Strip custom strings (repeatable)
-.dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets --strip SFX --strip UI
+.dependency/python/python .ai/file-naming-normalization/normalize.py Assets --strip SFX --strip UI
 
 # Recursive folder
-.dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets -r
+.dependency/python/python .ai/file-naming-normalization/normalize.py Assets -r
 
 # Copy normalized files to another folder (originals unchanged)
-.dependency/python/python.exe .ai/file-naming-normalization/normalize.py Assets -o normalized/ -r
+.dependency/python/python .ai/file-naming-normalization/normalize.py Assets -o normalized/ -r
 ```
 
 ## Output
