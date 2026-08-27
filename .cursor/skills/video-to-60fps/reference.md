@@ -5,7 +5,7 @@
 ```
 ffprobe source fps
   ├─ |fps − 60| ≤ 0.5   → skip (already ~60, including 59.94)
-  ├─ fps > 60.5         → FFmpeg fps=60 drop → 60fps/*.mp4
+  ├─ fps > 60.5         → FFmpeg fps=60 drop → video-to-60fps/*.mp4
   └─ fps < 59.5         → Video2X RIFE ×m → FFmpeg 60fps MP4
 ```
 
@@ -41,7 +41,7 @@ video2x -i input.mp4 -o tmp.mkv \
 Already ~60 after RIFE (stream copy to MP4):
 
 ```bash
-ffmpeg -i tmp.mkv -c:v copy -tag:v hvc1 -c:a aac -b:a 320k -movflags +faststart 60fps/clip.mp4
+ffmpeg -i tmp.mkv -c:v copy -tag:v hvc1 -c:a aac -b:a 320k -movflags +faststart video-to-60fps/clip.mp4
 ```
 
 Need an exact 60 (or source was above 60):
@@ -53,7 +53,7 @@ ffmpeg -i SOURCE \
   -crf 12 -preset medium -tag:v hvc1 \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  60fps/clip.mp4
+  video-to-60fps/clip.mp4
 ```
 
 No audio streams → `-an`. Resolution is never scaled.
