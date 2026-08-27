@@ -24,7 +24,7 @@ With `--anime` (`realesr-animevideov3`), 1920×1080 / 2560×1440 can use scale `
 ## Video2X intermediate (below 4K)
 
 ```bash
-video2x -i input.mp4 -o 4k-upscaled/clip.mkv \
+video2x -i input.mp4 -o video-to-4k/upscaled/clip.mkv \
   -p realesrgan -s 4 \
   --realesrgan-model realesrgan-plus \
   -c libx265 --pix-fmt yuv420p10le \
@@ -45,7 +45,7 @@ ffmpeg -i SOURCE \
   -tag:v hvc1 -x265-params "profile=main10" \
   -c:a aac -b:a 320k \
   -movflags +faststart \
-  4k/clip.mp4
+  video-to-4k/clip.mp4
 ```
 
 No `fps=` filter: timestamps and frame count stay with the source. 24fps in → 24fps out.
