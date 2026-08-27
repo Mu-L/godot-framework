@@ -25,7 +25,7 @@ REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
 EXTRACT_SCRIPT = SCRIPT_DIR / "extract.py"
-SAMPLE_AUDIO = REPO_ROOT / ".ai/test/audio/han.wav"
+SAMPLE_VIDEO = REPO_ROOT / ".ai/test/video/opening.mp4"
 
 
 class ExtractCliTest(unittest.TestCase):
@@ -39,46 +39,37 @@ class ExtractCliTest(unittest.TestCase):
             cwd=str(REPO_ROOT),
         )
 
-    def make_test_video(self, out_path: Path) -> None:
-        if not SAMPLE_AUDIO.is_file():
-            self.skipTest("sample audio missing")
+    def require_sample_video(self) -> Path:
+        if not SAMPLE_VIDEO.is_file():
+            self.skipTest("sample video missing")
+        return SAMPLE_VIDEO
 
-        ffmpeg = resolve_ffmpeg(EXTRACT_SCRIPT)
-        result = subprocess.run(
-            [
-                str(ffmpeg),
-                "-hide_banner",
-                "-nostats",
-                "-y",
-                "-f",
-                "lavfi",
-                "-i",
-                "color=c=black:s=64x64:d=0.5",
-                "-i",
-                str(SAMPLE_AUDIO),
-                "-shortest",
-                "-c:v",
-                "libx264",
-                "-pix_fmt",
-                "yuv420p",
-                "-c:a",
-                "aac",
-                str(out_path),
-            ],
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertTrue(out_path.is_file())
-
-    def assert_pcm_wav(self, output: Path) -> None:
+    def assert_pcm_wav(self, source: Path, output: Path, track: int = 0) -> None:
         ffmpeg = resolve_ffmpeg(EXTRACT_SCRIPT)
         ffprobe = resolve_ffprobe(ffmpeg)
-        probe = wav_utils.probe_audio_file(ffprobe, output)
-        self.assertTrue(probe, f"Could not probe output audio: {output}")
-        self.assertIn(probe.get("codec", ""), wav_utils.PCM_STREAM_CODECS)
+        source_probe = wav_utils.probe_video_audio_track(ffprobe, source, track)
+        output_probe = wav_utils.probe_audio_file(ffprobe, output)
+
+        self.assertTrue(source_probe, f"Could not probe source video audio: {source}")
+        self.assertTrue(output_probe, f"Could not probe output audio: {output}")
+        self.assertIn(output_probe.get("codec", ""), wav_utils.PCM_STREAM_CODECS)
+        self.assertEqual(
+            output_probe.get("sample_rate"),
+            source_probe.get("sample_rate"),
+            "output sample rate should match source",
+        )
+        self.assertEqual(
+            output_probe.get("channels"),
+            source_probe.get("channels"),
+            "output channel count should match source",
+        )
+
+        _, expected_codec = wav_utils.resolve_bit_depth(source_probe, None)
+        self.assertEqual(
+            output_probe.get("codec"),
+            expected_codec,
+            f"expected converted codec {expected_codec!r}, got {output_probe.get('codec')!r}",
+        )
 
     def test_help(self) -> None:
         result = self.run_cli("--help")
@@ -109,29 +100,30 @@ class ExtractCliTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("directories are not supported", result.stderr)
 
-    def test_extracts_audio_from_video(self) -> None:
+    def test_extracts_audio_from_opening_mp4(self) -> None:
+        sample = self.require_sample_video()
+
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            video = root / "clip.mp4"
-            self.make_test_video(video)
+            video = root / sample.name
+            video.write_bytes(sample.read_bytes())
             result = self.run_cli("--video", str(video))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out = root / extract.DEFAULT_OUTPUT_SUBDIR / "clip.wav"
+            out = root / extract.DEFAULT_OUTPUT_SUBDIR / sample.with_suffix(".wav").name
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
-            self.assert_pcm_wav(out)
+            self.assert_pcm_wav(video, out)
 
     def test_custom_output_file(self) -> None:
+        sample = self.require_sample_video()
+
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            video = root / "clip.mp4"
-            out = root / "custom.wav"
-            self.make_test_video(video)
-            result = self.run_cli("--video", str(video), "--output", str(out))
+            out = Path(tmp) / "opening-custom.wav"
+            result = self.run_cli("--video", str(sample), "--output", str(out))
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
-            self.assert_pcm_wav(out)
+            self.assert_pcm_wav(sample, out)
 
 
 if __name__ == "__main__":

@@ -9,17 +9,17 @@ unit tests:
 Manual CLI (default output: `<video-dir>/video-to-wav/<basename>.wav`):
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/extract.py --video path/to/video.mp4
+.dependency/python/python.exe .ai/video-to-wav/extract.py --video .ai/test/video/opening.mp4
 ```
 
-Alternate audio track:
+Explicit audio track (0-based):
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/extract.py --video clip.mkv --track 1
+.dependency/python/python.exe .ai/video-to-wav/extract.py --video .ai/test/video/opening.mp4 --track 0
 ```
 
 Custom output path:
 
 ```bash
-.dependency/python/python.exe .ai/video-to-wav/extract.py --video clip.mp4 --output path/to/out.wav
+.dependency/python/python.exe .ai/video-to-wav/extract.py --video .ai/test/video/opening.mp4 --output .ai/test/video/video-to-wav/opening.wav
 ```
