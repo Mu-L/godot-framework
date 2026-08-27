@@ -15,23 +15,17 @@ ffmpeg -i input.mov -vn -map 0:a:0 -c:a copy output.wav
 ffmpeg -i input.mkv -vn -map 0:a:1 -c:a pcm_f32le output.wav
 ```
 
-## Optional Downconvert
+## Resampling / Project Standard
 
-Use only when the user wants a smaller/project-standard batch:
+This skill does not resample. Chain **audio-sample-rate-standardize** on the extracted WAV when the user needs 44.1 kHz or 48 kHz / 16-bit output.
 
-```bash
-ffmpeg -i input.mp4 -vn -ar 48000 -c:a pcm_s16le output.wav
-# or: --standardize
-```
+## Optional Flags
 
 | Flag | Effect |
 |------|--------|
 | (default) | Preserve sample rate and bit depth |
 | `--track N` | Select audio stream index (0-based) |
-| `-s 48000` | Force resample |
 | `-b 16` / `-b 24` / `-b 32` | Force PCM bit depth |
-| `--standardize` | Shorthand for 48 kHz + 16-bit |
-| `--mono` / `--stereo` | Force channel layout |
 
 ## Bit Depth Resolution
 
@@ -51,10 +45,8 @@ Lossy sources cannot exceed their encoded quality, but 32-bit float PCM avoids t
 
 ## Output Layout
 
-For `Video/Clips/intro.mp4` with default output dir:
+For `assets/clip.mp4` with default output:
 
 ```
-Video/Clips/wav/intro.wav
+assets/video-to-wav/clip.wav
 ```
-
-Batch with `-r` preserves subdirectory structure under the output root.

@@ -28,9 +28,9 @@ class ConvertLogicTest(unittest.TestCase):
     def test_stream_copy_only_for_pcm_wav(self) -> None:
         probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
         path = Path("clip.wav")
-        self.assertTrue(convert.can_stream_copy(path, probe, None, None))
-        self.assertFalse(convert.can_stream_copy(path, probe, 16, None))
-        self.assertFalse(convert.can_stream_copy(Path("clip.mp3"), probe, None, None))
+        self.assertTrue(convert.can_stream_copy(path, probe, None))
+        self.assertFalse(convert.can_stream_copy(path, probe, 16))
+        self.assertFalse(convert.can_stream_copy(Path("clip.mp3"), probe, None))
 
     def test_resolve_bit_depth_for_lossy(self) -> None:
         depth, codec = convert.resolve_bit_depth({"codec": "mp3", "bits": 0}, None)
@@ -39,7 +39,7 @@ class ConvertLogicTest(unittest.TestCase):
 
     def test_describe_stream_copy(self) -> None:
         probe = {"codec": "pcm_s16le", "sample_rate": 44100, "bits": 16, "channels": 1}
-        text = convert.describe_file_plan(probe, None, None, True)
+        text = convert.describe_file_plan(probe, None, True)
         self.assertIn("stream copy", text)
         self.assertIn("44100 Hz", text)
 
@@ -83,7 +83,7 @@ class ConvertCliTest(unittest.TestCase):
         )
 
         _, expected_codec = convert.resolve_bit_depth(source_probe, None)
-        if convert.can_stream_copy(source, source_probe, None, None):
+        if convert.can_stream_copy(source, source_probe, None):
             self.assertEqual(
                 output_codec,
                 source_probe.get("codec"),
@@ -105,6 +105,8 @@ class ConvertCliTest(unittest.TestCase):
         self.assertNotIn("--recurse", result.stdout)
         self.assertNotIn("--sample-rate", result.stdout)
         self.assertNotIn("--standardize", result.stdout)
+        self.assertNotIn("--mono", result.stdout)
+        self.assertNotIn("--stereo", result.stdout)
 
     def test_missing_audio(self) -> None:
         result = self.run_cli()

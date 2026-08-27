@@ -27,12 +27,12 @@ Example: `audio/sfx/tank/tank_move.flac` → `audio/sfx/tank/audio-to-wav/tank_m
 |---------|---------|-------|
 | Sample rate | Preserve source | Always kept; no resampling |
 | Bit depth | Match source | Probed per file; lossy → 32-bit float PCM |
-| Channels | Preserve source | Use `--mono` or `--stereo` to force |
+| Channels | Preserve source | Always kept from source audio |
 | Existing PCM WAV | Stream copy | Bit-perfect when no overrides |
 
 ## Common Flags
 
-`--audio` · `-o` / `--output` · `-b` / `--bit-depth` · `--mono` · `--stereo`
+`--audio` · `-o` / `--output` · `-b` / `--bit-depth`
 
 Force 16-bit PCM:
 

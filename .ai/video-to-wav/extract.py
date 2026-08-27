@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Convert a single audio file to PCM WAV using FFmpeg.
+Extract audio from a single video file to PCM WAV using FFmpeg.
 
 Run through default python from .dependency/manifest.json.
 Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.flac
-    .dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.mp3 -b 16
+    .dependency/python/python.exe .ai/video-to-wav/extract.py --video path/to/video.mp4
+    .dependency/python/python.exe .ai/video-to-wav/extract.py --video clip.mkv --track 1
 """
 
 from __future__ import annotations
@@ -23,11 +23,11 @@ AI_ROOT = Path(__file__).resolve().parents[1]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from common.audio_utils import audio_output_name, resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.video_utils import resolve_video_file, video_output_name  # noqa: E402
 
-DEFAULT_OUTPUT_SUBDIR = "audio-to-wav"
+DEFAULT_OUTPUT_SUBDIR = "video-to-wav"
 
 BIT_DEPTH_CODECS = {
     16: "pcm_s16le",
@@ -47,7 +47,7 @@ PCM_STREAM_CODECS = {
 }
 
 
-def probe_audio(ffprobe: Path, file_path: Path) -> dict:
+def probe_audio(ffprobe: Path, file_path: Path, track: int) -> dict:
     result = subprocess.run(
         [
             str(ffprobe),
@@ -57,7 +57,7 @@ def probe_audio(ffprobe: Path, file_path: Path) -> dict:
             "json",
             "-show_streams",
             "-select_streams",
-            "a:0",
+            f"a:{track}",
             str(file_path),
         ],
         capture_output=True,
@@ -129,10 +129,8 @@ def resolve_bit_depth(probe: dict, forced: int | None) -> tuple[int, str]:
     return 32, "pcm_f32le"
 
 
-def can_stream_copy(file_path: Path, probe: dict, bit_depth: int | None) -> bool:
+def can_stream_copy(probe: dict, bit_depth: int | None) -> bool:
     if bit_depth is not None:
-        return False
-    if file_path.suffix.lower() != ".wav":
         return False
     return probe.get("codec", "") in PCM_STREAM_CODECS
 
@@ -141,6 +139,7 @@ def build_ffmpeg_args(
     ffmpeg: Path,
     file_path: Path,
     out_path: Path,
+    track: int,
     codec: str,
     stream_copy: bool,
 ) -> list[str]:
@@ -151,6 +150,9 @@ def build_ffmpeg_args(
         "-y",
         "-i",
         str(file_path),
+        "-vn",
+        "-map",
+        f"0:a:{track}",
     ]
     if stream_copy:
         cmd.extend(["-c:a", "copy", str(out_path)])
@@ -160,32 +162,33 @@ def build_ffmpeg_args(
     return cmd
 
 
-def convert_file(
+def extract_file(
     ffmpeg: Path,
     file_path: Path,
     out_path: Path,
+    track: int,
     codec: str,
     stream_copy: bool,
 ) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    cmd = build_ffmpeg_args(ffmpeg, file_path, out_path, codec, stream_copy)
+    cmd = build_ffmpeg_args(ffmpeg, file_path, out_path, track, codec, stream_copy)
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise RuntimeError(
-            f"FFmpeg convert failed for: {file_path}"
+            f"FFmpeg extract failed for: {file_path}"
             + (f"\n{detail}" if detail else "")
         )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Convert a single audio file to PCM WAV."
+        description="Extract audio from a single video file to PCM WAV."
     )
     parser.add_argument(
-        "--audio",
+        "--video",
         required=True,
-        help="Path to a single audio file",
+        help="Path to a single video file",
     )
     parser.add_argument(
         "-o",
@@ -195,6 +198,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Output WAV file or directory. "
             f"Default: {format_default_output_help(DEFAULT_OUTPUT_SUBDIR, output_name_label='source.wav')}"
         ),
+    )
+    parser.add_argument(
+        "--track",
+        type=int,
+        default=0,
+        metavar="N",
+        help="Audio stream index to extract (0-based, default: 0)",
     )
     parser.add_argument(
         "-b",
@@ -208,6 +218,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def describe_file_plan(
     probe: dict,
+    track: int,
     forced_depth: int | None,
     stream_copy: bool,
 ) -> str:
@@ -215,7 +226,7 @@ def describe_file_plan(
         rate = probe.get("sample_rate")
         bits = probe.get("bits") or "?"
         ch = probe.get("channels") or "?"
-        return f"stream copy ({rate} Hz, {bits}-bit, {ch} ch)"
+        return f"track {track}, stream copy ({rate} Hz, {bits}-bit, {ch} ch)"
 
     rate = probe.get("sample_rate")
     rate_text = f"{rate} Hz" if rate else "source rate"
@@ -225,26 +236,30 @@ def describe_file_plan(
         _, codec = resolve_bit_depth(probe, None)
         depth = codec
     ch = probe.get("channels") or "preserve"
-    return f"{rate_text}, {depth}, {ch} ch"
+    return f"track {track}, {rate_text}, {depth}, {ch} ch"
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.track < 0:
+        print("--track must be >= 0", file=sys.stderr)
+        return 1
+
     ffmpeg = resolve_ffmpeg(Path(__file__))
     ffprobe = resolve_ffprobe(ffmpeg)
 
-    audio_path = resolve_audio_file(args.audio)
-    if audio_path is None:
+    video_path = resolve_video_file(args.video)
+    if video_path is None:
         return 1
 
     out_path = resolve_output_path(
         args.output,
-        audio_path,
+        video_path,
         DEFAULT_OUTPUT_SUBDIR,
-        audio_output_name(audio_path, suffix=".wav"),
+        video_output_name(video_path),
     )
 
-    if out_path.resolve() == audio_path.resolve():
+    if out_path.resolve() == video_path.resolve():
         print(
             "Refusing to overwrite source file. Choose a separate output path "
             f"(default: {DEFAULT_OUTPUT_SUBDIR}/).",
@@ -254,19 +269,28 @@ def main(argv: list[str] | None = None) -> int:
 
     forced_depth = args.bit_depth
 
-    print(f"Audio:  {audio_path}")
+    print(f"Video:  {video_path}")
+    print(f"Track:  {args.track}")
     print(f"Mode:   preserve source sample rate, channels, and quality")
     print(f"Output: {out_path}")
     print()
 
-    probe = probe_audio(ffprobe, audio_path)
-    stream_copy = can_stream_copy(audio_path, probe, forced_depth)
+    probe = probe_audio(ffprobe, video_path, args.track)
+    if not probe:
+        print(f"[fail] {video_path.name}")
+        print(
+            f"No audio track at index {args.track} in: {video_path}",
+            file=sys.stderr,
+        )
+        return 1
+
+    stream_copy = can_stream_copy(probe, forced_depth)
     _, codec = resolve_bit_depth(probe, forced_depth)
-    plan = describe_file_plan(probe, forced_depth, stream_copy)
+    plan = describe_file_plan(probe, args.track, forced_depth, stream_copy)
 
     try:
-        print(f"[run]  {audio_path.name} -> {out_path.name} ({plan})")
-        convert_file(ffmpeg, audio_path, out_path, codec, stream_copy)
+        print(f"[run]  {video_path.name} -> {out_path.name} ({plan})")
+        extract_file(ffmpeg, video_path, out_path, args.track, codec, stream_copy)
     except RuntimeError as exc:
         print(f"[fail] {out_path.name}")
         print(exc)

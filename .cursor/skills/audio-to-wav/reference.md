@@ -21,9 +21,8 @@ ffmpeg -i input.wav -c:a copy output.wav
 |------|--------|
 | (default) | Preserve sample rate and bit depth |
 | `-b 16` / `-b 24` / `-b 32` | Force PCM bit depth |
-| `--mono` / `--stereo` | Force channel layout |
 
-Sample rate is always preserved. For resampling, use the `audio-sample-rate-standardize` skill first.
+Sample rate and channels are always preserved. For resampling, use the `audio-sample-rate-standardize` skill.
 
 ## Bit Depth Resolution
 
