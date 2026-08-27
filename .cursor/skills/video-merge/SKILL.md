@@ -19,10 +19,15 @@ Concatenate every video in a folder (filename sort) into **one** high-quality MP
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
+- Run `merge.py` through **`.dependency/python/python.exe`**. Never use host `python` / `ffmpeg`.
+- **Never overwrite sources.** Outputs go under `video-merge/`.
+- Use the bundled script — do not hand-write equivalent FFmpeg commands.
+- **Folder input only** — pass `--folder` with a directory of clips (top-level files; no recurse).
+
 ## Quick Start
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py path/to/clips
+.dependency/python/python .ai/video-merge/merge.py --folder path/to/clips
 ```
 
 Example:
@@ -32,7 +37,7 @@ assets/shots/
   01.mp4
   02.mp4
   03.mp4
-→ assets/shots/merged/shots.mp4
+→ assets/shots/video-merge/shots.mp4
 ```
 
 ## Output Spec (fixed)
@@ -54,14 +59,14 @@ Each cut independently samples one transition. Printed in the run log.
 
 ## Common Flags
 
-`-o` / `--output` · `--overwrite` · `--dry-run` · `--seed`
+`--folder` · `-o` / `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py clips --seed 42
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py clips -o out/final.mp4 --overwrite
+.dependency/python/python .ai/video-merge/merge.py --folder clips
+.dependency/python/python .ai/video-merge/merge.py --folder clips -o out/final.mp4
 ```
 
-**Never overwrite source files.** Default output: `<folder>/merged/<folder-name>.mp4`. Only top-level videos in the folder (no recurse). Supported: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`, `.ogg`.
+**Never overwrite source files.** Input must be a folder (`--folder`), not a single video file. Only top-level videos in the folder (no recurse). Supported: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`.
 
 ## Agent Notes
 
@@ -72,3 +77,13 @@ Each cut independently samples one transition. Printed in the run log.
 5. Many clips (4K10) auto-chunk (max 4 inputs per filtergraph) to avoid OOM; transitions stay correct across chunk boundaries.
 6. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry.
 7. FFmpeg filter details: [reference.md](reference.md)
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python .ai/video-merge/test_merge.py
+```
+
+Manual CLI examples: [.ai/video-merge/test.md](../../../.ai/video-merge/test.md)

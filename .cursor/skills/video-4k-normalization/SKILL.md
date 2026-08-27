@@ -63,7 +63,7 @@ assets/shots/10.mp4   (SDR)
 Then hard-cut merge the `video-4k-normalization/` folder:
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge/scripts/merge.py path/to/clips/video-4k-normalization
+.dependency/python/python .ai/video-merge/merge.py --folder path/to/clips/video-4k-normalization
 ```
 
 ## Defaults
