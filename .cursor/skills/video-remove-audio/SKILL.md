@@ -1,31 +1,35 @@
 ---
 name: video-remove-audio
-description: Removes all audio and music tracks from video files using FFmpeg, keeping the video stream (stream copy by default). Use when the user wants to mute a video, strip audio, remove soundtrack/BGM/music from MP4/MKV/MOV/WebM, export silent video, or batch-remove audio from cutscenes.
+description: Removes all audio and music tracks from a single video file using FFmpeg, keeping the video stream (stream copy by default). Use when the user wants to mute a video, strip audio, remove soundtrack/BGM/music from MP4/MKV/MOV/WebM, export silent video, or remove audio from a cutscene clip.
 ---
 
 # Video Remove Audio
 
-Strip **all audio tracks** (music, voice, SFX) from supported video files via FFmpeg. **Defaults preserve the video bitstream** — stream-copy video (`-c:v copy`), drop audio (`-an`), no re-encode.
+Strip **all audio tracks** (music, voice, SFX) from a supported video file via FFmpeg. **Defaults preserve the video bitstream** — stream-copy video (`-c:v copy`), drop audio (`-an`), no re-encode.
 
 ## Rules
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
+- Run `remove_audio.py` through **`.dependency/python/python.exe`**. Never use host `python` / `ffmpeg`.
+- **Never overwrite sources.** Outputs go under `video-remove-audio/`.
+- Use the bundled script — do not hand-write equivalent FFmpeg commands.
+- **One file per run** — pass `--video` with a single file; repeat for each clip in a batch.
+
 ## Quick Start
 
-Mute a file or folder, output to `silent/`:
-
 ```bash
-.dependency/python/python .cursor/skills/video-remove-audio/scripts/remove_audio.py path/to/video_or_folder
+.dependency/python/python .ai/video-remove-audio/remove_audio.py --video path/to/clip.mp4
 ```
 
-Example: `assets/intro.mp4` → `assets/silent/intro.mp4` (same video codec/container, no audio)
+Example:
 
-Batch with subfolders:
-
-```bash
-.dependency/python/python .cursor/skills/video-remove-audio/scripts/remove_audio.py Video/Cutscenes -r
 ```
+assets/intro.mp4
+  → assets/video-remove-audio/intro.mp4
+```
+
+Same video codec/container, no audio.
 
 ## Format Defaults
 
@@ -38,22 +42,31 @@ Batch with subfolders:
 
 ## Common Flags
 
-`-r` · `-o` / `--output-dir` · `--reencode` · `--dry-run` · `--overwrite`
-
-Force video re-encode (only if stream copy fails for the container):
+`--video` · `-o` / `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/video-remove-audio/scripts/remove_audio.py clip.mp4 --reencode
+.dependency/python/python .ai/video-remove-audio/remove_audio.py --video clip.mp4
+.dependency/python/python .ai/video-remove-audio/remove_audio.py --video clip.mp4 -o out/silent.mp4
 ```
 
-**Never overwrite source files.** The script writes only to `silent/` (or `-o`). Supported inputs: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`, `.ogg`.
+**Never overwrite source files.** Input must be a single video file (`--video`), not a directory. Supported inputs: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`.
 
 ## Agent Notes
 
 1. Use the bundled script, not hand-written `ffmpeg -i … -an` commands.
-2. **Prefer stream copy** — omit `--reencode` unless FFmpeg fails or the user asks to re-encode.
+2. Always uses **stream copy** for video (`-c:v copy -an`).
 3. This removes **all** audio; it does **not** isolate or mute music while keeping dialogue (no stem separation).
 4. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry same command.
-5. **Do not copy, move, or replace the source with muted output** — tell the user where `silent/` files are; they swap assets manually when ready.
+5. **Do not copy, move, or replace the source with muted output** — tell the user where `video-remove-audio/` files are; they swap assets manually when ready.
 6. Need audio extracted instead of removed → use **video-to-wav**.
 7. FFmpeg details: [reference.md](reference.md)
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python .ai/video-remove-audio/test_remove_audio.py
+```
+
+Manual CLI examples: [.ai/video-remove-audio/test.md](../../../.ai/video-remove-audio/test.md)
