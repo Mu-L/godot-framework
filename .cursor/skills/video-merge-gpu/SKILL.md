@@ -22,10 +22,15 @@ xfade / scale / pad still run on CPU; only the H.265 encode is hardware.
 
 When this skill applies, read and follow [skill-dependency-manager](../skill-dependency-manager.md) — run scripts as documented, install missing tools into `.dependency/`.
 
+- Run `merge.py` through **`.dependency/python/python.exe`**. Never use host `python` / `ffmpeg`.
+- **Never overwrite sources.** Outputs go under `video-merge-gpu/`.
+- Use the bundled script — do not hand-write equivalent FFmpeg commands.
+- **Folder input only** — pass `--folder` with a directory of clips (top-level files; no recurse).
+
 ## Quick Start
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge-gpu/scripts/merge.py path/to/clips
+.dependency/python/python .ai/video-merge-gpu/merge.py --folder path/to/clips
 ```
 
 Example:
@@ -35,7 +40,7 @@ assets/shots/
   01.mp4
   02.mp4
   03.mp4
-→ assets/shots/merged-gpu/shots.mp4
+→ assets/shots/video-merge-gpu/shots.mp4
 ```
 
 ## Output Spec (fixed)
@@ -57,14 +62,14 @@ Each cut independently samples one transition. Printed in the run log.
 
 ## Common Flags
 
-`-o` / `--output` · `--overwrite` · `--dry-run` · `--seed`
+`--folder` · `-o` / `--output`
 
 ```bash
-.dependency/python/python .cursor/skills/video-merge-gpu/scripts/merge.py clips --seed 42
-.dependency/python/python .cursor/skills/video-merge-gpu/scripts/merge.py clips -o out/final.mp4 --overwrite
+.dependency/python/python .ai/video-merge-gpu/merge.py --folder clips
+.dependency/python/python .ai/video-merge-gpu/merge.py --folder clips -o out/final.mp4
 ```
 
-**Never overwrite source files.** Default output: `<folder>/merged-gpu/<folder-name>.mp4`. Only top-level videos in the folder (no recurse). Supported: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`, `.ogg`.
+**Never overwrite source files.** Input must be a folder (`--folder`), not a single video file. Only top-level videos in the folder (no recurse). Supported: `.mp4`, `.mkv`, `.mov`, `.avi`, `.webm`, `.wmv`, `.flv`, `.m4v`, `.mpeg`, `.mpg`, `.ts`, `.mts`, `.m2ts`, `.3gp`, `.ogv`.
 
 ## Agent Notes
 
@@ -72,7 +77,17 @@ Each cut independently samples one transition. Printed in the run log.
 2. Transition duration is fixed at **0.5s** — no duration override flag.
 3. Every clip **except the first** must be **longer than 0.5s** (incoming side of `xfade`).
 4. Single file in the folder → re-encode to the output spec with no transition.
-5. Many clips (4K10) auto-chunk (max 4 inputs per filtergraph) to avoid OOM; transitions stay correct across chunk boundaries.
+5. Many clips (4K10) auto-chunk (max 8 inputs per filtergraph) to avoid OOM; transitions stay correct across chunk boundaries.
 6. **No CPU fallback.** Missing GPU HEVC Main10 → report the probe failure; suggest `video-merge` only if the user accepts CPU.
 7. Missing Python/FFmpeg → populate `.dependency/` per skill-dependency-manager, retry.
 8. FFmpeg filter / encoder details: [reference.md](reference.md)
+
+## Tests
+
+From repo root:
+
+```bash
+.dependency/python/python .ai/video-merge-gpu/test_merge.py
+```
+
+Manual CLI examples: [.ai/video-merge-gpu/test.md](../../../.ai/video-merge-gpu/test.md)

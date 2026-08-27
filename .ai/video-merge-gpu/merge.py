@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Merge folder videos (filename sort) with random 0.5s xfade into 4K60 GPU HEVC Main10."""
+"""
+Merge videos in a folder with random 0.5s xfade into 4K60 GPU HEVC Main10 (no CPU fallback).
+
+Run through default python from .dependency/manifest.json.
+Never use host python/py.
+
+Usage
+-----
+    .dependency/python/python .ai/video-merge-gpu/merge.py --folder path/to/clips
+    .dependency/python/python .ai/video-merge-gpu/merge.py --folder path/to/clips -o path/to/final.mp4
+"""
 
 from __future__ import annotations
 
@@ -12,24 +22,14 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-VIDEO_EXTENSIONS = {
-    ".mp4",
-    ".mkv",
-    ".mov",
-    ".avi",
-    ".webm",
-    ".wmv",
-    ".flv",
-    ".m4v",
-    ".mpeg",
-    ".mpg",
-    ".ts",
-    ".mts",
-    ".m2ts",
-    ".3gp",
-    ".ogv",
-    ".ogg",
-}
+AI_ROOT = Path(__file__).resolve().parents[1]
+if str(AI_ROOT) not in sys.path:
+    sys.path.insert(0, str(AI_ROOT))
+
+from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
+from common.video_utils import VIDEO_EXTENSIONS  # noqa: E402
+
+DEFAULT_OUTPUT_SUBDIR = "video-merge-gpu"
 
 TRANSITION_DURATION = 0.5
 OUTPUT_WIDTH = 3840
@@ -38,7 +38,6 @@ OUTPUT_FPS = 60
 VIDEO_BITRATE = "40M"
 AUDIO_BITRATE = "320k"
 AUDIO_RATE = 48000
-# One filtergraph with many 4K10 streams OOMs (~50GB+). Cap inputs per encode.
 MAX_INPUTS_PER_GRAPH = 8
 
 TRANSITIONS = (
@@ -67,80 +66,10 @@ TRANSITIONS = (
 
 @dataclass(frozen=True)
 class EncoderChoice:
-    name: str  # ffmpeg -c:v name
-    kind: str  # nvenc | amf | qsv
+    name: str
+    kind: str
     label: str
     pix_fmt: str
-
-
-def find_repo_root(start: Path) -> Path | None:
-    for parent in [start.resolve(), *start.resolve().parents]:
-        if (parent / ".dependency" / "manifest.json").is_file():
-            return parent
-    return None
-
-
-def resolve_executable(path: Path) -> Path:
-    if path.is_file():
-        return path
-    if sys.platform == "win32" and path.suffix.lower() != ".exe":
-        candidate = path.with_name(f"{path.name}.exe")
-        if candidate.is_file():
-            return candidate
-    raise FileNotFoundError(path)
-
-
-def resolve_tool_bin(repo_root: Path, tool_name: str) -> Path:
-    manifest_path = repo_root / ".dependency" / "manifest.json"
-    entry = json.loads(manifest_path.read_text(encoding="utf-8")).get(tool_name)
-    if not entry:
-        print(
-            f"Tool '{tool_name}' not found in .dependency/manifest.json. "
-            "See .cursor/skills/skill-dependency-manager.md",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    if not entry.get("populated", False):
-        print(
-            f"Tool '{tool_name}' is not populated. "
-            f"Install it under {repo_root / '.dependency' / tool_name} and set populated: true "
-            "in .dependency/manifest.json.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-    bin_rel = entry["bin"]
-    if isinstance(bin_rel, list):
-        bin_rel = bin_rel[0]
-    try:
-        return resolve_executable(repo_root / bin_rel)
-    except FileNotFoundError:
-        print(
-            f"Executable for '{tool_name}' not found at {repo_root / bin_rel}. "
-            "Check .dependency/manifest.json bin path.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
-def resolve_ffmpeg() -> Path:
-    repo_root = find_repo_root(Path(__file__))
-    if repo_root is None:
-        print(
-            "Could not find .dependency/manifest.json by walking up from this script. "
-            "Run from a repo that follows .cursor/skills/skill-dependency-manager.md.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    return resolve_tool_bin(repo_root, "ffmpeg")
-
-
-def resolve_ffprobe(ffmpeg: Path) -> Path:
-    name = "ffprobe.exe" if sys.platform == "win32" else "ffprobe"
-    candidate = ffmpeg.with_name(name)
-    if candidate.is_file():
-        return candidate
-    raise FileNotFoundError(candidate)
 
 
 def get_video_files(folder: Path) -> list[Path]:
@@ -149,7 +78,7 @@ def get_video_files(folder: Path) -> list[Path]:
         for item in folder.iterdir()
         if item.is_file() and item.suffix.lower() in VIDEO_EXTENSIONS
     ]
-    return sorted(files, key=lambda p: p.name.lower())
+    return sorted(files, key=lambda path: path.name.lower())
 
 
 def probe_duration(ffprobe: Path, file_path: Path) -> float:
@@ -221,7 +150,6 @@ def has_audio_stream(ffprobe: Path, file_path: Path) -> bool:
 
 
 def encoder_works(ffmpeg: Path, codec: str, pix_fmt: str) -> bool:
-    """Tiny HEVC Main10 probe. Use ≥256x256 — NVENC rejects very small frames."""
     with tempfile.TemporaryDirectory(prefix="vmerge_gpu_probe_") as tmp:
         out = Path(tmp) / "probe.mp4"
         cmd = [
@@ -300,25 +228,9 @@ def encode_args(encoder: EncoderChoice, out_path: Path) -> list[str]:
         "80M",
     ]
     if encoder.kind == "nvenc":
-        args.extend(
-            [
-                "-rc",
-                "vbr",
-                "-preset",
-                "p4",
-                "-multipass",
-                "fullres",
-            ]
-        )
+        args.extend(["-rc", "vbr", "-preset", "p4", "-multipass", "fullres"])
     elif encoder.kind == "amf":
-        args.extend(
-            [
-                "-rc",
-                "vbr_peak",
-                "-quality",
-                "balanced",
-            ]
-        )
+        args.extend(["-rc", "vbr_peak", "-quality", "balanced"])
     elif encoder.kind == "qsv":
         args.extend(["-preset", "medium"])
 
@@ -366,7 +278,6 @@ def build_filter_complex(
     has_audio: list[bool],
     transitions: list[str],
 ) -> tuple[str, list[str]]:
-    """Return (filter_complex, extra_ffmpeg_inputs before -i files)."""
     parts: list[str] = []
     extra_inputs: list[str] = []
     silent_index = 0
@@ -376,7 +287,6 @@ def build_filter_complex(
         if has_audio[i]:
             parts.append(audio_normalize_filter(f"{i}:a", f"a{i}"))
         else:
-            # anullsrc as extra input after all video inputs
             dur = durations[i]
             extra_inputs.extend(
                 [
@@ -397,8 +307,6 @@ def build_filter_complex(
         parts.append("[a0]anull[aout]")
         return ";".join(parts), extra_inputs
 
-    # Chain xfade / acrossfade. Pad the outgoing side by T (freeze last frame /
-    # silence) so each overlap does not shorten total duration vs sum(clips).
     cur_v = "v0"
     cur_a = "a0"
     cum = durations[0]
@@ -413,7 +321,6 @@ def build_filter_complex(
             f"[{cur_v}]tpad=stop_mode=clone:stop_duration={TRANSITION_DURATION}[{pad_v}]"
         )
         parts.append(f"[{cur_a}]apad=pad_dur={TRANSITION_DURATION}[{pad_a}]")
-        # Transition begins after all real content of the outgoing chain.
         offset = cum
         parts.append(
             f"[{pad_v}][v{i}]xfade=transition={transition}:"
@@ -429,10 +336,6 @@ def build_filter_complex(
     parts.append(f"[{cur_v}]null[vout]")
     parts.append(f"[{cur_a}]anull[aout]")
     return ";".join(parts), extra_inputs
-
-
-def default_output_path(folder: Path) -> Path:
-    return folder / "merged-gpu" / f"{folder.name}.mp4"
 
 
 def run_ffmpeg_merge(
@@ -498,7 +401,6 @@ def merge_chunked(
     work_dir: Path,
     depth: int = 0,
 ) -> None:
-    """Merge with at most MAX_INPUTS_PER_GRAPH inputs per filtergraph."""
     if len(files) <= MAX_INPUTS_PER_GRAPH:
         run_ffmpeg_merge(
             ffmpeg, encoder, files, durations, has_audio, transitions, out_path
@@ -521,11 +423,10 @@ def merge_chunked(
         part_trans = transitions[start : end - 1] if end - start > 1 else []
 
         if end - start == 1 and depth == 0:
-            # Single leftover source still needs normalize encode when joining later.
             chunk_out = work_dir / f"d{depth}_{chunk_idx:03d}.mp4"
             print(
                 f"[chunk] d{depth} clip {start + 1}/{len(files)} "
-                f"→ {chunk_out.name}"
+                f"-> {chunk_out.name}"
             )
             run_ffmpeg_merge(
                 ffmpeg,
@@ -542,7 +443,7 @@ def merge_chunked(
             chunk_out = work_dir / f"d{depth}_{chunk_idx:03d}.mp4"
             print(
                 f"[chunk] d{depth} clips {start + 1}-{end}/{len(files)} "
-                f"→ {chunk_out.name}"
+                f"-> {chunk_out.name}"
             )
             merge_chunked(
                 ffmpeg,
@@ -564,9 +465,7 @@ def merge_chunked(
         start = end
         chunk_idx += 1
 
-    print(
-        f"[chunk] d{depth} join {len(chunk_files)} parts → {out_path.name}"
-    )
+    print(f"[chunk] d{depth} join {len(chunk_files)} parts -> {out_path.name}")
     merge_chunked(
         ffmpeg,
         encoder,
@@ -580,7 +479,34 @@ def merge_chunked(
     )
 
 
-def parse_args() -> argparse.Namespace:
+def resolve_merge_output(args_output: str, folder: Path) -> Path:
+    if not args_output:
+        return folder / DEFAULT_OUTPUT_SUBDIR / f"{folder.name}.mp4"
+
+    output = Path(args_output).expanduser()
+    if output.exists() and output.is_dir():
+        return output / f"{folder.name}.mp4"
+    if args_output.endswith(("/", "\\")) or output.suffix == "":
+        return output / f"{folder.name}.mp4"
+    return output.resolve()
+
+
+def resolve_folder(args_folder: str) -> Path | None:
+    path = Path(args_folder).expanduser()
+    if not path.exists():
+        print(f"Folder not found: {args_folder}", file=sys.stderr)
+        return None
+    path = path.resolve()
+    if not path.is_dir():
+        print(
+            f"Not a folder (single files are not supported): {args_folder}",
+            file=sys.stderr,
+        )
+        return None
+    return path
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
             "Merge videos in a folder (filename sort) with random 0.5s transitions "
@@ -589,56 +515,44 @@ def parse_args() -> argparse.Namespace:
             "(hevc_nvenc / hevc_amf / hevc_qsv; no CPU fallback)."
         )
     )
-    parser.add_argument("input", help="Directory containing videos to merge")
+    parser.add_argument(
+        "--folder",
+        required=True,
+        help="Directory containing videos to merge (top-level files only)",
+    )
     parser.add_argument(
         "-o",
         "--output",
         default="",
-        help="Output MP4 path (default: <folder>/merged-gpu/<folder-name>.mp4)",
+        help=(
+            "Output MP4 file or directory. "
+            f"Default: <folder>/{DEFAULT_OUTPUT_SUBDIR}/<folder-name>.mp4"
+        ),
     )
-    parser.add_argument(
-        "--overwrite", action="store_true", help="Replace existing output file"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview without writing files"
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="RNG seed for reproducible transition picks",
-    )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
-def main() -> int:
-    args = parse_args()
-    rng = random.Random(args.seed)
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
 
-    ffmpeg = resolve_ffmpeg()
+    script_path = Path(__file__)
+    ffmpeg = resolve_ffmpeg(script_path)
     ffprobe = resolve_ffprobe(ffmpeg)
-    encoder = select_gpu_encoder(ffmpeg)
 
-    input_path = Path(args.input)
-    if not input_path.exists():
-        print(f"Input path not found: {args.input}", file=sys.stderr)
-        return 1
-    if not input_path.is_dir():
-        print(f"Input must be a directory: {args.input}", file=sys.stderr)
+    folder = resolve_folder(args.folder)
+    if folder is None:
         return 1
 
-    folder = input_path.resolve()
     files = get_video_files(folder)
     if not files:
-        print(f"No supported video files found under: {args.input}")
+        print(f"No supported video files found under: {args.folder}")
         return 0
 
-    out_path = Path(args.output).resolve() if args.output else default_output_path(folder)
+    out_path = resolve_merge_output(args.output, folder)
     if out_path.suffix.lower() != ".mp4":
         print(f"Output must be an .mp4 file: {out_path}", file=sys.stderr)
         return 1
 
-    # Refuse writing onto a source
     for src in files:
         if out_path.resolve() == src.resolve():
             print(
@@ -646,10 +560,6 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 1
-
-    if out_path.exists() and not args.overwrite and not args.dry_run:
-        print(f"Output exists (pass --overwrite): {out_path}", file=sys.stderr)
-        return 1
 
     durations: list[float] = []
     audio_flags: list[bool] = []
@@ -659,7 +569,6 @@ def main() -> int:
         except RuntimeError as exc:
             print(exc, file=sys.stderr)
             return 1
-        # Incoming (right) side of xfade must be longer than the transition.
         if len(files) > 1 and file_path != files[0] and dur <= TRANSITION_DURATION:
             print(
                 f"Clip shorter than transition ({TRANSITION_DURATION}s): "
@@ -670,12 +579,14 @@ def main() -> int:
         durations.append(dur)
         audio_flags.append(has_audio_stream(ffprobe, file_path))
 
+    encoder = select_gpu_encoder(ffmpeg)
+
     transitions: list[str] = []
     if len(files) > 1:
-        transitions = [rng.choice(TRANSITIONS) for _ in range(len(files) - 1)]
+        transitions = [random.choice(TRANSITIONS) for _ in range(len(files) - 1)]
 
     total_duration = sum(durations)
-    print(f"Input:       {folder}")
+    print(f"Folder:      {folder}")
     print(f"Clips:       {len(files)}")
     print(
         f"Transition:  {TRANSITION_DURATION}s (random xfade, "
@@ -690,22 +601,13 @@ def main() -> int:
         f"H.265 Main10 {VIDEO_BITRATE} + AAC {AUDIO_BITRATE}"
     )
     print(f"Output:      {out_path}")
-    if args.seed is not None:
-        print(f"Seed:        {args.seed}")
-    if args.dry_run:
-        print("Run:         DRY RUN")
     print()
 
     for i, file_path in enumerate(files):
-        audio_note = "audio" if audio_flags[i] else "silent→anullsrc"
+        audio_note = "audio" if audio_flags[i] else "silent->anullsrc"
         print(f"  [{i + 1:02d}] {file_path.name}  {durations[i]:.3f}s  ({audio_note})")
         if i < len(transitions):
-            print(f"       └─ xfade: {transitions[i]} (freeze-pad {TRANSITION_DURATION}s)")
-
-    if args.dry_run:
-        print()
-        print("Done. dry-run ok")
-        return 0
+            print(f"       xfade: {transitions[i]} (freeze-pad {TRANSITION_DURATION}s)")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     work_dir = out_path.parent / f".tmp-{out_path.stem}"

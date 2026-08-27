@@ -75,4 +75,4 @@ AMF uses `-rc vbr_peak` + `-quality balanced`. QSV uses `-preset medium`. Pixel 
 Prefer one filtergraph when the clip count is small so quality is not degraded by
 repeated HEVC passes. With many 4K Main10 inputs, a single graph can exceed tens
 of GB of RAM (`Cannot allocate memory`). `merge.py` therefore caps each encode at
-**4 inputs** and recursively merges chunks (boundary transitions preserved).
+**8 inputs** and recursively merges chunks (boundary transitions preserved).
