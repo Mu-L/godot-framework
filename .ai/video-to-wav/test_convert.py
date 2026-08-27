@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for extract.py."""
+"""Tests for convert.py."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ if str(SCRIPT_DIR) not in sys.path:
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-import extract  # noqa: E402
+import convert  # noqa: E402
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 from common import wav_utils  # noqa: E402
@@ -24,14 +24,14 @@ from common import wav_utils  # noqa: E402
 REPO_ROOT = find_repo_root(Path(__file__))
 assert REPO_ROOT is not None
 PYTHON_BIN = resolve_tool_bin(REPO_ROOT, "python")
-EXTRACT_SCRIPT = SCRIPT_DIR / "extract.py"
+CONVERT_SCRIPT = SCRIPT_DIR / "convert.py"
 SAMPLE_VIDEO = REPO_ROOT / ".ai/test/video/opening.mp4"
 
 
-class ExtractCliTest(unittest.TestCase):
+class ConvertCliTest(unittest.TestCase):
     def run_cli(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            [str(PYTHON_BIN), str(EXTRACT_SCRIPT), *args],
+            [str(PYTHON_BIN), str(CONVERT_SCRIPT), *args],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -45,7 +45,7 @@ class ExtractCliTest(unittest.TestCase):
         return SAMPLE_VIDEO
 
     def assert_pcm_wav(self, source: Path, output: Path, track: int = 0) -> None:
-        ffmpeg = resolve_ffmpeg(EXTRACT_SCRIPT)
+        ffmpeg = resolve_ffmpeg(CONVERT_SCRIPT)
         ffprobe = resolve_ffprobe(ffmpeg)
         source_probe = wav_utils.probe_video_audio_track(ffprobe, source, track)
         output_probe = wav_utils.probe_audio_file(ffprobe, output)
@@ -100,7 +100,7 @@ class ExtractCliTest(unittest.TestCase):
             self.assertEqual(result.returncode, 1)
             self.assertIn("directories are not supported", result.stderr)
 
-    def test_extracts_audio_from_opening_mp4(self) -> None:
+    def test_converts_opening_mp4(self) -> None:
         sample = self.require_sample_video()
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -109,7 +109,7 @@ class ExtractCliTest(unittest.TestCase):
             video.write_bytes(sample.read_bytes())
             result = self.run_cli("--video", str(video))
             self.assertEqual(result.returncode, 0, result.stderr)
-            out = root / extract.DEFAULT_OUTPUT_SUBDIR / sample.with_suffix(".wav").name
+            out = root / convert.DEFAULT_OUTPUT_SUBDIR / sample.with_suffix(".wav").name
             self.assertTrue(out.is_file())
             self.assertGreater(out.stat().st_size, 0)
             self.assert_pcm_wav(video, out)

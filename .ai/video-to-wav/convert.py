@@ -7,8 +7,8 @@ Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/video-to-wav/extract.py --video path/to/video.mp4
-    .dependency/python/python.exe .ai/video-to-wav/extract.py --video clip.mkv --track 1
+    .dependency/python/python.exe .ai/video-to-wav/convert.py --video path/to/video.mp4
+    .dependency/python/python.exe .ai/video-to-wav/convert.py --video clip.mkv --track 1
 """
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
             codec,
             stream_copy,
             track=args.track,
-            action="extract",
+            action="convert",
         )
     except RuntimeError as exc:
         print(f"[fail] {out_path.name}")
