@@ -20,7 +20,15 @@ VIDEO_EXTENSIONS = {
     ".mts",
     ".m2ts",
     ".3gp",
+    ".ogv",
 }
+
+
+def video_output_name(source: Path, *, suffix: str | None = None) -> str:
+    """Return the default output filename for a single-file video skill."""
+    if suffix is None:
+        return source.name
+    return source.with_suffix(suffix).name
 
 
 def resolve_video_file(args_video: str) -> Path | None:

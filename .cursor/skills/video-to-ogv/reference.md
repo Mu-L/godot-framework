@@ -7,10 +7,10 @@ Per file, the script probes with `ffprobe` then runs two stages:
 ```bash
 # Stage 1 — lossless intermediate (FFV1 level 3 + FLAC)
 ffmpeg -i input.mp4 -map 0:v:0 -c:v ffv1 -level 3 -pix_fmt yuv420p \
-  -map 0:a:0 -c:a flac -compression_level 0 lossless/intro.mkv
+  -map 0:a:0 -c:a flac -compression_level 0 video-to-ogv/lossless/intro.mkv
 
 # Stage 2 — max-quality Theora from pristine frames
-ffmpeg -i lossless/intro.mkv -c:v libtheora -q:v 10 -c:a libvorbis -q:a 10 ogv/intro.ogv
+ffmpeg -i video-to-ogv/lossless/intro.mkv -c:v libtheora -q:v 10 -c:a libvorbis -q:a 10 video-to-ogv/intro.ogv
 ```
 
 Already **Theora+Vorbis OGV** → stream copy (no re-encode).
@@ -22,9 +22,8 @@ Already **lossless source** (FFV1, HuffYUV, …) → skip stage 1, encode OGV di
 | Flag | Pipeline |
 |------|----------|
 | (default) | FFV1+FLAC MKV → Theora q=10 OGV |
-| `--no-lossless` | Lossy source → 2-pass Theora at 1.5× source bitrate |
-| `--fast` | Lossy source → single-pass Theora q=6, Vorbis q=6 |
 | `--clean-lossless` | Delete intermediate MKV after successful OGV export |
+| `--standardize` | Resample audio to 48 kHz before encode |
 
 ## Why Lossless Intermediate?
 
@@ -35,11 +34,11 @@ H.264/HEVC → Theora directly applies **two lossy codecs in sequence** (generat
 For `Video/intro.mp4`:
 
 ```
-Video/lossless/intro.mkv   # FFV1+FLAC (large)
-Video/ogv/intro.ogv        # final Godot asset
+Video/video-to-ogv/lossless/intro.mkv   # FFV1+FLAC (large)
+Video/video-to-ogv/intro.ogv             # final Godot asset
 ```
 
-Batch with `-r` preserves subdirectory structure under both output roots.
+Run one file per invocation with `--video`. Repeat for each clip in a folder.
 
 ## Godot Notes
 
