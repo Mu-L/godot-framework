@@ -242,11 +242,11 @@ Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README
 
 | Agent | Setup |
 |-------|-------|
-| **Cursor** | Native Support |
 | **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
+| **Cursor** | Native Support |
 | **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` |
 | **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills` |
-| **DeepSeek Harness** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` (or `.dsh/skills`) |
+| **DeepSeek** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` (or `.dsh/skills`) |
 
 ---
 
