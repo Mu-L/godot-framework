@@ -15,6 +15,9 @@ class ExecResult:
 	var exit_code: int = -1
 	var output: PackedStringArray = PackedStringArray()
 
+	func output_text() -> String:
+		return "".join(output)
+
 
 static func stop_current() -> void:
 	var pid := process_pids.latest()

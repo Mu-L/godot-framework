@@ -16,7 +16,21 @@ static func OSUtils_echo_test() -> void:
 	OSUtils.stop_all()
 	var result := await OSUtils.async_execute(echo_argv("OSUtilsTestHello"))
 	assert(result.exit_code == 0)
-	assert("".join(result.output).contains("OSUtilsTestHello"))
+	assert(result.output_text().contains("OSUtilsTestHello"))
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
+static func OSUtils_multiline_output_test() -> void:
+	OSUtils.stop_all()
+	var result := await OSUtils.async_execute(multiline_argv())
+	assert(result.exit_code == 0)
+	var text := FileUtils.normalize_line_endings_to_lf(result.output_text())
+	var lines := text.split("\n", false)
+	assert(lines.size() >= 3)
+	assert(text.contains("OSUtilsLine1"))
+	assert(text.contains("OSUtilsLine2"))
+	assert(text.contains("OSUtilsLine3"))
 	assert(OSUtils.process_pids.is_empty())
 	pass
 
@@ -63,6 +77,12 @@ static func command_not_found_argv() -> PackedStringArray:
 	if OSUtils.is_windows():
 		return PackedStringArray(["cmd", "/c", "__godot_osutils_missing_executable__"])
 	return PackedStringArray(["sh", "-c", "__godot_osutils_missing_executable__"])
+
+
+static func multiline_argv() -> PackedStringArray:
+	if OSUtils.is_windows():
+		return PackedStringArray(["cmd", "/c", "echo OSUtilsLine1& echo OSUtilsLine2& echo OSUtilsLine3"])
+	return PackedStringArray(["sh", "-c", "echo OSUtilsLine1; echo OSUtilsLine2; echo OSUtilsLine3"])
 
 
 static func echo_argv(text: String) -> PackedStringArray:

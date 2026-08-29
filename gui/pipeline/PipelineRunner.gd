@@ -330,7 +330,7 @@ func run_jobs(
 			return false
 		var exit_code: int = exec_result.exit_code
 		if exit_code != 0:
-			log_job_failure(job, exit_code, exec_result.output)
+			log_job_failure(job, exit_code, exec_result.output_text())
 			WorkflowEvents.events.step_finished.emit(job.node_id, exit_code, "")
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Step failed: {} (exit {})", job.label, exit_code))
 			return false
@@ -345,7 +345,7 @@ func run_jobs(
 	return true
 
 
-func log_job_failure(job: PipelineJob, exit_code: int, output: PackedStringArray) -> void:
+func log_job_failure(job: PipelineJob, exit_code: int, output: String) -> void:
 	Log.error("[Failed] {} (exit {})", job.label, exit_code)
 	Log.error("[Command] {}", SkillCommandBuilder.format_command_line(job.argv))
 	if exit_code < 0:
