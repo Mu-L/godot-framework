@@ -18,11 +18,9 @@ class ExecResult:
 class PipeLineBuffer:
 	var partial: String = ""
 	var collected: Array[String] = []
-	var on_output_line: Callable = Callable()
 
-	func _init(p_collected: Array[String], p_on_output_line: Callable = Callable()) -> void:
+	func _init(p_collected: Array[String]) -> void:
 		collected = p_collected
-		on_output_line = p_on_output_line
 		pass
 
 	func feed(text: String) -> void:
@@ -47,11 +45,7 @@ class PipeLineBuffer:
 			return
 		collected.append(line)
 		var captured := line
-		gdf.callable_deferred(func() -> void:
-			Log.info("[Output] {}", captured)
-			if on_output_line.is_valid():
-				on_output_line.call(captured)
-		)
+		Log.info("[Output] {}", captured)
 		pass
 
 
@@ -63,27 +57,20 @@ static func stop_current() -> void:
 	pass
 
 
-static func async_execute(
-	argv: PackedStringArray,
-	on_output_line: Callable = Callable(),
-) -> ExecResult:
+static func async_execute(argv: PackedStringArray) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
 		return result
 
 	var thread := Thread.new()
-	thread.start(_run_in_thread.bind(argv, result, on_output_line))
+	thread.start(_run_in_thread.bind(argv, result))
 	while thread.is_alive():
 		await Engine.get_main_loop().process_frame
 	thread.wait_to_finish()
 	return result
 
 
-static func _run_in_thread(
-	argv: PackedStringArray,
-	result: ExecResult,
-	on_output_line: Callable,
-) -> void:
+static func _run_in_thread(argv: PackedStringArray, result: ExecResult) -> void:
 	var proc := OS.execute_with_pipe(argv[0], argv.slice(1), false)
 	if proc.is_empty():
 		result.exit_code = -1
@@ -93,8 +80,8 @@ static func _run_in_thread(
 	active_pid = pid
 	var stdio: FileAccess = proc.get("stdio")
 	var stderr_pipe: FileAccess = proc.get("stderr")
-	var stdout_buffer := PipeLineBuffer.new(result.output, on_output_line)
-	var stderr_buffer := PipeLineBuffer.new(result.output, on_output_line)
+	var stdout_buffer := PipeLineBuffer.new(result.output)
+	var stderr_buffer := PipeLineBuffer.new(result.output)
 
 	while pid > 0 and OS.is_process_running(pid):
 		drain_pipe_chunk(stdio, stdout_buffer)

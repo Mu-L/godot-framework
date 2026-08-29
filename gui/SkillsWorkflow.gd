@@ -50,11 +50,12 @@ func _ready() -> void:
 
 	WorkflowEvents.events.step_started.connect(on_step_started)
 	WorkflowEvents.events.step_finished.connect(on_step_finished)
-	WorkflowEvents.events.process_output.connect(on_process_output)
 	WorkflowEvents.events.pipeline_finished.connect(on_pipeline_finished)
 	WorkflowEvents.events.pipeline_stopped.connect(on_pipeline_stopped)
 
 	log_window.close_requested.connect(on_log_window_close_requested)
+
+	SchedulerBus.schedule_at_fixed_rate(refresh_log_panel, 2000, "skills_workflow_log_refresh")
 
 	WorkflowManager.ensure_workflows_dir()
 	pass
@@ -258,23 +259,25 @@ func set_workflow_name(name: String) -> void:
 	pass
 
 
+func refresh_log_panel() -> void:
+	if not log_window.visible:
+		return
+	log_output.text = LoggerHelper.tail_log()
+	log_output.scroll_vertical = log_output.get_line_count()
+	pass
+
+
 func on_log_pressed() -> void:
 	if log_window.visible:
 		log_window.hide()
 		return
-	refresh_log_panel()
 	var viewport_size := get_viewport().get_visible_rect().size
 	log_window.size = Vector2i(
 		int(viewport_size.x * 0.68),
 		int(viewport_size.y * 0.78),
 	)
 	log_window.popup_centered()
-	pass
-
-
-func refresh_log_panel() -> void:
-	log_output.text = LoggerHelper.tail_log()
-	log_output.scroll_vertical = log_output.get_line_count()
+	refresh_log_panel()
 	pass
 
 
@@ -310,14 +313,6 @@ func on_step_finished(node_id: String, exit_code: int, output_path: String) -> v
 		Log.info("[Done] {} -> {}", node_id, output_path)
 	else:
 		Log.error("[Failed] {} (exit {})", node_id, exit_code)
-	pass
-
-
-func on_process_output(line: String) -> void:
-	if not log_window.visible:
-		return
-	log_output.text += line + "\n"
-	log_output.scroll_vertical = log_output.get_line_count()
 	pass
 
 

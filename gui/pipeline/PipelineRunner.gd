@@ -324,9 +324,7 @@ func run_jobs(
 		WorkflowEvents.events.step_started.emit(job.node_id, step_label)
 		Log.info("[Command] {}", SkillCommandBuilder.format_command_line(job.argv))
 
-		var on_output_line := func(line: String) -> void:
-			WorkflowEvents.events.process_output.emit(line)
-		var exec_result := await ProcessRunner.async_execute(job.argv, on_output_line)
+		var exec_result := await ProcessRunner.async_execute(job.argv)
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
 			return false
