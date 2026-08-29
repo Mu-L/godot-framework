@@ -19,28 +19,6 @@ func load_manifest() -> DependencyManifest:
 	return DependencyManifest.from_json(text)
 
 
-const RUNTIME_OVERRIDES := {
-	"image-remove-background": "rembg",
-}
-
-
-func resolve_runtime_key(skill: SkillDef) -> String:
-	if RUNTIME_OVERRIDES.has(skill.skill):
-		return RUNTIME_OVERRIDES[skill.skill]
-
-	var entry := manifest.get_entry(skill.skill)
-	if entry != null and entry.populated and not entry.bin.is_empty():
-		return skill.skill
-
-	return "python"
-
-
-func resolve_runtime_bin(runtime_key: String) -> String:
-	if manifest == null:
-		return ""
-	return manifest.resolve_bin(runtime_key, repo_root)
-
-
 func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) -> PackedStringArray:
 	var argv := PackedStringArray()
 	if skill.cli.is_empty():
@@ -61,25 +39,13 @@ func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) ->
 		Log.error("cli expanded to empty argv for skill:[{}]", skill.catalog_id())
 		return argv
 
-	if uses_embedded_runtime(parts[0]):
-		for part in parts:
-			argv.append(resolve_repo_relative_path(part))
+	if not manifest.has_populated_runtime(parts[0]):
+		Log.error("manifest entry not found for skill:[{}] runtime:[{}]", skill.catalog_id(), parts[0])
 		return argv
 
-	var runtime_key := resolve_runtime_key(skill)
-	var runtime_bin := resolve_runtime_bin(runtime_key)
-	if runtime_bin.is_empty():
-		Log.error("runtime bin not found for skill:[{}] runtime:[{}]", skill.catalog_id(), runtime_key)
-		return argv
-
-	argv.append(runtime_bin)
 	for part in parts:
 		argv.append(resolve_repo_relative_path(part))
 	return argv
-
-
-func uses_embedded_runtime(first_arg: String) -> bool:
-	return first_arg.begins_with(".dependency/")
 
 
 func resolve_repo_relative_path(part: String) -> String:

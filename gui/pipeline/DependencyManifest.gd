@@ -5,40 +5,33 @@ var entries: Dictionary[String, DependencyManifestEntry] = {}
 
 
 static func from_json(text: String) -> DependencyManifest:
-	var manifest := DependencyManifest.new()
 	if StringUtils.is_blank(text):
-		return manifest
+		return DependencyManifest.new()
 
 	var data: Variant = JSON.parse_string(text)
 	if data == null:
 		Log.error("Json pars error:[{}]", text)
-		return manifest
+		return DependencyManifest.new()
 	if typeof(data) != TYPE_DICTIONARY:
 		Log.error("Json root type error:[{}]", text)
-		return manifest
+		return DependencyManifest.new()
 
-	var raw := data as Dictionary
-	for runtime in raw.keys():
-		var value: Variant = raw[runtime]
-		if value is Dictionary:
-			var entry: DependencyManifestEntry = JsonUtils.dict_to_object(
-				value,
-				DependencyManifestEntry,
-			)
-			if entry != null:
-				manifest.entries[str(runtime)] = entry
-
-	return manifest
+	var manifest: DependencyManifest = JsonUtils.dict_to_object(
+		{"entries": data},
+		DependencyManifest,
+	)
+	return manifest if manifest != null else DependencyManifest.new()
 
 
 func get_entry(runtime: String) -> DependencyManifestEntry:
 	return entries.get(runtime, null)
 
 
-func resolve_bin(runtime: String, repo_root: String) -> String:
-	if runtime.is_empty():
-		return ""
-	var entry := get_entry(runtime)
-	if entry == null or entry.bin.is_empty():
-		return ""
-	return repo_root.path_join(entry.bin.replace("\\", "/"))
+func has_populated_runtime(runtime_path: String) -> bool:
+	var normalized := runtime_path.replace("\\", "/")
+	if not normalized.begins_with(".dependency/"):
+		return false
+
+	var key := normalized.trim_prefix(".dependency/").split("/")[0]
+	var entry := get_entry(key)
+	return entry != null and entry.populated and not entry.bin.is_empty()
