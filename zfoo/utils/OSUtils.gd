@@ -7,6 +7,10 @@ extends Object
 static var process_pids: RingIntList = RingIntList.new(32)
 
 
+static func is_windows() -> bool:
+	return OS.get_name().strip_edges().to_lower() == "windows"
+
+
 class ExecResult:
 	var exit_code: int = -1
 	var output: PackedStringArray = PackedStringArray()
@@ -80,7 +84,10 @@ static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool = false
 				break
 			return
 
-		append_output(result, chunk.get_string_from_utf8())
+		if is_windows():
+			append_output(result, chunk.get_string_from_multibyte_char(""))
+		else:
+			append_output(result, chunk.get_string_from_utf8())
 		if err != OK:
 			break
 	pass
