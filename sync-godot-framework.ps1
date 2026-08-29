@@ -1,4 +1,4 @@
-# Sync .cursor, zfoo, AGENTS.md, and opencode.json from godot-fun/godot-framework into this project.
+# Sync .cursor, .ai, cli, zfoo, AGENTS.md, and opencode.json from godot-fun/godot-framework into this project.
 # Usage (from project root):
 #   .\sync-godot-framework.ps1
 
@@ -75,6 +75,8 @@ function Copy-FrameworkDirs {
 	)
 
 	Copy-DirOverlay -Source (Join-Path $SourceRoot ".cursor") -Destination (Join-Path $ProjectRoot ".cursor")
+	Copy-DirOverlay -Source (Join-Path $SourceRoot ".ai") -Destination (Join-Path $ProjectRoot ".ai")
+	Copy-DirOverlay -Source (Join-Path $SourceRoot "cli") -Destination (Join-Path $ProjectRoot "cli")
 	Copy-DirReplace -Source (Join-Path $SourceRoot "zfoo") -Destination (Join-Path $ProjectRoot "zfoo")
 	Copy-FileReplace -Source (Join-Path $SourceRoot "AGENTS.md") -Destination (Join-Path $ProjectRoot "AGENTS.md")
 	Copy-FileReplace -Source (Join-Path $SourceRoot "opencode.json") -Destination (Join-Path $ProjectRoot "opencode.json")

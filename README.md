@@ -238,27 +238,28 @@ await gdf.quit()
 
 # Agent Support
 
-Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README.md). For Codex / Claude: **copy**, then replace every `.cursor` path in the copied tree with that platform’s directory.
+Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README.md) (instructions), [`.ai/`](.ai/) (scripts). To reuse skills elsewhere, copy the matching skill folders from both directories.
 
 | Agent | Setup |
 |-------|-------|
 | **Cursor** | Native Support |
 | **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
-| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills`, then replace `.cursor` with `.agents` in `skills/` |
-| **Claude** | Copy root `AGENTS.md` → `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills`, then replace `.cursor` with `.claude` in `skills/` |
+| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` |
+| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills` |
+| **DeepSeek Harness** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` (or `.dsh/skills`) |
 
 ---
 
 # Agent Skills
 
-Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
+Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
 | [AI](#ai) | Text-to-speech | 1 skill |
 | [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
-| [Image](#image) | to-png → watermark → split → background → trim / resize | 8 skills |
-| [Video](#video) | watermark → mute / wav → 4K → merge → compress / OGV | 9 skills |
+| [Image](#image) | to-png → split → background → trim / resize | 8 skills |
+| [Video](#video) | mute / wav → 60fps → 4K → merge → compress / OGV | 10 skills |
 | [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
 | [Other](#other) | Naming, commits | 2 skills |
 
@@ -266,7 +267,7 @@ Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md). Run from rep
 
 # Sync framework into your project
 
-Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `zfoo/`, `.cursor/`, `AGENTS.md`, and `opencode.json` from [godot-fun/godot-framework](https://github.com/godot-fun/godot-framework) into a game project.
+Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `zfoo/`, `.cursor/`, `.ai/`, `cli/`, `AGENTS.md`, and `opencode.json` from [godot-fun/godot-framework](https://github.com/godot-fun/godot-framework) into a game project.
 
 1. Copy `sync-godot-framework.ps1` into your Godot project root (same level as `project.godot`).
 2. From that root, run:
@@ -278,7 +279,7 @@ Use [`sync-godot-framework.ps1`](sync-godot-framework.ps1) to pull the latest `z
 What it does:
 
 - Shallow-clones the framework repo into a temp folder
-- **Overlays** `.cursor/` (skills) onto your project
+- **Overlays** `.cursor/` (skills), `.ai/` (scripts), and `cli/` onto your project
 - **Replaces** `zfoo/`, root `AGENTS.md`, and `opencode.json` with the upstream copies
 - Deletes the temp clone when finished
 
