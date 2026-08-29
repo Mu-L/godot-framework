@@ -121,8 +121,7 @@ func refresh_locale_button() -> void:
 
 
 func apply_locale_change() -> void:
-	if not GuiLocale.set_locale(GuiLocale.alternate_locale()):
-		return
+	GuiLocale.load_locale(GuiLocale.LOCALE_EN if GuiLocale.current_locale == GuiLocale.LOCALE_ZH else GuiLocale.LOCALE_ZH)
 	apply_ui_locale()
 	build_palette_tree()
 	set_workflow_name(WorkflowManager.workflow_name)

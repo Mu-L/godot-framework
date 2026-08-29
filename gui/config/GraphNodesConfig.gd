@@ -74,7 +74,6 @@ static var skills: Array[SkillDef] = []
 
 
 static func _static_init() -> void:
-	GuiLocale.ensure_loaded()
 	defs_by_id.clear()
 	sources.clear()
 	controls.clear()

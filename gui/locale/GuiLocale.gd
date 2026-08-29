@@ -8,55 +8,31 @@ const LOCALE_EN := "en-US"
 
 static var current_locale: String = DEFAULT_LOCALE
 static var strings: Dictionary = {}
-static var loaded: bool = false
 
 
 static func _static_init() -> void:
-	ensure_loaded()
-	pass
-
-
-static func ensure_loaded() -> void:
-	if loaded:
-		return
 	load_locale(DEFAULT_LOCALE)
 	pass
 
 
-static func load_locale(locale: String) -> bool:
+static func load_locale(locale: String) -> void:
 	var path := LOCALE_DIR + locale + ".json"
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
 		Log.error("gui locale missing or empty:[{}]", path)
-		return false
+		return
 
 	var parsed: Variant = JSON.parse_string(text)
 	if parsed == null or not parsed is Dictionary:
 		Log.error("gui locale json parse failed:[{}]", path)
-		return false
+		return
 
 	strings = parsed as Dictionary
 	current_locale = locale
-	loaded = true
-	return true
-
-
-static func set_locale(locale: String) -> bool:
-	if locale == current_locale and loaded:
-		return true
-	if not load_locale(locale):
-		return false
-	return true
-
-
-static func alternate_locale() -> String:
-	if current_locale == LOCALE_ZH:
-		return LOCALE_EN
-	return LOCALE_ZH
+	pass
 
 
 static func text(key: String, ...args: Array) -> String:
-	ensure_loaded()
 	var resolved := resolve(key)
 	if args.is_empty():
 		return resolved
@@ -64,7 +40,6 @@ static func text(key: String, ...args: Array) -> String:
 
 
 static func resolve(key: String, fallback: String = "") -> String:
-	ensure_loaded()
 	var parts := key.split(".")
 	var current: Variant = strings
 	for part in parts:
