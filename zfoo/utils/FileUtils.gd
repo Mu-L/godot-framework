@@ -21,6 +21,19 @@ const NEWLINE_CRLF: String = "\r\n"
 static func normalize_line_endings_to_lf(s: String) -> String:
 	return s.replace(NEWLINE_CRLF, NEWLINE_LF).replace(NEWLINE_CR, NEWLINE_LF)
 
+
+## Returns the absolute path to the folder containing project.godot.
+static func get_project_root_path() -> String:
+	var dir := ProjectSettings.globalize_path("res://")
+	for _i in range(8):
+		if FileAccess.file_exists(dir.path_join("project.godot")):
+			return dir
+		var parent := dir.get_base_dir()
+		if parent == dir:
+			break
+		dir = parent
+	return ProjectSettings.globalize_path("res://")
+
 # Append content to the file.
 static func write_string_to_file(filePath: String, content: String) -> void:
 	var file := FileAccess.open(filePath, FileAccess.WRITE)

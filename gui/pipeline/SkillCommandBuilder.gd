@@ -34,7 +34,7 @@ func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) ->
 static func resolve_repo_relative_path(part: String) -> String:
 	var normalized := part.replace("\\", "/")
 	if normalized.begins_with(".dependency/") or normalized.begins_with(".ai/"):
-		return RepoRoot.resolve().replace("\\", "/").path_join(normalized)
+		return FileUtils.get_project_root_path().replace("\\", "/").path_join(normalized)
 	return part
 
 
