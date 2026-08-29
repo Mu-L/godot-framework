@@ -1,8 +1,9 @@
 ﻿class_name OSUtils
 extends Object
 
-## Async subprocess execution via OS.execute_with_pipe. Reads stdout/stderr on a
-## worker thread in 4 KB chunks; chunks append to ExecResult.output and Log.info.
+## Subprocess execution. Sync `execute` uses OS.execute; async `async_execute`
+## uses OS.execute_with_pipe on a worker thread. Output chunks append to
+## ExecResult.output and Log.info.
 
 static var process_pids: RingIntList = RingIntList.new(32)
 
@@ -34,20 +35,34 @@ static func stop_all() -> void:
 	pass
 
 
+static func execute(argv: PackedStringArray) -> ExecResult:
+	var result := ExecResult.new()
+	if argv.is_empty():
+		return result
+
+	var lines: Array = []
+	result.exit_code = OS.execute(argv[0], argv.slice(1), lines, true)
+	var parts := PackedStringArray()
+	for line in lines:
+		parts.append(str(line))
+	append_output(result, "\n".join(parts))
+	return result
+
+
 static func async_execute(argv: PackedStringArray) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
 		return result
 
 	var thread := Thread.new()
-	thread.start(_run_in_thread.bind(argv, result))
+	thread.start(_run_process_async.bind(argv, result))
 	while thread.is_alive():
 		await Engine.get_main_loop().process_frame
 	thread.wait_to_finish()
 	return result
 
 
-static func _run_in_thread(argv: PackedStringArray, result: ExecResult) -> void:
+static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> void:
 	var proc := OS.execute_with_pipe(argv[0], argv.slice(1), false)
 	if proc.is_empty():
 		result.exit_code = -1

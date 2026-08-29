@@ -12,6 +12,15 @@ static func OSUtils_empty_argv_test() -> void:
 	pass
 
 
+static func OSUtils_execute_test() -> void:
+	OSUtils.stop_all()
+	var result := OSUtils.execute(echo_argv("OSUtilsSyncHello"))
+	assert(result.exit_code == 0)
+	assert(result.output_text().contains("OSUtilsSyncHello"))
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_echo_test() -> void:
 	OSUtils.stop_all()
 	var result := await OSUtils.async_execute(echo_argv("OSUtilsTestHello"))
