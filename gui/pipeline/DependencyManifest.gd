@@ -1,33 +1,45 @@
 class_name DependencyManifest
 extends RefCounted
 
-var entries: Dictionary[String, DependencyManifestEntry] = {}
+## Static manifest loaded from `.dependency/manifest.json`. Do not instantiate.
+
+const MANIFEST_REL_PATH := "res://.dependency/manifest.json"
+
+static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
 
-static func from_json(text: String) -> DependencyManifest:
-	if StringUtils.is_blank(text):
-		return DependencyManifest.new()
+static func _static_init() -> void:
+	load_manifest()
+
+
+static func load_manifest(repo_root: String = "") -> void:
+	entries.clear()
+	var text := FileAccess.get_file_as_string(MANIFEST_REL_PATH)
+	if text.is_empty():
+		Log.error("manifest missing:[{}]", MANIFEST_REL_PATH)
+		return
 
 	var data: Variant = JSON.parse_string(text)
 	if data == null:
-		Log.error("Json pars error:[{}]", text)
-		return DependencyManifest.new()
+		Log.error("Json pars error:[{}]", MANIFEST_REL_PATH)
+		return
 	if typeof(data) != TYPE_DICTIONARY:
-		Log.error("Json root type error:[{}]", text)
-		return DependencyManifest.new()
+		Log.error("Json root type error:[{}]", MANIFEST_REL_PATH)
+		return
 
-	var manifest: DependencyManifest = JsonUtils.dict_to_object(
-		{"entries": data},
-		DependencyManifest,
-	)
-	return manifest if manifest != null else DependencyManifest.new()
+	for runtime in data.keys():
+		var value: Variant = data[runtime]
+		if value is Dictionary:
+			var entry: DependencyManifestEntry = JsonUtils.dict_to_object(value, DependencyManifestEntry)
+			if entry != null:
+				entries[str(runtime)] = entry
 
 
-func get_entry(runtime: String) -> DependencyManifestEntry:
+static func get_entry(runtime: String) -> DependencyManifestEntry:
 	return entries.get(runtime, null)
 
 
-func has_populated_runtime(runtime_path: String) -> bool:
+static func has_populated_runtime(runtime_path: String) -> bool:
 	var normalized := runtime_path.replace("\\", "/")
 	if not normalized.begins_with(".dependency/"):
 		return false

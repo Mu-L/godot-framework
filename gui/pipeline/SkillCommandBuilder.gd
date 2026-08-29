@@ -1,23 +1,6 @@
 class_name SkillCommandBuilder
 extends RefCounted
 
-var repo_root: String = ""
-var manifest: DependencyManifest = DependencyManifest.new()
-
-
-func _init(root: String = "") -> void:
-	repo_root = (root if not root.is_empty() else RepoRoot.resolve()).replace("\\", "/")
-	manifest = load_manifest()
-
-
-func load_manifest() -> DependencyManifest:
-	var manifest_path := repo_root.path_join(".dependency/manifest.json")
-	var text := FileAccess.get_file_as_string(manifest_path)
-	if text.is_empty():
-		Log.error("manifest missing:[{}]", manifest_path)
-		return DependencyManifest.new()
-	return DependencyManifest.from_json(text)
-
 
 func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) -> PackedStringArray:
 	var argv := PackedStringArray()
@@ -39,7 +22,7 @@ func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) ->
 		Log.error("cli expanded to empty argv for skill:[{}]", skill.catalog_id())
 		return argv
 
-	if not manifest.has_populated_runtime(parts[0]):
+	if not DependencyManifest.has_populated_runtime(parts[0]):
 		Log.error("manifest entry not found for skill:[{}] runtime:[{}]", skill.catalog_id(), parts[0])
 		return argv
 
@@ -48,10 +31,10 @@ func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) ->
 	return argv
 
 
-func resolve_repo_relative_path(part: String) -> String:
+static func resolve_repo_relative_path(part: String) -> String:
 	var normalized := part.replace("\\", "/")
 	if normalized.begins_with(".dependency/") or normalized.begins_with(".ai/"):
-		return repo_root.path_join(normalized)
+		return RepoRoot.resolve().replace("\\", "/").path_join(normalized)
 	return part
 
 
