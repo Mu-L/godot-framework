@@ -1,3 +1,24 @@
+func RingIntList_add_test() -> void:
+	var ring := RingIntList.new(3)
+	ring.add(1)
+	ring.add(2)
+	ring.add(3)
+	assert(ring.size() == 3)
+	assert(ring.is_full())
+	assert(ring.to_array() == [1, 2, 3])
+	ring.add(4)
+	assert(ring.size() == 3)
+	assert(ring.to_array() == [2, 3, 4])
+	assert(ring.latest() == 4)
+	ring.remove_latest()
+	assert(ring.size() == 2)
+	assert(ring.to_array() == [2, 3])
+	assert(ring.latest() == 3)
+	ring.clear()
+	assert(ring.is_empty())
+	assert(ring.to_array() == [])
+	pass
+
 static func my_static_testing() -> void:
 	assert(false)
 	pass

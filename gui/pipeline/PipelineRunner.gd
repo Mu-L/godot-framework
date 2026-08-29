@@ -7,7 +7,7 @@ var stop_requested: bool = false
 
 func request_stop() -> void:
 	stop_requested = true
-	ProcessRunner.stop_current()
+	OSUtils.stop_current()
 	pass
 
 
@@ -324,14 +324,13 @@ func run_jobs(
 		WorkflowEvents.events.step_started.emit(job.node_id, step_label)
 		Log.info("[Command] {}", SkillCommandBuilder.format_command_line(job.argv))
 
-		var exec_result := await ProcessRunner.async_execute(job.argv)
+		var exec_result := await OSUtils.async_execute(job.argv)
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
 			return false
 		var exit_code: int = exec_result.exit_code
-		var output: Array[String] = exec_result.output
 		if exit_code != 0:
-			log_job_failure(job, exit_code, output)
+			log_job_failure(job, exit_code, exec_result.output)
 			WorkflowEvents.events.step_finished.emit(job.node_id, exit_code, "")
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Step failed: {} (exit {})", job.label, exit_code))
 			return false
@@ -346,7 +345,7 @@ func run_jobs(
 	return true
 
 
-func log_job_failure(job: PipelineJob, exit_code: int, output: Array[String]) -> void:
+func log_job_failure(job: PipelineJob, exit_code: int, output: PackedStringArray) -> void:
 	Log.error("[Failed] {} (exit {})", job.label, exit_code)
 	Log.error("[Command] {}", SkillCommandBuilder.format_command_line(job.argv))
 	if exit_code < 0:

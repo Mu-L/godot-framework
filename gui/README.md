@@ -41,7 +41,6 @@ gui/
 │   └── WorkflowManager.gd   # Save/load, scan user://workflows/
 ├── pipeline/
 │   ├── PipelineRunner.gd    # Topological run, batch fan-out
-│   ├── ProcessRunner.gd     # Non-blocking subprocess + streamed output
 │   ├── SkillCommandBuilder.gd
 │   └── ...
 ├── locale/
