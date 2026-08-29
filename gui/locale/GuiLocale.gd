@@ -2,16 +2,15 @@ class_name GuiLocale
 extends RefCounted
 
 const LOCALE_DIR := "res://gui/locale/"
-const DEFAULT_LOCALE := "zh-CN"
 const LOCALE_ZH := "zh-CN"
 const LOCALE_EN := "en-US"
 
-static var current_locale: String = DEFAULT_LOCALE
+static var current_locale: String = LOCALE_EN
 static var strings: Dictionary = {}
 
 
 static func _static_init() -> void:
-	load_locale(DEFAULT_LOCALE)
+	load_locale(LOCALE_EN)
 	pass
 
 
