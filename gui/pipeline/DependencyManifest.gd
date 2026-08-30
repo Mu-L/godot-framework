@@ -9,11 +9,6 @@ static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
 
 static func _static_init() -> void:
-	load_manifest()
-
-
-static func load_manifest(repo_root: String = "") -> void:
-	entries.clear()
 	var text := FileAccess.get_file_as_string(MANIFEST_REL_PATH)
 	if text.is_empty():
 		Log.error("manifest missing:[{}]", MANIFEST_REL_PATH)
@@ -33,6 +28,7 @@ static func load_manifest(repo_root: String = "") -> void:
 			var entry: DependencyManifestEntry = JsonUtils.dict_to_object(value, DependencyManifestEntry)
 			if entry != null:
 				entries[str(runtime)] = entry
+	pass
 
 
 static func get_entry(runtime: String) -> DependencyManifestEntry:
