@@ -1,7 +1,6 @@
 class_name PipelineRunner
 extends Object
 
-var command_builder := SkillCommandBuilder.new()
 var stop_requested: bool = false
 
 
@@ -135,7 +134,7 @@ func plan_nodes(
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Node {} is missing input", node_data.id))
 			return null
 
-		var argv: PackedStringArray = command_builder.build_argv(skill, resolved)
+		var argv: PackedStringArray = SkillCommandBuilder.build_argv(skill, resolved)
 		if argv.is_empty():
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Failed to build command: {}", node_def.display_label()))
 			return null

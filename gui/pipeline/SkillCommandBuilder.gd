@@ -1,8 +1,8 @@
 class_name SkillCommandBuilder
-extends RefCounted
+extends Object
 
 
-func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) -> PackedStringArray:
+static func build_argv(skill: SkillDef, resolved_inputs: Dictionary[String, String]) -> PackedStringArray:
 	var argv := PackedStringArray()
 	if skill.cli.is_empty():
 		return argv
