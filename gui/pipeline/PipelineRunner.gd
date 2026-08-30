@@ -322,9 +322,9 @@ func run_jobs(
 		if not batch_context.is_empty():
 			step_label = StringUtils.format("{} {}", job.label, batch_context)
 		WorkflowEvents.events.step_started.emit(job.node_id, step_label)
-		Log.info("[Command] {}", OSUtils.format_command_line(job.argv))
+		Log.info("command:[{}]", OSUtils.format_command_line(job.argv))
 
-		var exec_result := await OSUtils.async_execute(job.argv)
+		var exec_result := await OSUtils.async_execute(job.argv, false)
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
 			return false
@@ -346,11 +346,11 @@ func run_jobs(
 
 
 func log_job_failure(job: PipelineJob, exit_code: int, output: String) -> void:
-	Log.error("[Failed] {} (exit {})", job.label, exit_code)
-	Log.error("[Command] {}", OSUtils.format_command_line(job.argv))
+	Log.error("step failed label:[{}] exit:[{}]", job.label, exit_code)
+	Log.error("command:[{}]", OSUtils.format_command_line(job.argv))
 	if exit_code < 0:
-		Log.error("[Output] Failed to start process; check that the runtime exists: {}", job.argv[0])
+		Log.error("failed to start process; check runtime exists:[{}]", job.argv[0])
 		return
 	if output.is_empty():
-		Log.error("[Output] (no process output)")
+		Log.error("no process output")
 	pass

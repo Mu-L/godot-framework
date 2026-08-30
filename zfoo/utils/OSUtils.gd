@@ -3,7 +3,7 @@ extends Object
 
 ## Subprocess execution. Sync `execute` uses OS.execute; async `async_execute`
 ## uses OS.execute_with_pipe on a worker thread. Output chunks append to
-## ExecResult.output and Log.info.
+## ExecResult.output. Pass `log=false` to silence command/output/result logs.
 
 static var process_pids: RingIntList = RingIntList.new(32)
 
@@ -35,10 +35,13 @@ static func stop_all() -> void:
 	pass
 
 
-static func execute(argv: PackedStringArray) -> ExecResult:
+static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
 		return result
+
+	if log:
+		Log.info("command:[{}]", format_command_line(argv))
 
 	var lines: Array = []
 	result.exit_code = OS.execute(argv[0], argv.slice(1), lines, true)
@@ -46,19 +49,24 @@ static func execute(argv: PackedStringArray) -> ExecResult:
 	for line in lines:
 		parts.append(str(line))
 	append_output(result, "\n".join(parts))
+	log_result(argv, result, log)
 	return result
 
 
-static func async_execute(argv: PackedStringArray) -> ExecResult:
+static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
 		return result
+
+	if log:
+		Log.info("command:[{}]", format_command_line(argv))
 
 	var thread := Thread.new()
 	thread.start(_run_process_async.bind(argv, result))
 	while thread.is_alive():
 		await Engine.get_main_loop().process_frame
 	thread.wait_to_finish()
+	log_result(argv, result, log)
 	return result
 
 
@@ -115,7 +123,6 @@ static func append_output(result: ExecResult, text: String) -> void:
 	if StringUtils.is_empty(text):
 		return
 	result.output.append(text)
-	Log.info("[Output] {}", text)
 	pass
 
 
@@ -135,3 +142,21 @@ static func format_command_line(argv: PackedStringArray) -> String:
 		else:
 			parts.append(arg)
 	return " ".join(parts)
+
+
+static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -> void:
+	if not log or argv.is_empty():
+		return
+	var output := result.output_text()
+	if not output.is_empty():
+		Log.info("process output:[{}]", output)
+	if result.exit_code == 0:
+		Log.info("process finished exit:[{}]", result.exit_code)
+		return
+	Log.error("process failed exit:[{}] command:[{}]", result.exit_code, format_command_line(argv))
+	if result.exit_code < 0:
+		Log.error("failed to start process; check runtime exists:[{}]", argv[0])
+		return
+	if output.is_empty():
+		Log.error("no process output")
+	pass

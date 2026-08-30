@@ -304,15 +304,15 @@ func on_run_pressed() -> void:
 
 
 func on_step_started(node_id: String, label: String) -> void:
-	Log.info("[Start] {} ({})", label, node_id)
+	Log.info("step started label:[{}] node:[{}]", label, node_id)
 	pass
 
 
 func on_step_finished(node_id: String, exit_code: int, output_path: String) -> void:
 	if exit_code == 0:
-		Log.info("[Done] {} -> {}", node_id, output_path)
+		Log.info("step finished node:[{}] output:[{}]", node_id, output_path)
 	else:
-		Log.error("[Failed] {} (exit {})", node_id, exit_code)
+		Log.error("step failed node:[{}] exit:[{}]", node_id, exit_code)
 	pass
 
 

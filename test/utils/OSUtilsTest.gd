@@ -5,7 +5,7 @@ static func OSUtils_is_windows_test() -> void:
 
 static func OSUtils_empty_argv_test() -> void:
 	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(PackedStringArray())
+	var result := await OSUtils.async_execute(PackedStringArray(), false)
 	assert(result.exit_code == -1)
 	assert(result.output.is_empty())
 	assert(OSUtils.process_pids.is_empty())
@@ -14,7 +14,7 @@ static func OSUtils_empty_argv_test() -> void:
 
 static func OSUtils_execute_test() -> void:
 	OSUtils.stop_all()
-	var result := OSUtils.execute(echo_argv("OSUtilsSyncHello"))
+	var result := OSUtils.execute(echo_argv("OSUtilsSyncHello"), false)
 	assert(result.exit_code == 0)
 	assert(result.output_text().contains("OSUtilsSyncHello"))
 	assert(OSUtils.process_pids.is_empty())
@@ -23,7 +23,7 @@ static func OSUtils_execute_test() -> void:
 
 static func OSUtils_echo_test() -> void:
 	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(echo_argv("OSUtilsTestHello"))
+	var result := await OSUtils.async_execute(echo_argv("OSUtilsTestHello"), false)
 	assert(result.exit_code == 0)
 	assert(result.output_text().contains("OSUtilsTestHello"))
 	assert(OSUtils.process_pids.is_empty())
@@ -32,7 +32,7 @@ static func OSUtils_echo_test() -> void:
 
 static func OSUtils_multiline_output_test() -> void:
 	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(multiline_argv())
+	var result := await OSUtils.async_execute(multiline_argv(), false)
 	assert(result.exit_code == 0)
 	var text := FileUtils.normalize_line_endings_to_lf(result.output_text())
 	var lines := text.split("\n", false)
@@ -46,7 +46,7 @@ static func OSUtils_multiline_output_test() -> void:
 
 static func OSUtils_command_not_found_test() -> void:
 	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(command_not_found_argv())
+	var result := await OSUtils.async_execute(command_not_found_argv(), false)
 	assert(result.exit_code != 0)
 	assert(OSUtils.process_pids.is_empty())
 	pass
@@ -62,7 +62,7 @@ static func OSUtils_stop_all_empty_test() -> void:
 
 static func OSUtils_stop_current_test() -> void:
 	OSUtils.stop_all()
-	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15)))
+	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
 	await ThreadUtils.async_sleep(800)
 	assert(OSUtils.process_pids.size() > 0)
 	OSUtils.stop_current()
@@ -73,10 +73,10 @@ static func OSUtils_stop_current_test() -> void:
 
 static func OSUtils_concurrent_pid_tracking_test() -> void:
 	OSUtils.stop_all()
-	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15)))
+	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
 	await ThreadUtils.async_sleep(800)
 	assert(OSUtils.process_pids.size() == 1)
-	var result := await OSUtils.async_execute(echo_argv("OSUtilsConcurrentEcho"))
+	var result := await OSUtils.async_execute(echo_argv("OSUtilsConcurrentEcho"), false)
 	assert(result.exit_code == 0)
 	assert(result.output_text().contains("OSUtilsConcurrentEcho"))
 	assert(OSUtils.process_pids.size() == 1)
@@ -87,7 +87,7 @@ static func OSUtils_concurrent_pid_tracking_test() -> void:
 
 static func OSUtils_stop_all_test() -> void:
 	OSUtils.stop_all()
-	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15)))
+	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
 	await ThreadUtils.async_sleep(800)
 	assert(OSUtils.process_pids.size() > 0)
 	OSUtils.stop_all()
