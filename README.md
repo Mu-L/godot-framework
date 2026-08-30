@@ -2,23 +2,23 @@
 
 # Agent CLI & GUI
 
-Shared: root [`AGENTS.md`](AGENTS.md), [`.cursor/skills/`](.cursor/skills/README.md) (instructions), [`.ai/`](.ai/) (scripts). To reuse skills elsewhere, copy the matching skill folders from both directories.
+Shared: root [`AGENTS.md`](AGENTS.md), [`skills/`](.cursor/skills/README.md) (instructions), [`.ai/`](.ai/) (scripts). To reuse skills elsewhere, copy the matching skill folders from both directories.
 
 | Agent | Setup |
 |-------|-------|
 | **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
 | **Cursor** | Native Support |
-| **Codex** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` |
-| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy `.cursor/skills` → `.claude/skills` |
-| **DeepSeek** | Keep root `AGENTS.md`. Copy `.cursor/skills` → `.agents/skills` (or `.dsh/skills`) |
+| **Codex** | Keep root `AGENTS.md`. Copy [`skills/`](.cursor/skills/README.md) → `.agents/skills` |
+| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy [`skills/`](.cursor/skills/README.md) → `.claude/skills` |
+| **DeepSeek** | Keep root `AGENTS.md`. Copy [`skills/`](.cursor/skills/README.md) → `.agents/skills` (or `.dsh/skills`) |
 
-![gui.png](doc/images/gui.png)
+![gui.png](gui/gui.png)
 
 ---
 
 # Agent Skills
 
-Batch asset tools in [`.cursor/skills/`](.cursor/skills/README.md); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
+Batch asset tools in [`skills/`](.cursor/skills/README.md); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
