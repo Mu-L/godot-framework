@@ -3,6 +3,7 @@ extends GraphEdit
 
 var node_seq: int = 0
 var skill_nodes: Dictionary[String, SkillNode] = {}
+var highlighted_node_id: String = ""
 
 
 func _ready() -> void:
@@ -10,6 +11,9 @@ func _ready() -> void:
 	snapping_distance = 20
 	connection_request.connect(on_connection_request)
 	disconnection_request.connect(on_disconnection_request)
+	WorkflowEvents.events.step_started.connect(on_pipeline_step_started)
+	WorkflowEvents.events.pipeline_finished.connect(on_pipeline_finished)
+	WorkflowEvents.events.pipeline_stopped.connect(on_pipeline_stopped)
 	pass
 
 
@@ -86,6 +90,7 @@ func clear_graph() -> void:
 		node.free()
 	skill_nodes.clear()
 	node_seq = 0
+	highlighted_node_id = ""
 	pass
 
 
@@ -95,6 +100,8 @@ func remove_selected_nodes() -> void:
 		if child is SkillNode and (child as SkillNode).selected:
 			to_remove.append(child as SkillNode)
 	for node in to_remove:
+		if node.node_id == highlighted_node_id:
+			clear_node_highlight()
 		skill_nodes.erase(node.node_id)
 		node.queue_free()
 	pass
@@ -174,4 +181,37 @@ func _apply_connections(connections: Array[WorkflowConnection]) -> void:
 func reload_locale(workflow_name: String) -> void:
 	var doc := build_document(workflow_name)
 	load_document(doc)
+	pass
+
+
+func highlight_node(node_id: String) -> void:
+	clear_node_highlight()
+	if not skill_nodes.has(node_id):
+		return
+	highlighted_node_id = node_id
+	skill_nodes[node_id].set_highlight(true)
+	pass
+
+
+func clear_node_highlight() -> void:
+	if highlighted_node_id.is_empty():
+		return
+	if skill_nodes.has(highlighted_node_id):
+		skill_nodes[highlighted_node_id].set_highlight(false)
+	highlighted_node_id = ""
+	pass
+
+
+func on_pipeline_step_started(node_id: String, _label: String) -> void:
+	highlight_node(node_id)
+	pass
+
+
+func on_pipeline_finished(_success: bool, _message: String) -> void:
+	clear_node_highlight()
+	pass
+
+
+func on_pipeline_stopped() -> void:
+	clear_node_highlight()
 	pass

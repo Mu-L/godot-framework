@@ -2,6 +2,7 @@ class_name SkillNode
 extends GraphNode
 
 const NODE_MIN_WIDTH := 400
+const RUNNING_BORDER_WIDTH := 3
 
 var node_id: String = ""
 var node_def: GraphNodeDef
@@ -191,3 +192,20 @@ func get_effective_output_port_type_at_port(port_index: int) -> int:
 
 func collect_extra_manual_inputs() -> Dictionary[String, String]:
 	return {}
+
+
+func set_highlight(active: bool) -> void:
+	if active:
+		var panel := StyleBoxFlat.new()
+		panel.bg_color = Color(0.18, 0.22, 0.32, 0.95)
+		panel.border_color = Colors.teal
+		panel.set_border_width_all(RUNNING_BORDER_WIDTH)
+		panel.set_corner_radius_all(4)
+		panel.content_margin_left = 4
+		panel.content_margin_right = 4
+		panel.content_margin_top = 4
+		panel.content_margin_bottom = 4
+		add_theme_stylebox_override("panel", panel)
+	else:
+		remove_theme_stylebox_override("panel")
+	pass
