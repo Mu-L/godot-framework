@@ -123,3 +123,15 @@ static func close_pipe(pipe: FileAccess) -> void:
 	if pipe != null and pipe.is_open():
 		pipe.close()
 	pass
+
+
+static func format_command_line(argv: PackedStringArray) -> String:
+	var parts: Array[String] = []
+	for arg in argv:
+		if arg.is_empty():
+			parts.append("\"\"")
+		elif arg.find(" ") >= 0 or arg.find("\t") >= 0:
+			parts.append(StringUtils.format("\"{}\"", arg.replace("\"", "\\\"")))
+		else:
+			parts.append(arg)
+	return " ".join(parts)

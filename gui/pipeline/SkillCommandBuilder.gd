@@ -101,18 +101,3 @@ static func split_cli_args(line: String) -> PackedStringArray:
 		args.append(current)
 
 	return args
-
-
-static func format_command_line(argv: PackedStringArray) -> String:
-	var parts: Array[String] = []
-	for arg in argv:
-		parts.append(quote_cli_arg(arg))
-	return " ".join(parts)
-
-
-static func quote_cli_arg(arg: String) -> String:
-	if arg.is_empty():
-		return "\"\""
-	if arg.find(" ") >= 0 or arg.find("\t") >= 0:
-		return StringUtils.format("\"{}\"", arg.replace("\"", "\\\""))
-	return arg
