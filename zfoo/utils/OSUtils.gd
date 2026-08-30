@@ -86,7 +86,7 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 
 	result.exit_code = OS.get_process_exit_code(pid) if pid > 0 else -1
 	if pid > 0:
-		process_pids.remove_latest()
+		process_pids.remove_value(pid)
 	pass
 
 

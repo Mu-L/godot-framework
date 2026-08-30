@@ -71,6 +71,20 @@ static func OSUtils_stop_current_test() -> void:
 	pass
 
 
+static func OSUtils_concurrent_pid_tracking_test() -> void:
+	OSUtils.stop_all()
+	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15)))
+	await ThreadUtils.async_sleep(800)
+	assert(OSUtils.process_pids.size() == 1)
+	var result := await OSUtils.async_execute(echo_argv("OSUtilsConcurrentEcho"))
+	assert(result.exit_code == 0)
+	assert(result.output_text().contains("OSUtilsConcurrentEcho"))
+	assert(OSUtils.process_pids.size() == 1)
+	OSUtils.stop_all()
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_stop_all_test() -> void:
 	OSUtils.stop_all()
 	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15)))

@@ -27,6 +27,21 @@ func remove_latest() -> void:
 	count -= 1
 	pass
 
+func remove_value(value: int) -> void:
+	if count == 0:
+		return
+	var remove_idx := -1
+	for i in count:
+		if buffer[(head + i) % capacity] == value:
+			remove_idx = i
+			break
+	if remove_idx == -1:
+		return
+	for i in range(remove_idx + 1, count):
+		buffer[(head + i - 1) % capacity] = buffer[(head + i) % capacity]
+	count -= 1
+	pass
+
 func clear() -> void:
 	head = 0
 	count = 0
