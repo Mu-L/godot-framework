@@ -10,7 +10,7 @@ Shared: root [`AGENTS.md`](AGENTS.md), [`skills/`](.cursor/skills/README.md) (in
 | **Cursor** | Native Support |
 | **Codex** | Keep root `AGENTS.md`. Copy [`skills/`](.cursor/skills/README.md) → `.agents/skills` |
 | **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy [`skills/`](.cursor/skills/README.md) → `.claude/skills` |
-| **DeepSeek** | Keep root `AGENTS.md`. Copy [`skills/`](.cursor/skills/README.md) → `.agents/skills` (or `.dsh/skills`) |
+| **DeepSeek** | Keep root `AGENTS.md`. Copy [`skills/`](.cursor/skills/README.md) → `.agents/skills` |
 
 ![gui.png](gui/gui.png)
 
