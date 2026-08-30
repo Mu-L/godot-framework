@@ -112,7 +112,7 @@ static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool = false
 
 
 static func append_output(result: ExecResult, text: String) -> void:
-	if text.is_empty():
+	if StringUtils.is_empty(text):
 		return
 	result.output.append(text)
 	Log.info("[Output] {}", text)
