@@ -210,13 +210,7 @@ func primary_output_port_id(node_def: GraphNodeDef) -> String:
 	return node_def.outputs[0].id
 
 
-func store_node_output(
-	outputs_by_node: Dictionary[String, String],
-	node_id: String,
-	node_def: GraphNodeDef,
-	path: String,
-	port_id: String = "",
-) -> void:
+func store_node_output(outputs_by_node: Dictionary[String, String], node_id: String, node_def: GraphNodeDef, path: String, port_id: String = "") -> void:
 	outputs_by_node[node_id] = path
 	if port_id.is_empty():
 		port_id = primary_output_port_id(node_def)
