@@ -96,7 +96,6 @@ autowrap_mode = 3
 
 [node name="PaletteHint" type="Label" parent="Root/Body/Sidebar/PaletteVBox" unique_id=1796162826]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.65, 0.65, 1)
 theme_override_font_sizes/font_size = 12
 text = "Expand categories; double-click a skill to add a node, or a workflow to open"
 autowrap_mode = 3

@@ -97,6 +97,7 @@ func apply_ui_locale() -> void:
 		run_button.text = GuiLocale.text("ui.toolbar.run")
 	palette_title.text = GuiLocale.text("ui.palette.title")
 	palette_hint.text = GuiLocale.text("ui.palette.hint")
+	palette_hint.add_theme_color_override("font_color", WorkflowColors.hint)
 	save_dialog.title = GuiLocale.text("ui.dialog.save_title")
 	save_dialog.ok_button_text = GuiLocale.text("ui.toolbar.save")
 	save_dialog.filters = PackedStringArray([
@@ -321,7 +322,7 @@ func on_pipeline_stopped() -> void:
 	set_run_button_running(false)
 	var message := GuiLocale.text("pipeline.stopped")
 	Log.info(message)
-	Alert.alert(message, Colors.warning)
+	Alert.alert(message, WorkflowColors.warning)
 	pass
 
 
@@ -330,32 +331,32 @@ func on_pipeline_finished(success: bool, message: String) -> void:
 	set_run_button_running(false)
 	if success:
 		Log.info(message)
-		Alert.alert(message, Colors.success)
+		Alert.alert(message, WorkflowColors.success)
 	else:
 		Log.error(message)
-		Alert.alert(message, Colors.error)
+		Alert.alert(message, WorkflowColors.error)
 	pass
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 func set_run_button_running(running: bool) -> void:
 	if running:
-		apply_run_button_style(Colors.error)
-		run_button.icon = make_stop_icon(14, Color.WHITE)
+		apply_run_button_style(WorkflowColors.error)
+		run_button.icon = make_stop_icon(14, WorkflowColors.button_text)
 		run_button.text = GuiLocale.text("ui.toolbar.stop")
 	else:
-		apply_run_button_style(Colors.success)
-		run_button.icon = make_play_icon(14, Color.WHITE)
+		apply_run_button_style(WorkflowColors.success)
+		run_button.icon = make_play_icon(14, WorkflowColors.button_text)
 		run_button.text = GuiLocale.text("ui.toolbar.run")
 	pass
 
 
 func style_run_button() -> void:
-	apply_run_button_style(Colors.success)
-	run_button.add_theme_color_override("font_color", Color.WHITE)
-	run_button.add_theme_color_override("font_hover_color", Color.WHITE)
-	run_button.add_theme_color_override("font_pressed_color", Color.WHITE)
-	run_button.icon = make_play_icon(14, Color.WHITE)
+	apply_run_button_style(WorkflowColors.success)
+	run_button.add_theme_color_override("font_color", WorkflowColors.button_text)
+	run_button.add_theme_color_override("font_hover_color", WorkflowColors.button_text)
+	run_button.add_theme_color_override("font_pressed_color", WorkflowColors.button_text)
+	run_button.icon = make_play_icon(14, WorkflowColors.button_text)
 	run_button.text = GuiLocale.text("ui.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", 14)
 	run_button.add_theme_constant_override("icon_max_height", 14)

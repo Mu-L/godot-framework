@@ -62,10 +62,10 @@ func refresh_output_slot(type_name: String) -> void:
 		slot_index,
 		false,
 		0,
-		Color.WHITE,
+		WorkflowColors.port_slot_idle,
 		true,
 		out_type,
-		PortDef.type_color(out_type),
+		WorkflowColors.port_color(out_type),
 	)
 	pass
 

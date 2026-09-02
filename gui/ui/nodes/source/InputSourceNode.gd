@@ -15,9 +15,9 @@ func build_node() -> void:
 		0,
 		false,
 		0,
-		Color.WHITE,
+		WorkflowColors.port_slot_idle,
 		true,
 		port.port_type,
-		PortDef.type_color(port.port_type),
+		WorkflowColors.port_color(port.port_type),
 	)
 	pass

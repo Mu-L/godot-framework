@@ -34,10 +34,10 @@ func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
 		slot_index,
 		true,
 		port.port_type,
-		PortDef.type_color(port.port_type),
+		WorkflowColors.port_color(port.port_type),
 		false,
 		0,
-		Color.WHITE,
+		WorkflowColors.port_slot_idle,
 	)
 	return slot_index
 
@@ -54,10 +54,10 @@ func add_output_port_row(port: PortDef) -> int:
 		slot_index,
 		false,
 		0,
-		Color.WHITE,
+		WorkflowColors.port_slot_idle,
 		true,
 		port.port_type,
-		PortDef.type_color(port.port_type),
+		WorkflowColors.port_color(port.port_type),
 	)
 	return slot_index
 
@@ -197,13 +197,13 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 func set_highlight(running: bool) -> void:
 	var panel := StyleBoxFlat.new()
 	panel.bg_color = WorkflowColors.node_running_bg if running else WorkflowColors.node_bg
-	panel.border_color = WorkflowColors.node_running_border if running else WorkflowColors.node_border
+	panel.border_color = WorkflowColors.success if running else WorkflowColors.node_border
 	panel.set_border_width_all(3 if running else 2)
 	panel.set_corner_radius_all(6)
 	panel.set_content_margin_all(6)
 	add_theme_stylebox_override("panel", panel)
 	add_theme_color_override(
 		"title_color",
-		WorkflowColors.node_running_border.lightened(0.35) if running else WorkflowColors.node_title,
+		WorkflowColors.success.lightened(0.35) if running else WorkflowColors.node_title,
 	)
 	pass

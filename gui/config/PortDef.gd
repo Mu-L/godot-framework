@@ -60,19 +60,3 @@ static func type_to_string(port_type: int) -> String:
 			return TYPE_NAME_FOLDER
 		_:
 			return TYPE_NAME_STRING
-
-
-static func type_color(port_type: int) -> Color:
-	match port_type:
-		TYPE_AUDIO:
-			return Color(0.95, 0.55, 0.2)
-		TYPE_IMAGE:
-			return Color(0.3, 0.85, 0.45)
-		TYPE_VIDEO:
-			return Color(0.65, 0.45, 0.95)
-		TYPE_TEXT:
-			return Color(0.95, 0.85, 0.25)
-		TYPE_FOLDER:
-			return Color(0.35, 0.65, 0.95)
-		_:
-			return Color(0.7, 0.7, 0.7)
