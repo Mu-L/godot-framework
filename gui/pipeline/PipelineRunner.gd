@@ -21,11 +21,7 @@ func run(document: WorkflowDocument) -> void:
 	var outputs_by_node: Dictionary[String, String] = {}
 
 	var pre_count := order.size() if batch_index < 0 else batch_index
-	var pre_nodes: Array[WorkflowNodeData] = order.slice(0, pre_count)
-	if not await run_nodes(pre_nodes, document, outputs_by_node):
-		return
-	if stop_requested:
-		WorkflowEvents.events.pipeline_stopped.emit()
+	if not await run_nodes(order.slice(0, pre_count), document, outputs_by_node):
 		return
 
 	if batch_index < 0:
@@ -61,16 +57,11 @@ func run(document: WorkflowDocument) -> void:
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
 			return
-		var file_path: String = files[i]
-		store_node_output(outputs_by_node, batch_node_data.id, batch_node, file_path)
-
-		var batch_context: String = StringUtils.format("{} ({}/{})", file_path.get_file(), i + 1, total)
+		store_node_output(outputs_by_node, batch_node_data.id, batch_node, files[i])
+		var batch_context: String = StringUtils.format("{} ({}/{})", files[i].get_file(), i + 1, total)
 		if not await run_nodes(post_nodes, document, outputs_by_node, batch_context):
 			return
 
-	if stop_requested:
-		WorkflowEvents.events.pipeline_stopped.emit()
-		return
 	WorkflowEvents.events.pipeline_finished.emit(true, StringUtils.format("Batch completed ({} files)", total))
 	pass
 
@@ -88,21 +79,12 @@ func run_nodes(
 
 		var node_def: GraphNodeDef = GraphNodesConfig.get_def(node_data.skill_id)
 		if node_def == null:
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Unknown node: {}", node_data.skill_id))
-			return false
+			return stop_pipeline("", 0, StringUtils.format("Unknown node: {}", node_data.skill_id))
 
 		if node_def.is_source():
-			var source_resolved: Dictionary[String, String] = resolve_inputs(
-				node_data,
-				node_def,
-				document,
-				outputs_by_node,
-			)
-			var out_key: String = node_def.outputs[0].id if node_def.outputs.size() > 0 else GraphNodesConfig.PORT_OUTPUT
-			var source_out: String = source_resolved.get(out_key, "")
+			var source_out: String = node_data.manual_inputs.get(primary_output_port_id(node_def), "")
 			if source_out.is_empty():
-				WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Source node {} has no path set", node_data.id))
-				return false
+				return stop_pipeline("", 0, StringUtils.format("Source node {} has no path set", node_data.id))
 			store_node_output(outputs_by_node, node_data.id, node_def, source_out)
 			continue
 
@@ -110,28 +92,19 @@ func run_nodes(
 			continue
 
 		if node_def is not SkillDef:
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Node {} is not an executable skill", node_data.id))
-			return false
+			return stop_pipeline("", 0, StringUtils.format("Node {} is not an executable skill", node_data.id))
 
 		var skill := node_def as SkillDef
-		var resolved: Dictionary[String, String] = resolve_inputs(
-			node_data,
-			node_def,
-			document,
-			outputs_by_node,
-		)
+		var resolved: Dictionary[String, String] = resolve_inputs(node_data, node_def, document, outputs_by_node)
 		if resolved.is_empty():
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Node {} is missing input", node_data.id))
-			return false
+			return stop_pipeline("", 0, StringUtils.format("Node {} is missing input", node_data.id))
 
 		var argv: PackedStringArray = SkillCommandBuilder.build_argv(skill, resolved)
 		if argv.is_empty():
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Failed to build command: {}", node_def.display_label()))
-			return false
+			return stop_pipeline("", 0, StringUtils.format("Failed to build command: {}", node_def.display_label()))
 
 		var primary_input: String = first_input_path(node_def, resolved)
 		var out_port_id := primary_output_port_id(node_def)
-
 		var step_label := node_def.display_label()
 		if not batch_context.is_empty():
 			step_label = StringUtils.format("{} {}", step_label, batch_context)
@@ -145,24 +118,31 @@ func run_nodes(
 
 		var exit_code: int = exec_result.exit_code
 		if exit_code != 0:
-			WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, "")
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Step failed: {} (exit {})", node_def.display_label(), exit_code))
-			return false
-
-		var output_path: String = PipelineOutputPath.resolve_newest_output(node_def, primary_input)
-		if output_path.is_empty():
-			var output_dir := PipelineOutputPath.output_dir_for_input(node_def, primary_input)
-			WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, "")
-			WorkflowEvents.events.pipeline_finished.emit(
-				false,
-				StringUtils.format("No output found for {} in {}", node_def.display_label(), output_dir),
+			return stop_pipeline(
+				node_data.id,
+				exit_code,
+				StringUtils.format("Step failed: {} (exit {})", node_def.display_label(), exit_code),
 			)
-			return false
+
+		var output_path: String = resolve_newest_output(node_def, primary_input)
+		if output_path.is_empty():
+			return stop_pipeline(
+				node_data.id,
+				exit_code,
+				StringUtils.format("No output found for {} in {}", node_def.display_label(), skill_output_dir(node_def, primary_input)),
+			)
 
 		store_node_output(outputs_by_node, node_data.id, node_def, output_path, out_port_id)
 		WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, output_path)
 
 	return true
+
+
+func stop_pipeline(node_id: String, exit_code: int, message: String) -> bool:
+	if not node_id.is_empty():
+		WorkflowEvents.events.step_finished.emit(node_id, exit_code, "")
+	WorkflowEvents.events.pipeline_finished.emit(false, message)
+	return false
 
 
 func find_batch_index(order: Array[WorkflowNodeData]) -> int:
@@ -198,12 +178,6 @@ func resolve_inputs(
 		if manual.is_empty():
 			return {}
 		resolved[port.id] = manual
-
-	if node_def.is_source() and node_def.outputs.size() > 0:
-		var out_id: String = node_def.outputs[0].id
-		var manual_out: String = node_data.manual_inputs.get(out_id, "")
-		if not manual_out.is_empty():
-			resolved[out_id] = manual_out
 
 	return resolved
 
@@ -246,8 +220,6 @@ func first_input_path(node_def: GraphNodeDef, resolved: Dictionary[String, Strin
 	for port in node_def.inputs:
 		if resolved.has(port.id):
 			return resolved[port.id]
-	if resolved.size() > 0:
-		return resolved.values()[0]
 	return ""
 
 
@@ -279,6 +251,28 @@ func get_node_output(outputs_by_node: Dictionary[String, String], node_id: Strin
 
 func output_key(node_id: String, port_id: String) -> String:
 	return StringUtils.format("{}:{}", node_id, port_id)
+
+
+func skill_output_dir(node_def: GraphNodeDef, primary_input_path: String) -> String:
+	if primary_input_path.is_empty():
+		return ""
+
+	var normalized := primary_input_path.replace("\\", "/")
+	var subdir := node_def.catalog_id()
+	if DirAccess.dir_exists_absolute(normalized):
+		return normalized.path_join(subdir)
+	return normalized.get_base_dir().path_join(subdir)
+
+
+func resolve_newest_output(node_def: GraphNodeDef, primary_input_path: String) -> String:
+	var output_dir := skill_output_dir(node_def, primary_input_path)
+	if output_dir.is_empty():
+		return ""
+
+	if node_def.primary_output_is_folder() and DirAccess.dir_exists_absolute(output_dir):
+		return output_dir
+
+	return FileUtils.get_newest_file_in_folder(output_dir)
 
 
 func topological_sort(document: WorkflowDocument) -> Array[WorkflowNodeData]:

@@ -43,17 +43,8 @@ static func expand_cli(
 	resolved_inputs: Dictionary[String, String],
 ) -> String:
 	var result := skill.cli
-
-	for port_id in resolved_inputs.keys():
-		result = result.replace(placeholder_for(port_id), resolved_inputs[port_id])
-
 	for port in skill.inputs:
-		var placeholder := placeholder_for(port.id)
-		if not result.contains(placeholder):
-			continue
-		var value: String = resolved_inputs.get(port.id, "")
-		result = result.replace(placeholder, value)
-
+		result = result.replace(placeholder_for(port.id), resolved_inputs.get(port.id, ""))
 	return result.strip_edges()
 
 
