@@ -1,53 +1,31 @@
 class_name PipelineOutputPath
 extends RefCounted
 
-## Predict default skill output paths following .ai/ nesting conventions.
+## Resolve skill output paths following .ai/ nesting conventions.
 
 
-static func predict(
-	node_def: GraphNodeDef,
-	primary_input_path: String,
-	resolved: Dictionary[String, String] = {},
-) -> String:
-	if node_def.is_source():
-		return primary_input_path
-
-	if primary_input_path.is_empty() and resolved.is_empty():
-		return ""
-
+static func output_dir_for_input(node_def: GraphNodeDef, primary_input_path: String) -> String:
 	if primary_input_path.is_empty():
 		return ""
 
-	if node_def.primary_output_is_folder():
-		return predict_output_dir(node_def, primary_input_path)
-
-	var source := primary_input_path
-	if DirAccess.dir_exists_absolute(source):
-		return predict_output_dir(node_def, source)
-
-	return predict_output_file(node_def, source)
-
-
-static func predict_output_file(node_def: GraphNodeDef, source_file: String) -> String:
-	var source_path := source_file.replace("\\", "/")
-	var dir := source_path.get_base_dir()
-	var stem := source_path.get_file().get_basename()
-	var ext := source_path.get_extension()
-	if not ext.is_empty():
-		ext = "." + ext
-	var subdir := skill_output_dir(node_def)
-	return dir.path_join(subdir).path_join(stem + ext)
-
-
-static func predict_output_dir(node_def: GraphNodeDef, source_path: String) -> String:
-	var normalized := source_path.replace("\\", "/")
-	var subdir := skill_output_dir(node_def)
-
+	var normalized := primary_input_path.replace("\\", "/")
+	var subdir := node_def.catalog_id()
 	if DirAccess.dir_exists_absolute(normalized):
 		return normalized.path_join(subdir)
-
 	return normalized.get_base_dir().path_join(subdir)
 
 
-static func skill_output_dir(node_def: GraphNodeDef) -> String:
-	return node_def.catalog_id()
+static func resolve_newest_output(node_def: GraphNodeDef, primary_input_path: String) -> String:
+	if primary_input_path.is_empty():
+		return ""
+
+	var output_dir := output_dir_for_input(node_def, primary_input_path)
+	if output_dir.is_empty():
+		return ""
+
+	if node_def.primary_output_is_folder():
+		if DirAccess.dir_exists_absolute(output_dir):
+			return output_dir
+		return ""
+
+	return FileUtils.get_newest_file_in_folder(output_dir)

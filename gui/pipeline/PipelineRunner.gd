@@ -22,21 +22,13 @@ func run(document: WorkflowDocument) -> void:
 
 	var pre_count := order.size() if batch_index < 0 else batch_index
 	var pre_nodes: Array[WorkflowNodeData] = order.slice(0, pre_count)
-	var pre_jobs: Variant = plan_nodes(pre_nodes, document, outputs_by_node)
-	if pre_jobs == null:
+	if not await run_nodes(pre_nodes, document, outputs_by_node):
 		return
 	if stop_requested:
 		WorkflowEvents.events.pipeline_stopped.emit()
 		return
 
-	if not pre_jobs.is_empty():
-		if not await run_jobs(pre_jobs, outputs_by_node):
-			return
-
 	if batch_index < 0:
-		if stop_requested:
-			WorkflowEvents.events.pipeline_stopped.emit()
-			return
 		WorkflowEvents.events.pipeline_finished.emit(true, "Pipeline completed")
 		return
 
@@ -72,34 +64,32 @@ func run(document: WorkflowDocument) -> void:
 		var file_path: String = files[i]
 		store_node_output(outputs_by_node, batch_node_data.id, batch_node, file_path)
 
-		var iter_jobs: Variant = plan_nodes(post_nodes, document, outputs_by_node)
-		if iter_jobs == null:
-			return
-		if iter_jobs.is_empty():
-			continue
-
 		var batch_context: String = StringUtils.format("{} ({}/{})", file_path.get_file(), i + 1, total)
-		if not await run_jobs(iter_jobs, outputs_by_node, batch_context):
+		if not await run_nodes(post_nodes, document, outputs_by_node, batch_context):
 			return
 
 	if stop_requested:
 		WorkflowEvents.events.pipeline_stopped.emit()
 		return
 	WorkflowEvents.events.pipeline_finished.emit(true, StringUtils.format("Batch completed ({} files)", total))
+	pass
 
 
-func plan_nodes(
+func run_nodes(
 	nodes: Array[WorkflowNodeData],
 	document: WorkflowDocument,
 	outputs_by_node: Dictionary[String, String],
-) -> Variant:
-	var jobs: Array[PipelineJob] = []
-
+	batch_context: String = "",
+) -> bool:
 	for node_data in nodes:
+		if stop_requested:
+			WorkflowEvents.events.pipeline_stopped.emit()
+			return false
+
 		var node_def: GraphNodeDef = GraphNodesConfig.get_def(node_data.skill_id)
 		if node_def == null:
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Unknown node: {}", node_data.skill_id))
-			return null
+			return false
 
 		if node_def.is_source():
 			var source_resolved: Dictionary[String, String] = resolve_inputs(
@@ -112,7 +102,7 @@ func plan_nodes(
 			var source_out: String = source_resolved.get(out_key, "")
 			if source_out.is_empty():
 				WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Source node {} has no path set", node_data.id))
-				return null
+				return false
 			store_node_output(outputs_by_node, node_data.id, node_def, source_out)
 			continue
 
@@ -121,7 +111,7 @@ func plan_nodes(
 
 		if node_def is not SkillDef:
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Node {} is not an executable skill", node_data.id))
-			return null
+			return false
 
 		var skill := node_def as SkillDef
 		var resolved: Dictionary[String, String] = resolve_inputs(
@@ -132,28 +122,47 @@ func plan_nodes(
 		)
 		if resolved.is_empty():
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Node {} is missing input", node_data.id))
-			return null
+			return false
 
 		var argv: PackedStringArray = SkillCommandBuilder.build_argv(skill, resolved)
 		if argv.is_empty():
 			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Failed to build command: {}", node_def.display_label()))
-			return null
+			return false
 
 		var primary_input: String = first_input_path(node_def, resolved)
-		var predicted: String = PipelineOutputPath.predict(node_def, primary_input, resolved)
 		var out_port_id := primary_output_port_id(node_def)
 
-		var job := PipelineJob.new()
-		job.node_id = node_data.id
-		job.skill_id = node_data.skill_id
-		job.label = node_def.display_label()
-		job.argv = argv
-		job.predicted_output = predicted
-		job.output_port_id = out_port_id
-		store_node_output(outputs_by_node, node_data.id, node_def, predicted, out_port_id)
-		jobs.append(job)
+		var step_label := node_def.display_label()
+		if not batch_context.is_empty():
+			step_label = StringUtils.format("{} {}", step_label, batch_context)
+		WorkflowEvents.events.step_started.emit(node_data.id, step_label)
+		Log.info("command:[{}]", OSUtils.format_command_line(argv))
 
-	return jobs
+		var exec_result := await OSUtils.async_execute(argv, false)
+		if stop_requested:
+			WorkflowEvents.events.pipeline_stopped.emit()
+			return false
+
+		var exit_code: int = exec_result.exit_code
+		if exit_code != 0:
+			WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, "")
+			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Step failed: {} (exit {})", node_def.display_label(), exit_code))
+			return false
+
+		var output_path: String = PipelineOutputPath.resolve_newest_output(node_def, primary_input)
+		if output_path.is_empty():
+			var output_dir := PipelineOutputPath.output_dir_for_input(node_def, primary_input)
+			WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, "")
+			WorkflowEvents.events.pipeline_finished.emit(
+				false,
+				StringUtils.format("No output found for {} in {}", node_def.display_label(), output_dir),
+			)
+			return false
+
+		store_node_output(outputs_by_node, node_data.id, node_def, output_path, out_port_id)
+		WorkflowEvents.events.step_finished.emit(node_data.id, exit_code, output_path)
+
+	return true
 
 
 func find_batch_index(order: Array[WorkflowNodeData]) -> int:
@@ -306,38 +315,3 @@ func topological_sort(document: WorkflowDocument) -> Array[WorkflowNodeData]:
 	if order.size() != document.nodes.size():
 		return []
 	return order
-
-
-func run_jobs(
-	jobs: Array[PipelineJob],
-	outputs_by_node: Dictionary[String, String],
-	batch_context: String = "",
-) -> bool:
-	for job in jobs:
-		if stop_requested:
-			WorkflowEvents.events.pipeline_stopped.emit()
-			return false
-		var step_label := job.label
-		if not batch_context.is_empty():
-			step_label = StringUtils.format("{} {}", job.label, batch_context)
-		WorkflowEvents.events.step_started.emit(job.node_id, step_label)
-		Log.info("command:[{}]", OSUtils.format_command_line(job.argv))
-
-		var exec_result := await OSUtils.async_execute(job.argv, false)
-		if stop_requested:
-			WorkflowEvents.events.pipeline_stopped.emit()
-			return false
-		var exit_code: int = exec_result.exit_code
-		if exit_code != 0:
-			WorkflowEvents.events.step_finished.emit(job.node_id, exit_code, "")
-			WorkflowEvents.events.pipeline_finished.emit(false, StringUtils.format("Step failed: {} (exit {})", job.label, exit_code))
-			return false
-
-		var node_def: GraphNodeDef = GraphNodesConfig.get_def(job.skill_id)
-		if node_def != null:
-			store_node_output(outputs_by_node, job.node_id, node_def, job.predicted_output, job.output_port_id)
-		else:
-			outputs_by_node[job.node_id] = job.predicted_output
-		WorkflowEvents.events.step_finished.emit(job.node_id, exit_code, job.predicted_output)
-
-	return true

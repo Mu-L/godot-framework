@@ -111,6 +111,21 @@ static func get_files_in_folder_matching(folderPath: String, globPattern: String
 	return matched
 
 
+# Returns the absolute path of the newest file in folderPath (non-recursive).
+static func get_newest_file_in_folder(folder_path: String) -> String:
+	if not DirAccess.dir_exists_absolute(folder_path):
+		return ""
+
+	var newest_path := ""
+	var newest_time := -1
+	for file_path in get_all_files_in_folder(folder_path, false):
+		var modified := FileAccess.get_modified_time(file_path)
+		if modified > newest_time:
+			newest_time = modified
+			newest_path = file_path
+	return newest_path
+
+
 # Convert a string into a valid filename using underscores as separators.
 # aa bb cc dd -> aa_bb_cc
 static func sanitize_filename(name: String) -> String:
