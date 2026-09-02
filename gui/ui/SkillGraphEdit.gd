@@ -12,8 +12,12 @@ func _ready() -> void:
 	connection_request.connect(on_connection_request)
 	disconnection_request.connect(on_disconnection_request)
 	WorkflowEvents.events.step_started.connect(on_pipeline_step_started)
-	WorkflowEvents.events.pipeline_finished.connect(on_pipeline_finished)
-	WorkflowEvents.events.pipeline_stopped.connect(on_pipeline_stopped)
+	WorkflowEvents.events.pipeline_finished.connect(func(_success, _message): clear_node_highlight())
+	WorkflowEvents.events.pipeline_stopped.connect(clear_node_highlight)
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = WorkflowColors.canvas
+	add_theme_stylebox_override("panel", bg)
 	pass
 
 
@@ -204,14 +208,4 @@ func clear_node_highlight() -> void:
 
 func on_pipeline_step_started(node_id: String, _label: String) -> void:
 	highlight_node(node_id)
-	pass
-
-
-func on_pipeline_finished(_success: bool, _message: String) -> void:
-	clear_node_highlight()
-	pass
-
-
-func on_pipeline_stopped() -> void:
-	clear_node_highlight()
 	pass

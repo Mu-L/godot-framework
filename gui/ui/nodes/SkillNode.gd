@@ -2,7 +2,6 @@ class_name SkillNode
 extends GraphNode
 
 const NODE_MIN_WIDTH := 400
-const RUNNING_BORDER_WIDTH := 3
 
 var node_id: String = ""
 var node_def: GraphNodeDef
@@ -18,6 +17,7 @@ func setup(p_node_id: String, p_node_def: GraphNodeDef) -> void:
 	resizable = true
 	build_node()
 	custom_minimum_size.x = NODE_MIN_WIDTH
+	set_highlight(false)
 	pass
 
 
@@ -74,7 +74,7 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 	var hint := Label.new()
 	hint.text = GuiLocale.text("ui.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hint.modulate = Color(0.65, 0.65, 0.65)
+	hint.modulate = WorkflowColors.hint
 	row.add_child(hint)
 
 	return row
@@ -194,18 +194,16 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 	return {}
 
 
-func set_highlight(active: bool) -> void:
-	if active:
-		var panel := StyleBoxFlat.new()
-		panel.bg_color = Color(0.18, 0.22, 0.32, 0.95)
-		panel.border_color = Colors.teal
-		panel.set_border_width_all(RUNNING_BORDER_WIDTH)
-		panel.set_corner_radius_all(4)
-		panel.content_margin_left = 4
-		panel.content_margin_right = 4
-		panel.content_margin_top = 4
-		panel.content_margin_bottom = 4
-		add_theme_stylebox_override("panel", panel)
-	else:
-		remove_theme_stylebox_override("panel")
+func set_highlight(running: bool) -> void:
+	var panel := StyleBoxFlat.new()
+	panel.bg_color = WorkflowColors.node_running_bg if running else WorkflowColors.node_bg
+	panel.border_color = WorkflowColors.node_running_border if running else WorkflowColors.node_border
+	panel.set_border_width_all(3 if running else 2)
+	panel.set_corner_radius_all(6)
+	panel.set_content_margin_all(6)
+	add_theme_stylebox_override("panel", panel)
+	add_theme_color_override(
+		"title_color",
+		WorkflowColors.node_running_border.lightened(0.35) if running else WorkflowColors.node_title,
+	)
 	pass
