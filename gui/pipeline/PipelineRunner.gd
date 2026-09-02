@@ -143,12 +143,7 @@ func find_batch_index(order: Array[WorkflowNodeData]) -> int:
 	return -1
 
 
-func resolve_inputs(
-	node_data: WorkflowNodeData,
-	node_def: GraphNodeDef,
-	document: WorkflowDocument,
-	outputs_by_node: Dictionary[String, String],
-) -> Dictionary[String, String]:
+func resolve_inputs(node_data: WorkflowNodeData, node_def: GraphNodeDef, document: WorkflowDocument, outputs_by_node: Dictionary[String, String]) -> Dictionary[String, String]:
 	var resolved: Dictionary[String, String] = {}
 
 	for port in node_def.inputs:
@@ -172,11 +167,7 @@ func resolve_inputs(
 	return resolved
 
 
-func read_upstream_output(
-	conn: WorkflowConnection,
-	document: WorkflowDocument,
-	outputs_by_node: Dictionary[String, String],
-) -> String:
+func read_upstream_output(conn: WorkflowConnection, document: WorkflowDocument, outputs_by_node: Dictionary[String, String]) -> String:
 	var from_data := find_node_data(document, conn.from_node)
 	if from_data == null:
 		return outputs_by_node.get(conn.from_node, "")
