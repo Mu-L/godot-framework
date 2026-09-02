@@ -52,26 +52,19 @@ func run(document: WorkflowDocument) -> void:
 		return
 
 	var post_nodes: Array[WorkflowNodeData] = order.slice(batch_index + 1)
-	var total := files.size()
-	for i in range(total):
+	for file_path in files:
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
 			return
-		store_node_output(outputs_by_node, batch_node_data.id, batch_node, files[i])
-		var batch_context: String = StringUtils.format("{} ({}/{})", files[i].get_file(), i + 1, total)
-		if not await run_nodes(post_nodes, document, outputs_by_node, batch_context):
+		store_node_output(outputs_by_node, batch_node_data.id, batch_node, file_path)
+		if not await run_nodes(post_nodes, document, outputs_by_node):
 			return
 
-	WorkflowEvents.events.pipeline_finished.emit(true, StringUtils.format("Batch completed ({} files)", total))
+	WorkflowEvents.events.pipeline_finished.emit(true, StringUtils.format("Batch completed ({} files)", files.size()))
 	pass
 
 
-func run_nodes(
-	nodes: Array[WorkflowNodeData],
-	document: WorkflowDocument,
-	outputs_by_node: Dictionary[String, String],
-	batch_context: String = "",
-) -> bool:
+func run_nodes(nodes: Array[WorkflowNodeData], document: WorkflowDocument, outputs_by_node: Dictionary[String, String]) -> bool:
 	for node_data in nodes:
 		if stop_requested:
 			WorkflowEvents.events.pipeline_stopped.emit()
@@ -105,10 +98,7 @@ func run_nodes(
 
 		var primary_input: String = first_input_path(node_def, resolved)
 		var out_port_id := primary_output_port_id(node_def)
-		var step_label := node_def.display_label()
-		if not batch_context.is_empty():
-			step_label = StringUtils.format("{} {}", step_label, batch_context)
-		WorkflowEvents.events.step_started.emit(node_data.id, step_label)
+		WorkflowEvents.events.step_started.emit(node_data.id, node_def.display_label())
 		Log.info("command:[{}]", OSUtils.format_command_line(argv))
 
 		var exec_result := await OSUtils.async_execute(argv, false)
