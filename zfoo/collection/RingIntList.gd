@@ -61,9 +61,8 @@ func latest() -> int:
 		return -1
 	return buffer[(head + count - 1) % capacity]
 
-func to_array() -> PackedInt64Array:
-	var result := PackedInt64Array()
-	result.resize(count)
+func to_array() -> Array[int]:
+	var result: Array[int] = []
 	for i in count:
-		result[i] = buffer[(head + i) % capacity]
+		result.append(buffer[(head + i) % capacity])
 	return result
