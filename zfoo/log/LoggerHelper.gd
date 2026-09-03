@@ -23,17 +23,16 @@ static func log_format_error_message(function: String, file: String, line: int, 
 	else:
 		first_line = StringUtils.format("{} [ERROR] - (no details)", TimeUtils.date())
 
-	var parts: Array[String] = []
-	parts.append(first_line)
-
+	var builder := StringBuilder.new()
+	builder.append(first_line)
 	if script_backtraces != null and script_backtraces.size() > 0:
 		for bt in script_backtraces:
 			var part := str(bt)
 			if StringUtils.is_blank(part):
 				continue
-			parts.append(StringUtils.format("at {}", part))
+			builder.append(StringUtils.format("at {}", part))
 	gdf.events.log_error.emit()
-	return "\n".join(parts)
+	return builder.build_joined(StringUtils.LS)
 
 
 
@@ -66,7 +65,10 @@ static func tail_log() -> String:
 	file.close()
 
 	chunks.reverse()
-	var collected := FileUtils.normalize_line_endings_to_lf("".join(chunks))
+	var builder := StringBuilder.new()
+	for chunk: String in chunks:
+		builder.append(chunk)
+	var collected := FileUtils.normalize_line_endings_to_lf(builder.build_string())
 	var lines := collected.split(FileUtils.NEWLINE_LF, false)
 	if lines.size() > TAIL_LINES:
 		lines = lines.slice(lines.size() - TAIL_LINES, lines.size())

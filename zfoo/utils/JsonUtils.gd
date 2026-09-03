@@ -42,24 +42,24 @@ static func object_to_json(obj: Variant) -> String:
 			# Must escape control chars / quotes; raw concatenation breaks JSON APIs.
 			return JSON.stringify(obj as String)
 		TYPE_ARRAY:
-			var array: PackedStringArray = PackedStringArray()
+			var builder := StringBuilder.new()
 			for element in obj:
-				array.push_back(object_to_json(element))
-			return "[" + ",".join(array) + "]"
+				builder.append(object_to_json(element))
+			return "[" + builder.build_joined(",") + "]"
 		TYPE_DICTIONARY:
-			var array: PackedStringArray = PackedStringArray()
+			var builder := StringBuilder.new()
 			for key in obj:
 				var value = obj.get(key)
 				# JSON object keys must be strings (e.g. int key 1 -> "1")
-				array.push_back(object_to_json(str(key)) + ": " + object_to_json(value))
-			return "{" + ", ".join(array) + "}"
+				builder.append(object_to_json(str(key)) + ": " + object_to_json(value))
+			return "{" + builder.build_joined(", ") + "}"
 		TYPE_OBJECT:
-			var array: PackedStringArray = PackedStringArray()
+			var builder := StringBuilder.new()
 			for property in ReflectionUtils.get_script_property_map(obj).values():
 				var property_name := property.name as String
 				var value = obj.get(property_name)
-				array.push_back("\"" + property_name + "\": " + object_to_json(value))
-			return "{" + ", ".join(array) + "}"
+				builder.append("\"" + property_name + "\": " + object_to_json(value))
+			return "{" + builder.build_joined(", ") + "}"
 		_:
 			Log.error("unknow type:[{}]", type)
 	return ""

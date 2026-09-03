@@ -14,10 +14,7 @@ static func is_windows() -> bool:
 
 class ExecResult:
 	var exit_code: int = -1
-	var output: PackedStringArray = PackedStringArray()
-
-	func output_text() -> String:
-		return "".join(output)
+	var output: StringBuilder = StringBuilder.new()
 
 
 static func stop_current() -> void:
@@ -45,10 +42,10 @@ static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 
 	var lines: Array = []
 	result.exit_code = OS.execute(argv[0], argv.slice(1), lines, true)
-	var parts := PackedStringArray()
+	var builder := StringBuilder.new()
 	for line in lines:
-		parts.append(str(line))
-	append_output(result, "\n".join(parts))
+		builder.append(str(line))
+	append_output(result, builder.build_joined(StringUtils.LS))
 	log_result(argv, result, log)
 	return result
 
@@ -133,21 +130,21 @@ static func close_pipe(pipe: FileAccess) -> void:
 
 
 static func format_command_line(argv: PackedStringArray) -> String:
-	var parts: Array[String] = []
+	var builder := StringBuilder.new()
 	for arg in argv:
 		if arg.is_empty():
-			parts.append("\"\"")
+			builder.append("\"\"")
 		elif arg.find(" ") >= 0 or arg.find("\t") >= 0:
-			parts.append(StringUtils.format("\"{}\"", arg.replace("\"", "\\\"")))
+			builder.append(StringUtils.format("\"{}\"", arg.replace("\"", "\\\"")))
 		else:
-			parts.append(arg)
-	return " ".join(parts)
+			builder.append(arg)
+	return builder.build_joined(StringUtils.SPACE)
 
 
 static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -> void:
 	if not log or argv.is_empty():
 		return
-	var output := result.output_text()
+	var output := result.output.build_string()
 	if not output.is_empty():
 		Log.info("process output:[{}]", output)
 	if result.exit_code == 0:

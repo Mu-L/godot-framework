@@ -6,8 +6,14 @@ extends RefCounted
 var parts: PackedStringArray = PackedStringArray()
 
 
-## Appends text when not empty. Returns self for chaining.
+## Appends text. Returns self for chaining.
 func append(text: String) -> StringBuilder:
+	parts.append(text)
+	return self
+
+
+## Appends text only when not empty. Returns self for chaining.
+func append_if_not_empty(text: String) -> StringBuilder:
 	if StringUtils.is_not_empty(text):
 		parts.append(text)
 	return self
@@ -46,3 +52,8 @@ func length() -> int:
 ## Joins buffered fragments into one string.
 func build_string() -> String:
 	return "".join(parts)
+
+
+## Joins buffered fragments with a separator.
+func build_joined(separator: String) -> String:
+	return separator.join(parts)

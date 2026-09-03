@@ -28,3 +28,26 @@ func StringBuilder_length_test() -> void:
 	assert(builder.size() == 2)
 	assert(builder.length() == 5)
 	pass
+
+
+func StringBuilder_build_joined_test() -> void:
+	var builder := StringBuilder.new()
+	builder.append("a").append("b").append("c")
+	assert(builder.build_joined(", ") == "a, b, c")
+	pass
+
+
+func StringBuilder_append_empty_test() -> void:
+	var builder := StringBuilder.new()
+	builder.append("").append("x")
+	assert(builder.size() == 2)
+	assert(builder.build_string() == "x")
+	pass
+
+
+func StringBuilder_append_if_not_empty_test() -> void:
+	var builder := StringBuilder.new()
+	builder.append_if_not_empty("").append_if_not_empty("x")
+	assert(builder.size() == 1)
+	assert(builder.build_string() == "x")
+	pass

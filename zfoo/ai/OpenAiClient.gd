@@ -75,8 +75,7 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], on_delta: C
 		var buffer := pending_build.build_string() + chunk.get_string_from_utf8()
 		pending_build.clear()
 		var remaining := consume_sse_buffer(buffer, on_delta)
-		if StringUtils.is_not_empty(remaining):
-			pending_build.append(remaining)
+		pending_build.append_if_not_empty(remaining)
 		pass
 	var response := await HttpHelper.async_post(base_url, JsonUtils.object_to_json(request), build_headers(true), AsyncHttp.DEFAULT_TIMEOUT_MILLIS, "", on_chunk)
 	var body := response.get_body_string()
@@ -94,7 +93,7 @@ static func parse_sse_text(body: String) -> String:
 		return StringUtils.EMPTY
 	var text_build := StringBuilder.new()
 	var collect := func(delta: String) -> void:
-		text_build.append(delta)
+		text_build.append_if_not_empty(delta)
 		pass
 	consume_sse_buffer(body + "\n", collect)
 	return text_build.build_string()

@@ -1,7 +1,7 @@
 func consume_sse_buffer_test() -> void:
 	var text := StringBuilder.new()
 	var on_delta := func(delta: String) -> void:
-		text.append(delta)
+		text.append_if_not_empty(delta)
 		pass
 	var remainder := OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hel\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n",
@@ -15,7 +15,7 @@ func consume_sse_buffer_test() -> void:
 func consume_sse_buffer_partial_line_test() -> void:
 	var text := StringBuilder.new()
 	var on_delta := func(delta: String) -> void:
-		text.append(delta)
+		text.append_if_not_empty(delta)
 		pass
 	var remainder := OpenAiClient.consume_sse_buffer("data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}", on_delta)
 	assert(text.is_empty())
@@ -54,14 +54,14 @@ func consume_sse_buffer_multichunk_test() -> void:
 	var pending_build := StringBuilder.new()
 	var text := StringBuilder.new()
 	var on_delta := func(delta: String) -> void:
-		text.append(delta)
+		text.append_if_not_empty(delta)
 		pass
 	var append_chunk := func(chunk_text: String) -> void:
 		var buffer := pending_build.build_string() + chunk_text
 		pending_build.clear()
 		var remaining := OpenAiClient.consume_sse_buffer(buffer, on_delta)
 		if StringUtils.is_not_empty(remaining):
-			pending_build.append(remaining)
+			pending_build.append_if_not_empty(remaining)
 		pass
 	append_chunk.call("data: {\"choices\":[{\"delta\":{\"content\":\"Hel")
 	append_chunk.call("lo\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"!\"}}]}\n")
