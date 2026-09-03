@@ -32,6 +32,12 @@ func extract_stream_delta_reasoning_test() -> void:
 	pass
 
 
+func extract_stream_delta_whitespace_test() -> void:
+	var delta := OpenAiClient.extract_stream_delta("{\"choices\":[{\"delta\":{\"content\":\" \"}}]}")
+	assert(delta == " ")
+	pass
+
+
 func consume_sse_buffer_multichunk_test() -> void:
 	var state := OpenAiClient.StreamState.new()
 	state.pending = OpenAiClient.consume_sse_buffer(state.pending + "data: {\"choices\":[{\"delta\":{\"content\":\"Hel", state)

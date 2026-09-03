@@ -113,13 +113,13 @@ static func consume_sse_buffer(buffer: String, state: StreamState, on_delta: Cal
 		lines = lines.slice(0, lines.size() - 1)
 	for line: String in lines:
 		line = line.strip_edges()
-		if line.is_empty() or not line.begins_with("data: "):
+		if line.is_empty() or not line.begins_with("data:"):
 			continue
-		var payload := line.substr(6).strip_edges()
-		if payload == "[DONE]":
+		var payload := StringUtils.substring_after(line, "data:").strip_edges()
+		if payload.to_upper() == "[DONE]":
 			continue
 		var delta := extract_stream_delta(payload)
-		if StringUtils.is_not_blank(delta):
+		if StringUtils.is_not_empty(delta):
 			state.append_delta(delta, on_delta)
 	return remaining
 
@@ -131,8 +131,8 @@ static func extract_stream_delta(json_line: String) -> String:
 	var delta := chunk.choices[0].delta
 	if delta == null:
 		return StringUtils.EMPTY
-	if StringUtils.is_not_blank(delta.content):
+	if StringUtils.is_not_empty(delta.content):
 		return delta.content
-	if StringUtils.is_not_blank(delta.reasoning_content):
+	if StringUtils.is_not_empty(delta.reasoning_content):
 		return delta.reasoning_content
 	return StringUtils.EMPTY
