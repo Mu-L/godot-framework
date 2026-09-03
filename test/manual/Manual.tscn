@@ -90,5 +90,13 @@ offset_left = 54.0
 offset_top = 401.0
 offset_right = 289.0
 offset_bottom = 432.0
-text = "OpenAI"
+text = "OpenAI Chat"
+metadata/_edit_use_anchors_ = true
+
+[node name="ChatStreamRequest" type="Button" parent="OpenAiTest"]
+offset_left = 365.0
+offset_top = 401.0
+offset_right = 600.0
+offset_bottom = 432.0
+text = "OpenAI Stream"
 metadata/_edit_use_anchors_ = true

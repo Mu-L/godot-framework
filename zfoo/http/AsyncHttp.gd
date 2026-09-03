@@ -84,12 +84,16 @@ func _poll_task(task: HttpTask) -> void:
 			var chunk := client.read_response_body_chunk()
 			# prefer using the length.
 			if client.get_response_body_length() > 0:
+				if task.on_body_chunk.is_valid():
+					task.on_body_chunk.call(chunk)
 				response.body.append_array(chunk)
 				if response.body.size() >= client.get_response_body_length():
 					complete(task)
 				return
 
 			if chunk.size() > 0:
+				if task.on_body_chunk.is_valid():
+					task.on_body_chunk.call(chunk)
 				response.body.append_array(chunk)
 					
 		pass
@@ -120,7 +124,7 @@ func complete(task: HttpTask) -> void:
 ####################################################################################################
 ## timeout_millis: request timeout in milliseconds (default 60s)
 ## proxy: optional proxy address, e.g. "127.0.0.1:10809" or "http://127.0.0.1:10809"
-func async_request(method: HTTPClient.Method, url: String, body: String = "", headers: PackedStringArray = PackedStringArray(), timeout_millis: int = DEFAULT_TIMEOUT_MILLIS, proxy: String = "") -> HttpResponse:
+func async_request(method: HTTPClient.Method, url: String, body: String = "", headers: PackedStringArray = PackedStringArray(), timeout_millis: int = DEFAULT_TIMEOUT_MILLIS, proxy: String = "", on_body_chunk: Callable = Callable()) -> HttpResponse:
 	if !HttpUtils.is_valid_http_url(url):
 		Log.error("Http is not valid http url:[{}]", url)
 		return HttpResponse.new()
@@ -141,6 +145,7 @@ func async_request(method: HTTPClient.Method, url: String, body: String = "", he
 
 	var signalId := IdUtils.local_id()
 	var task: HttpTask = HttpTask.new(signalId, client, method, url, headers, body, timeout_millis)
+	task.on_body_chunk = on_body_chunk
 	signalTasks.append(task)
 	var response: HttpResponse = await task.http_signal
 	var index := signalTasks.find(task)
@@ -163,6 +168,7 @@ class HttpTask:
 	var response: HttpResponse = HttpResponse.new()
 	var done: bool = false
 	var has_requested: bool = false
+	var on_body_chunk: Callable = Callable()
 
 	func _init(_signalId: int, _client: HTTPClient, _method: HTTPClient.Method, _url: String, _headers: PackedStringArray, _body: String, _timeout_millis: int = AsyncHttp.DEFAULT_TIMEOUT_MILLIS):
 		self.signalId = _signalId

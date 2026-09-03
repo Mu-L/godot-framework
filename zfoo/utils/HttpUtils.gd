@@ -49,6 +49,14 @@ static func get_path_from_url(url: String) -> String:
 	return "/"
 
 
+static func has_header(headers: PackedStringArray, name: String) -> bool:
+	var prefix := name.to_lower() + ":"
+	for header: String in headers:
+		if header.strip_edges().to_lower().begins_with(prefix):
+			return true
+	return false
+
+
 static func _remove_protocol(url: String) -> String:
 	if url.begins_with("http://"):
 		return url.substr(7)

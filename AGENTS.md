@@ -112,6 +112,9 @@ func refresh_ui() -> void:
 # Set OPENAI_API_KEY env, or override OpenAiClient.api_key / base_url / model
 var reply := await OpenAiClient.async_chat("hello", "you are a helpful assistant")
 
+# Streaming — on_delta called for each token fragment; returns full text when done
+var streamed := await OpenAiClient.async_chat_stream("hello", "you are a helpful assistant", func(delta: String): print(delta))
+
 # Multi-turn
 var messages: Array[ChatMessage] = []
 messages.append(ChatMessage.new(ChatMessage.ROLE_USER, "hello"))
