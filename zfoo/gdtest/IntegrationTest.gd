@@ -60,6 +60,7 @@ func _process(_delta: float) -> void:
 		return
 	var scene_path := test_scenes[0] if !test_scenes.is_empty() else ""
 	Log.error("❌ FAIL | IntegrationTest | scene:[{}]", scene_path)
+	error_occurred = false
 	gdf.quit(1)
 	pass
 
