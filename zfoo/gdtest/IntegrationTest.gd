@@ -84,7 +84,8 @@ func scan_test_scenes() -> void:
 
 func on_integration_test_passed() -> void:
 	test_scenes.pop_front()
-	next_integration_test()
+	# Defer so the scene that emitted test_passed can finish _ready before we free it.
+	gdf.callable_deferred(next_integration_test)
 	pass
 
 
@@ -94,7 +95,7 @@ func next_integration_test() -> void:
 		child.free()
 	if test_scenes.is_empty():
 		Log.info("🎉 DONE | IntegrationTest")
-		gdf.quit()
+		await gdf.quit()
 		return
 	var scene_path := test_scenes[0]
 	Log.info("🧪 TEST | IntegrationTest | remaining:[{}] | scene:[{}]", test_scenes.size() - 1, scene_path)
