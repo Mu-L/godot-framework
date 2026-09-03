@@ -1,4 +1,40 @@
-﻿extends Node
+﻿## Unit test runner — attach this script to a scene root to run `.gd` tests in the same folder.
+##
+## Setup
+## -----
+## 1. Create a scene (e.g. `test/utils/UtilsTest.tscn`) and attach `UnitTest.gd` to its root node.
+## 2. Place test scripts beside the scene (e.g. `test/utils/StringUtilsTest.gd`).
+## 3. Run the scene from the editor or CLI; all matching tests in the folder are executed, then the app quits.
+##
+## Test discovery
+## --------------
+## - Scans every `.gd` file in the scene's folder (see [member include_subfolders]).
+## - A method is a test when its name **starts or ends with `test`** (case-insensitive).
+## - Test methods must take **no arguments**; otherwise the run fails immediately.
+##
+## Writing tests
+## -------------
+## - Use `assert(...)` for expectations. Any failed assertion logs an error and stops the run.
+## - **Instance methods** — the script must be instantiable (`script.new()`); run on a fresh instance.
+## - **Static methods** — run on the script directly; static tests run before instance tests.
+##
+## Example
+## -------
+## ```gdscript
+## func substring_before_test() -> void:
+## 	assert(StringUtils.substring_before("a/b/c", "/") == "a")
+## 	pass
+##
+## static func OSUtils_is_windows_test() -> void:
+## 	assert(OSUtils.is_windows() == (OS.get_name() == "Windows"))
+## 	pass
+## ```
+##
+## IntegrationTest
+## ---------------
+## When this scene is loaded by [IntegrationTest], it emits [code]gdf.events.test_passed[/code]
+## instead of quitting so the runner can advance to the next test scene.
+extends Node
 
 # Include files in subfolders
 @export var include_subfolders: bool = false

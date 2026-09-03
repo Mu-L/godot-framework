@@ -1,4 +1,35 @@
-﻿## Runs test scenes one by one. Each scene must emit gdf.events.test_passed when finished.
+﻿## Integration test runner — attach this script to a scene root to run test scenes one by one.
+##
+## Setup
+## -----
+## 1. Create a scene (e.g. `test/TestIntegrationTest.tscn`) and attach `IntegrationTest.gd` to its root node.
+## 2. Place test scenes in the same folder (or subfolders when [member include_subfolders] is enabled).
+## 3. Run the integration scene; matching `.tscn` files are instantiated sequentially, then the app quits.
+##
+## Test discovery
+## --------------
+## - Scans `.tscn` files in the scene's folder whose basename **starts or ends with `test`**
+##   (case-insensitive), e.g. `UtilsTest.tscn`, `Animation2DTest.tscn`.
+## - Skips the integration scene itself and any scene whose basename starts`.
+##
+## Test scene contract
+## -------------------
+## Each test scene runs in isolation. When it finishes, it **must** emit
+## [code]gdf.events.test_passed[/code] so the runner loads the next scene.
+##
+## - Scenes that use [UnitTest] emit the signal automatically after all unit tests pass.
+## - Custom scenes must emit it themselves, e.g. after animations or async work complete:
+##
+## ```gdscript
+## func _ready() -> void:
+## 	await do_something()
+## 	gdf.events.test_passed.emit()
+## 	pass
+## ```
+##
+## Failure handling
+## ----------------
+## Any [code]gdf.events.log_error[/code] during a test scene fails the run and exits with code 1.
 extends Node
 class_name IntegrationTest
 
@@ -42,8 +73,6 @@ func scan_test_scenes() -> void:
 			continue
 		var scene_name := file.get_file().get_basename().to_lower()
 		if !(scene_name.begins_with("test") || scene_name.ends_with("test")):
-			continue
-		if scene_name.begins_with("ignore") || scene_name.ends_with("ignore"):
 			continue
 		if file == current_scene_path:
 			continue
