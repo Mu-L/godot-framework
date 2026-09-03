@@ -23,6 +23,7 @@ static func build_headers(stream: bool = false) -> PackedStringArray:
 		headers.append("Accept: text/event-stream")
 	return headers
 
+
 static func validate_messages(messages: Array[ChatMessage]) -> bool:
 	if StringUtils.is_blank(api_key):
 		Log.error("OpenAI api_key is empty, set env {}", API_KEY_ENV)
@@ -41,6 +42,7 @@ static func async_chat(prompt: String, system_prompt: String = "") -> String:
 
 static func async_chat_stream(prompt: String, system_prompt: String = "", on_delta: Callable = Callable()) -> String:
 	return await async_chat_messages_stream(build_messages(prompt, system_prompt), on_delta)
+
 
 static func async_chat_messages(messages: Array[ChatMessage]) -> String:
 	if not validate_messages(messages):
@@ -63,47 +65,42 @@ static func async_chat_messages(messages: Array[ChatMessage]) -> String:
 	return message.content
 
 
-
-# ----------------------------------------------------------------------------------------------------------------------
-class StreamState:
-	var pending: String = ""
-	var text: String = ""
-
-	func append_delta(delta: String, on_delta: Callable = Callable()) -> void:
-		text += delta
-		if on_delta.is_valid():
-			on_delta.call(delta)
-		pass
-
 ## Streams assistant text via SSE. Optional on_delta receives each content fragment; returns full text.
 static func async_chat_messages_stream(messages: Array[ChatMessage], on_delta: Callable = Callable()) -> String:
 	if not validate_messages(messages):
 		return StringUtils.EMPTY
-	var state := StreamState.new()
 	var request := OpenAiRequest.new(model, messages, true)
+	var pending_build := StringBuilder.new()
 	var on_chunk := func(chunk: PackedByteArray) -> void:
-		state.pending = consume_sse_buffer(state.pending + chunk.get_string_from_utf8(), state, on_delta)
+		var buffer := pending_build.build_string() + chunk.get_string_from_utf8()
+		pending_build.clear()
+		var remaining := consume_sse_buffer(buffer, on_delta)
+		if StringUtils.is_not_empty(remaining):
+			pending_build.append(remaining)
 		pass
 	var response := await HttpHelper.async_post(base_url, JsonUtils.object_to_json(request), build_headers(true), AsyncHttp.DEFAULT_TIMEOUT_MILLIS, "", on_chunk)
-	finish_sse_parse(state, on_delta, response.get_body_string())
+	var body := response.get_body_string()
+	var tail := pending_build.build_string()
+	if StringUtils.is_not_empty(tail):
+		consume_sse_buffer(tail + "\n", on_delta)
 	if not response.success or response.code != 200:
-		Log.error("OpenAI stream failed code:[{}] body:[{}]", response.code, StringUtils.truncate(response.get_body_string(), 512))
+		Log.error("OpenAI stream failed code:[{}] body:[{}]", response.code, StringUtils.truncate(body, 512))
 		return StringUtils.EMPTY
-	if StringUtils.is_blank(state.text):
-		Log.error("OpenAI stream empty code:[{}] body:[{}]", response.code, StringUtils.truncate(response.get_body_string(), 512))
+	return parse_sse_text(body)
+
+
+static func parse_sse_text(body: String) -> String:
+	if StringUtils.is_blank(body):
 		return StringUtils.EMPTY
-	return state.text
+	var text_build := StringBuilder.new()
+	var collect := func(delta: String) -> void:
+		text_build.append(delta)
+		pass
+	consume_sse_buffer(body + "\n", collect)
+	return text_build.build_string()
 
 
-static func finish_sse_parse(state: StreamState, on_delta: Callable, body: String) -> void:
-	if not state.pending.is_empty():
-		state.pending = consume_sse_buffer(state.pending + "\n", state, on_delta)
-	if StringUtils.is_blank(state.text) and StringUtils.is_not_blank(body):
-		consume_sse_buffer(body, state, on_delta)
-	pass
-
-
-static func consume_sse_buffer(buffer: String, state: StreamState, on_delta: Callable = Callable()) -> String:
+static func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) -> String:
 	if buffer.is_empty():
 		return StringUtils.EMPTY
 	var lines: PackedStringArray = buffer.split("\n", false)
@@ -119,8 +116,8 @@ static func consume_sse_buffer(buffer: String, state: StreamState, on_delta: Cal
 		if payload.to_upper() == "[DONE]":
 			continue
 		var delta := extract_stream_delta(payload)
-		if StringUtils.is_not_empty(delta):
-			state.append_delta(delta, on_delta)
+		if StringUtils.is_not_empty(delta) and on_delta.is_valid():
+			on_delta.call(delta)
 	return remaining
 
 
