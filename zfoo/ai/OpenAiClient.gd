@@ -36,6 +36,18 @@ static func validate_messages(messages: Array[ChatMessage]) -> bool:
 
 # ----------------------------------------------------------------------------------------------------------------------
 
+# Example sse request:
+# HTTP/1.1 200 OK
+# Content-Type: text/event-stream
+# Cache-Control: no-cache
+# Connection: keep-alive
+
+# Example response:
+# data: {"content":"你"}
+# data: {"content":"好"}
+# data: {"content":"！"}
+# data: [DONE]
+
 static func async_chat(prompt: String, system_prompt: String = "") -> String:
 	return await async_chat_messages(build_messages(prompt, system_prompt))
 
