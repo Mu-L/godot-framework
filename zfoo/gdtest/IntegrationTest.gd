@@ -43,6 +43,8 @@ func scan_test_scenes() -> void:
 		var scene_name := file.get_file().get_basename().to_lower()
 		if !(scene_name.begins_with("test") || scene_name.ends_with("test")):
 			continue
+		if scene_name.begins_with("ignore") || scene_name.ends_with("ignore"):
+			continue
 		if file == current_scene_path:
 			continue
 		test_scenes.push_back(file)
