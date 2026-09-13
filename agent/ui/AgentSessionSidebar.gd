@@ -1,11 +1,15 @@
 class_name AgentSessionSidebar
 extends RefCounted
 
-## Left sidebar — session list with select / delete / drag reorder.
+## Left sidebar — pinned + normal session lists with select / delete / drag reorder.
 
-var session_list: VBoxContainer
+var session_list_root: VBoxContainer
+var pinned_header: Label
+var pinned_list: VBoxContainer
+var pinned_separator: HSeparator
+var normal_header: Label
+var normal_list: VBoxContainer
 var new_session_button: Button
-var sidebar_title: Label
 var sidebar_panel: PanelContainer
 
 var session_rows: Dictionary[int, PanelContainer] = {}
@@ -17,14 +21,22 @@ var hover_session_id: int = AgentSessionManager.INVALID_SESSION_ID
 # ---------------------------------------------------------------------------
 
 func setup(
-	p_session_list: VBoxContainer,
+	p_session_list_root: VBoxContainer,
+	p_pinned_header: Label,
+	p_pinned_list: VBoxContainer,
+	p_pinned_separator: HSeparator,
+	p_normal_header: Label,
+	p_normal_list: VBoxContainer,
 	p_new_session_button: Button,
-	p_sidebar_title: Label,
 	p_sidebar_panel: PanelContainer
 ) -> void:
-	session_list = p_session_list
+	session_list_root = p_session_list_root
+	pinned_header = p_pinned_header
+	pinned_list = p_pinned_list
+	pinned_separator = p_pinned_separator
+	normal_header = p_normal_header
+	normal_list = p_normal_list
 	new_session_button = p_new_session_button
-	sidebar_title = p_sidebar_title
 	sidebar_panel = p_sidebar_panel
 	new_session_button.pressed.connect(on_new_session_pressed)
 	AgentEvents.events.session_added.connect(on_session_added)
@@ -35,6 +47,8 @@ func setup(
 	AgentEvents.events.session_stop.connect(on_session_refresh)
 	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	bind_list_drop(pinned_list, true)
+	bind_list_drop(normal_list, false)
 	apply_theme()
 	pass
 
@@ -51,13 +65,62 @@ func on_session_refresh(session_id: int, _arg: Variant = null) -> void:
 
 func apply_theme() -> void:
 	sidebar_panel.add_theme_stylebox_override("panel", build_sidebar_style())
-	sidebar_title.add_theme_color_override("font_color", AgentColors.sidebar_title)
-	new_session_button.add_theme_color_override("font_color", AgentColors.sidebar_text)
-	var accent := AgentColors.theme_accent_solid()
-	new_session_button.add_theme_color_override("font_hover_color", accent)
-	new_session_button.add_theme_color_override("font_pressed_color", accent)
+	pinned_header.add_theme_color_override("font_color", AgentColors.sidebar_muted)
+	normal_header.add_theme_color_override("font_color", AgentColors.sidebar_muted)
+	apply_new_session_button_theme()
+	pinned_separator.add_theme_stylebox_override("separator", build_pinned_separator_style())
 	refresh_all_row_styles()
 	pass
+
+
+func apply_new_session_button_theme() -> void:
+	var accent := AgentColors.theme_accent_solid()
+	new_session_button.flat = false
+	new_session_button.focus_mode = Control.FOCUS_NONE
+	new_session_button.add_theme_color_override("font_color", accent)
+	new_session_button.add_theme_color_override("font_hover_color", accent.lightened(0.08))
+	new_session_button.add_theme_color_override("font_pressed_color", accent.darkened(0.06))
+	new_session_button.add_theme_color_override("font_disabled_color", AgentColors.sidebar_muted)
+
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0, 0, 0, 0)
+	normal.border_color = Color(accent.r, accent.g, accent.b, 0.55 if AgentColors.is_dark() else 0.45)
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(6)
+	normal.content_margin_left = 10
+	normal.content_margin_right = 10
+	normal.content_margin_top = 6
+	normal.content_margin_bottom = 6
+
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = AgentColors.theme_selection_bg()
+	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
+
+	var pressed := hover.duplicate() as StyleBoxFlat
+	if AgentColors.is_dark():
+		pressed.bg_color = pressed.bg_color.lightened(0.06)
+	else:
+		pressed.bg_color = pressed.bg_color.darkened(0.04)
+	pressed.border_color = accent
+
+	new_session_button.add_theme_stylebox_override("normal", normal)
+	new_session_button.add_theme_stylebox_override("hover", hover)
+	new_session_button.add_theme_stylebox_override("pressed", pressed)
+	new_session_button.add_theme_stylebox_override("hover_pressed", pressed.duplicate())
+	new_session_button.add_theme_stylebox_override("focus", hover.duplicate())
+	new_session_button.add_theme_stylebox_override("disabled", normal.duplicate())
+	pass
+
+
+func build_pinned_separator_style() -> StyleBoxLine:
+	var line := StyleBoxLine.new()
+	var accent := AgentColors.theme_accent_solid()
+	var alpha := 0.42 if AgentColors.is_dark() else 0.32
+	line.color = Color(accent.r, accent.g, accent.b, alpha)
+	line.grow_begin = 2
+	line.grow_end = 2
+	line.thickness = 1
+	return line
 
 
 func build_sidebar_style() -> StyleBoxFlat:
@@ -74,8 +137,11 @@ func build_sidebar_style() -> StyleBoxFlat:
 
 func rebuild() -> void:
 	clear()
+	for session_index: AgentSessionIndexes.SessionIndex in AgentSessionManager.session_indexes.pinned_indexes:
+		append_row(session_index.id, session_index.title, true)
 	for session_index: AgentSessionIndexes.SessionIndex in AgentSessionManager.session_indexes.indexes:
-		append_row(session_index.id, session_index.title)
+		append_row(session_index.id, session_index.title, false)
+	sync_pinned_section_visibility()
 	select_item(AgentSessionManager.active_session_id)
 	pass
 
@@ -103,18 +169,31 @@ func select_item(session_id: int) -> void:
 	pass
 
 
+func sync_pinned_section_visibility() -> void:
+	var has_pinned := pinned_list.get_child_count() > 0
+	pinned_header.visible = true
+	pinned_list.visible = true
+	pinned_separator.visible = has_pinned and normal_list.get_child_count() > 0
+	if has_pinned:
+		pinned_list.custom_minimum_size = Vector2.ZERO
+	else:
+		pinned_list.custom_minimum_size = Vector2(0, 36)
+	pass
+
+
 # ---------------------------------------------------------------------------
 # Event handlers
 # ---------------------------------------------------------------------------
 
 func on_session_added(session_id: int, title: String) -> void:
-	append_row(session_id, title)
-	session_list.move_child(session_rows[session_id], 0)
+	append_row(session_id, title, false)
+	normal_list.move_child(session_rows[session_id], 0)
 	pass
 
 
 func on_session_removed(session_id: int) -> void:
 	remove_row(session_id)
+	sync_pinned_section_visibility()
 	pass
 
 
@@ -139,13 +218,19 @@ func on_session_delete_pressed(session_id: int) -> void:
 # ---------------------------------------------------------------------------
 
 func clear() -> void:
-	for child in session_list.get_children():
+	for child in pinned_list.get_children():
+		child.queue_free()
+	for child in normal_list.get_children():
 		child.queue_free()
 	session_rows.clear()
 	pass
 
 
-func append_row(session_id: int, title: String) -> void:
+func list_for_pinned(pinned: bool) -> VBoxContainer:
+	return pinned_list if pinned else normal_list
+
+
+func append_row(session_id: int, title: String, pinned: bool) -> void:
 	var row_panel := PanelContainer.new()
 	row_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	row_panel.mouse_default_cursor_shape = Control.CURSOR_MOVE
@@ -186,7 +271,8 @@ func append_row(session_id: int, title: String) -> void:
 	row_panel.set_meta("select_button", select_button)
 	row_panel.set_meta("delete_button", delete_button)
 	row_panel.set_meta("scifi_fx", fx)
-	session_list.add_child(row_panel)
+	row_panel.set_meta("pinned", pinned)
+	list_for_pinned(pinned).add_child(row_panel)
 	session_rows[session_id] = row_panel
 	style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
 	pass
@@ -280,7 +366,7 @@ func format_session_label(session_id: int, title: String) -> String:
 
 
 # ---------------------------------------------------------------------------
-# Drag reorder
+# Drag reorder & pin / unpin
 # ---------------------------------------------------------------------------
 
 func get_row_drag_data(_at_position: Vector2, session_id: int) -> Variant:
@@ -291,18 +377,85 @@ func get_row_drag_data(_at_position: Vector2, session_id: int) -> Variant:
 	return session_id
 
 
+func row_is_pinned(session_id: int) -> bool:
+	var row_panel: PanelContainer = session_rows.get(session_id)
+	if row_panel == null:
+		return AgentSessionManager.is_pinned(session_id)
+	return row_panel.get_meta("pinned", false)
+
+
+func clamp_move_index(from_row: PanelContainer, target_list: VBoxContainer, to_index: int) -> int:
+	var max_index := maxi(0, target_list.get_child_count() - 1)
+	return clampi(to_index, 0, max_index)
+
+
+func apply_row_move(session_id: int, from_row: PanelContainer, target_list: VBoxContainer, to_index: int, to_pinned: bool) -> void:
+	var need_section_change := AgentSessionManager.is_pinned(session_id) != to_pinned
+	if from_row.get_parent() != target_list:
+		from_row.reparent(target_list)
+		from_row.set_meta("pinned", to_pinned)
+		sync_pinned_section_visibility()
+
+	to_index = clamp_move_index(from_row, target_list, to_index)
+	var from_index := from_row.get_index()
+	if not need_section_change and from_index == to_index:
+		return
+
+	if from_index != to_index:
+		target_list.move_child(from_row, to_index)
+
+	if need_section_change:
+		AgentSessionManager.transfer_index(session_id, to_pinned, from_row.get_index())
+	elif from_index != to_index:
+		AgentSessionManager.move_index_in_list(session_id, from_row.get_index(), to_pinned)
+	pass
+
+
 func can_drop_on_row(_at_position: Vector2, data: Variant, target_id: int) -> bool:
-	var from_row: PanelContainer = session_rows.get(data)
+	if typeof(data) != TYPE_INT:
+		return false
+	var session_id: int = data
+	var from_row: PanelContainer = session_rows.get(session_id)
 	var target_row: PanelContainer = session_rows.get(target_id)
 	if from_row == null or target_row == null:
 		return from_row != null
-	if from_row != target_row:
-		session_list.move_child(from_row, target_row.get_index())
-		AgentSessionManager.move_index(data, from_row.get_index())
+	if from_row == target_row:
+		return true
+	var to_pinned := row_is_pinned(target_id)
+	var target_list := list_for_pinned(to_pinned)
+	apply_row_move(session_id, from_row, target_list, target_row.get_index(), to_pinned)
 	return true
 
 
 func drop_on_row(_at_position: Vector2, _data: Variant) -> void:
+	pass
+
+
+func bind_list_drop(list: VBoxContainer, pinned: bool) -> void:
+	list.set_drag_forwarding(
+		func(_at: Vector2) -> Variant: return null,
+		can_drop_on_list.bind(pinned),
+		drop_on_list
+	)
+	pass
+
+
+func can_drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> bool:
+	if typeof(data) != TYPE_INT:
+		return false
+	var session_id: int = data
+	var from_row: PanelContainer = session_rows.get(session_id)
+	if from_row == null:
+		return false
+	var target_list := list_for_pinned(pinned)
+	var to_index := target_list.get_child_count()
+	if from_row.get_parent() == target_list and to_index > 0:
+		to_index -= 1
+	apply_row_move(session_id, from_row, target_list, to_index, pinned)
+	return true
+
+
+func drop_on_list(_at_position: Vector2, _data: Variant) -> void:
 	pass
 
 

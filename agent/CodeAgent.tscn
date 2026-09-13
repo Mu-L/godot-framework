@@ -155,10 +155,6 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SidebarTitle" type="Label" parent="Root/Body/Sidebar/SidebarVBox" unique_id=435690197]
-layout_mode = 2
-text = "Sessions"
-
 [node name="NewSessionButton" type="Button" parent="Root/Body/Sidebar/SidebarVBox" unique_id=317863370]
 layout_mode = 2
 text = "+ New chat"
@@ -168,6 +164,29 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="SessionList" type="VBoxContainer" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll" unique_id=484965737]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="PinnedHeader" type="Label" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList" unique_id=884521901]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Pinned"
+
+[node name="PinnedList" type="VBoxContainer" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList" unique_id=884521902]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="PinnedSeparator" type="HSeparator" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList" unique_id=884521903]
+layout_mode = 2
+
+[node name="NormalHeader" type="Label" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList" unique_id=884521905]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Chats"
+
+[node name="NormalList" type="VBoxContainer" parent="Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList" unique_id=884521904]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2

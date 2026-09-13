@@ -110,13 +110,16 @@ static func delete_session(session_id: int) -> void:
 # Selection
 # ---------------------------------------------------------------------------
 
-## Omit session_id (or pass INVALID) to pick indexes[0], or create a session when the list is empty.
+## Omit session_id (or pass INVALID) to pick the first pinned or normal entry, or create a session when empty.
 static func select_session(session_id: int = INVALID_SESSION_ID) -> void:
 	if session_id == INVALID_SESSION_ID:
-		if session_indexes.indexes.is_empty():
+		if session_indexes.pinned_indexes.is_empty() and session_indexes.indexes.is_empty():
 			create_session()
 			return
-		session_id = session_indexes.indexes[0].id
+		if not session_indexes.pinned_indexes.is_empty():
+			session_id = session_indexes.pinned_indexes[0].id
+		else:
+			session_id = session_indexes.indexes[0].id
 	if not has_index(session_id):
 		return
 	var session := AgentSessionStore.load_session(session_id)
@@ -132,10 +135,20 @@ static func select_session(session_id: int = INVALID_SESSION_ID) -> void:
 # ---------------------------------------------------------------------------
 
 static func get_index(session_id: int) -> AgentSessionIndexes.SessionIndex:
+	for session_index: AgentSessionIndexes.SessionIndex in session_indexes.pinned_indexes:
+		if session_index.id == session_id:
+			return session_index
 	for session_index: AgentSessionIndexes.SessionIndex in session_indexes.indexes:
 		if session_index.id == session_id:
 			return session_index
 	return null
+
+
+static func is_pinned(session_id: int) -> bool:
+	for session_index: AgentSessionIndexes.SessionIndex in session_indexes.pinned_indexes:
+		if session_index.id == session_id:
+			return true
+	return false
 
 
 static func has_index(session_id: int) -> bool:
@@ -158,6 +171,10 @@ static func add_index(session: AgentSession) -> void:
 
 
 static func remove_index(session_id: int) -> void:
+	for i in session_indexes.pinned_indexes.size():
+		if session_indexes.pinned_indexes[i].id == session_id:
+			session_indexes.pinned_indexes.remove_at(i)
+			return
 	for i in session_indexes.indexes.size():
 		if session_indexes.indexes[i].id == session_id:
 			session_indexes.indexes.remove_at(i)
@@ -166,14 +183,31 @@ static func remove_index(session_id: int) -> void:
 
 
 static func move_index(session_id: int, to_index: int) -> void:
-	for i in session_indexes.indexes.size():
-		if session_indexes.indexes[i].id != session_id:
+	move_index_in_list(session_id, to_index, is_pinned(session_id))
+	pass
+
+
+static func move_index_in_list(session_id: int, to_index: int, pinned: bool) -> void:
+	var list := session_indexes.pinned_indexes if pinned else session_indexes.indexes
+	for i in list.size():
+		if list[i].id != session_id:
 			continue
-		var session_index := session_indexes.indexes[i]
-		session_indexes.indexes.remove_at(i)
-		session_indexes.indexes.insert(clampi(to_index, 0, session_indexes.indexes.size()), session_index)
+		var session_index := list[i]
+		list.remove_at(i)
+		list.insert(clampi(to_index, 0, list.size()), session_index)
 		AgentSessionIndexes.save_index(session_indexes)
 		return
+	pass
+
+
+static func transfer_index(session_id: int, to_pinned: bool, to_index: int) -> void:
+	var session_index := get_index(session_id)
+	if session_index == null:
+		return
+	remove_index(session_id)
+	var list := session_indexes.pinned_indexes if to_pinned else session_indexes.indexes
+	list.insert(clampi(to_index, 0, list.size()), session_index)
+	AgentSessionIndexes.save_index(session_indexes)
 	pass
 
 

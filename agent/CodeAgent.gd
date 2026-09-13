@@ -6,9 +6,13 @@ extends Control
 @onready var toolbar_title: Label = $Root/Toolbar/ToolbarRow/Title
 @onready var sidebar_panel: PanelContainer = $Root/Body/Sidebar
 @onready var chat_area_panel: Panel = $Root/Body/ChatArea
-@onready var session_list: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList
+@onready var session_list_root: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList
+@onready var pinned_header: Label = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedHeader
+@onready var pinned_list: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedList
+@onready var pinned_separator: HSeparator = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedSeparator
+@onready var normal_header: Label = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/NormalHeader
+@onready var normal_list: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/NormalList
 @onready var new_session_button: Button = $Root/Body/Sidebar/SidebarVBox/NewSessionButton
-@onready var sidebar_title: Label = $Root/Body/Sidebar/SidebarVBox/SidebarTitle
 @onready var chat_scroll: ScrollContainer = $Root/Body/ChatArea/ChatScroll
 @onready var chat_host: MarginContainer = $Root/Body/ChatArea/ChatScroll/ChatMargin
 @onready var token_usage_wrap: PanelContainer = $Root/Toolbar/ToolbarRow/TokenUsageWrap
@@ -43,7 +47,16 @@ var chat_view: AgentChatView = AgentChatView.new()
 func _ready() -> void:
 	AgentColors.load_saved_theme()
 	toolbar.setup(toolbar_panel, toolbar_title, project_button)
-	session_sidebar.setup(session_list, new_session_button, sidebar_title, sidebar_panel)
+	session_sidebar.setup(
+		session_list_root,
+		pinned_header,
+		pinned_list,
+		pinned_separator,
+		normal_header,
+		normal_list,
+		new_session_button,
+		sidebar_panel
+	)
 	chat_area.setup(chat_area_panel, self)
 	token_usage_display.setup(token_usage_wrap)
 	jarvis_toggle.setup(jarvis_toggle_button)
