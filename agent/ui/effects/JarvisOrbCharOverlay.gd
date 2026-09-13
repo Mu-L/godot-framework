@@ -17,7 +17,7 @@ var shared_curves: Array[Curve3D] = []
 
 var current_phase: OrbPhase.Phase = OrbPhase.Phase.IDLE
 var current_path_style: OrbPhase.PathStyle = OrbPhase.PathStyle.TRANSVERSE
-var display_color: Color = OrbPhase.theme_rgb()
+var display_color: Color = AgentColors.theme_accent_solid()
 var current_tool_name: String = ""
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 

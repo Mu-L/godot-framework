@@ -43,19 +43,15 @@ static func color_for(phase: Phase) -> Color:
 		Phase.TOOL_EXEC:
 			return phase_color_from_theme(0.12, 0.9, 1.05)
 		Phase.SUCCESS:
-			return theme_rgb().lerp(AgentColors.success, 0.45)
+			return AgentColors.theme_accent_solid().lerp(AgentColors.success, 0.45)
 		Phase.ERROR:
-			return theme_rgb().lerp(AgentColors.error, 0.55)
+			return AgentColors.theme_accent_solid().lerp(AgentColors.error, 0.55)
 		Phase.AWAKE, Phase.TURN_COOLDOWN:
 			return phase_color_from_theme()
 		Phase.IDLE:
 			return phase_color_from_theme(0.0, 1.0, 1.0, 0.6)
 		_:
 			return phase_color_from_theme(0.0, 1.0, 1.0, 0.6)
-
-
-static func theme_rgb() -> Color:
-	return AgentColors.theme_accent_solid()
 
 
 ## Hue/sat/value offsets relative to AgentColors.theme_color (HSV).

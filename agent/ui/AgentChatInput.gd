@@ -157,7 +157,8 @@ func refresh_from_active_session() -> void:
 func apply_theme() -> void:
 	style_wrap()
 	style_field()
-	set_send_button_appearance(false)
+	var running := AgentSessionManager.is_running(AgentSessionManager.active_session_id)
+	set_send_button_appearance(running)
 	pass
 
 
@@ -546,7 +547,10 @@ func style_field() -> void:
 	input_field.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted)
 	input_field.add_theme_color_override("font_readonly_color", AgentColors.chat_text_muted)
 	input_field.add_theme_color_override("caret_color", AgentColors.chat_text)
-	input_field.add_theme_color_override("selection_color", AgentColors.accent.darkened(0.35))
+	input_field.add_theme_color_override(
+			"selection_color",
+			AgentColors.theme_accent_solid().darkened(0.35)
+	)
 	input_field.caret_blink = true
 	pass
 
@@ -568,7 +572,11 @@ func set_send_button_appearance(running: bool) -> void:
 	if running:
 		configure_send_button(make_stop_icon(16, Color.WHITE), "Stop", AgentColors.error)
 	else:
-		configure_send_button(make_arrow_up_icon(16, Color.WHITE), "Send (Enter)", AgentColors.accent)
+		configure_send_button(
+				make_arrow_up_icon(16, Color.WHITE),
+				"Send (Enter)",
+				AgentColors.theme_accent_solid()
+		)
 	pass
 
 
