@@ -93,7 +93,9 @@ func update_icon(hovered: bool) -> void:
 	if jarvis_orb_enabled:
 		var accent := AgentColors.theme_accent_solid()
 		icon_color = accent if AgentColors.is_dark() else accent.darkened(0.15)
-	if hovered:
+		if hovered:
+			icon_color = icon_color.lightened(0.12)
+	elif hovered:
 		icon_color = AgentColors.toolbar_title
 	button.icon = make_concentric_rings_icon(ICON_DRAW_SIZE, icon_color)
 	pass

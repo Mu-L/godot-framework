@@ -86,10 +86,13 @@ func on_mouse_exited() -> void:
 func update_icon(hovered: bool) -> void:
 	var show_moon := not AgentColors.is_dark()
 	var icon_color := AgentColors.toolbar_muted
-	if hovered:
-		icon_color = AgentColors.toolbar_title
-	elif not AgentColors.is_dark():
+	if not AgentColors.is_dark():
 		icon_color = AgentColors.theme_accent_solid()
+	if hovered:
+		if icon_color == AgentColors.toolbar_muted:
+			icon_color = AgentColors.toolbar_title
+		else:
+			icon_color = icon_color.lightened(0.12)
 	button.icon = make_icon(ICON_SIZE, icon_color, show_moon)
 	pass
 

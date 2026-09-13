@@ -47,28 +47,27 @@ func build_popup() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, "Theme color", CORNER_RADIUS)
+	button.tooltip_text = "Theme color"
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
+	button.flat = false
 	update_swatch(button.is_hovered())
 	pass
 
 
 func update_swatch(hovered: bool) -> void:
-	var fill := AgentColors.theme_color
+	var fill := AgentColors.theme_accent_solid()
 	if hovered:
 		fill = fill.lightened(0.12)
-	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
-		var base: StyleBox = button.get_theme_stylebox("normal")
-		if base == null or not base is StyleBoxFlat:
-			continue
-		var flat := (base as StyleBoxFlat).duplicate() as StyleBoxFlat
+	for state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		var flat := StyleBoxFlat.new()
 		flat.bg_color = fill
+		flat.border_color = AgentColors.toolbar_border
+		flat.set_border_width_all(1)
+		flat.set_corner_radius_all(CORNER_RADIUS)
 		flat.content_margin_left = 4
 		flat.content_margin_right = 4
 		flat.content_margin_top = 4
 		flat.content_margin_bottom = 4
-		if state == "hover" or (state == "focus" and hovered):
-			flat.border_color = AgentColors.toolbar_border
 		button.add_theme_stylebox_override(state, flat)
 	pass
 
