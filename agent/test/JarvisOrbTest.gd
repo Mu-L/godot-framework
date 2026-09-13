@@ -92,7 +92,7 @@ func set_status(text: String) -> void:
 
 
 func mark_running() -> bool:
-	var session_index := AgentSessionManager.get_index(demo_session_id)
+	var session_index := AgentSessionManager.get_session_index(demo_session_id)
 	if session_index == null:
 		return false
 	if session_index.run == null:
@@ -101,7 +101,7 @@ func mark_running() -> bool:
 
 
 func clear_running() -> void:
-	var session_index := AgentSessionManager.get_index(demo_session_id)
+	var session_index := AgentSessionManager.get_session_index(demo_session_id)
 	if session_index != null:
 		session_index.stop_running()
 	pass

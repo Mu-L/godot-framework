@@ -9,7 +9,7 @@ static func run(session: AgentSession) -> void:
 	AgentEvents.events.agent_start.emit(session.id)
 	while turn < MAX_TURNS:
 		turn += 1
-		var session_index := AgentSessionManager.get_index(session.id)
+		var session_index := AgentSessionManager.get_session_index(session.id)
 		if session_index != null and session_index.is_stop_requested():
 			AgentEvents.events.agent_end.emit(session.id, "Stop.")
 			return
@@ -32,7 +32,7 @@ static func run(session: AgentSession) -> void:
 
 		session.messages.append(ChatMessage.assistant_tool_calls(tool_calls, content))
 		for tool_call: OpenAiToolCall in tool_calls:
-			session_index = AgentSessionManager.get_index(session.id)
+			session_index = AgentSessionManager.get_session_index(session.id)
 			if session_index != null and session_index.is_stop_requested():
 				AgentEvents.events.agent_end.emit(session.id, "Stop...")
 				return

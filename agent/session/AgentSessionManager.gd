@@ -52,7 +52,7 @@ static func persist_session(session_id: int) -> void:
 		return
 	if session.messages.is_empty():
 		return
-	update_index_title(session_id, session.title)
+	update_session_index_title(session_id, session.title)
 	AgentSessionStore.save_session(session_id)
 	AgentSessionIndexes.save_index(session_indexes)
 	pass
@@ -70,7 +70,7 @@ static func on_persist_session(session_id: int, _arg: Variant = null) -> void:
 ## Seeds the system prompt, then session_added so listeners (e.g. SkillBubble) can append context.
 static func create_session() -> AgentSession:
 	var session := AgentSessionStore.create_session()
-	add_index(session)
+	add_session_index(session)
 
 	# LLM history + matching System bubble in chat UI.
 	var system_text := SystemPrompt.build()
@@ -91,12 +91,12 @@ static func create_session() -> AgentSession:
 static func delete_session(session_id: int) -> void:
 	if not has_index(session_id):
 		return
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index != null and session_index.is_running():
 		request_stop(session_id)
 
 	AgentSessionStore.delete_session(session_id)
-	remove_index(session_id)
+	remove_session_index(session_id)
 	AgentSessionIndexes.save_index(session_indexes)
 	AgentEvents.events.session_removed.emit(session_id)
 
@@ -134,7 +134,7 @@ static func select_session(session_id: int = INVALID_SESSION_ID) -> void:
 # Query
 # ---------------------------------------------------------------------------
 
-static func get_index(session_id: int) -> AgentSessionIndexes.SessionIndex:
+static func get_session_index(session_id: int) -> AgentSessionIndexes.SessionIndex:
 	for session_index: AgentSessionIndexes.SessionIndex in session_indexes.pinned_indexes:
 		if session_index.id == session_id:
 			return session_index
@@ -152,17 +152,17 @@ static func is_pinned(session_id: int) -> bool:
 
 
 static func has_index(session_id: int) -> bool:
-	return get_index(session_id) != null
+	return get_session_index(session_id) != null
 
 
 static func get_title(session_id: int) -> String:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return ""
 	return session_index.title
 
 
-static func add_index(session: AgentSession) -> void:
+static func add_session_index(session: AgentSession) -> void:
 	var session_index := AgentSessionIndexes.SessionIndex.new()
 	session_index.id = session.id
 	session_index.title = session.title
@@ -170,7 +170,7 @@ static func add_index(session: AgentSession) -> void:
 	pass
 
 
-static func remove_index(session_id: int) -> void:
+static func remove_session_index(session_id: int) -> void:
 	for i in session_indexes.pinned_indexes.size():
 		if session_indexes.pinned_indexes[i].id == session_id:
 			session_indexes.pinned_indexes.remove_at(i)
@@ -179,11 +179,6 @@ static func remove_index(session_id: int) -> void:
 		if session_indexes.indexes[i].id == session_id:
 			session_indexes.indexes.remove_at(i)
 			return
-	pass
-
-
-static func move_index(session_id: int, to_index: int) -> void:
-	move_index_in_list(session_id, to_index, is_pinned(session_id))
 	pass
 
 
@@ -200,19 +195,19 @@ static func move_index_in_list(session_id: int, to_index: int, pinned: bool) -> 
 	pass
 
 
-static func transfer_index(session_id: int, to_pinned: bool, to_index: int) -> void:
-	var session_index := get_index(session_id)
+static func transfer_session_index(session_id: int, to_pinned: bool, to_index: int) -> void:
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
-	remove_index(session_id)
+	remove_session_index(session_id)
 	var list := session_indexes.pinned_indexes if to_pinned else session_indexes.indexes
 	list.insert(clampi(to_index, 0, list.size()), session_index)
 	AgentSessionIndexes.save_index(session_indexes)
 	pass
 
 
-static func update_index_title(session_id: int, title: String) -> void:
-	var session_index := get_index(session_id)
+static func update_session_index_title(session_id: int, title: String) -> void:
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
 	session_index.title = title
@@ -224,7 +219,7 @@ static func is_active(session_id: int) -> bool:
 
 
 static func is_running(session_id: int) -> bool:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	return session_index != null and session_index.is_running()
 
 
@@ -259,7 +254,7 @@ static func set_title_from_prompt(session_id: int, prompt: String) -> void:
 # ---------------------------------------------------------------------------
 
 static func async_send(session_id: int, user_text: String) -> void:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
 	if session_index.is_running():
@@ -279,7 +274,7 @@ static func async_send(session_id: int, user_text: String) -> void:
 
 
 static func async_resume(session_id: int) -> void:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
 	if session_index.is_running():
@@ -293,7 +288,7 @@ static func async_resume(session_id: int) -> void:
 
 
 static func run_agent(session: AgentSession) -> void:
-	var session_index := get_index(session.id)
+	var session_index := get_session_index(session.id)
 	if session_index == null:
 		return
 	session_index.run = AgentSessionIndexes.RunState.new()
@@ -306,7 +301,7 @@ static func on_session_resume(session_id: int) -> void:
 	pass
 
 static func request_stop(session_id: int) -> void:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
 	if not session_index.is_running() or session_index.is_stop_requested():
@@ -321,7 +316,7 @@ static func request_stop(session_id: int) -> void:
 # ---------------------------------------------------------------------------
 
 static func append_chat_entry_stream(session_id: int, stream_kind: String, chunk: String) -> ChatEntry:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null or session_index.run == null:
 		return null
 	var run := session_index.run
@@ -359,7 +354,7 @@ static func on_agent_end(session_id: int, error_message: String) -> void:
 		add_chat_entry(session_id, ChatEntry.KIND_ERROR, ChatEntry.TITLE_ERROR, error_message)
 	persist_session(session_id)
 
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index != null:
 		session_index.stop_running()
 	AgentEvents.events.session_stop.emit(session_id)
@@ -371,7 +366,7 @@ static func on_agent_end(session_id: int, error_message: String) -> void:
 # ---------------------------------------------------------------------------
 
 static func on_turn_start(session_id: int) -> void:
-	var session_index := get_index(session_id)
+	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
 	session_index.clear_run_state()

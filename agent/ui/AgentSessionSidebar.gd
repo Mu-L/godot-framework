@@ -47,8 +47,12 @@ func setup(
 	AgentEvents.events.session_stop.connect(on_session_refresh)
 	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	pinned_header.mouse_filter = Control.MOUSE_FILTER_PASS
+	normal_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	bind_list_drop(pinned_list, true)
+	bind_list_drop(pinned_header, true)
 	bind_list_drop(normal_list, false)
+	bind_list_drop(normal_header, false)
 	apply_theme()
 	pass
 
@@ -171,13 +175,11 @@ func select_item(session_id: int) -> void:
 
 func sync_pinned_section_visibility() -> void:
 	var has_pinned := pinned_list.get_child_count() > 0
-	pinned_header.visible = true
-	pinned_list.visible = true
-	pinned_separator.visible = has_pinned and normal_list.get_child_count() > 0
-	if has_pinned:
-		pinned_list.custom_minimum_size = Vector2.ZERO
-	else:
-		pinned_list.custom_minimum_size = Vector2(0, 36)
+	var has_normal := normal_list.get_child_count() > 0
+	pinned_separator.visible = has_pinned and has_normal
+	pinned_list.custom_minimum_size = Vector2.ZERO
+	# Empty Chats list has no row hit target — keep a small drop pad when unpinning is possible.
+	normal_list.custom_minimum_size = Vector2(0, 40) if has_pinned and not has_normal else Vector2.ZERO
 	pass
 
 
@@ -405,7 +407,7 @@ func apply_row_move(session_id: int, from_row: PanelContainer, target_list: VBox
 		target_list.move_child(from_row, to_index)
 
 	if need_section_change:
-		AgentSessionManager.transfer_index(session_id, to_pinned, from_row.get_index())
+		AgentSessionManager.transfer_session_index(session_id, to_pinned, from_row.get_index())
 	elif from_index != to_index:
 		AgentSessionManager.move_index_in_list(session_id, from_row.get_index(), to_pinned)
 	pass
@@ -431,8 +433,8 @@ func drop_on_row(_at_position: Vector2, _data: Variant) -> void:
 	pass
 
 
-func bind_list_drop(list: VBoxContainer, pinned: bool) -> void:
-	list.set_drag_forwarding(
+func bind_list_drop(host: Control, pinned: bool) -> void:
+	host.set_drag_forwarding(
 		func(_at: Vector2) -> Variant: return null,
 		can_drop_on_list.bind(pinned),
 		drop_on_list
