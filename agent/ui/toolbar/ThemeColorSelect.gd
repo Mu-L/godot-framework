@@ -1,10 +1,11 @@
 class_name ThemeColorSelect
 extends RefCounted
 
-## Circular toolbar control — theme accent color swatch + popup ColorPicker.
+## Toolbar control — flat paintbrush icon (accent bristles) + ColorPicker popup.
 
 const BUTTON_SIZE := 28
-const CORNER_RADIUS := 14
+const ICON_DRAW_SIZE := 24
+const ICON_SIZE := 14
 
 var button: Button
 var popup: PopupPanel
@@ -30,7 +31,6 @@ func on_ui_theme_changed() -> void:
 	color_picker.color = AgentColors.theme_color
 	color_picker.set_block_signals(false)
 	apply_theme()
-	update_swatch(button.is_hovered())
 	pass
 
 
@@ -48,28 +48,114 @@ func build_popup() -> void:
 
 func apply_theme() -> void:
 	button.tooltip_text = "Theme color"
+	AgentToolbarButton.style(button, "Theme color", BUTTON_SIZE / 2)
+	apply_equal_icon_margins(2)
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
-	button.flat = false
-	update_swatch(button.is_hovered())
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.add_theme_constant_override("icon_max_width", ICON_SIZE)
+	button.add_theme_constant_override("icon_max_height", ICON_SIZE)
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	button.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	update_icon(button.is_hovered())
 	pass
 
 
-func update_swatch(hovered: bool) -> void:
-	var fill := AgentColors.theme_accent_solid()
+func apply_equal_icon_margins(margin: int) -> void:
+	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
+		if box == null:
+			continue
+		box.content_margin_left = margin
+		box.content_margin_right = margin
+		box.content_margin_top = margin
+		box.content_margin_bottom = margin
+	pass
+
+
+func update_icon(hovered: bool) -> void:
+	var accent := AgentColors.theme_accent_solid()
 	if hovered:
-		fill = fill.lightened(0.12)
-	for state in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-		var flat := StyleBoxFlat.new()
-		flat.bg_color = fill
-		flat.border_color = AgentColors.toolbar_border
-		flat.set_border_width_all(1)
-		flat.set_corner_radius_all(CORNER_RADIUS)
-		flat.content_margin_left = 4
-		flat.content_margin_right = 4
-		flat.content_margin_top = 4
-		flat.content_margin_bottom = 4
-		button.add_theme_stylebox_override(state, flat)
+		accent = accent.lightened(0.10)
+	var handle := AgentColors.toolbar_muted
+	if hovered:
+		handle = AgentColors.toolbar_title
+	button.icon = make_brush_icon(accent, handle)
 	pass
+
+
+## Side-view flat brush on one spine: grip upper-right → ferrule → bristle tip lower-left.
+func make_brush_icon(accent: Color, handle: Color) -> ImageTexture:
+	var s := ICON_DRAW_SIZE
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var fs := float(s)
+	var grip := Vector2(fs * 0.78, fs * 0.17)
+	var tip := Vector2(fs * 0.24, fs * 0.76)
+	var spine := tip - grip
+	var spine_len := spine.length()
+	var u := spine / spine_len
+	var axis_angle := atan2(u.y, u.x)
+	var handle_a := grip
+	var handle_b := grip + u * (spine_len * 0.58)
+	var ferrule_a := handle_b
+	var ferrule_b := grip + u * (spine_len * 0.74)
+	var bristle_center := grip + u * (spine_len * 0.88)
+	var handle_r := fs * 0.075
+	var ferrule_r := fs * 0.062
+	var bristle_rx := fs * 0.17
+	var bristle_ry := fs * 0.115
+	var bristle_angle := axis_angle
+	var ferrule_col := handle.lightened(0.10)
+	for y in range(s):
+		for x in range(s):
+			var p := Vector2(float(x) + 0.5, float(y) + 0.5)
+			var layers: Array[Color] = []
+			var handle_a_alpha := capsule_alpha(p, handle_a, handle_b, handle_r)
+			if handle_a_alpha > 0.0:
+				layers.append(Color(handle.r, handle.g, handle.b, handle_a_alpha))
+			var ferrule_alpha := capsule_alpha(p, ferrule_a, ferrule_b, ferrule_r)
+			if ferrule_alpha > 0.0:
+				layers.append(Color(ferrule_col.r, ferrule_col.g, ferrule_col.b, ferrule_alpha))
+			var bristle_alpha := ellipse_alpha(p, bristle_center, bristle_rx, bristle_ry, bristle_angle)
+			if bristle_alpha > 0.0:
+				layers.append(Color(accent.r, accent.g, accent.b, bristle_alpha))
+			img.set_pixel(x, y, composite_layers(layers))
+	img.resize(ICON_SIZE, ICON_SIZE, Image.INTERPOLATE_LANCZOS)
+	return ImageTexture.create_from_image(img)
+
+
+static func capsule_alpha(p: Vector2, a: Vector2, b: Vector2, radius: float) -> float:
+	var ba := b - a
+	var denom := ba.dot(ba)
+	if denom < 0.0001:
+		return fill_alpha(p.distance_to(a), radius)
+	var h := clampf((p - a).dot(ba) / denom, 0.0, 1.0)
+	var dist := (p - a - ba * h).length()
+	return fill_alpha(dist, radius)
+
+
+static func ellipse_alpha(p: Vector2, center: Vector2, rx: float, ry: float, angle: float) -> float:
+	if rx <= 0.0 or ry <= 0.0:
+		return 0.0
+	var d := p - center
+	var cos_a := cos(-angle)
+	var sin_a := sin(-angle)
+	var lx := d.x * cos_a - d.y * sin_a
+	var ly := d.x * sin_a + d.y * cos_a
+	var norm := sqrt((lx / rx) * (lx / rx) + (ly / ry) * (ly / ry))
+	return clampf((1.08 - norm) / 0.14, 0.0, 1.0)
+
+
+static func fill_alpha(dist: float, radius: float) -> float:
+	return clampf((radius + 0.85 - dist) / 1.2, 0.0, 1.0)
+
+
+static func composite_layers(layers: Array[Color]) -> Color:
+	var out := Color(0.0, 0.0, 0.0, 0.0)
+	for layer: Color in layers:
+		out = out.blend(layer)
+	return out
 
 
 func on_pressed() -> void:
@@ -86,10 +172,10 @@ func on_picker_color_changed(new_color: Color) -> void:
 
 
 func on_mouse_entered() -> void:
-	update_swatch(true)
+	update_icon(true)
 	pass
 
 
 func on_mouse_exited() -> void:
-	update_swatch(false)
+	update_icon(false)
 	pass
