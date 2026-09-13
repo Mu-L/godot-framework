@@ -91,12 +91,13 @@ func setup_toggle(p_button: Button) -> void:
 	button = p_button
 	button.toggled.connect(on_toggled)
 	AgentEvents.events.theme_changed.connect(on_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_theme_changed)
 	AgentEvents.events.session_selected.connect(sync_toggle_button)
 	sync_toggle_button(AgentSessionManager.active_session_id)
 	pass
 
 
-func on_theme_changed(_is_dark: bool = false) -> void:
+func on_theme_changed() -> void:
 	sync_toggle_button(AgentSessionManager.active_session_id)
 	pass
 

@@ -59,8 +59,8 @@ func setup(
 	input_bar.resized.connect(layout_bar)
 	input_bar.get_window().files_dropped.connect(on_files_dropped)
 	input_bar.get_window().window_input.connect(on_global_input)
-	AgentEvents.events.theme_changed.connect(on_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_theme_color_changed)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
 	setup_border_beam()
 	AgentEvents.events.agent_start.connect(on_agent_start)
@@ -69,14 +69,9 @@ func setup(
 	pass
 
 
-func on_theme_changed(_is_dark: bool) -> void:
+func on_ui_theme_changed() -> void:
 	apply_theme()
 	refresh_from_active_session()
-	pass
-
-
-func on_theme_color_changed(_color: Color) -> void:
-	style_wrap()
 	refresh_border_beam()
 	pass
 
@@ -159,7 +154,7 @@ func refresh_from_active_session() -> void:
 	pass
 
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	style_wrap()
 	style_field()
 	set_send_button_appearance(false)
@@ -659,14 +654,14 @@ class InputBorderBeamLayer extends ColorRect:
 		beam_material = ShaderMaterial.new()
 		beam_material.shader = BEAM_SHADER
 		material = beam_material
-		AgentEvents.events.theme_color_changed.connect(on_theme_color_changed)
-		AgentEvents.events.theme_changed.connect(on_theme_color_changed)
+		AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+		AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 		resized.connect(sync_shader_uniforms)
 		sync_shader_uniforms()
 		pass
 
 
-	func on_theme_color_changed(_unused = null) -> void:
+	func on_ui_theme_changed() -> void:
 		sync_shader_uniforms()
 		pass
 

@@ -11,7 +11,7 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 	button.add_theme_font_size_override("font_size", 11)
 	button.add_theme_color_override("font_color", AgentColors.toolbar_muted)
 	button.add_theme_color_override("font_hover_color", AgentColors.toolbar_title)
-	button.add_theme_color_override("font_pressed_color", AgentColors.toolbar_title)
+	button.add_theme_color_override("font_pressed_color", AgentColors.theme_accent_solid())
 
 	var radius := corner_radius
 	var normal := StyleBoxFlat.new()
@@ -25,22 +25,17 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 	normal.content_margin_bottom = 4
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	if AgentColors.is_dark():
-		hover.bg_color = AgentColors.accent.darkened(0.62)
-	else:
-		hover.bg_color = AgentColors.accent.lightened(0.55)
-	hover.border_color = AgentColors.accent
+	hover.bg_color = AgentColors.sidebar_row_hover
+	hover.border_color = AgentColors.toolbar_border
 
-	var pressed := hover.duplicate() as StyleBoxFlat
-	if AgentColors.is_dark():
-		pressed.bg_color = AgentColors.accent.darkened(0.45)
-	else:
-		pressed.bg_color = AgentColors.accent.lightened(0.42)
-	pressed.border_color = AgentColors.accent.darkened(0.12)
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = AgentColors.theme_selection_bg()
+	pressed.border_color = AgentColors.toolbar_border
 
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("hover_pressed", hover.duplicate())
 	button.add_theme_stylebox_override("focus", hover.duplicate())
 	button.add_theme_stylebox_override("disabled", normal.duplicate())
 	pass

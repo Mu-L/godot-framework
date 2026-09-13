@@ -24,7 +24,7 @@ func setup(
 	pass
 
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	toolbar_panel.add_theme_stylebox_override("panel", build_toolbar_style())
 	toolbar_panel.queue_redraw()
 	title_label.add_theme_color_override("font_color", AgentColors.toolbar_title)

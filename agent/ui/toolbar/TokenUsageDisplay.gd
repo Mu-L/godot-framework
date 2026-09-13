@@ -25,6 +25,7 @@ func setup(p_wrap: PanelContainer) -> void:
 	label = wrap.get_child(0) as Label
 	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
 	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_color_changed.connect(apply_theme)
 	AgentEvents.events.session_selected.connect(refresh)
 	AgentEvents.events.message_complete.connect(on_message_complete)
 	apply_theme()
@@ -59,22 +60,18 @@ func refresh(_session_id: int = AgentSessionManager.active_session_id) -> void:
 	)
 	var color := color_for_tokens(n)
 	label.add_theme_color_override("font_color", color)
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.bg_color.a = 0.28 if AgentColors.is_dark() else 0.18
-	style.border_color = color
-	style.border_color.a = 0.75
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(6)
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
-	wrap.add_theme_stylebox_override("panel", style)
+	var base := StyleBoxFlat.new()
+	base.set_border_width_all(1)
+	base.set_corner_radius_all(6)
+	base.content_margin_left = 8
+	base.content_margin_right = 8
+	base.content_margin_top = 4
+	base.content_margin_bottom = 4
+	wrap.add_theme_stylebox_override("panel", AgentColors.make_theme_badge_stylebox(base, color))
 	pass
 
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	if label == null:
 		return
 	label.add_theme_font_size_override("font_size", 12)
@@ -107,5 +104,6 @@ static func color_for_tokens(n: int) -> Color:
 		return Color(0.94, 0.84, 0.35) if AgentColors.is_dark() else Color("#CA8A04")
 	# Low context: accent → success so an empty session is not fully green.
 	var green_t := ratio / THRESHOLD_WARN
-	var start := AgentColors.accent if AgentColors.is_dark() else AgentColors.accent.lightened(0.08)
+	var accent := AgentColors.theme_accent_solid()
+	var start := accent if AgentColors.is_dark() else accent.lightened(0.08)
 	return start.lerp(AgentColors.success, green_t)

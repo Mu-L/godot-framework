@@ -29,12 +29,18 @@ func setup(p_button: Button) -> void:
 	button.toggled.connect(on_toggled)
 	button.mouse_entered.connect(on_mouse_entered)
 	button.mouse_exited.connect(on_mouse_exited)
-	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
 	apply_theme()
 	pass
 
 
-func apply_theme(_is_dark: bool = false) -> void:
+func on_ui_theme_changed() -> void:
+	apply_theme()
+	pass
+
+
+func apply_theme() -> void:
 	refresh_from_settings()
 	if button == null:
 		return
@@ -61,7 +67,7 @@ func apply_theme(_is_dark: bool = false) -> void:
 
 
 func apply_equal_icon_margins(margin: int) -> void:
-	for state_name: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
 		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
 		if box == null:
 			continue
@@ -85,7 +91,8 @@ func on_mouse_exited() -> void:
 func update_icon(hovered: bool) -> void:
 	var icon_color := AgentColors.toolbar_muted
 	if jarvis_orb_enabled:
-		icon_color = AgentColors.accent if AgentColors.is_dark() else AgentColors.accent.darkened(0.15)
+		var accent := AgentColors.theme_accent_solid()
+		icon_color = accent if AgentColors.is_dark() else accent.darkened(0.15)
 	if hovered:
 		icon_color = AgentColors.toolbar_title
 	button.icon = make_concentric_rings_icon(ICON_DRAW_SIZE, icon_color)

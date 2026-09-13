@@ -39,7 +39,7 @@ func setup(
 	pass
 
 
-func on_ui_theme_changed(_unused: Variant = null) -> void:
+func on_ui_theme_changed() -> void:
 	apply_theme()
 	pass
 
@@ -237,7 +237,7 @@ func build_session_row_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 	style.content_margin_top = 4
 	style.content_margin_bottom = 4
 	if selected:
-		style.bg_color = AgentColors.sidebar_selected_row_bg()
+		style.bg_color = AgentColors.theme_selection_bg()
 	elif hovered:
 		style.bg_color = AgentColors.sidebar_row_hover
 	else:

@@ -45,7 +45,7 @@ func _ready() -> void:
 	pass
 
 
-func on_theme_changed(_is_dark: bool) -> void:
+func on_theme_changed() -> void:
 	apply_scene_theme()
 	pass
 

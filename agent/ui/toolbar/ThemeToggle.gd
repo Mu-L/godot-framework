@@ -18,7 +18,13 @@ func setup(p_button: Button) -> void:
 	button.pressed.connect(on_pressed)
 	button.mouse_entered.connect(on_mouse_entered)
 	button.mouse_exited.connect(on_mouse_exited)
-	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	apply_theme()
+	pass
+
+
+func on_ui_theme_changed() -> void:
 	apply_theme()
 	pass
 
@@ -27,13 +33,30 @@ func setup(p_button: Button) -> void:
 # Theme
 # ---------------------------------------------------------------------------
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	var tooltip := "Switch to light theme" if AgentColors.is_dark() else "Switch to dark theme"
 	AgentToolbarButton.style(button, tooltip, BUTTON_SIZE / 2)
+	apply_equal_icon_margins(2)
+	button.text = ""
+	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.add_theme_constant_override("icon_max_width", ICON_SIZE)
 	button.add_theme_constant_override("icon_max_height", ICON_SIZE)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	update_icon(button.is_hovered())
+	pass
+
+
+func apply_equal_icon_margins(margin: int) -> void:
+	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
+		if box == null:
+			continue
+		box.content_margin_left = margin
+		box.content_margin_right = margin
+		box.content_margin_top = margin
+		box.content_margin_bottom = margin
 	pass
 
 
@@ -62,11 +85,11 @@ func on_mouse_exited() -> void:
 
 func update_icon(hovered: bool) -> void:
 	var show_moon := not AgentColors.is_dark()
-	var icon_color := AgentColors.toolbar_title
+	var icon_color := AgentColors.toolbar_muted
 	if hovered:
-		icon_color = Color(1.0, 0.92, 0.55) if AgentColors.is_dark() else Color.WHITE
+		icon_color = AgentColors.toolbar_title
 	elif not AgentColors.is_dark():
-		icon_color = AgentColors.accent
+		icon_color = AgentColors.theme_accent_solid()
 	button.icon = make_icon(ICON_SIZE, icon_color, show_moon)
 	pass
 

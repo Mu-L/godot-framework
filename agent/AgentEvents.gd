@@ -50,6 +50,6 @@ class Events:
 	signal markdown_changed(enabled: bool)
 	signal jarvis_orb_changed(enabled: bool)
 	signal skill_context_changed(session_id: int)
-	signal theme_changed(is_dark: bool)
-	signal theme_color_changed(color: Color)
+	signal theme_changed
+	signal theme_color_changed
 	pass

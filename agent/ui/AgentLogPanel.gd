@@ -24,7 +24,13 @@ func setup(p_button: Button, host: Node) -> void:
 	host.add_child(popup)
 	button.pressed.connect(on_pressed)
 	SchedulerBus.schedule_at_fixed_rate(refresh, REFRESH_MS, REFRESH_TIMER)
-	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	apply_theme()
+	pass
+
+
+func on_ui_theme_changed() -> void:
 	apply_theme()
 	pass
 
@@ -33,7 +39,7 @@ func setup(p_button: Button, host: Node) -> void:
 # Theme & window
 # ---------------------------------------------------------------------------
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	AgentToolbarButton.style(button, "View system log")
 	if popup != null:
 		popup.apply_theme()

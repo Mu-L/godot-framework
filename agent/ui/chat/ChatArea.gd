@@ -15,7 +15,7 @@ func setup(p_chat_area: Panel, p_shell: Control) -> void:
 	pass
 
 
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	chat_area.add_theme_stylebox_override("panel", build_chat_style())
 	chat_area.queue_redraw()
 	var shell_style := StyleBoxFlat.new()

@@ -34,7 +34,7 @@ func _ready() -> void:
 	pass
 
 
-func on_theme_color_changed(_color: Color) -> void:
+func on_theme_color_changed() -> void:
 	color_controller.set_target(OrbPhase.color_for(phase))
 	pass
 

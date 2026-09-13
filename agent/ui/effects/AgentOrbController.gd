@@ -217,7 +217,7 @@ func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 	pass
 
 
-func on_theme_changed(_is_dark: bool) -> void:
+func on_theme_changed() -> void:
 	if visible and vignette != null:
 		vignette.set_strength(orb_vignette_target())
 	pass

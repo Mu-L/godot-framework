@@ -84,7 +84,7 @@ static func set_theme_color(new_color: Color) -> void:
 	theme_color = new_color
 	Setting.set_string(THEME_COLOR_SETTING_KEY, theme_color.to_html(true))
 	Setting.save()
-	AgentEvents.events.theme_color_changed.emit(theme_color)
+	AgentEvents.events.theme_color_changed.emit()
 	pass
 
 
@@ -98,9 +98,19 @@ static func theme_accent_solid() -> Color:
 	return Color(c.r, c.g, c.b, 1.0)
 
 
-static func sidebar_selected_row_bg() -> Color:
+static func theme_selection_bg() -> Color:
 	var mix := 0.14 if is_dark() else 0.10
 	return sidebar_row_selected.lerp(theme_accent_solid(), mix)
+
+
+## Translucent fill + accent border (toolbar toggle on, token badge, …).
+static func make_theme_badge_stylebox(base: StyleBoxFlat, accent: Color = theme_accent_solid()) -> StyleBoxFlat:
+	var style := base.duplicate() as StyleBoxFlat
+	style.bg_color = accent
+	style.bg_color.a = 0.28 if is_dark() else 0.18
+	style.border_color = accent
+	style.border_color.a = 0.75
+	return style
 
 
 static func toggle_theme() -> void:
@@ -117,7 +127,7 @@ static func apply_color_scheme(scheme: ColorScheme, persist: bool = true, emit_s
 		Setting.set_bool(SETTING_KEY, scheme == ColorScheme.DARK)
 		Setting.save()
 	if emit_signal:
-		AgentEvents.events.theme_changed.emit(scheme == ColorScheme.DARK)
+		AgentEvents.events.theme_changed.emit()
 
 
 static func code_block_bg_html() -> String:
