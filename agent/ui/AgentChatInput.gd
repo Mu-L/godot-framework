@@ -6,7 +6,12 @@ extends RefCounted
 const SIDE_MARGIN := 48.0
 const BOTTOM_MARGIN := 16.0
 const COLLAPSED_SIZE := 52.0
-const EXPANDED_HEIGHT := 88.0
+## Expanded panel height when empty or one line (wrap grows upward from bottom).
+const EXPANDED_HEIGHT_MIN := 88.0
+## Cap auto-grow so long paste does not cover most of the chat area.
+const EXPANDED_HEIGHT_MAX_RATIO := 0.55
+## PanelContainer margins (8) between outer wrap and InputInner min height.
+const WRAP_INNER_PADDING := 8.0
 const EXPANDED_MIN_WIDTH := 420.0
 
 var input_bar: Control
@@ -51,8 +56,12 @@ func setup(
 	input_wrap.set_anchor(SIDE_RIGHT, 0.0)
 	input_wrap.set_anchor(SIDE_BOTTOM, 0.0)
 
+	# Engine updates TextEdit minimum height from wrapped lines; outer wrap reads it in get_wrap_height().
+	input_field.scroll_fit_content_height = true
+
 	send_button.pressed.connect(on_input_action_pressed)
 	input_field.gui_input.connect(on_field_gui_input)
+	input_field.minimum_size_changed.connect(on_field_minimum_size_changed)
 	input_field.focus_entered.connect(on_field_focus_entered)
 	input_field.focus_exited.connect(on_field_focus_exited)
 	input_wrap.gui_input.connect(on_wrap_gui_input)
@@ -232,6 +241,20 @@ func on_input_action_pressed() -> void:
 	pass
 
 
+## Re-layout when line count changes (typing, paste, delete). Skip during expand tween.
+func on_field_minimum_size_changed() -> void:
+	if not expanded:
+		return
+	if layout_tween != null:
+		layout_tween.kill()
+		layout_tween = null
+	var target_h := get_wrap_height(true)
+	if absf(input_wrap.size.y - target_h) < 1.0:
+		return
+	layout_bar()
+	pass
+
+
 func on_field_gui_input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var key := event as InputEventKey
@@ -396,8 +419,26 @@ func get_wrap_width(is_expanded: bool) -> float:
 	return maxf(EXPANDED_MIN_WIDTH, bar_width - SIDE_MARGIN * 2.0)
 
 
+func get_expanded_height_max() -> float:
+	var host := input_bar.get_parent() as Control
+	if host == null:
+		return EXPANDED_HEIGHT_MIN * 3.0
+	return maxf(EXPANDED_HEIGHT_MIN, host.size.y * EXPANDED_HEIGHT_MAX_RATIO)
+
+
+## Collapsed: fixed circle. Expanded: follow TextEdit min height, clamped; scroll inside when capped.
 func get_wrap_height(is_expanded: bool) -> float:
-	return EXPANDED_HEIGHT if is_expanded else COLLAPSED_SIZE
+	if not is_expanded:
+		return COLLAPSED_SIZE
+	var min_inner := maxf(0.0, EXPANDED_HEIGHT_MIN - WRAP_INNER_PADDING)
+	var max_inner := get_expanded_height_max() - WRAP_INNER_PADDING
+	var field_h := maxf(float(input_field.get_minimum_size().y), min_inner)
+	var at_cap := field_h > max_inner
+	# At max height, stop growing the panel and let TextEdit scroll vertically.
+	input_field.scroll_fit_content_height = not at_cap
+	if at_cap:
+		field_h = max_inner
+	return field_h + WRAP_INNER_PADDING
 
 
 func layout_bar() -> void:
@@ -408,7 +449,7 @@ func layout_bar() -> void:
 	input_wrap.offset_right = bar_size.x - SIDE_MARGIN
 	input_wrap.offset_top = bar_size.y - BOTTOM_MARGIN - wrap_h
 	input_wrap.offset_bottom = bar_size.y - BOTTOM_MARGIN
-	input_inner.custom_minimum_size = Vector2(0, maxf(0.0, wrap_h - 8.0))
+	input_inner.custom_minimum_size = Vector2(0, maxf(0.0, wrap_h - WRAP_INNER_PADDING))
 	input_field.visible = expanded
 	input_wrap.tooltip_text = "" if expanded else "Click to ask Code Agent…"
 	layout_send_button(expanded)
@@ -476,7 +517,7 @@ func apply_input_tween_step(value: float) -> void:
 	input_wrap.offset_right = tween_bar_size.x - SIDE_MARGIN
 	input_wrap.offset_top = tween_bar_size.y - BOTTOM_MARGIN - height
 	input_wrap.offset_bottom = tween_bar_size.y - BOTTOM_MARGIN
-	input_inner.custom_minimum_size.y = maxf(0.0, height - 8.0)
+	input_inner.custom_minimum_size.y = maxf(0.0, height - WRAP_INNER_PADDING)
 	layout_send_button(tween_expand_target)
 	if border_beam != null:
 		set_border_beam_to_wrap(
@@ -547,10 +588,8 @@ func style_field() -> void:
 	input_field.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted)
 	input_field.add_theme_color_override("font_readonly_color", AgentColors.chat_text_muted)
 	input_field.add_theme_color_override("caret_color", AgentColors.chat_text)
-	input_field.add_theme_color_override(
-			"selection_color",
-			AgentColors.theme_accent_solid().darkened(0.35)
-	)
+	# Default theme selection (avoid accent-tinted green highlight on chat text).
+	input_field.remove_theme_color_override("selection_color")
 	input_field.caret_blink = true
 	pass
 
