@@ -32,14 +32,14 @@ func setup(
 	AgentEvents.events.session_selected.connect(select_item)
 	AgentEvents.events.session_title_changed.connect(on_session_refresh)
 	AgentEvents.events.agent_start.connect(on_session_refresh)
-	AgentEvents.events.session_stop.connect(on_session_stop)
-	AgentEvents.events.theme_changed.connect(apply_theme)
-	AgentEvents.events.theme_color_changed.connect(on_theme_color_changed)
+	AgentEvents.events.session_stop.connect(on_session_refresh)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
 	apply_theme()
 	pass
 
 
-func on_theme_color_changed(_color: Color) -> void:
+func on_ui_theme_changed(_unused: Variant = null) -> void:
 	apply_theme()
 	pass
 
@@ -49,20 +49,14 @@ func on_session_refresh(session_id: int, _arg: Variant = null) -> void:
 	pass
 
 
-func on_session_stop(session_id: int) -> void:
-	refresh_item(session_id)
-	pass
-
-
-func apply_theme(_is_dark: bool = false) -> void:
+func apply_theme() -> void:
 	sidebar_panel.add_theme_stylebox_override("panel", build_sidebar_style())
-	sidebar_panel.queue_redraw()
 	sidebar_title.add_theme_color_override("font_color", AgentColors.sidebar_title)
 	new_session_button.add_theme_color_override("font_color", AgentColors.sidebar_text)
-	new_session_button.add_theme_color_override("font_hover_color", AgentColors.sidebar_row_accent)
-	new_session_button.add_theme_color_override("font_pressed_color", AgentColors.sidebar_row_accent)
-	for session_id: int in session_rows:
-		style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
+	var accent := AgentColors.theme_accent_solid()
+	new_session_button.add_theme_color_override("font_hover_color", accent)
+	new_session_button.add_theme_color_override("font_pressed_color", accent)
+	refresh_all_row_styles()
 	pass
 
 
@@ -87,20 +81,25 @@ func rebuild() -> void:
 
 
 func refresh_item(session_id: int) -> void:
-	var title := AgentSessionManager.get_title(session_id)
 	var row_panel: PanelContainer = session_rows.get(session_id)
 	if row_panel == null:
 		return
 	var select_button: Button = row_panel.get_meta("select_button")
 	if select_button != null:
-		select_button.text = format_session_label(session_id, title)
+		select_button.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
+	pass
+
+
+func refresh_all_row_styles() -> void:
+	var active_id := AgentSessionManager.active_session_id
+	for session_id: int in session_rows:
+		style_session_row(session_id, session_id == active_id)
 	pass
 
 
 func select_item(session_id: int) -> void:
 	refresh_item(session_id)
-	for row_session_id: int in session_rows:
-		style_session_row(row_session_id, row_session_id == session_id)
+	refresh_all_row_styles()
 	pass
 
 
@@ -179,9 +178,6 @@ func append_row(session_id: int, title: String) -> void:
 	delete_button.custom_minimum_size = Vector2(28, 28)
 	delete_button.focus_mode = Control.FOCUS_NONE
 	delete_button.flat = true
-	delete_button.add_theme_color_override("font_color", AgentColors.sidebar_muted)
-	delete_button.add_theme_color_override("font_hover_color", AgentColors.error)
-	delete_button.add_theme_color_override("font_pressed_color", AgentColors.error)
 	delete_button.pressed.connect(on_session_delete_pressed.bind(session_id))
 	bind_row_hover(delete_button, session_id)
 
@@ -241,8 +237,7 @@ func build_session_row_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 	style.content_margin_top = 4
 	style.content_margin_bottom = 4
 	if selected:
-		style.bg_color = selected_row_bg()
-		style.set_border_width_all(0)
+		style.bg_color = AgentColors.sidebar_selected_row_bg()
 	elif hovered:
 		style.bg_color = AgentColors.sidebar_row_hover
 	else:
@@ -261,9 +256,7 @@ func style_session_row(session_id: int, selected: bool) -> void:
 	var hovered := hover_session_id == session_id
 	row_panel.add_theme_stylebox_override("panel", build_session_row_style(selected, hovered))
 
-	var text_color := AgentColors.sidebar_text if selected else AgentColors.sidebar_muted
-	if hovered and not selected:
-		text_color = AgentColors.sidebar_text
+	var text_color := AgentColors.sidebar_text if selected or hovered else AgentColors.sidebar_muted
 	select_button.add_theme_color_override("font_color", text_color)
 	select_button.add_theme_color_override("font_hover_color", text_color)
 	select_button.add_theme_color_override("font_pressed_color", text_color)
@@ -276,23 +269,8 @@ func style_session_row(session_id: int, selected: bool) -> void:
 
 	var fx: SessionRowSciFiFx = row_panel.get_meta("scifi_fx")
 	if fx != null:
-		fx.set_highlight(selected, theme_accent_solid())
+		fx.set_highlight(selected)
 	pass
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-func theme_accent_solid() -> Color:
-	var c := AgentColors.theme_color
-	return Color(c.r, c.g, c.b, 1.0)
-
-
-func selected_row_bg() -> Color:
-	var accent := theme_accent_solid()
-	var mix := 0.14 if AgentColors.is_dark() else 0.10
-	return AgentColors.sidebar_row_selected.lerp(accent, mix)
 
 
 func format_session_label(session_id: int, title: String) -> String:
@@ -329,7 +307,7 @@ func drop_on_row(_at_position: Vector2, _data: Variant) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Selected row sci-fi overlay (shader: sidebar_session_row.gdshader)
+# Selected row overlay (shader: sidebar_session_row.gdshader)
 # ---------------------------------------------------------------------------
 
 class SessionRowSciFiFx extends ColorRect:
@@ -359,17 +337,14 @@ class SessionRowSciFiFx extends ColorRect:
 		pass
 
 
-	func set_highlight(active: bool, accent: Color) -> void:
+	func set_highlight(active: bool) -> void:
 		visible = active
+		color.a = 1.0 if active else 0.0
 		if fx_material == null:
 			return
 		fx_material.set_shader_parameter("strength", 1.0 if active else 0.0)
-		fx_material.set_shader_parameter("accent_color", accent)
-		fx_material.set_shader_parameter(
-			"is_dark",
-			1.0 if AgentColors.is_dark() else 0.0
-		)
 		sync_uniforms()
+		queue_redraw()
 		pass
 
 
@@ -383,4 +358,6 @@ class SessionRowSciFiFx extends ColorRect:
 				sz = parent_row.size
 		fx_material.set_shader_parameter("rect_size", sz)
 		fx_material.set_shader_parameter("corner_radius", CORNER_RADIUS)
+		fx_material.set_shader_parameter("accent_color", AgentColors.theme_accent_solid())
+		fx_material.set_shader_parameter("is_dark", 1.0 if AgentColors.is_dark() else 0.0)
 		pass

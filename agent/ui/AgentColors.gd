@@ -92,6 +92,17 @@ static func orb_synapse_line_color() -> Color:
 	return theme_color
 
 
+## Theme swatch RGB for UI fills and text; alpha forced to 1.
+static func theme_accent_solid() -> Color:
+	var c := theme_color
+	return Color(c.r, c.g, c.b, 1.0)
+
+
+static func sidebar_selected_row_bg() -> Color:
+	var mix := 0.14 if is_dark() else 0.10
+	return sidebar_row_selected.lerp(theme_accent_solid(), mix)
+
+
 static func toggle_theme() -> void:
 	apply_color_scheme(ColorScheme.LIGHT if is_dark() else ColorScheme.DARK)
 

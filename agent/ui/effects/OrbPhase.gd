@@ -55,8 +55,7 @@ static func color_for(phase: Phase) -> Color:
 
 
 static func theme_rgb() -> Color:
-	var base := AgentColors.theme_color
-	return Color(base.r, base.g, base.b, 1.0)
+	return AgentColors.theme_accent_solid()
 
 
 ## Hue/sat/value offsets relative to AgentColors.theme_color (HSV).
