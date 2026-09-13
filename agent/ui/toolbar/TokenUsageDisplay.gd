@@ -4,10 +4,11 @@ extends RefCounted
 ## Toolbar badge — current context length from the latest LLM request (left of the skill toggle).
 ##
 ## Shows [member OpenAiUsage.prompt_tokens] from the last API call (input context size, not session total).
-## Color follows a traffic-light scale against [constant MAX_CONTEXT_TOKENS] (DeepSeek V4 1M context):
+## Panel matches [method AgentColors.theme_selection_bg]. Label text uses theme accent until
+## [constant THRESHOLD_WARN], then a traffic-light scale against [constant MAX_CONTEXT_TOKENS]:
 ##
 ## ```
-## 0% ── accent→green gradient ──► 50% ── yellow ──► 75% ── orange ──► 90% ── red
+## 50% ── yellow ──► 75% ── orange ──► 90% ── red
 ## ```
 
 ## Reference context window for badge color / percentage. Update when switching to a model with a different limit (e.g. GPT-4o 128k vs DeepSeek V4 1M).
@@ -58,16 +59,17 @@ func refresh(_session_id: int = AgentSessionManager.active_session_id) -> void:
 		usage.completion_tokens,
 		usage.total_tokens
 	)
-	var color := color_for_tokens(n)
-	label.add_theme_color_override("font_color", color)
-	var base := StyleBoxFlat.new()
-	base.set_border_width_all(1)
-	base.set_corner_radius_all(6)
-	base.content_margin_left = 8
-	base.content_margin_right = 8
-	base.content_margin_top = 4
-	base.content_margin_bottom = 4
-	wrap.add_theme_stylebox_override("panel", AgentColors.make_theme_badge_stylebox(base, color))
+	label.add_theme_color_override("font_color", text_color_for_tokens(n))
+	var panel := StyleBoxFlat.new()
+	panel.bg_color = AgentColors.theme_selection_bg()
+	panel.border_color = AgentColors.toolbar_border
+	panel.set_border_width_all(1)
+	panel.set_corner_radius_all(6)
+	panel.content_margin_left = 8
+	panel.content_margin_right = 8
+	panel.content_margin_top = 4
+	panel.content_margin_bottom = 4
+	wrap.add_theme_stylebox_override("panel", panel)
 	pass
 
 
@@ -94,7 +96,7 @@ static func token_ratio(n: int) -> float:
 	return clampf(float(n) / float(MAX_CONTEXT_TOKENS), 0.0, 1.0)
 
 
-static func color_for_tokens(n: int) -> Color:
+static func text_color_for_tokens(n: int) -> Color:
 	var ratio := token_ratio(n)
 	if ratio >= THRESHOLD_CRITICAL:
 		return AgentColors.error
@@ -102,8 +104,4 @@ static func color_for_tokens(n: int) -> Color:
 		return AgentColors.file_tool_title
 	if ratio >= THRESHOLD_WARN:
 		return Color(0.94, 0.84, 0.35) if AgentColors.is_dark() else Color("#CA8A04")
-	# Low context: accent → success so an empty session is not fully green.
-	var green_t := ratio / THRESHOLD_WARN
-	var accent := AgentColors.theme_accent_solid()
-	var start := accent if AgentColors.is_dark() else accent.lightened(0.08)
-	return start.lerp(AgentColors.success, green_t)
+	return AgentColors.theme_accent_solid()
