@@ -36,7 +36,7 @@ static func ensure_chats_dir() -> bool:
 
 static func create_session() -> AgentSession:
 	var session_id := next_session_id()
-	var session := AgentSession.new(session_id, StringUtils.format("New Chat {}", session_id))
+	var session := AgentSession.new(session_id)
 	sessions[session.id] = session
 	return session
 

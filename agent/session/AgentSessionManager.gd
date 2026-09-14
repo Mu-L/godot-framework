@@ -47,12 +47,8 @@ static func load_from_disk() -> void:
 
 
 static func persist_session(session_id: int) -> void:
-	var session := AgentSessionStore.load_session(session_id)
-	if session == null:
+	if not has_index(session_id):
 		return
-	if session.messages.is_empty():
-		return
-	update_session_index_title(session_id, session.title)
 	AgentSessionStore.save_session(session_id)
 	AgentSessionIndexes.save_index(session_indexes)
 	pass
@@ -78,7 +74,7 @@ static func create_session() -> AgentSession:
 	add_chat_entry(session.id, ChatEntry.KIND_SYSTEM, ChatEntry.TITLE_SYSTEM, system_text)
 
 	# After system prompt is in place — listeners (e.g. SkillBubble) may append more context.
-	AgentEvents.events.session_added.emit(session.id, session.title)
+	AgentEvents.events.session_added.emit(session.id, get_title(session.id))
 
 	# Save empty chat; auto-select when booting with no prior active session.
 	persist_session(session.id)
@@ -124,7 +120,7 @@ static func select_session(session_id: int = INVALID_SESSION_ID) -> void:
 		return
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
-		session = AgentSession.new(session_id, get_title(session_id))
+		session = AgentSession.new(session_id)
 		AgentSessionStore.sessions[session_id] = session
 	active_session_id = session_id
 	AgentEvents.events.session_selected.emit(session_id)
@@ -165,7 +161,7 @@ static func get_title(session_id: int) -> String:
 static func add_session_index(session: AgentSession) -> void:
 	var session_index := AgentSessionIndexes.SessionIndex.new()
 	session_index.id = session.id
-	session_index.title = session.title
+	session_index.title = StringUtils.format("New Chat {}", session.id)
 	session_indexes.indexes.insert(0, session_index)
 	pass
 
@@ -206,14 +202,6 @@ static func transfer_session_index(session_id: int, to_pinned: bool, to_index: i
 	pass
 
 
-static func update_session_index_title(session_id: int, title: String) -> void:
-	var session_index := get_session_index(session_id)
-	if session_index == null:
-		return
-	session_index.title = title
-	pass
-
-
 static func is_active(session_id: int) -> bool:
 	return active_session_id == session_id
 
@@ -241,11 +229,12 @@ static func has_chat_history(session_id: int) -> bool:
 static func set_title_from_prompt(session_id: int, prompt: String) -> void:
 	if has_chat_history(session_id):
 		return
-	var session := AgentSessionStore.load_session(session_id)
-	if session == null:
+	var session_index := get_session_index(session_id)
+	if session_index == null:
 		return
-	session.title = StringUtils.truncate(prompt.strip_edges().replace("\n", " "), TITLE_MAX)
-	AgentEvents.events.session_title_changed.emit(session_id, session.title)
+	var title := StringUtils.truncate(prompt.strip_edges().replace("\n", " "), TITLE_MAX)
+	session_index.title = title
+	AgentEvents.events.session_title_changed.emit(session_id, title)
 	pass
 
 
