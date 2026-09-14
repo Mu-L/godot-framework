@@ -32,6 +32,8 @@ var tween_target_left: float = 0.0
 var tween_bar_size: Vector2 = Vector2.ZERO
 var tween_expand_target: bool = false
 var drop_focus_guard: bool = false
+## Ignore focus loss while the send button is pressed (avoids collapse during empty send).
+var send_click_guard: bool = false
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +62,7 @@ func setup(
 	input_field.scroll_fit_content_height = true
 
 	send_button.pressed.connect(on_input_action_pressed)
+	send_button.gui_input.connect(on_send_gui_input)
 	input_field.gui_input.connect(on_field_gui_input)
 	input_field.minimum_size_changed.connect(on_field_minimum_size_changed)
 	input_field.focus_entered.connect(on_field_focus_entered)
@@ -234,6 +237,7 @@ func on_input_action_pressed() -> void:
 	var text := get_trimmed_text()
 	if text.is_empty():
 		expand_if_collapsed()
+		focus_input_field.call_deferred()
 		return
 	clear_text()
 	collapse_after_send()
@@ -245,11 +249,11 @@ func on_input_action_pressed() -> void:
 func on_field_minimum_size_changed() -> void:
 	if not expanded:
 		return
+	# Let expand/collapse tweens finish; killing here often freezes the panel at ~collapsed height.
 	if layout_tween != null:
-		layout_tween.kill()
-		layout_tween = null
+		return
 	var target_h := get_wrap_height(true)
-	if absf(input_wrap.size.y - target_h) < 1.0:
+	if absf(wrap_offset_height() - target_h) < 1.0:
 		return
 	layout_bar()
 	pass
@@ -342,10 +346,19 @@ func on_field_focus_entered() -> void:
 
 
 func on_field_focus_exited() -> void:
-	if drop_focus_guard:
+	if drop_focus_guard or send_click_guard:
 		return
 	refresh_border_beam()
 	try_collapse.call_deferred()
+	pass
+
+
+func on_send_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mouse := event as InputEventMouseButton
+		if mouse.button_index != MOUSE_BUTTON_LEFT:
+			return
+		send_click_guard = mouse.pressed
 	pass
 
 
@@ -412,6 +425,16 @@ func is_point_inside(global_pos: Vector2) -> bool:
 	return input_wrap.get_global_rect().has_point(global_pos)
 
 
+func wrap_offset_height() -> float:
+	return input_wrap.offset_bottom - input_wrap.offset_top
+
+
+func prepare_field_for_expand_measure() -> void:
+	input_field.visible = true
+	input_field.scroll_fit_content_height = true
+	pass
+
+
 func get_wrap_width(is_expanded: bool) -> float:
 	var bar_width := maxf(input_bar.size.x, 1.0)
 	if not is_expanded:
@@ -438,7 +461,7 @@ func get_wrap_height(is_expanded: bool) -> float:
 	input_field.scroll_fit_content_height = not at_cap
 	if at_cap:
 		field_h = max_inner
-	return field_h + WRAP_INNER_PADDING
+	return maxf(EXPANDED_HEIGHT_MIN, field_h + WRAP_INNER_PADDING)
 
 
 func layout_bar() -> void:
@@ -451,6 +474,8 @@ func layout_bar() -> void:
 	input_wrap.offset_bottom = bar_size.y - BOTTOM_MARGIN
 	input_inner.custom_minimum_size = Vector2(0, maxf(0.0, wrap_h - WRAP_INNER_PADDING))
 	input_field.visible = expanded
+	if not expanded:
+		input_field.scroll_fit_content_height = true
 	input_wrap.tooltip_text = "" if expanded else "Click to ask Code Agent…"
 	layout_send_button(expanded)
 	style_wrap()
@@ -478,21 +503,24 @@ func layout_send_button(is_expanded: bool) -> void:
 
 
 func set_expanded(is_expanded: bool, animate: bool) -> void:
-	if expanded == is_expanded and not animate:
+	if expanded == is_expanded:
 		layout_bar()
 		return
 	expanded = is_expanded
+	if is_expanded:
+		prepare_field_for_expand_measure()
 	if not animate or not input_bar.is_inside_tree():
 		layout_bar()
 		return
 
 	if layout_tween != null:
 		layout_tween.kill()
+		layout_tween = null
 	layout_tween = input_bar.create_tween()
 	layout_tween.set_trans(Tween.TRANS_CUBIC)
 	layout_tween.set_ease(Tween.EASE_OUT)
 
-	tween_start_h = input_wrap.size.y
+	tween_start_h = wrap_offset_height()
 	if tween_start_h <= 1.0:
 		tween_start_h = get_wrap_height(not is_expanded)
 	tween_target_h = get_wrap_height(is_expanded)
@@ -501,9 +529,7 @@ func set_expanded(is_expanded: bool, animate: bool) -> void:
 	tween_target_left = tween_bar_size.x - SIDE_MARGIN - get_wrap_width(is_expanded)
 	tween_expand_target = is_expanded
 
-	if is_expanded:
-		input_field.visible = true
-	else:
+	if not is_expanded:
 		layout_send_button(false)
 
 	layout_tween.tween_method(apply_input_tween_step, 0.0, 1.0, 0.22)
@@ -531,9 +557,22 @@ func apply_input_tween_step(value: float) -> void:
 
 
 func on_input_tween_finished() -> void:
+	layout_tween = null
 	layout_bar()
+	if tween_expand_target:
+		sync_expanded_height_after_layout.call_deferred()
 	if tween_expand_target and input_field.editable:
 		focus_input_field()
+	pass
+
+
+func sync_expanded_height_after_layout() -> void:
+	if not expanded:
+		return
+	prepare_field_for_expand_measure()
+	var target_h := get_wrap_height(true)
+	if absf(wrap_offset_height() - target_h) > 1.0:
+		layout_bar()
 	pass
 
 
