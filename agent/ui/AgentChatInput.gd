@@ -32,8 +32,6 @@ var tween_target_left: float = 0.0
 var tween_bar_size: Vector2 = Vector2.ZERO
 var tween_expand_target: bool = false
 var drop_focus_guard: bool = false
-## Ignore focus loss while the send button is pressed (avoids collapse during empty send).
-var send_click_guard: bool = false
 
 
 # ---------------------------------------------------------------------------
@@ -62,7 +60,6 @@ func setup(
 	input_field.scroll_fit_content_height = true
 
 	send_button.pressed.connect(on_input_action_pressed)
-	send_button.gui_input.connect(on_send_gui_input)
 	input_field.gui_input.connect(on_field_gui_input)
 	input_field.minimum_size_changed.connect(on_field_minimum_size_changed)
 	input_field.focus_entered.connect(on_field_focus_entered)
@@ -346,19 +343,10 @@ func on_field_focus_entered() -> void:
 
 
 func on_field_focus_exited() -> void:
-	if drop_focus_guard or send_click_guard:
+	if drop_focus_guard:
 		return
 	refresh_border_beam()
 	try_collapse.call_deferred()
-	pass
-
-
-func on_send_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		var mouse := event as InputEventMouseButton
-		if mouse.button_index != MOUSE_BUTTON_LEFT:
-			return
-		send_click_guard = mouse.pressed
 	pass
 
 
@@ -403,6 +391,8 @@ func expand() -> void:
 
 
 func try_collapse() -> void:
+	if send_button.is_hovered():
+		return
 	if not can_collapse():
 		return
 	set_expanded(false, true)
@@ -529,9 +519,6 @@ func set_expanded(is_expanded: bool, animate: bool) -> void:
 	tween_target_left = tween_bar_size.x - SIDE_MARGIN - get_wrap_width(is_expanded)
 	tween_expand_target = is_expanded
 
-	if not is_expanded:
-		layout_send_button(false)
-
 	layout_tween.tween_method(apply_input_tween_step, 0.0, 1.0, 0.22)
 	layout_tween.finished.connect(on_input_tween_finished, CONNECT_ONE_SHOT)
 	pass
@@ -544,7 +531,8 @@ func apply_input_tween_step(value: float) -> void:
 	input_wrap.offset_top = tween_bar_size.y - BOTTOM_MARGIN - height
 	input_wrap.offset_bottom = tween_bar_size.y - BOTTOM_MARGIN
 	input_inner.custom_minimum_size.y = maxf(0.0, height - WRAP_INNER_PADDING)
-	layout_send_button(tween_expand_target)
+	# Bottom-right until tween ends; center preset mid-shrink looks like the button slides left.
+	layout_send_button(true)
 	if border_beam != null:
 		set_border_beam_to_wrap(
 			lerpf(tween_start_left, tween_target_left, value),
