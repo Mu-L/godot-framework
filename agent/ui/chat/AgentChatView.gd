@@ -28,6 +28,8 @@ func setup(
 ) -> void:
 	chat_scroll = p_chat_scroll
 	chat_host = p_chat_host
+	chat_scroll.clip_contents = false
+	chat_host.clip_contents = false
 	chat_bubble_flusher.setup()
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
@@ -249,7 +251,13 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 					build_bubble_style(AgentColors.system_bubble)
 			)
 		ChatEntry.KIND_USER:
-			rich_text = append_bubble(chat_list, chat_entry, AgentColors.chat_text, AgentColors.user_bubble)
+			rich_text = UserBubble.append(
+					chat_list,
+					chat_entry,
+					build_bubble_style(AgentColors.user_bubble, true),
+					AgentColors.chat_text
+			)
+			queue_scroll_to_bottom()
 		ChatEntry.KIND_THINKING:
 			rich_text = ThinkingBubble.append(
 					chat_list,
@@ -321,7 +329,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	return rich_text
 
 
-func build_bubble_style(bg_color: Color) -> StyleBoxFlat:
+func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.set_corner_radius_all(8)
@@ -329,7 +337,9 @@ func build_bubble_style(bg_color: Color) -> StyleBoxFlat:
 	style.content_margin_right = BUBBLE_BODY_MARGIN_H
 	style.content_margin_top = 10
 	style.content_margin_bottom = 10
-	if AgentColors.is_dark():
+	if user_beam:
+		style.set_border_width_all(0)
+	elif AgentColors.is_dark():
 		style.set_border_width_all(0)
 	else:
 		style.border_color = AgentColors.chat_bubble_border

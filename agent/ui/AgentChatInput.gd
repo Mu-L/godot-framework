@@ -19,7 +19,7 @@ var input_wrap: PanelContainer
 var input_inner: Control
 var input_field: TextEdit
 var send_button: Button
-var border_beam: InputBorderBeamLayer
+var border_beam: AccentBorderBeamLayer
 
 var expanded: bool = false
 var force_expanded: bool = false
@@ -87,7 +87,7 @@ func on_ui_theme_changed() -> void:
 
 func setup_border_beam() -> void:
 	input_bar.clip_contents = false
-	border_beam = InputBorderBeamLayer.new()
+	border_beam = AccentBorderBeamLayer.new()
 	border_beam.name = "BorderBeam"
 	border_beam.z_index = -1
 	input_bar.add_child(border_beam)
@@ -114,7 +114,7 @@ func layout_border_beam() -> void:
 
 
 func set_border_beam_to_wrap(wrap_left: float, wrap_top: float, wrap_right: float, wrap_bottom: float) -> void:
-	var pad := InputBorderBeamLayer.BEAM_OUTSET
+	var pad := AccentBorderBeamLayer.BEAM_OUTSET
 	border_beam.offset_left = wrap_left - pad
 	border_beam.offset_top = wrap_top - pad
 	border_beam.offset_right = wrap_right + pad
@@ -704,77 +704,3 @@ func make_stop_icon(size: int, color: Color) -> ImageTexture:
 		for x in range(left, left + square_size):
 			img.set_pixel(x, y, color)
 	return ImageTexture.create_from_image(img)
-
-
-# ---------------------------------------------------------------------------
-# Border beam overlay (theme-color flowing stroke on input outer edge)
-# ---------------------------------------------------------------------------
-
-class InputBorderBeamLayer extends ColorRect:
-	const BEAM_SHADER := preload("res://agent/ui/shaders/chat_input_border_beam.gdshader")
-	## Outward margin so glow can draw outside the input panel (>= half GLOW_W in shader).
-	const BEAM_OUTSET := 4.0
-
-	var expanded_shape: bool = false
-	var highlight_strength: float = 0.55
-	var beam_material: ShaderMaterial
-
-
-	func _ready() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		clip_contents = false
-		set_anchors_preset(PRESET_FULL_RECT)
-		color = Color(1.0, 1.0, 1.0, 0.0)
-		beam_material = ShaderMaterial.new()
-		beam_material.shader = BEAM_SHADER
-		material = beam_material
-		AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
-		AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
-		resized.connect(sync_shader_uniforms)
-		sync_shader_uniforms()
-		pass
-
-
-	func on_ui_theme_changed() -> void:
-		sync_shader_uniforms()
-		pass
-
-
-	func set_shape(is_expanded: bool) -> void:
-		expanded_shape = is_expanded
-		sync_shader_uniforms()
-		pass
-
-
-	func set_highlight_strength(strength: float) -> void:
-		highlight_strength = clampf(strength, 0.0, 1.0)
-		sync_shader_uniforms()
-		pass
-
-
-	func wrap_size_from_layout() -> Vector2:
-		var beam_size := Vector2(offset_right - offset_left, offset_bottom - offset_top)
-		if beam_size.x < 1.0 or beam_size.y < 1.0:
-			beam_size = size
-		return beam_size - Vector2(BEAM_OUTSET * 2.0, BEAM_OUTSET * 2.0)
-
-
-	func corner_radius_for_size() -> float:
-		var wrap_size := wrap_size_from_layout()
-		if expanded_shape:
-			return 16.0
-		return maxf(wrap_size.y * 0.5, 1.0)
-
-
-	func sync_shader_uniforms() -> void:
-		if beam_material == null:
-			return
-		var beam_size := Vector2(offset_right - offset_left, offset_bottom - offset_top)
-		if beam_size.x < 1.0 or beam_size.y < 1.0:
-			beam_size = size
-		beam_material.set_shader_parameter("accent_color", AgentColors.theme_color)
-		beam_material.set_shader_parameter("strength", highlight_strength)
-		beam_material.set_shader_parameter("corner_radius", corner_radius_for_size())
-		beam_material.set_shader_parameter("rect_size", beam_size)
-		beam_material.set_shader_parameter("edge_pad", BEAM_OUTSET)
-		pass
