@@ -266,7 +266,12 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_AGENT:
-			rich_text = append_bubble(chat_list, chat_entry, AgentColors.chat_text, AgentColors.assistant_bubble)
+			rich_text = AgentBubble.append(
+					chat_list,
+					chat_entry,
+					build_bubble_style(AgentColors.assistant_bubble),
+					AgentColors.chat_text
+			)
 		ChatEntry.KIND_TOOL:
 			var tool_color := AgentColors.tool_title_color(chat_entry.title)
 			rich_text = append_bubble(
