@@ -197,7 +197,6 @@ size_flags_horizontal = 3
 size_flags_stretch_ratio = 3.0
 
 [node name="ChatScroll" type="ScrollContainer" parent="Root/Body/ChatArea" unique_id=639340883]
-clip_contents = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -210,7 +209,7 @@ follow_focus = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 8
+theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 8
 

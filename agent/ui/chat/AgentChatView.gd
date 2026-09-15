@@ -28,8 +28,8 @@ func setup(
 ) -> void:
 	chat_scroll = p_chat_scroll
 	chat_host = p_chat_host
-	chat_scroll.clip_contents = false
-	chat_host.clip_contents = false
+	chat_scroll.clip_contents = true
+	chat_host.clip_contents = true
 	chat_bubble_flusher.setup()
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
