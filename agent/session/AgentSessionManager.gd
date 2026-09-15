@@ -331,6 +331,46 @@ static func add_chat_entry(session_id: int, kind: String, entry_title: String, b
 	AgentEvents.events.chat_entry_add.emit(session_id, entry)
 	return entry
 
+
+## Removes this user entry and every chat entry after it; trims LLM messages to match.
+static func truncate_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
+	if entry == null or entry.kind != ChatEntry.KIND_USER:
+		return
+	var session := AgentSessionStore.load_session(session_id)
+	if session == null:
+		return
+	var entry_idx := session.chat_entries.find(entry)
+	if entry_idx < 0:
+		return
+	if is_running(session_id):
+		request_stop(session_id)
+	var msg_idx := message_index_for_user_chat_entry(session, entry_idx)
+	session.chat_entries = session.chat_entries.slice(0, entry_idx)
+	session.messages = session.messages.slice(0, msg_idx)
+	persist_session(session_id)
+	AgentEvents.events.chat_truncated.emit(session_id)
+	pass
+
+
+static func message_index_for_user_chat_entry(session: AgentSession, entry_idx: int) -> int:
+	if entry_idx < 0 or entry_idx >= session.chat_entries.size():
+		return session.messages.size()
+	if session.chat_entries[entry_idx].kind != ChatEntry.KIND_USER:
+		return session.messages.size()
+	var user_slot := 0
+	for i in range(entry_idx):
+		if session.chat_entries[i].kind == ChatEntry.KIND_USER:
+			user_slot += 1
+	var seen_users := 0
+	for i in range(session.messages.size()):
+		var msg: ChatMessage = session.messages[i]
+		if msg.role != ChatMessage.ROLE_USER:
+			continue
+		if seen_users == user_slot:
+			return i
+		seen_users += 1
+	return session.messages.size()
+
 # ---------------------------------------------------------------------------
 # Event handlers — agent run
 # ---------------------------------------------------------------------------

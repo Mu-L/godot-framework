@@ -10,6 +10,7 @@ const BEAM_STRENGTH := 1.0
 
 static func append(
 	chat_list: VBoxContainer,
+	session_id: int,
 	entry: ChatEntry,
 	panel_style: StyleBoxFlat,
 	text_color: Color,
@@ -31,11 +32,29 @@ static func append(
 	vbox.add_theme_constant_override("separation", 6)
 	panel.add_child(vbox)
 
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 6)
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	var title_label := Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", 12)
-	vbox.add_child(title_label)
+	header.add_child(title_label)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header.add_child(spacer)
+
+	var delete_from_here_button := Button.new()
+	delete_from_here_button.name = "DeleteFromHereButton"
+	delete_from_here_button.text = "Delete"
+	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here", 52.0)
+	delete_from_here_button.pressed.connect(on_delete_from_here_pressed.bind(session_id, entry))
+	header.add_child(delete_from_here_button)
+
+	vbox.add_child(header)
 
 	var rich_text := MarkdownUtils.create_rich_text_label(
 		text_color,
@@ -63,6 +82,11 @@ static func append(
 	chat_list.add_child(host)
 	sync_layout.call_deferred(host, panel, beam)
 	return rich_text
+
+
+static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
+	AgentSessionManager.truncate_chat_from_entry(session_id, entry)
+	pass
 
 
 static func sync_layout(host: Control, panel: PanelContainer, beam: AccentBorderBeamLayer) -> void:

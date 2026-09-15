@@ -67,9 +67,14 @@ static func on_copy_pressed(entry: ChatEntry) -> void:
 
 
 static func style_copy_button(button: Button, bubble_bg: Color) -> void:
+	style_header_button(button, bubble_bg, "Copy message", 40.0)
+	pass
+
+
+static func style_header_button(button: Button, bubble_bg: Color, tooltip: String, min_width: float) -> void:
 	button.focus_mode = Control.FOCUS_NONE
-	button.tooltip_text = "Copy message"
-	button.custom_minimum_size = Vector2(40, 18)
+	button.tooltip_text = tooltip
+	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", 10)
 	button.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	button.add_theme_color_override("font_hover_color", AgentColors.chat_text.lightened(0.08))

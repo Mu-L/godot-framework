@@ -42,6 +42,7 @@ func setup(
 	AgentEvents.events.chat_entry_add.connect(on_message_start)
 	AgentEvents.events.chat_entry_update.connect(on_chat_entry_update)
 	AgentEvents.events.chat_bubble_flushed.connect(on_chat_bubble_flushed)
+	AgentEvents.events.chat_truncated.connect(on_chat_truncated)
 	pass
 
 
@@ -106,6 +107,13 @@ func on_chat_entry_update(session_id: int, entry: ChatEntry, _channel: String) -
 ## Scroll after ChatBubbleFlusher drains a batch (see AgentEvents.bubble_rich_text_flushed).
 func on_chat_bubble_flushed() -> void:
 	queue_scroll_to_bottom()
+	pass
+
+
+func on_chat_truncated(session_id: int) -> void:
+	clear_bubble_list(session_id)
+	if AgentSessionManager.is_active(session_id):
+		show_session(session_id)
 	pass
 
 
@@ -253,6 +261,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 		ChatEntry.KIND_USER:
 			rich_text = UserBubble.append(
 					chat_list,
+					session_id,
 					chat_entry,
 					build_bubble_style(AgentColors.user_bubble, true),
 					AgentColors.chat_text
