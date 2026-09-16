@@ -18,7 +18,7 @@ func _init() -> void:
 	text_edit = TextEdit.new()
 	text_edit.editable = false
 	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	text_edit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 8)
+	text_edit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 3)
 	text_edit.add_theme_font_override("font", Fonts.regular())
 	add_child(text_edit)
 	pass
