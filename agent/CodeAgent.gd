@@ -35,7 +35,6 @@ var chat_area: ChatArea = ChatArea.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
 var theme_toggle: ThemeToggle = ThemeToggle.new()
 var theme_color_select_ctrl: ThemeColorSelect = ThemeColorSelect.new()
-var log_panel: AgentLogPanel = AgentLogPanel.new()
 var jarvis_toggle: JarvisToggle = JarvisToggle.new()
 var skill_bubble: SkillBubble = SkillBubble.new()
 var token_usage_display: TokenUsageDisplay = TokenUsageDisplay.new()
@@ -67,8 +66,10 @@ func _ready() -> void:
 	chat_input.setup(input_bar, input_wrap, input_inner, input_field, send_button)
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
-	# Log window is created in code (AgentTextPopup), not as a scene node.
-	log_panel.setup(log_button, self)
+	style_log_button()
+	log_button.pressed.connect(on_log_pressed)
+	AgentEvents.events.theme_changed.connect(on_log_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_log_theme_changed)
 
 	AgentSessionManager.load_from_disk()
 	session_sidebar.rebuild()
@@ -100,4 +101,19 @@ func on_workspace_selected(path: String) -> void:
 	AgentSessionManager.load_from_disk()
 	session_sidebar.rebuild()
 	refresh_workspace_button()
+	pass
+
+
+func style_log_button() -> void:
+	AgentToolbarButton.style(log_button, "View system log")
+	pass
+
+
+func on_log_theme_changed() -> void:
+	style_log_button()
+	pass
+
+
+func on_log_pressed() -> void:
+	LogWindow.show_log(128, 70, 80)
 	pass

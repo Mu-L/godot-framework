@@ -1,21 +1,14 @@
 class_name AgentTextPopup
 extends Window
 
-## Shared read-only text popup for Code Agent.
-##
-## Two close modes:
-## - One-shot (`destroy_on_close = true`, default) — thinking / result full view.
-##   `open()` / `open_entry()` create a window, Esc or the close button `queue_free`s it.
-## - Reusable (`destroy_on_close = false`) — system log. Keep one instance, `hide()` on
-##   close, `popup_centered_fit()` + `set_text()` on the next open.
+## Shared read-only text popup for Code Agent thinking / result full view.
+## `open()` / `open_entry()` create a window; Esc or the close button `queue_free`s it.
 
 const EDGE_MARGIN := 64
 const WIDTH_RATIO := 0.76
 const HEIGHT_RATIO := 0.78
 const TEXT_MARGIN := 12
 
-## When true, close destroys this window. When false, close only hides it for reuse.
-var destroy_on_close := true
 var text_edit: TextEdit
 
 
@@ -113,10 +106,7 @@ func resolve_viewport_size(anchor: Control) -> Vector2:
 
 
 func on_close_requested() -> void:
-	if destroy_on_close:
-		queue_free()
-		return
-	hide()
+	queue_free()
 	pass
 
 

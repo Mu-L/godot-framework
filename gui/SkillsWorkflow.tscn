@@ -138,24 +138,3 @@ file_mode = 0
 access = 2
 filters = PackedStringArray("*.workflow.json ; Workflow JSON")
 
-[node name="LogWindow" type="Window" parent="." unique_id=870637878]
-oversampling_override = 1.0
-title = "Run Log"
-initial_position = 2
-size = Vector2i(1400, 900)
-visible = false
-transient = true
-min_size = Vector2i(960, 540)
-
-[node name="LogOutput" type="TextEdit" parent="LogWindow" unique_id=714942692]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-editable = false
-wrap_mode = 1

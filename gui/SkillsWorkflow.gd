@@ -17,8 +17,6 @@ const PALETTE_LABEL_MAX := 30
 @onready var locale_button: Button = $Root/Toolbar/Actions/LocaleButton
 @onready var log_button: Button = $Root/Toolbar/Actions/LogButton
 @onready var run_button: Button = $Root/Toolbar/Actions/RunButton
-@onready var log_output: TextEdit = $LogWindow/LogOutput
-@onready var log_window: Window = $LogWindow
 @onready var save_dialog: FileDialog = $SaveDialog
 @onready var load_dialog: FileDialog = $LoadDialog
 
@@ -52,11 +50,6 @@ func _ready() -> void:
 	WorkflowEvents.events.step_finished.connect(on_step_finished)
 	WorkflowEvents.events.pipeline_finished.connect(on_pipeline_finished)
 	WorkflowEvents.events.pipeline_stopped.connect(on_pipeline_stopped)
-
-	log_window.close_requested.connect(on_log_window_close_requested)
-	log_window.window_input.connect(on_log_window_key_input)
-
-	SchedulerBus.schedule_at_fixed_rate(refresh_log_panel, 2000, "skills_workflow_log_refresh")
 
 	WorkflowManager.ensure_workflows_dir()
 	pass
@@ -110,7 +103,6 @@ func apply_ui_locale() -> void:
 	load_dialog.filters = PackedStringArray([
 		"*.workflow.json ; " + GuiLocale.text("ui.dialog.workflow_filter"),
 	])
-	log_window.title = GuiLocale.text("ui.dialog.log_title")
 	refresh_locale_button()
 	pass
 
@@ -261,41 +253,8 @@ func set_workflow_name(name: String) -> void:
 	pass
 
 
-func refresh_log_panel() -> void:
-	if not log_window.visible:
-		return
-	log_output.text = LoggerHelper.tail_log()
-	log_output.scroll_vertical = log_output.get_line_count()
-	pass
-
-
 func on_log_pressed() -> void:
-	if log_window.visible:
-		log_window.hide()
-		return
-	var viewport_size := get_viewport().get_visible_rect().size
-	log_window.size = Vector2i(
-		int(viewport_size.x * 0.68),
-		int(viewport_size.y * 0.78),
-	)
-	log_window.popup_centered()
-	refresh_log_panel()
-	pass
-
-
-func on_log_window_close_requested() -> void:
-	log_window.hide()
-	pass
-
-
-func on_log_window_key_input(event: InputEvent) -> void:
-	if not log_window.visible:
-		return
-	if event is InputEventKey:
-		var key := event as InputEventKey
-		if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
-			on_log_window_close_requested()
-			log_window.set_input_as_handled()
+	LogWindow.show_log(128, 70, 80)
 	pass
 
 
