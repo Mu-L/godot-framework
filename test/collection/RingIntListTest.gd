@@ -34,11 +34,3 @@ func RingIntList_remove_value_test() -> void:
 	ring.clear()
 	assert(ring.is_empty())
 	pass
-
-static func my_static_testing() -> void:
-	assert(false)
-	pass
-
-static func my_static_test() -> void:
-	assert(true)
-	pass
