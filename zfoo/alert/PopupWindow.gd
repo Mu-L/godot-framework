@@ -6,7 +6,9 @@ var text_edit: TextEdit
 
 
 func _init() -> void:
+	# Child of the main window: follows it, and usually has no taskbar entry.
 	transient = true
+	# Hide until popup_centered(), otherwise add_child flashes a default-sized window.
 	visible = false
 	close_requested.connect(on_close_requested)
 	window_input.connect(on_window_input)
@@ -14,7 +16,7 @@ func _init() -> void:
 	text_edit = TextEdit.new()
 	text_edit.editable = false
 	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	text_edit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 8)
+	text_edit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 3)
 	text_edit.add_theme_font_override("font", Fonts.regular())
 	add_child(text_edit)
 	pass
@@ -23,12 +25,10 @@ func _init() -> void:
 ## Show `text` in a centered window. Width/height are percent of the screen (1–100).
 ## Example: `PopupWindow.show_text("Full view", body, 76, 78)`
 static func show_text(title: String, text: String, width_percent: int, height_percent: int) -> void:
-	if gdf.gdf_node == null:
-		Log.error("PopupWindow.show_text called before GodotFramework ready")
-		return
 	var window := PopupWindow.new()
 	window.title = title
 	gdf.gdf_node.add_child(window)
+	# Size against the root viewport; this Window is itself a Viewport.
 	var viewport := gdf.gdf_node.get_tree().root.get_visible_rect().size
 	window.size = Vector2i(
 		int(viewport.x * clampf(width_percent, 1.0, 100.0) / 100.0),
@@ -46,6 +46,7 @@ func set_body(text: String) -> void:
 
 
 func _notification(what: int) -> void:
+	# Clicking outside moves focus back to the main window.
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and visible:
 		queue_free()
 	pass
