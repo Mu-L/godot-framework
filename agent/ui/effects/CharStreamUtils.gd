@@ -8,26 +8,19 @@ const MAX_PHRASE_LEN := 64
 const MIN_PHRASE_LEN := 2
 
 
-static func is_delimiter(ch: String, lines_only: bool = false) -> bool:
+static func is_delimiter(ch: String) -> bool:
 	if ch == "\n" or ch == "\r":
 		return true
-	if lines_only:
-		return false
 	return (
 		ch == "。" or ch == "！" or ch == "？" or ch == "!" or ch == "?"
 		or ch == ";" or ch == "；" or ch == "，" or ch == "," or ch == "."
 	)
 
 
-static func append_and_take(
-	buffer: StringBuilder,
-	chunk: String,
-	max_segments: int = MAX_SEGMENTS_PER_DRAIN,
-	lines_only: bool = false
-) -> Array[String]:
+static func append_and_take(buffer: StringBuilder, chunk: String, max_segments: int = MAX_SEGMENTS_PER_DRAIN) -> Array[String]:
 	if not chunk.is_empty():
 		buffer.append(chunk)
-	var split := split_with_tail(buffer.build_string(), max_segments, lines_only)
+	var split := split_with_tail(buffer.build_string(), max_segments)
 	buffer.clear()
 	if not split.tail.is_empty():
 		buffer.append(split.tail)
@@ -40,7 +33,6 @@ static func drain_remainder(buffer: StringBuilder) -> String:
 	return text
 
 
-## Tool / error entries — newline splits only.
 static func split_line_segments(text: String) -> Array[String]:
 	var segments: Array[String] = []
 	for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n", false):
@@ -50,7 +42,7 @@ static func split_line_segments(text: String) -> Array[String]:
 	return segments
 
 
-static func split_with_tail(text: String, max_segments: int, lines_only: bool) -> Dictionary:
+static func split_with_tail(text: String, max_segments: int) -> Dictionary:
 	var segments: Array[String] = []
 	if text.is_empty():
 		return {"segments": segments, "tail": ""}
@@ -59,7 +51,7 @@ static func split_with_tail(text: String, max_segments: int, lines_only: bool) -
 	while i < text.length():
 		var ch := text.substr(i, 1)
 		current += ch
-		if is_delimiter(ch, lines_only):
+		if is_delimiter(ch):
 			var seg := current.strip_edges()
 			if not seg.is_empty():
 				segments.append(seg)
@@ -72,25 +64,14 @@ static func split_with_tail(text: String, max_segments: int, lines_only: bool) -
 	return {"segments": segments, "tail": tail}
 
 
-## Shorten long display text at the last punctuation before max_len (not a hard char chop).
 static func truncate_at_punctuation(text: String, max_len: int) -> String:
 	var phrase := text.strip_edges()
 	if phrase.length() <= max_len:
 		return phrase
-	var cut := find_last_delimiter_index(phrase, max_len)
+	var cut := -1
+	for i in mini(phrase.length(), max_len):
+		if is_delimiter(phrase.substr(i, 1)):
+			cut = i
 	if cut >= MIN_PHRASE_LEN:
 		return phrase.substr(0, cut).strip_edges()
 	return phrase.substr(0, max_len).strip_edges() + "…"
-
-
-static func display_phrase(raw: String) -> String:
-	return truncate_at_punctuation(raw.strip_edges(), MAX_PHRASE_LEN)
-
-
-static func find_last_delimiter_index(text: String, before: int) -> int:
-	var limit := clampi(before, 0, text.length())
-	var last := -1
-	for i in limit:
-		if is_delimiter(text.substr(i, 1)):
-			last = i
-	return last

@@ -13,7 +13,6 @@ var stream_char_total: int = 0
 var color_controller: OrbColorController = OrbColorController.new()
 
 var stream_buffer: StringBuilder = StringBuilder.new()
-var growth_dirty: bool = false
 var growth_flush_timer: float = 0.0
 
 
@@ -48,12 +47,12 @@ func _process(delta: float) -> void:
 
 	if growth_flush_timer > 0.0:
 		growth_flush_timer = maxf(0.0, growth_flush_timer - delta)
-		if growth_flush_timer <= 0.0 and growth_dirty:
+		if growth_flush_timer <= 0.0:
 			flush_growth()
 	pass
 
 
-func set_phase(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
+func set_phase(new_phase: OrbPhase.Phase) -> void:
 	phase = new_phase
 	color_controller.set_target(OrbPhase.color_for(new_phase))
 	char_overlay.set_phase(new_phase)
@@ -82,29 +81,26 @@ func add_step_text(text: String, split_by_lines: bool = false) -> void:
 		if split_by_lines
 		else CharStreamUtils.append_and_take(stream_buffer, text, cap)
 	)
-	offer_segments(segments)
+	push_segments(segments)
 	pass
 
 
 func flush_stream_buffer() -> void:
 	var tail := CharStreamUtils.drain_remainder(stream_buffer)
 	if not tail.is_empty():
-		offer_segments([tail])
+		push_segments([tail])
 	pass
 
 
-func offer_segments(segments: Array[String]) -> void:
+func push_segments(segments: Array[String]) -> void:
 	if segments.is_empty():
 		return
-	char_overlay.stage_segments(segments)
-	growth_dirty = true
+	char_overlay.accept_segments(segments)
 	growth_flush_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
 
 
 func flush_growth() -> void:
-	growth_dirty = false
-	char_overlay.commit_staged_segments()
 	char_overlay.apply_growth(stream_char_total)
 	neuron_net.apply_growth(stream_char_total)
 	pass
@@ -119,12 +115,11 @@ func apply_display_color() -> void:
 
 
 func reset_growth() -> void:
-	if growth_dirty:
+	if growth_flush_timer > 0.0:
 		flush_growth()
 	color_controller.snap_to(OrbPhase.color_for(OrbPhase.Phase.IDLE))
 	stream_char_total = 0
 	stream_buffer.clear()
-	growth_dirty = false
 	growth_flush_timer = 0.0
 	neuron_net.reset_growth()
 	char_overlay.reset_growth()
@@ -133,6 +128,5 @@ func reset_growth() -> void:
 
 func clear_stream_queue() -> void:
 	stream_buffer.clear()
-	if char_overlay != null:
-		char_overlay.clear_queue()
+	char_overlay.clear_stream()
 	pass

@@ -239,7 +239,7 @@ func on_jarvis_orb_changed(enabled: bool) -> void:
 func transition_to(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
 	phase = new_phase
 	if jarvis_orb != null:
-		jarvis_orb.set_phase(new_phase, tool_name if not tool_name.is_empty() else current_tool_name)
+		jarvis_orb.set_phase(new_phase)
 	pass
 
 
