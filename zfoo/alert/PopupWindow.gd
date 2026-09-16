@@ -22,9 +22,9 @@ func _init() -> void:
 	pass
 
 
-## Show `text` in a centered window. Width/height are percent of the screen (1–100).
-## Example: `PopupWindow.show_text("Full view", body, 76, 78)`
-static func show_text(title: String, text: String, width_percent: int, height_percent: int) -> void:
+## Open a centered read-only window. Width/height are percent of the screen (1–100).
+## Example: `PopupWindow.show_window("Full view", body, 76, 78)`
+static func show_window(title: String, text: String, width_percent: int, height_percent: int) -> void:
 	var window := PopupWindow.new()
 	window.title = title
 	gdf.gdf_node.add_child(window)

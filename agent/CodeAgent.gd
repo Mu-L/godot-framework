@@ -115,5 +115,5 @@ func on_log_theme_changed() -> void:
 
 
 func on_log_pressed() -> void:
-	LogWindow.show_log(128, 70, 80)
+	LogWindow.show_log_window(128, 70, 80)
 	pass

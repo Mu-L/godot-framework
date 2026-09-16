@@ -10,5 +10,5 @@ func _ready() -> void:
 
 func on_show_log_pressed() -> void:
 	Log.info("LogWindow manual test")
-	LogWindow.show_log(128, 70, 80)
+	LogWindow.show_log_window(128, 70, 80)
 	pass

@@ -32,5 +32,5 @@ func _init(_kind: String = "", _title: String = "", _body: String = "") -> void:
 
 func open_full_view() -> void:
 	var popup_title := title if not StringUtils.is_blank(title) else "Full view"
-	PopupWindow.show_text(popup_title, body, 76, 78)
+	PopupWindow.show_window(popup_title, body, 76, 78)
 	pass
