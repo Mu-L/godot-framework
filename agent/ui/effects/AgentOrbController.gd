@@ -193,8 +193,6 @@ func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: 
 		return
 	current_tool_name = tool_name
 	transition_to(OrbPhase.Phase.TOOL_EXEC, tool_name)
-	var body := AgentSessionManager.format_tool_body(tool_name, args)
-	jarvis_orb.add_step_text(body)
 	pass
 
 
@@ -212,8 +210,9 @@ func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: St
 func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 	if session_id != running_session_id or not _should_handle(session_id):
 		return
-	if entry.kind == ChatEntry.KIND_ERROR:
-		jarvis_orb.add_step_text(entry.body)
+	match entry.kind:
+		ChatEntry.KIND_ERROR, ChatEntry.KIND_TOOL:
+			jarvis_orb.add_step_text(entry.body)
 	pass
 
 

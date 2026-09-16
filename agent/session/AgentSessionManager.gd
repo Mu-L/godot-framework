@@ -424,7 +424,21 @@ static func on_message_complete(session_id: int, usage: OpenAiUsage) -> void:
 # ---------------------------------------------------------------------------
 
 static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, String]) -> void:
-	add_chat_entry(session_id, ChatEntry.KIND_TOOL, tool_name, format_tool_body(tool_name, args))
+	var body := ""
+	match tool_name:
+		ReadTool.NAME, WriteTool.NAME, EditTool.NAME:
+			body = str(args.get(ReadTool.ARG_PATH, ""))
+		BashTool.NAME:
+			body = str(args.get(BashTool.ARG_COMMAND, ""))
+		WebSearchToolProxy.NAME, WebSearchToolBing.NAME:
+			body = str(args.get(WebSearchToolProxy.ARG_QUERY, ""))
+		_:
+			for key: Variant in args.keys():
+				var value := str(args[key])
+				if StringUtils.is_not_blank(value):
+					body = value
+					break
+	add_chat_entry(session_id, ChatEntry.KIND_TOOL, tool_name, body)
 	pass
 
 
@@ -440,19 +454,3 @@ static func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_n
 		
 	add_chat_entry(session_id, ChatEntry.KIND_RESULT, title, body)
 	pass
-
-
-static func format_tool_body(tool_name: String, args: Dictionary[String, String]) -> String:
-	match tool_name:
-		ReadTool.NAME, WriteTool.NAME, EditTool.NAME:
-			return str(args.get(ReadTool.ARG_PATH, ""))
-		BashTool.NAME:
-			return str(args.get(BashTool.ARG_COMMAND, ""))
-		WebSearchToolProxy.NAME, WebSearchToolBing.NAME:
-			return str(args.get(WebSearchToolProxy.ARG_QUERY, ""))
-		_:
-			for key: Variant in args.keys():
-				var value := str(args[key])
-				if StringUtils.is_not_blank(value):
-					return value
-			return ""

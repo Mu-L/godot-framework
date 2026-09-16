@@ -39,7 +39,7 @@ func setup(
 	AgentEvents.events.session_removed.connect(on_session_removed)
 	AgentEvents.events.agent_start.connect(on_agent_start)
 	AgentEvents.events.session_stop.connect(on_session_stop)
-	AgentEvents.events.chat_entry_add.connect(on_message_start)
+	AgentEvents.events.chat_entry_add.connect(on_chat_entry_add)
 	AgentEvents.events.chat_entry_update.connect(on_chat_entry_update)
 	AgentEvents.events.chat_bubble_flushed.connect(on_chat_bubble_flushed)
 	AgentEvents.events.chat_truncated.connect(on_chat_truncated)
@@ -83,7 +83,7 @@ func on_agent_start(session_id: int) -> void:
 # AgentEvents — chat entries & streaming
 # ---------------------------------------------------------------------------
 
-func on_message_start(session_id: int, entry: ChatEntry) -> void:
+func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 	if get_bubble_rich_text(session_id, entry) != null:
 		return
 	if chat_list_caches.get(session_id) == null:
