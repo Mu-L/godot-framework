@@ -36,8 +36,7 @@ static func log_format_error_message(function: String, file: String, line: int, 
 
 
 
-static func tail_log() -> String:
-	const TAIL_LINES := 128
+static func tail_log(line_count: int = 128) -> String:
 	const CHUNK_SIZE := 4096
 
 	if not FileAccess.file_exists(LOG_FILE_PATH):
@@ -52,7 +51,7 @@ static func tail_log() -> String:
 	var chunks: Array[String] = []
 	var newlines := 0
 
-	while pos > 0 and newlines <= TAIL_LINES:
+	while pos > 0 and newlines <= line_count:
 		var start := maxi(0, pos - CHUNK_SIZE)
 		var read_len := pos - start
 		file.seek(start)
@@ -70,8 +69,8 @@ static func tail_log() -> String:
 		builder.append(chunk)
 	var collected := FileUtils.normalize_line_endings_to_lf(builder.build_string())
 	var lines := collected.split(FileUtils.NEWLINE_LF, false)
-	if lines.size() > TAIL_LINES:
-		lines = lines.slice(lines.size() - TAIL_LINES, lines.size())
+	if lines.size() > line_count:
+		lines = lines.slice(lines.size() - line_count, lines.size())
 
 	var tail_text := FileUtils.NEWLINE_LF.join(lines)
 	return tail_text
