@@ -43,7 +43,6 @@ static func show_log(line_count: int, width_percent: int, height_percent: int) -
 	var window := LogWindow.new()
 	current = window
 	gdf.gdf_node.add_child(window)
-	window.get_tree().root.window_input.connect(window.on_outside_click)
 	window.apply_size(width_percent, height_percent)
 	window.set_log_text(LoggerHelper.tail_log(maxi(line_count, 1)))
 	window.popup_centered()
@@ -70,9 +69,6 @@ func set_log_text(text: String) -> void:
 func close_window() -> void:
 	if current == self:
 		current = null
-	var tree := get_tree()
-	if tree != null and tree.root.window_input.is_connected(on_outside_click):
-		tree.root.window_input.disconnect(on_outside_click)
 	queue_free()
 	pass
 
@@ -82,13 +78,9 @@ func on_close_requested() -> void:
 	pass
 
 
-func on_outside_click(event: InputEvent) -> void:
-	if not visible:
-		return
-	if event is InputEventMouseButton:
-		var mouse := event as InputEventMouseButton
-		if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
-			close_window()
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and visible:
+		close_window()
 	pass
 
 
