@@ -1,3 +1,6 @@
+## Unit tests for [RingIntList]. Loaded with other scripts in this folder by [code]test/collection/CollectionTest.tscn[/code] ([UnitTest]).
+
+## Fill, overwrite oldest when full, [method RingIntList.remove_latest], and [method RingIntList.clear].
 func RingIntList_add_test() -> void:
 	var ring := RingIntList.new(3)
 	ring.add(1)
@@ -19,6 +22,7 @@ func RingIntList_add_test() -> void:
 	assert(ring.to_array() == [])
 	pass
 
+## [method RingIntList.remove_value] compacts order; missing values are ignored.
 func RingIntList_remove_value_test() -> void:
 	var ring := RingIntList.new(8)
 	ring.add(1)

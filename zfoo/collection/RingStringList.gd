@@ -1,6 +1,11 @@
 class_name RingStringList
 extends RefCounted
 
+## Fixed-capacity ring buffer of [String] values kept in insertion order (oldest first).
+##
+## Same semantics as [RingIntList]; storage uses [PackedStringArray].
+## [method latest] returns an empty string when the buffer is empty.
+
 var capacity: int = 0
 var buffer: PackedStringArray = PackedStringArray()
 var head: int = 0
@@ -12,6 +17,7 @@ func _init(_capacity: int) -> void:
 	buffer.resize(capacity)
 	pass
 
+## Appends or, if full, replaces the oldest value.
 func add(value: String) -> void:
 	if count < capacity:
 		buffer[(head + count) % capacity] = value
@@ -21,12 +27,14 @@ func add(value: String) -> void:
 		head = (head + 1) % capacity
 	pass
 
+## Drops the most recently added value; no-op when empty.
 func remove_latest() -> void:
 	if count == 0:
 		return
 	count -= 1
 	pass
 
+## Removes the first matching value; no-op when empty or not found.
 func remove_value(value: String) -> void:
 	if count == 0:
 		return
@@ -56,11 +64,13 @@ func is_full() -> bool:
 func size() -> int:
 	return count
 
+## Newest value, or [code]""[/code] when empty.
 func latest() -> String:
 	if count == 0:
 		return ""
 	return buffer[(head + count - 1) % capacity]
 
+## Oldest-to-newest snapshot of the logical buffer.
 func to_array() -> Array[String]:
 	var result: Array[String] = []
 	for i in count:
