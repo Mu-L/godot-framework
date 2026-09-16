@@ -177,7 +177,7 @@ func on_message_update(session_id: int, chunk: String, stream_kind: String) -> v
 		transition_to(OrbPhase.Phase.REASONING)
 	elif phase != OrbPhase.Phase.TOOL_EXEC:
 		transition_to(OrbPhase.Phase.GENERATING)
-	jarvis_orb.add_stream_chunk(chunk, stream_kind)
+	jarvis_orb.add_step_text(chunk)
 	pass
 
 
@@ -214,7 +214,7 @@ func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 		return
 	match entry.kind:
 		ChatEntry.KIND_ERROR, ChatEntry.KIND_TOOL:
-			jarvis_orb.add_step_text(entry.body, OpenAiClient.STREAM_KIND_CONTENT, true)
+			jarvis_orb.add_step_text(entry.body, true)
 	pass
 
 

@@ -27,14 +27,6 @@ static func append_and_take(
 ) -> Array[String]:
 	if not chunk.is_empty():
 		buffer.append(chunk)
-	return take_buffered_segments(buffer, max_segments, lines_only)
-
-
-static func take_buffered_segments(
-	buffer: StringBuilder,
-	max_segments: int = MAX_SEGMENTS_PER_DRAIN,
-	lines_only: bool = false
-) -> Array[String]:
 	var split := split_with_tail(buffer.build_string(), max_segments, lines_only)
 	buffer.clear()
 	if not split.tail.is_empty():
@@ -80,22 +72,6 @@ static func split_with_tail(text: String, max_segments: int, lines_only: bool) -
 	return {"segments": segments, "tail": tail}
 
 
-static func split_clauses(text: String) -> Array[String]:
-	var parts: Array[String] = []
-	var current := ""
-	for i in text.length():
-		var ch := text.substr(i, 1)
-		if is_delimiter(ch):
-			if not current.strip_edges().is_empty():
-				parts.append(current.strip_edges())
-			current = ""
-			continue
-		current += ch
-	if not current.strip_edges().is_empty():
-		parts.append(current.strip_edges())
-	return parts
-
-
 ## Shorten long display text at the last punctuation before max_len (not a hard char chop).
 static func truncate_at_punctuation(text: String, max_len: int) -> String:
 	var phrase := text.strip_edges()
@@ -104,28 +80,10 @@ static func truncate_at_punctuation(text: String, max_len: int) -> String:
 	var cut := find_last_delimiter_index(phrase, max_len)
 	if cut >= MIN_PHRASE_LEN:
 		return phrase.substr(0, cut).strip_edges()
-	for clause in split_clauses(phrase):
-		var part := clause.strip_edges()
-		if part.is_empty():
-			continue
-		if part.length() <= max_len:
-			return part
-		var inner_cut := find_last_delimiter_index(part, max_len)
-		if inner_cut >= MIN_PHRASE_LEN:
-			return part.substr(0, inner_cut).strip_edges()
 	return phrase.substr(0, max_len).strip_edges() + "…"
 
 
-static func try_add_phrase(result: Array[String], seen: Dictionary, raw: String, _max_count: int) -> void:
-	var phrase := format_phrase(raw)
-	if phrase.length() < MIN_PHRASE_LEN or seen.has(phrase):
-		return
-	seen[phrase] = true
-	result.append(phrase)
-	pass
-
-
-static func format_phrase(raw: String) -> String:
+static func display_phrase(raw: String) -> String:
 	return truncate_at_punctuation(raw.strip_edges(), MAX_PHRASE_LEN)
 
 

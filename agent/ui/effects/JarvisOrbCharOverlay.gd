@@ -18,7 +18,6 @@ var shared_curves: Array[Curve3D] = []
 var current_phase: OrbPhase.Phase = OrbPhase.Phase.IDLE
 var current_path_style: OrbPhase.PathStyle = OrbPhase.PathStyle.TRANSVERSE
 var display_color: Color = AgentColors.theme_accent_solid()
-var current_tool_name: String = ""
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var stream_char_total: int = 0
@@ -26,6 +25,7 @@ var max_active: int = OrbGrowth.PARTICLE_CAP_MIN
 var spawn_per_frame: int = OrbGrowth.SPAWN_FRAME_MIN
 var recent_phrases: Array[String] = []
 
+var staged_segments: Array[String] = []
 var pending_phrase_segments: Array[String] = []
 var phrase_batch_timer: float = 0.0
 
@@ -33,8 +33,7 @@ var phrase_batch_timer: float = 0.0
 func setup(net: JarvisOrbNeuronNet) -> void:
 	neuron_net = net
 	rng.randomize()
-	build_label_pool()
-	build_keyword_pool()
+	build_label_pools()
 	refresh_shared_curves()
 	pass
 
@@ -50,14 +49,28 @@ func _process(delta: float) -> void:
 	pass
 
 
-func enqueue_segments(segments: Array[String]) -> void:
+func stage_segments(segments: Array[String]) -> void:
+	staged_segments.append_array(segments)
 	for segment in segments:
-		var display := CharStreamUtils.format_phrase(segment)
+		if segment.is_empty():
+			continue
+		pending_phrase_segments.append(segment)
+	if not pending_phrase_segments.is_empty():
+		phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
+	pass
+
+
+func commit_staged_segments() -> void:
+	if staged_segments.is_empty():
+		return
+	for segment in staged_segments:
+		var display := CharStreamUtils.display_phrase(segment)
 		if display.is_empty():
 			continue
 		if char_queue.size() >= CHAR_QUEUE_CAP:
 			char_queue.pop_front()
 		char_queue.append(display)
+	staged_segments.clear()
 	pass
 
 
@@ -80,28 +93,15 @@ func reset_growth() -> void:
 	pass
 
 
-func set_phase(phase: OrbPhase.Phase, tool_name: String = "") -> void:
+func set_phase(phase: OrbPhase.Phase, _tool_name: String = "") -> void:
 	current_phase = phase
 	current_path_style = OrbPhase.path_style_for(phase)
-	if not tool_name.is_empty():
-		current_tool_name = tool_name
 	refresh_shared_curves()
 	pass
 
 
 func sync_display_color(color: Color) -> void:
 	display_color = color
-	pass
-
-
-func queue_step_phrases(segments: Array[String]) -> void:
-	for segment in segments:
-		if segment.is_empty():
-			continue
-		pending_phrase_segments.append(segment)
-	if pending_phrase_segments.is_empty():
-		return
-	phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
 
 
@@ -113,8 +113,12 @@ func flush_phrase_batch() -> void:
 	var seen: Dictionary = {}
 	var consumed := 0
 	while consumed < pending_phrase_segments.size() and phrases.size() < cap:
-		CharStreamUtils.try_add_phrase(phrases, seen, pending_phrase_segments[consumed], cap)
+		var phrase := CharStreamUtils.display_phrase(pending_phrase_segments[consumed])
 		consumed += 1
+		if phrase.length() < CharStreamUtils.MIN_PHRASE_LEN or seen.has(phrase):
+			continue
+		seen[phrase] = true
+		phrases.append(phrase)
 	for _i in consumed:
 		pending_phrase_segments.pop_front()
 	if not phrases.is_empty():
@@ -126,6 +130,7 @@ func flush_phrase_batch() -> void:
 
 func clear_queue() -> void:
 	char_queue.clear()
+	staged_segments.clear()
 	pending_phrase_segments.clear()
 	phrase_batch_timer = 0.0
 	pass
@@ -153,33 +158,25 @@ func refresh_shared_curves() -> void:
 	pass
 
 
-func build_label_pool() -> void:
+func build_label_pools() -> void:
 	for _i in POOL_SIZE:
-		var label := Label3D.new()
-		apply_orb_font(label)
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		label.font_size = 20
-		label.outline_size = 0
-		label.pixel_size = 0.0018
-		label.modulate = Color(1, 1, 1, 0)
-		label.visible = false
-		add_child(label)
-		free_labels.append(label)
+		free_labels.append(make_pool_label(20, 0.0018))
+	for _i in KEYWORD_POOL:
+		keyword_labels.append(make_pool_label(36, 0.0022))
 	pass
 
 
-func build_keyword_pool() -> void:
-	for _i in KEYWORD_POOL:
-		var label := Label3D.new()
-		apply_orb_font(label)
-		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		label.font_size = 36
-		label.outline_size = 0
-		label.pixel_size = 0.0022
-		label.modulate = Color(1, 1, 1, 0)
-		label.visible = false
-		add_child(label)
-		keyword_labels.append(label)
+func make_pool_label(font_size: int, pixel_size: float) -> Label3D:
+	var label := Label3D.new()
+	apply_orb_font(label)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.font_size = font_size
+	label.outline_size = 0
+	label.pixel_size = pixel_size
+	label.modulate = Color(1, 1, 1, 0)
+	label.visible = false
+	add_child(label)
+	return label
 	pass
 
 

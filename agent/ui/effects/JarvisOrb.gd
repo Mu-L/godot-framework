@@ -13,7 +13,6 @@ var stream_char_total: int = 0
 var color_controller: OrbColorController = OrbColorController.new()
 
 var stream_buffer: StringBuilder = StringBuilder.new()
-var pending_segments: Array[String] = []
 var growth_dirty: bool = false
 var growth_flush_timer: float = 0.0
 
@@ -73,7 +72,7 @@ func set_phase(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
 	pass
 
 
-func add_step_text(text: String, _stream_kind: String = OpenAiClient.STREAM_KIND_CONTENT, split_by_lines: bool = false) -> void:
+func add_step_text(text: String, split_by_lines: bool = false) -> void:
 	if text.is_empty():
 		return
 	stream_char_total += text.length()
@@ -98,8 +97,7 @@ func flush_stream_buffer() -> void:
 func stage_segments(segments: Array[String]) -> void:
 	if segments.is_empty():
 		return
-	pending_segments.append_array(segments)
-	char_overlay.queue_step_phrases(segments)
+	char_overlay.stage_segments(segments)
 	growth_dirty = true
 	growth_flush_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
@@ -107,20 +105,7 @@ func stage_segments(segments: Array[String]) -> void:
 
 func flush_growth() -> void:
 	growth_dirty = false
-	if not pending_segments.is_empty():
-		char_overlay.enqueue_segments(pending_segments)
-		pending_segments.clear()
-	char_overlay.apply_growth(stream_char_total)
-	neuron_net.apply_growth(stream_char_total)
-	pass
-
-
-func add_stream_chunk(chunk: String, stream_kind: String = OpenAiClient.STREAM_KIND_CONTENT) -> void:
-	add_step_text(chunk, stream_kind)
-	pass
-
-
-func apply_growth() -> void:
+	char_overlay.commit_staged_segments()
 	char_overlay.apply_growth(stream_char_total)
 	neuron_net.apply_growth(stream_char_total)
 	pass
@@ -140,7 +125,6 @@ func reset_growth() -> void:
 	color_controller.snap_to(OrbPhase.color_for(OrbPhase.Phase.IDLE))
 	stream_char_total = 0
 	stream_buffer.clear()
-	pending_segments.clear()
 	growth_dirty = false
 	growth_flush_timer = 0.0
 	neuron_net.reset_growth()
@@ -150,7 +134,6 @@ func reset_growth() -> void:
 
 func clear_stream_queue() -> void:
 	stream_buffer.clear()
-	pending_segments.clear()
 	if char_overlay != null:
 		char_overlay.clear_queue()
 	pass
