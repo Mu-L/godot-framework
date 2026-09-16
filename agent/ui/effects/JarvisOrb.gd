@@ -12,7 +12,8 @@ var spin_speed: float = 0.7
 var stream_char_total: int = 0
 var color_controller: OrbColorController = OrbColorController.new()
 
-var pending_chars: Array[String] = []
+var stream_buffer: StringBuilder = StringBuilder.new()
+var pending_segments: Array[String] = []
 var growth_dirty: bool = false
 var growth_flush_timer: float = 0.0
 
@@ -72,19 +73,33 @@ func set_phase(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
 	pass
 
 
-func add_step_text(text: String, stream_kind: String = OpenAiClient.STREAM_KIND_CONTENT) -> void:
+func add_step_text(text: String, _stream_kind: String = OpenAiClient.STREAM_KIND_CONTENT, split_by_lines: bool = false) -> void:
 	if text.is_empty():
 		return
 	stream_char_total += text.length()
 	var cap := OrbGrowth.chunk_char_cap(stream_char_total)
-	var tokens: Array[String] = []
-	if stream_kind == OpenAiClient.STREAM_KIND_REASONING:
-		tokens = CharStreamUtils.extract_spawn_words(text, cap)
-	else:
-		tokens = CharStreamUtils.extract_spawn_chars(text, cap)
-	for token in tokens:
-		pending_chars.append(token)
-	char_overlay.queue_step_phrases(text)
+	var segments: Array[String] = (
+		CharStreamUtils.split_line_segments(text)
+		if split_by_lines
+		else CharStreamUtils.append_and_take(stream_buffer, text, cap)
+	)
+	stage_segments(segments)
+	pass
+
+
+func flush_stream_buffer() -> void:
+	var tail := CharStreamUtils.drain_remainder(stream_buffer)
+	if tail.is_empty():
+		return
+	stage_segments([tail])
+	pass
+
+
+func stage_segments(segments: Array[String]) -> void:
+	if segments.is_empty():
+		return
+	pending_segments.append_array(segments)
+	char_overlay.queue_step_phrases(segments)
 	growth_dirty = true
 	growth_flush_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
@@ -92,9 +107,9 @@ func add_step_text(text: String, stream_kind: String = OpenAiClient.STREAM_KIND_
 
 func flush_growth() -> void:
 	growth_dirty = false
-	if not pending_chars.is_empty():
-		char_overlay.enqueue_chars(pending_chars)
-		pending_chars.clear()
+	if not pending_segments.is_empty():
+		char_overlay.enqueue_segments(pending_segments)
+		pending_segments.clear()
 	char_overlay.apply_growth(stream_char_total)
 	neuron_net.apply_growth(stream_char_total)
 	pass
@@ -124,7 +139,8 @@ func reset_growth() -> void:
 		flush_growth()
 	color_controller.snap_to(OrbPhase.color_for(OrbPhase.Phase.IDLE))
 	stream_char_total = 0
-	pending_chars.clear()
+	stream_buffer.clear()
+	pending_segments.clear()
 	growth_dirty = false
 	growth_flush_timer = 0.0
 	neuron_net.reset_growth()
@@ -132,14 +148,9 @@ func reset_growth() -> void:
 	pass
 
 
-func enqueue_stream_chars(chars: Array[String]) -> void:
-	if char_overlay != null:
-		char_overlay.enqueue_chars(chars)
-	pass
-
-
 func clear_stream_queue() -> void:
-	pending_chars.clear()
+	stream_buffer.clear()
+	pending_segments.clear()
 	if char_overlay != null:
 		char_overlay.clear_queue()
 	pass

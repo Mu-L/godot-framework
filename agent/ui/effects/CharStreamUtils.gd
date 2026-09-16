@@ -1,101 +1,83 @@
 class_name CharStreamUtils
 extends RefCounted
 
-## Chunk → char queue, path templates, and step-text phrase extraction.
+## Stream segment buffer, path templates, and step-text phrase extraction.
 
-const MAX_SPAWN_PER_CHUNK := 8
-const MAX_PHRASE_LEN := 56
+const MAX_SEGMENTS_PER_DRAIN := 32
+const MAX_PHRASE_LEN := 64
 const MIN_PHRASE_LEN := 2
-const CODE_CHAR_BOOST: Dictionary = {"{": 2, "}": 2, "[": 2, "]": 2, "(": 2, ")": 2, ";": 2, "=": 2, "/": 2}
-
-const STOP_WORDS: Array[String] = [
-	"the", "and", "for", "with", "that", "this", "from", "into", "true", "false", "null", "none",
-]
 
 
-static func extract_spawn_chars(chunk: String, max_count: int = MAX_SPAWN_PER_CHUNK) -> Array[String]:
-	var result: Array[String] = []
-	if chunk.is_empty():
-		return result
-	for i in chunk.length():
-		var ch := chunk.substr(i, 1)
-		if ch == " " or ch == "\n" or ch == "\r" or ch == "\t":
-			continue
-		var weight: int = int(CODE_CHAR_BOOST.get(ch, 1))
-		for _w in weight:
-			result.append(ch)
-			if result.size() >= max_count:
-				return result
-	return result
-
-
-## Thinking / reasoning stream — float whole tokens split on whitespace.
-static func extract_spawn_words(chunk: String, max_count: int = MAX_SPAWN_PER_CHUNK) -> Array[String]:
-	var result: Array[String] = []
-	if chunk.is_empty():
-		return result
-	var normalized := chunk.replace("\r", " ").replace("\n", " ").replace("\t", " ")
-	for part in normalized.split(" ", false):
-		var word := part.strip_edges()
-		if word.is_empty():
-			continue
-		result.append(word)
-		if result.size() >= max_count:
-			return result
-	return result
-
-
-## Words and short clauses taken directly from agent step text (CN + EN + paths).
-static func extract_step_phrases(text: String, max_count: int = 5) -> Array[String]:
-	var result: Array[String] = []
-	if text.is_empty() or max_count <= 0:
-		return result
-	var seen: Dictionary = {}
-	var cleaned := clean_step_text(text)
-	if cleaned.is_empty():
-		return result
-
-	for clause in split_clauses(cleaned):
-		try_add_phrase(result, seen, clause, max_count)
-		if result.size() >= max_count:
-			return result
-
-	var index := 0
-	while index < cleaned.length() and result.size() < max_count:
-		var ch := cleaned.substr(index, 1)
-		var token := ""
-		if is_path_char(ch):
-			token = read_run(cleaned, index, is_path_char)
-		elif is_cjk(ch):
-			token = read_run(cleaned, index, is_cjk)
-		elif is_word_char(ch):
-			token = read_run(cleaned, index, is_word_char)
-		if token.is_empty():
-			index += 1
-			continue
-		try_add_phrase(result, seen, token, max_count)
-		index += token.length()
-	return result
-
-
-static func clean_step_text(text: String) -> String:
-	var cleaned := text.strip_edges()
-	cleaned = cleaned.replace("```", " ")
-	cleaned = cleaned.replace("`", "")
-	cleaned = cleaned.replace("**", "")
-	cleaned = cleaned.replace("__", "")
-	cleaned = cleaned.replace("\r", "\n")
-	while cleaned.contains("\n\n"):
-		cleaned = cleaned.replace("\n\n", "\n")
-	return cleaned.strip_edges()
-
-
-static func is_clause_delimiter(ch: String) -> bool:
-	if ch == "\n" or ch == "。" or ch == "！" or ch == "？" or ch == "!" or ch == "?":
+static func is_delimiter(ch: String, lines_only: bool = false) -> bool:
+	if ch == "\n" or ch == "\r":
 		return true
-	if ch == ";" or ch == "；" or ch == "，" or ch == "," or ch == ".":
-		return true
-	return false
+	if lines_only:
+		return false
+	return (
+		ch == "。" or ch == "！" or ch == "？" or ch == "!" or ch == "?"
+		or ch == ";" or ch == "；" or ch == "，" or ch == "," or ch == "."
+	)
+
+
+static func append_and_take(
+	buffer: StringBuilder,
+	chunk: String,
+	max_segments: int = MAX_SEGMENTS_PER_DRAIN,
+	lines_only: bool = false
+) -> Array[String]:
+	if not chunk.is_empty():
+		buffer.append(chunk)
+	return take_buffered_segments(buffer, max_segments, lines_only)
+
+
+static func take_buffered_segments(
+	buffer: StringBuilder,
+	max_segments: int = MAX_SEGMENTS_PER_DRAIN,
+	lines_only: bool = false
+) -> Array[String]:
+	var split := split_with_tail(buffer.build_string(), max_segments, lines_only)
+	buffer.clear()
+	if not split.tail.is_empty():
+		buffer.append(split.tail)
+	return split.segments
+
+
+static func drain_remainder(buffer: StringBuilder) -> String:
+	var text := buffer.build_string().strip_edges()
+	buffer.clear()
+	return text
+
+
+## Tool / error entries — newline splits only.
+static func split_line_segments(text: String) -> Array[String]:
+	var segments: Array[String] = []
+	for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n", false):
+		var seg := line.strip_edges()
+		if not seg.is_empty():
+			segments.append(seg)
+	return segments
+
+
+static func split_with_tail(text: String, max_segments: int, lines_only: bool) -> Dictionary:
+	var segments: Array[String] = []
+	if text.is_empty():
+		return {"segments": segments, "tail": ""}
+	var current := ""
+	var i := 0
+	while i < text.length():
+		var ch := text.substr(i, 1)
+		current += ch
+		if is_delimiter(ch, lines_only):
+			var seg := current.strip_edges()
+			if not seg.is_empty():
+				segments.append(seg)
+			current = ""
+			if segments.size() >= max_segments:
+				i += 1
+				break
+		i += 1
+	var tail := text.substr(i) if i < text.length() else current
+	return {"segments": segments, "tail": tail}
 
 
 static func split_clauses(text: String) -> Array[String]:
@@ -103,7 +85,7 @@ static func split_clauses(text: String) -> Array[String]:
 	var current := ""
 	for i in text.length():
 		var ch := text.substr(i, 1)
-		if is_clause_delimiter(ch):
+		if is_delimiter(ch):
 			if not current.strip_edges().is_empty():
 				parts.append(current.strip_edges())
 			current = ""
@@ -134,11 +116,9 @@ static func truncate_at_punctuation(text: String, max_len: int) -> String:
 	return phrase.substr(0, max_len).strip_edges() + "…"
 
 
-static func try_add_phrase(result: Array[String], seen: Dictionary, raw: String, max_count: int) -> void:
+static func try_add_phrase(result: Array[String], seen: Dictionary, raw: String, _max_count: int) -> void:
 	var phrase := format_phrase(raw)
-	if phrase.is_empty() or seen.has(phrase):
-		return
-	if not is_useful_phrase(phrase):
+	if phrase.length() < MIN_PHRASE_LEN or seen.has(phrase):
 		return
 	seen[phrase] = true
 	result.append(phrase)
@@ -153,55 +133,9 @@ static func find_last_delimiter_index(text: String, before: int) -> int:
 	var limit := clampi(before, 0, text.length())
 	var last := -1
 	for i in limit:
-		if is_clause_delimiter(text.substr(i, 1)):
+		if is_delimiter(text.substr(i, 1)):
 			last = i
 	return last
-
-
-static func is_useful_phrase(phrase: String) -> bool:
-	if phrase.length() < MIN_PHRASE_LEN:
-		return false
-	if phrase.is_empty():
-		return false
-	var alpha_or_cjk := 0
-	for i in phrase.length():
-		var ch := phrase.substr(i, 1)
-		if is_cjk(ch) or is_word_char(ch):
-			alpha_or_cjk += 1
-	if alpha_or_cjk < MIN_PHRASE_LEN:
-		return false
-	if phrase.length() <= 4 and STOP_WORDS.has(phrase.to_lower()):
-		return false
-	return true
-
-
-static func read_run(text: String, start: int, matcher: Callable) -> String:
-	var run := ""
-	var index := start
-	while index < text.length():
-		var ch := text.substr(index, 1)
-		if not bool(matcher.call(ch)):
-			break
-		run += ch
-		index += 1
-	return run
-
-
-static func is_cjk(ch: String) -> bool:
-	if ch.is_empty():
-		return false
-	var code := ch.unicode_at(0)
-	return (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3400 and code <= 0x4DBF) or (code >= 0x3000 and code <= 0x303F)
-
-
-static func is_word_char(ch: String) -> bool:
-	if ch.is_empty():
-		return false
-	return (ch >= "a" and ch <= "z") or (ch >= "A" and ch <= "Z") or (ch >= "0" and ch <= "9") or ch == "_"
-
-
-static func is_path_char(ch: String) -> bool:
-	return is_word_char(ch) or ch == "/" or ch == "\\" or ch == "." or ch == "-" or ch == ":" or ch == "@" or ch == "#"
 
 
 static func build_curve(style: OrbPhase.PathStyle, neurons: PackedVector3Array, rng: RandomNumberGenerator) -> Curve3D:

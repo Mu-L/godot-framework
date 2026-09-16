@@ -184,6 +184,8 @@ func on_message_update(session_id: int, chunk: String, stream_kind: String) -> v
 func on_message_complete(session_id: int, _usage: OpenAiUsage) -> void:
 	if not _should_handle(session_id):
 		return
+	jarvis_orb.flush_stream_buffer()
+	jarvis_orb.flush_growth()
 	jarvis_orb.neuron_net.pulse_random(1.0)
 	pass
 
@@ -212,7 +214,7 @@ func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 		return
 	match entry.kind:
 		ChatEntry.KIND_ERROR, ChatEntry.KIND_TOOL:
-			jarvis_orb.add_step_text(entry.body)
+			jarvis_orb.add_step_text(entry.body, OpenAiClient.STREAM_KIND_CONTENT, true)
 	pass
 
 

@@ -1,7 +1,7 @@
 class_name JarvisOrbCharOverlay
 extends Node3D
 
-## Character-level particle stream rendered as Label3D billboards.
+## Sentence-level particle stream rendered as Label3D billboards.
 
 const POOL_SIZE := 320
 const KEYWORD_POOL := 48
@@ -26,7 +26,7 @@ var max_active: int = OrbGrowth.PARTICLE_CAP_MIN
 var spawn_per_frame: int = OrbGrowth.SPAWN_FRAME_MIN
 var recent_phrases: Array[String] = []
 
-var pending_phrase_text := ""
+var pending_phrase_segments: Array[String] = []
 var phrase_batch_timer: float = 0.0
 
 
@@ -50,11 +50,14 @@ func _process(delta: float) -> void:
 	pass
 
 
-func enqueue_chars(chars: Array[String]) -> void:
-	for ch in chars:
+func enqueue_segments(segments: Array[String]) -> void:
+	for segment in segments:
+		var display := CharStreamUtils.format_phrase(segment)
+		if display.is_empty():
+			continue
 		if char_queue.size() >= CHAR_QUEUE_CAP:
 			char_queue.pop_front()
-		char_queue.append(ch)
+		char_queue.append(display)
 	pass
 
 
@@ -70,7 +73,7 @@ func reset_growth() -> void:
 	max_active = OrbGrowth.PARTICLE_CAP_MIN
 	spawn_per_frame = OrbGrowth.SPAWN_FRAME_MIN
 	recent_phrases.clear()
-	pending_phrase_text = ""
+	pending_phrase_segments.clear()
 	phrase_batch_timer = 0.0
 	clear_queue()
 	refresh_shared_curves()
@@ -91,29 +94,40 @@ func sync_display_color(color: Color) -> void:
 	pass
 
 
-func queue_step_phrases(text: String) -> void:
-	if text.is_empty():
+func queue_step_phrases(segments: Array[String]) -> void:
+	for segment in segments:
+		if segment.is_empty():
+			continue
+		pending_phrase_segments.append(segment)
+	if pending_phrase_segments.is_empty():
 		return
-	pending_phrase_text += text
 	phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
 
 
 func flush_phrase_batch() -> void:
-	if pending_phrase_text.is_empty():
+	if pending_phrase_segments.is_empty():
 		return
-	var cap := OrbGrowth.stream_keyword_cap(stream_char_total)
-	cap = maxi(cap, OrbGrowth.keyword_burst(stream_char_total))
-	var phrases := CharStreamUtils.extract_step_phrases(pending_phrase_text, cap)
-	pending_phrase_text = ""
-	if phrases.is_empty():
-		return
-	spawn_keywords(phrases, phrases.size())
+	var cap := maxi(OrbGrowth.stream_keyword_cap(stream_char_total), OrbGrowth.keyword_burst(stream_char_total))
+	var phrases: Array[String] = []
+	var seen: Dictionary = {}
+	var consumed := 0
+	while consumed < pending_phrase_segments.size() and phrases.size() < cap:
+		CharStreamUtils.try_add_phrase(phrases, seen, pending_phrase_segments[consumed], cap)
+		consumed += 1
+	for _i in consumed:
+		pending_phrase_segments.pop_front()
+	if not phrases.is_empty():
+		spawn_keywords(phrases, phrases.size())
+	if not pending_phrase_segments.is_empty():
+		phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
 
 
 func clear_queue() -> void:
 	char_queue.clear()
+	pending_phrase_segments.clear()
+	phrase_batch_timer = 0.0
 	pass
 
 
@@ -174,8 +188,8 @@ func spawn_from_queue() -> void:
 	while not char_queue.is_empty() and spawned < spawn_per_frame and active_particles.size() < max_active:
 		if free_labels.is_empty():
 			break
-		var ch: String = char_queue.pop_front()
-		spawn_char(ch)
+		var segment: String = char_queue.pop_front()
+		spawn_segment(segment)
 		spawned += 1
 	pass
 
@@ -188,11 +202,11 @@ func acquire_curve() -> Curve3D:
 	return shared_curves[rng.randi_range(0, shared_curves.size() - 1)]
 
 
-func spawn_char(ch: String) -> void:
+func spawn_segment(segment: String) -> void:
 	if neuron_net == null or free_labels.is_empty():
 		return
 	var label: Label3D = free_labels.pop_back()
-	var token_len := ch.length()
+	var token_len := segment.length()
 	if token_len > 1:
 		label.font_size = 16 if token_len > 10 else 18
 		label.pixel_size = 0.00135 if token_len > 10 else 0.00155
@@ -204,7 +218,7 @@ func spawn_char(ch: String) -> void:
 	var speed: float = rng.randf_range(OrbVisualScale.PARTICLE_SPEED_MIN, OrbVisualScale.PARTICLE_SPEED_MAX)
 	if current_path_style == OrbPhase.PathStyle.CHAOTIC:
 		speed *= 1.25
-	particle.reset(label, acquire_curve(), ch, display_color, speed, near_index)
+	particle.reset(label, acquire_curve(), segment, display_color, speed, near_index)
 	active_particles.append(particle)
 	pass
 
