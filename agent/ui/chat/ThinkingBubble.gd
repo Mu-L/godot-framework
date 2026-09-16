@@ -2,7 +2,7 @@ class_name ThinkingBubble
 extends Object
 
 ## Thinking / reasoning bubble — plain text preview in chat.
-## Full text lives on ChatEntry.body; the header ··· button opens it in AgentTextPopup.
+## Full text lives on ChatEntry.body; the header ··· button opens it in PopupWindow.
 
 
 static func append(
@@ -32,7 +32,7 @@ static func append(
 	var view_button := Button.new()
 	view_button.text = "···"
 	style_view_button(view_button)
-	view_button.pressed.connect(AgentTextPopup.open_entry.bind(entry, wrapper))
+	view_button.pressed.connect(entry.open_full_view)
 	header.add_child(view_button)
 
 	var line_label := Label.new()
