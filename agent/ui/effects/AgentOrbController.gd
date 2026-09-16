@@ -201,9 +201,8 @@ func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: 
 func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, result: String) -> void:
 	if not _should_handle(session_id):
 		return
-	if StringUtils.is_not_empty(result):
-		var snippet := CharStreamUtils.truncate_at_punctuation(result, 180)
-		jarvis_orb.add_step_text(snippet)
+	if tool_name == ReadTool.NAME and StringUtils.is_not_empty(result):
+		jarvis_orb.add_step_text(CharStreamUtils.truncate_at_punctuation(result, 180))
 	if phase == OrbPhase.Phase.TOOL_EXEC:
 		transition_to(OrbPhase.Phase.AWAKE)
 	pass
@@ -213,7 +212,7 @@ func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 	if session_id != running_session_id or not _should_handle(session_id):
 		return
 	match entry.kind:
-		ChatEntry.KIND_ERROR, ChatEntry.KIND_TOOL:
+		ChatEntry.KIND_ERROR, ChatEntry.KIND_TOOL, ChatEntry.KIND_RESULT:
 			jarvis_orb.add_step_text(entry.body, true)
 	pass
 

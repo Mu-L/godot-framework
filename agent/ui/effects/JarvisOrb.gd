@@ -56,7 +56,7 @@ func _process(delta: float) -> void:
 func set_phase(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
 	phase = new_phase
 	color_controller.set_target(OrbPhase.color_for(new_phase))
-	char_overlay.set_phase(new_phase, tool_name)
+	char_overlay.set_phase(new_phase)
 	rings.set_tool_mode(new_phase == OrbPhase.Phase.TOOL_EXEC)
 	match new_phase:
 		OrbPhase.Phase.REASONING:
@@ -82,19 +82,18 @@ func add_step_text(text: String, split_by_lines: bool = false) -> void:
 		if split_by_lines
 		else CharStreamUtils.append_and_take(stream_buffer, text, cap)
 	)
-	stage_segments(segments)
+	offer_segments(segments)
 	pass
 
 
 func flush_stream_buffer() -> void:
 	var tail := CharStreamUtils.drain_remainder(stream_buffer)
-	if tail.is_empty():
-		return
-	stage_segments([tail])
+	if not tail.is_empty():
+		offer_segments([tail])
 	pass
 
 
-func stage_segments(segments: Array[String]) -> void:
+func offer_segments(segments: Array[String]) -> void:
 	if segments.is_empty():
 		return
 	char_overlay.stage_segments(segments)

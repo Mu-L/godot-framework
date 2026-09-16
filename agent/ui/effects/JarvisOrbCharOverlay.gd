@@ -24,10 +24,7 @@ var stream_char_total: int = 0
 var max_active: int = OrbGrowth.PARTICLE_CAP_MIN
 var spawn_per_frame: int = OrbGrowth.SPAWN_FRAME_MIN
 var recent_phrases: Array[String] = []
-
 var staged_segments: Array[String] = []
-var pending_phrase_segments: Array[String] = []
-var phrase_batch_timer: float = 0.0
 
 
 func setup(net: JarvisOrbNeuronNet) -> void:
@@ -42,35 +39,33 @@ func _process(delta: float) -> void:
 	spawn_from_queue()
 	update_particles(delta)
 	update_keywords(delta)
-	if phrase_batch_timer > 0.0:
-		phrase_batch_timer = maxf(0.0, phrase_batch_timer - delta)
-		if phrase_batch_timer <= 0.0:
-			flush_phrase_batch()
 	pass
 
 
 func stage_segments(segments: Array[String]) -> void:
 	staged_segments.append_array(segments)
-	for segment in segments:
-		if segment.is_empty():
-			continue
-		pending_phrase_segments.append(segment)
-	if not pending_phrase_segments.is_empty():
-		phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
 	pass
 
 
 func commit_staged_segments() -> void:
 	if staged_segments.is_empty():
 		return
+	var keyword_cap := maxi(OrbGrowth.stream_keyword_cap(stream_char_total), OrbGrowth.keyword_burst(stream_char_total))
+	var keywords: Array[String] = []
+	var seen: Dictionary = {}
 	for segment in staged_segments:
 		var display := CharStreamUtils.display_phrase(segment)
-		if display.is_empty():
+		if display.is_empty() or display.length() < CharStreamUtils.MIN_PHRASE_LEN:
 			continue
 		if char_queue.size() >= CHAR_QUEUE_CAP:
 			char_queue.pop_front()
 		char_queue.append(display)
+		if keywords.size() < keyword_cap and not seen.has(display) and not recent_phrases.has(display):
+			seen[display] = true
+			keywords.append(display)
 	staged_segments.clear()
+	if not keywords.is_empty():
+		spawn_keywords(keywords)
 	pass
 
 
@@ -86,14 +81,12 @@ func reset_growth() -> void:
 	max_active = OrbGrowth.PARTICLE_CAP_MIN
 	spawn_per_frame = OrbGrowth.SPAWN_FRAME_MIN
 	recent_phrases.clear()
-	pending_phrase_segments.clear()
-	phrase_batch_timer = 0.0
 	clear_queue()
 	refresh_shared_curves()
 	pass
 
 
-func set_phase(phase: OrbPhase.Phase, _tool_name: String = "") -> void:
+func set_phase(phase: OrbPhase.Phase) -> void:
 	current_phase = phase
 	current_path_style = OrbPhase.path_style_for(phase)
 	refresh_shared_curves()
@@ -105,34 +98,9 @@ func sync_display_color(color: Color) -> void:
 	pass
 
 
-func flush_phrase_batch() -> void:
-	if pending_phrase_segments.is_empty():
-		return
-	var cap := maxi(OrbGrowth.stream_keyword_cap(stream_char_total), OrbGrowth.keyword_burst(stream_char_total))
-	var phrases: Array[String] = []
-	var seen: Dictionary = {}
-	var consumed := 0
-	while consumed < pending_phrase_segments.size() and phrases.size() < cap:
-		var phrase := CharStreamUtils.display_phrase(pending_phrase_segments[consumed])
-		consumed += 1
-		if phrase.length() < CharStreamUtils.MIN_PHRASE_LEN or seen.has(phrase):
-			continue
-		seen[phrase] = true
-		phrases.append(phrase)
-	for _i in consumed:
-		pending_phrase_segments.pop_front()
-	if not phrases.is_empty():
-		spawn_keywords(phrases, phrases.size())
-	if not pending_phrase_segments.is_empty():
-		phrase_batch_timer = OrbGrowth.TEXT_BATCH_INTERVAL_S
-	pass
-
-
 func clear_queue() -> void:
 	char_queue.clear()
 	staged_segments.clear()
-	pending_phrase_segments.clear()
-	phrase_batch_timer = 0.0
 	pass
 
 
@@ -154,7 +122,7 @@ func refresh_shared_curves() -> void:
 	]
 	for _i in SHARED_CURVE_COUNT:
 		var style: OrbPhase.PathStyle = styles[rng.randi_range(0, styles.size() - 1)]
-		shared_curves.append(CharStreamUtils.build_curve(style, neurons, rng))
+		shared_curves.append(CharStreamCurves.build(style, neurons, rng))
 	pass
 
 
@@ -185,8 +153,7 @@ func spawn_from_queue() -> void:
 	while not char_queue.is_empty() and spawned < spawn_per_frame and active_particles.size() < max_active:
 		if free_labels.is_empty():
 			break
-		var segment: String = char_queue.pop_front()
-		spawn_segment(segment)
+		spawn_segment(char_queue.pop_front())
 		spawned += 1
 	pass
 
@@ -195,7 +162,7 @@ func acquire_curve() -> Curve3D:
 	if shared_curves.is_empty():
 		refresh_shared_curves()
 	if shared_curves.is_empty():
-		return CharStreamUtils.build_curve(current_path_style, neuron_net.get_positions(), rng)
+		return CharStreamCurves.build(current_path_style, neuron_net.get_positions(), rng)
 	return shared_curves[rng.randi_range(0, shared_curves.size() - 1)]
 
 
@@ -211,10 +178,10 @@ func spawn_segment(segment: String) -> void:
 		label.font_size = 20
 		label.pixel_size = 0.0018
 	var near_index := rng.randi_range(0, maxi(neuron_net.get_positions().size() - 1, 0))
-	var particle := CharParticle.new()
 	var speed: float = rng.randf_range(OrbVisualScale.PARTICLE_SPEED_MIN, OrbVisualScale.PARTICLE_SPEED_MAX)
 	if current_path_style == OrbPhase.PathStyle.CHAOTIC:
 		speed *= 1.25
+	var particle := CharParticle.new()
 	particle.reset(label, acquire_curve(), segment, display_color, speed, near_index)
 	active_particles.append(particle)
 	pass
@@ -232,16 +199,15 @@ func update_particles(delta: float) -> void:
 	pass
 
 
-func spawn_keywords(words: Array[String], max_count: int = 3) -> void:
+func spawn_keywords(words: Array[String]) -> void:
 	var available: Array[Label3D] = []
 	for label in keyword_labels:
 		if not label.visible:
 			available.append(label)
 	if available.is_empty():
 		return
-	var spawned: int = 0
 	for word in words:
-		if available.is_empty() or spawned >= max_count:
+		if available.is_empty():
 			break
 		if recent_phrases.has(word):
 			continue
@@ -265,7 +231,6 @@ func spawn_keywords(words: Array[String], max_count: int = 3) -> void:
 			sin(angle) * radius * 0.55
 		)
 		label.rotation.y = angle
-		spawned += 1
 	pass
 
 
