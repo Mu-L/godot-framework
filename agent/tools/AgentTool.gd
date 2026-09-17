@@ -3,6 +3,8 @@ extends RefCounted
 
 ## Base tool definition. Each tool exposes an OpenAI function schema and async_execute() returning AgentToolResult.
 
+const MAX_OUTPUT := 32_000
+
 var name: String = ""
 var description: String = ""
 
@@ -35,3 +37,15 @@ func parse_args(raw: String) -> Dictionary[String, String]:
 		var value: Variant = dict[key]
 		parsed[str(key)] = "" if value == null else str(value)
 	return parsed
+
+
+func parse_bool(raw: String) -> bool:
+	var value := raw.strip_edges().to_lower()
+	return value == "true" or value == "1" or value == "yes"
+
+
+func parse_nonneg_int(raw: String, default_value: int) -> int:
+	var value := raw.strip_edges()
+	if value.is_empty() or not value.is_valid_int():
+		return default_value
+	return maxi(0, int(value))

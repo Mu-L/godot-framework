@@ -76,7 +76,11 @@ static func keywords_for(phase: Phase, tool_name: String = "") -> Array[String]:
 			return ["SOURCE", "PATCH", "FILE"]
 		if tool_name == BashTool.NAME:
 			return ["EXECUTE", "PIPELINE", "SHELL"]
-		if tool_name == WebSearchToolProxy.NAME or tool_name == WebSearchToolBing.NAME:
+		if (
+			tool_name == WebSearchToolProxy.NAME
+			or tool_name == WebSearchToolBing.NAME
+			or tool_name == WebFetchTool.NAME
+		):
 			return ["DATASTREAM", "RETRIEVE", "SEARCH"]
 		return ["PROCESS", "TOOL", "RUN"]
 	match phase:

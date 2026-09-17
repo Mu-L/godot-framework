@@ -21,15 +21,21 @@ static func set_root(path: String) -> bool:
 		return true
 	Setting.set_string(SETTING_KEY, normalized)
 	Setting.save()
+	GlobTool._static_init()
 	return true
 
 
 static func resolve_path(raw: String) -> String:
 	var path := raw.strip_edges()
 	if path.is_empty():
-		return StringUtils.EMPTY
+		return get_root()
 	if path.begins_with("res://"):
 		return ProjectSettings.globalize_path(path)
 	if path.is_absolute_path():
 		return path
 	return get_root().path_join(path)
+
+
+## Path relative to [method get_root] for tool output (LLM-friendly, forward slashes).
+static func workspace_relative(abs_path: String) -> String:
+	return FileUtils.path_relative_to(get_root(), abs_path)

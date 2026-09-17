@@ -426,12 +426,20 @@ static func on_message_complete(session_id: int, usage: OpenAiUsage) -> void:
 static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, String]) -> void:
 	var body := ""
 	match tool_name:
-		ReadTool.NAME, WriteTool.NAME, EditTool.NAME:
+		ReadTool.NAME, WriteTool.NAME, EditTool.NAME, DeleteTool.NAME:
 			body = str(args.get(ReadTool.ARG_PATH, ""))
+		GrepTool.NAME:
+			body = str(args.get(GrepTool.ARG_PATTERN, ""))
+		GlobTool.NAME:
+			body = str(args.get(GlobTool.ARG_PATTERN, ""))
+		ListDirTool.NAME:
+			body = str(args.get(ListDirTool.ARG_PATH, ""))
 		BashTool.NAME:
 			body = str(args.get(BashTool.ARG_COMMAND, ""))
 		WebSearchToolProxy.NAME, WebSearchToolBing.NAME:
 			body = str(args.get(WebSearchToolProxy.ARG_QUERY, ""))
+		WebFetchTool.NAME:
+			body = str(args.get(WebFetchTool.ARG_URL, ""))
 		_:
 			for key: Variant in args.keys():
 				var value := str(args[key])

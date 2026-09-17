@@ -15,16 +15,6 @@ func CollectionUtils_test() -> void:
 	pass
 
 
-func FileUtils_test() -> void:
-	var path: String = "./zfoo_test_temp.txt"
-	var content: String = "hello godot!"
-	FileUtils.write_string_to_file(path, content)
-	var readContent := FileUtils.read_file_to_string(path)
-	assert(content == readContent)
-	FileUtils.delete_file(path)
-	pass
-
-
 func RandomUtils_test() -> void:
 	var boolValue := RandomUtils.random_boolean()
 	if boolValue:

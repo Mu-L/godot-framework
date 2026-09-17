@@ -10,9 +10,15 @@ static func _static_init() -> void:
 	register(ReadTool.new())
 	register(WriteTool.new())
 	register(EditTool.new())
+	register(DeleteTool.new())
+	register(GrepTool.new())
+	register(GlobTool.new())
+	register(ListDirTool.new())
 	register(BashTool.new())
-	
+
 	var detection := await ProxyUtils.async_detect_proxy()
+	var proxy_address := detection.address if detection != null else ""
+	register(WebFetchTool.new(proxy_address))
 	if detection != null:
 		register(WebSearchToolProxy.new(detection.address))
 	else:
