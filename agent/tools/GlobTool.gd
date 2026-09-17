@@ -35,7 +35,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 		text += StringUtils.format("\n... (truncated at {} files)", MAX_GLOB_RESULTS)
 	if text.is_empty():
 		text = "No files matched"
-	text = StringUtils.truncate(text, AgentTool.MAX_OUTPUT)
+	text = StringUtils.truncate_last(text, MAX_OUTPUT)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 # AgentTool-Interface-Implement-End
 

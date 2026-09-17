@@ -48,7 +48,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var text := build.build_string()
 	if build.is_empty():
 		text = "No matches found"
-	text = StringUtils.truncate(text, AgentTool.MAX_OUTPUT)
+	text = StringUtils.truncate_last(text, MAX_OUTPUT)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 
 
