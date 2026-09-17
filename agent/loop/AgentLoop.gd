@@ -46,9 +46,9 @@ static func run(session: AgentSession) -> void:
 				return
 			var args := tool.parse_args(tool_call.function.arguments)
 			AgentEvents.events.tool_execution_start.emit(session.id, tool_call_id, tool_name, args)
-			var tool_result := await tool.async_execute(args)
-			AgentEvents.events.tool_execution_end.emit(session.id, tool_call_id, tool_name, tool_result)
-			session.messages.append(ChatMessage.tool_result(tool_call.id, tool_result))
+			var agent_tool_result := await tool.async_execute(args)
+			AgentEvents.events.tool_execution_end.emit(session.id, tool_call_id, tool_name, agent_tool_result)
+			session.messages.append(ChatMessage.tool_result(tool_call.id, agent_tool_result.content))
 		AgentEvents.events.turn_end.emit(session.id)
 	AgentEvents.events.agent_end.emit(session.id, "max turns exceeded")
 	pass

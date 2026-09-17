@@ -198,11 +198,14 @@ func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: 
 	pass
 
 
-func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, result: String) -> void:
+func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, agent_tool_result: AgentToolResult) -> void:
 	if not _should_handle(session_id):
 		return
-	if tool_name == ReadTool.NAME and StringUtils.is_not_empty(result):
-		jarvis_orb.add_step_text(CharStreamUtils.truncate_at_punctuation(result, 180))
+	if tool_name == ReadTool.NAME and not agent_tool_result.is_error:
+		var ui_body: String = agent_tool_result.details.get(AgentToolResult.DETAIL_BODY, "")
+		var step_text := ui_body if StringUtils.is_not_blank(ui_body) else agent_tool_result.content
+		if StringUtils.is_not_empty(step_text):
+			jarvis_orb.add_step_text(CharStreamUtils.truncate_at_punctuation(step_text, 180))
 	if phase == OrbPhase.Phase.TOOL_EXEC:
 		transition_to(OrbPhase.Phase.AWAKE)
 	pass

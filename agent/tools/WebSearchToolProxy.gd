@@ -27,20 +27,21 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var query := str(args.get(ARG_QUERY, "")).strip_edges()
 	if query.is_empty():
-		return "error: query is required"
+		return AgentToolResult.error("error: query is required")
 	var max_results := DEFAULT_MAX_RESULTS
 	if args.has(ARG_MAX_RESULTS):
 		max_results = clampi(int(str(args.get(ARG_MAX_RESULTS, DEFAULT_MAX_RESULTS))), 1, MAX_RESULTS_CAP)
 	var api_text := await search_ddg_api(query, max_results, proxy_address)
 	if StringUtils.is_not_blank(api_text):
-		return api_text
+		return AgentToolResult.ok(api_text, AgentToolResult.ui_details(NAME, api_text))
 	var lite_text := await search_ddg_lite(query, max_results, proxy_address)
 	if StringUtils.is_not_blank(lite_text):
-		return lite_text
-	return StringUtils.format("No web results for: {}", query)
+		return AgentToolResult.ok(lite_text, AgentToolResult.ui_details(NAME, lite_text))
+	var empty := StringUtils.format("No web results for: {}", query)
+	return AgentToolResult.ok(empty, AgentToolResult.ui_details(NAME, empty))
 # AgentTool-Interface-Implement-End
 
 static func search_ddg_api(query: String, max_results: int, proxy_address: String) -> String:

@@ -16,15 +16,21 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return OpenAiToolDef.Parameters.object().string_prop(ARG_COMMAND, "Shell command to execute", true)
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var argv := build_argv_from_args(args)
 	if argv.is_empty():
-		return "error: command is required"
-	var result := await OSUtils.async_execute(argv, false)
+		return AgentToolResult.error("error: command is required")
+	var exec_result := await OSUtils.async_execute(argv, false)
+	var exit_code := StringUtils.format("exit_code: {}", exec_result.exit_code)
+	var exec_output := exec_result.output.build_string()
+	
 	var build := StringBuilder.new()
-	build.append_line(StringUtils.format("exit_code: {}", result.exit_code))
-	build.append(StringUtils.truncate(result.output.build_string(), MAX_OUTPUT))
-	return build.build_string()
+	build.append_line(exit_code)
+	build.append(StringUtils.truncate(exec_output, MAX_OUTPUT))
+	
+	var text := build.build_string()
+	var is_error := exec_result.exit_code != 0
+	return AgentToolResult.new(text, is_error,  AgentToolResult.ui_details(exit_code, exec_output))
 # AgentTool-Interface-Implement-End
 
 func build_argv_from_args(args: Dictionary[String, String]) -> PackedStringArray:

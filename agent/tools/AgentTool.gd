@@ -1,7 +1,7 @@
 class_name AgentTool
 extends RefCounted
 
-## Base tool definition. Each tool exposes an OpenAI function schema and async_execute().
+## Base tool definition. Each tool exposes an OpenAI function schema and async_execute() returning AgentToolResult.
 
 var name: String = ""
 var description: String = ""
@@ -19,8 +19,8 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return OpenAiToolDef.Parameters.new()
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
-	return "not implemented"
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+	return AgentToolResult.error("not implemented")
 
 
 func parse_args(raw: String) -> Dictionary[String, String]:

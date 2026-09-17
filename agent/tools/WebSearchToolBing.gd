@@ -23,20 +23,23 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var query := str(args.get(ARG_QUERY, "")).strip_edges()
 	if query.is_empty():
-		return "error: query is required"
+		return AgentToolResult.error("error: query is required")
 	var max_results := DEFAULT_MAX_RESULTS
 	if args.has(ARG_MAX_RESULTS):
 		max_results = clampi(int(str(args.get(ARG_MAX_RESULTS, DEFAULT_MAX_RESULTS))), 1, MAX_RESULTS_CAP)
 	var html := await fetch_search_html(query)
 	if StringUtils.is_blank(html):
-		return StringUtils.format("error: Bing CN search request failed for: {}", query)
+		var failed := StringUtils.format("error: Bing CN search request failed for: {}", query)
+		return AgentToolResult.error(failed)
 	var results := parse_results(html, query, max_results)
 	if results.is_empty():
-		return StringUtils.format("No web results for: {}", query)
-	return results.format("Bing CN search results")
+		var empty := StringUtils.format("No web results for: {}", query)
+		return AgentToolResult.ok(empty, AgentToolResult.ui_details(NAME, empty))
+	var formatted := results.format("Bing CN search results")
+	return AgentToolResult.ok(formatted, AgentToolResult.ui_details(NAME, formatted))
 # AgentTool-Interface-Implement-End
 
 

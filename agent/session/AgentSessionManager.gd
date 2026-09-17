@@ -442,15 +442,8 @@ static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool
 	pass
 
 
-static func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, result: String) -> void:
-	if tool_name == ReadTool.NAME && StringUtils.is_not_empty(result):
-		return
-
-	var title := ChatEntry.TITLE_RESULT
-	var body := result
-	if tool_name == BashTool.NAME:
-		title = StringUtils.first_lines(result, 1)
-		body = StringUtils.first_lines_after(result, 1)
-		
+static func on_tool_execution_end(session_id: int, _tool_call_id: String, _tool_name: String, agent_tool_result: AgentToolResult) -> void:
+	var title: String= agent_tool_result.details.get(AgentToolResult.DETAIL_TITLE, "")
+	var body: String= agent_tool_result.details.get(AgentToolResult.DETAIL_BODY, "")
 	add_chat_entry(session_id, ChatEntry.KIND_RESULT, title, body)
 	pass

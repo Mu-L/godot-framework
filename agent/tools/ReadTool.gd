@@ -15,14 +15,14 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return OpenAiToolDef.Parameters.object().string_prop(ARG_PATH, "Absolute or project-relative file path", true)
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
-		return "error: path is required"
+		return AgentToolResult.error("error: path is required")
 	if not FileAccess.file_exists(path):
-		return StringUtils.format("error: file not found: {}", path)
+		return AgentToolResult.error(StringUtils.format("error: file not found: {}", path))
 	var content := FileUtils.read_file_to_string(path)
 	if content.length() > 100_000:
-		return content.substr(0, 100_000) + "\n... (truncated)"
-	return content
+		return AgentToolResult.ok(content.substr(0, 100_000) + "\n... (truncated)")
+	return AgentToolResult.ok(content)
 # AgentTool-Interface-Implement-End

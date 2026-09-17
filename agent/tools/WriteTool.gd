@@ -19,14 +19,15 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> String:
+func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
-		return "error: path is required"
+		return AgentToolResult.error("error: path is required")
 	var content := str(args.get(ARG_CONTENT, ""))
 	var dir := path.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
 	FileUtils.write_string_to_file(path, content)
-	return StringUtils.format("wrote {} bytes to {}", content.length(), path)
+	var message := StringUtils.format("wrote {} bytes to {}", content.length(), path)
+	return AgentToolResult.ok(message, AgentToolResult.ui_details(ChatEntry.TITLE_RESULT))
 # AgentTool-Interface-Implement-End

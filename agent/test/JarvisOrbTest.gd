@@ -201,7 +201,7 @@ func run_full_demo(gen: int) -> void:
 		demo_session_id,
 		"demo-tool-1",
 		ReadTool.NAME,
-		result,
+		AgentToolResult.ok(result),
 	)
 	await wait_demo(0.5, gen)
 

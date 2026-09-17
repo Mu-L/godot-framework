@@ -32,7 +32,7 @@ class Events:
 
 	# Tool execution lifecycle
 	signal tool_execution_start(session_id: int, tool_call_id: String, tool_name: String, args: Dictionary[String, String])
-	signal tool_execution_end(session_id: int, tool_call_id: String, tool_name: String, result: String, is_error: bool)
+	signal tool_execution_end(session_id: int, tool_call_id: String, tool_name: String, agent_tool_result: AgentToolResult)
 
 	# Session management
 	signal session_added(session_id: int, title: String)
