@@ -118,6 +118,132 @@ func collect_files_glob_single_file_test() -> void:
 	pass
 
 
+func glob_matches_path_comments_and_empty_test() -> void:
+	assert(not FileUtils.glob_matches_path("", "any/path"))
+	assert(not FileUtils.glob_matches_path("   ", "any/path"))
+	assert(not FileUtils.glob_matches_path("# AI", ".dependency/cache"))
+	assert(not FileUtils.glob_matches_path("  # comment", "foo"))
+	assert(not FileUtils.glob_matches_path("# .dependency/", ".dependency/x"))
+	assert(not FileUtils.glob_matches_path("", ""))
+	pass
+
+
+func glob_matches_path_empty_path_test() -> void:
+	assert(not FileUtils.glob_matches_path(".dependency/", ""))
+	assert(not FileUtils.glob_matches_path("*.tmp", ""))
+	assert(not FileUtils.glob_matches_path("foo", "   "))
+	pass
+
+
+func glob_matches_path_whitespace_and_negation_test() -> void:
+	assert(FileUtils.glob_matches_path("  .dependency/  ", ".dependency/x"))
+	assert(FileUtils.glob_matches_path("!.agent/", ".agent/session.json"))
+	assert(FileUtils.glob_matches_path("  ! .idea  ", "editor/.idea/ws"))
+	assert(not FileUtils.glob_matches_path("!", "foo"))
+	assert(not FileUtils.glob_matches_path("!   ", "foo"))
+	pass
+
+
+func glob_matches_path_trailing_slash_directory_test() -> void:
+	assert(FileUtils.glob_matches_path(".dependency/", ".dependency"))
+	assert(FileUtils.glob_matches_path(".dependency/", ".dependency/cache/bin"))
+	assert(FileUtils.glob_matches_path(".godot/", ".godot/imported"))
+	assert(FileUtils.glob_matches_path(".import/", ".import/foo"))
+	assert(FileUtils.glob_matches_path("data_*/", "data_foo"))
+	assert(FileUtils.glob_matches_path("data_*/", "data_foo/bar/baz"))
+	# Directory-name rules match that segment at any depth (same as GlobTool skip dir names).
+	assert(FileUtils.glob_matches_path(".dependency/", "other/.dependency/x"))
+	pass
+
+
+func glob_matches_path_literal_path_prefix_test() -> void:
+	assert(FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/humanizer"))
+	assert(FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/humanizer/skip.gd"))
+	assert(FileUtils.glob_matches_path(".cursor/skills/humanizer-zh", ".cursor/skills/humanizer-zh/readme.md"))
+	assert(not FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/humanizer_extra/x"))
+	assert(not FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/other/x"))
+	assert(not FileUtils.glob_matches_path(".cursor/skills/humanizer", "prefix/.cursor/skills/humanizer/x"))
+	pass
+
+
+func glob_matches_path_literal_name_any_level_test() -> void:
+	assert(FileUtils.glob_matches_path(".idea", ".idea"))
+	assert(FileUtils.glob_matches_path(".idea", "editor/.idea"))
+	assert(FileUtils.glob_matches_path(".idea", "editor/.idea/workspace.xml"))
+	assert(FileUtils.glob_matches_path(".vscode", "tools/.vscode/settings.json"))
+	assert(FileUtils.glob_matches_path("export.cfg", "export.cfg"))
+	assert(FileUtils.glob_matches_path("export.cfg", "sub/export.cfg"))
+	assert(FileUtils.glob_matches_path(".nomedia", "assets/.nomedia"))
+	assert(FileUtils.glob_matches_path(".agent", ".agent/foo"))
+	assert(not FileUtils.glob_matches_path(".idea", "notidea"))
+	assert(not FileUtils.glob_matches_path("export.cfg", "export.cfg.bak"))
+	pass
+
+
+func glob_matches_path_wildcard_basename_test() -> void:
+	assert(FileUtils.glob_matches_path("*.tmp", "scratch.tmp"))
+	assert(FileUtils.glob_matches_path("*.tmp", "build/out.tmp"))
+	assert(not FileUtils.glob_matches_path("*.tmp", "build/out.txt"))
+	assert(FileUtils.glob_matches_path("*.translation", "ui/menu.translation"))
+	assert(not FileUtils.glob_matches_path("*.translation", "ui/menu.csv"))
+	assert(FileUtils.glob_matches_path("mono_crash.*.json", "logs/mono_crash.abc.json"))
+	assert(not FileUtils.glob_matches_path("mono_crash.*.json", "logs/crash.json"))
+	assert(FileUtils.glob_matches_path("*.suo", "proj/foo.suo"))
+	assert(FileUtils.glob_matches_path("*.njsproj", "app/bar.njsproj"))
+	assert(FileUtils.glob_matches_path("*.sln", "game.sln"))
+	pass
+
+
+func glob_matches_path_wildcard_single_char_test() -> void:
+	# Godot String.match: ? does not match '.'
+	assert(FileUtils.glob_matches_path("*.sw?", "lib.swf"))
+	assert(not FileUtils.glob_matches_path("*.sw?", "lib.sw"))
+	pass
+
+
+func glob_matches_path_wildcard_path_segment_test() -> void:
+	assert(FileUtils.glob_matches_path("data_*", "data_foo"))
+	assert(FileUtils.glob_matches_path("data_*", "data_foo/bar"))
+	assert(FileUtils.glob_matches_path("data_*", "src/data_bar/baz"))
+	assert(not FileUtils.glob_matches_path("data_*", "nodata_foo"))
+	pass
+
+
+func glob_matches_path_wildcard_with_slash_test() -> void:
+	assert(FileUtils.glob_matches_path("agent/*.gd", "agent/ReadTool.gd"))
+	assert(not FileUtils.glob_matches_path("agent/*.gd", "agent/tools/ReadTool.gd"))
+	assert(FileUtils.glob_matches_path("**/*.gd", "agent/tools/ReadTool.gd"))
+	assert(FileUtils.glob_matches_path("**/*.gd", "ReadTool.gd"))
+	assert(not FileUtils.glob_matches_path("**/*.gd", "agent/tools/ReadTool.txt"))
+	pass
+
+
+func glob_matches_path_backslash_normalization_test() -> void:
+	assert(FileUtils.glob_matches_path(".dependency\\", ".dependency\\cache\\x"))
+	assert(FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor\\skills\\humanizer\\a.gd"))
+	pass
+
+
+func glob_matches_path_repo_gitignore_smoke_test() -> void:
+	# Lines mirrored from project .gitignore — spot-check representative paths.
+	var lines_and_paths: Array = [
+		[".dependency/", ".dependency/vendor/x", true],
+		[".agent/", ".agent/run/log", true],
+		[".godot/", ".godot/editor", true],
+		["*.tmp", "obj/debug.tmp", true],
+		[".mono/", ".mono/metadata", true],
+		["export_credentials.cfg", "export_credentials.cfg", true],
+		[".dependency/", "src/.dependency/x", true],
+		["*.tmp", "readme.tmp.md", false],
+	]
+	for row in lines_and_paths:
+		var line: String = row[0]
+		var path: String = row[1]
+		var want: bool = row[2]
+		assert(FileUtils.glob_matches_path(line, path) == want)
+	pass
+
+
 static func relative_paths(search_root: String, files: Array[String]) -> Array[String]:
 	var rel: Array[String] = []
 	for file_path in files:

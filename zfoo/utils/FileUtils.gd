@@ -1,6 +1,10 @@
 class_name FileUtils
 extends Object
 
+# ---------------------------------------------------------------------------
+# Constants — byte/bit units and line endings
+# ---------------------------------------------------------------------------
+
 # Bytes
 const ONE_BYTE: int = 1
 const BYTES_PER_KB: int = 1024
@@ -18,9 +22,18 @@ const NEWLINE_LF: String = "\n"
 const NEWLINE_CR: String = "\r"
 const NEWLINE_CRLF: String = "\r\n"
 
+
+# ---------------------------------------------------------------------------
+# Line endings
+# ---------------------------------------------------------------------------
+
 static func normalize_line_endings_to_lf(s: String) -> String:
 	return s.replace(NEWLINE_CRLF, NEWLINE_LF).replace(NEWLINE_CR, NEWLINE_LF)
 
+
+# ---------------------------------------------------------------------------
+# Project root
+# ---------------------------------------------------------------------------
 
 ## Returns the absolute path to the folder containing project.godot.
 static func get_project_root_path() -> String:
@@ -34,6 +47,11 @@ static func get_project_root_path() -> String:
 		dir = parent
 	return ProjectSettings.globalize_path("res://")
 
+
+# ---------------------------------------------------------------------------
+# File read / write / delete
+# ---------------------------------------------------------------------------
+
 # Append content to the file.
 static func write_string_to_file(filePath: String, content: String) -> void:
 	var file := FileAccess.open(filePath, FileAccess.WRITE)
@@ -41,7 +59,7 @@ static func write_string_to_file(filePath: String, content: String) -> void:
 	file.store_string(content)
 	file = null
 	pass
-	
+
 
 static func read_file_to_string(filePath: String) -> String:
 	if not FileAccess.file_exists(filePath):
@@ -57,14 +75,15 @@ static func read_file_to_string(filePath: String) -> String:
 		return StringUtils.EMPTY
 	return text
 
+
 static func read_file_to_byte_array(filePath: String) -> PackedByteArray:
 	# make sure our file exists on users system
 	if !FileAccess.file_exists(filePath):
 		return PackedByteArray()
-	
+
 	# allow reading only for file
 	var file := FileAccess.open(filePath, FileAccess.READ)
-	
+
 	var buffer := file.get_buffer(file.get_length())
 	file = null
 	return buffer
@@ -84,6 +103,11 @@ static func delete_file(filePath: String) -> void:
 	DirAccess.remove_absolute(filePath)
 	pass
 
+
+# ---------------------------------------------------------------------------
+# Directory listing
+# ---------------------------------------------------------------------------
+
 # Returns absolute paths of all files in the given folder.
 # Set recursive to true to include files in subfolders.
 static func get_all_files_in_folder(folderPath: String, recursive: bool = false) -> Array[String]:
@@ -91,14 +115,14 @@ static func get_all_files_in_folder(folderPath: String, recursive: bool = false)
 	var dir := DirAccess.open(folderPath)
 	if dir == null:
 		return files
-	
+
 	for file_name in dir.get_files():
 		files.append(folderPath.path_join(file_name))
-	
+
 	if recursive:
 		for dir_name in dir.get_directories():
 			files.append_array(get_all_files_in_folder(folderPath.path_join(dir_name), true))
-	
+
 	return files
 
 
@@ -137,6 +161,10 @@ static func get_files_in_folder_matching(folderPath: String, globPattern: String
 	matched.sort()
 	return matched
 
+
+# ---------------------------------------------------------------------------
+# Glob file discovery
+# ---------------------------------------------------------------------------
 
 ## Recursive file discovery with path globs (`**/*.gd`, `agent/*.gd`) or filename globs (`*.gd`).
 ## Unlike [method get_files_in_folder_matching], patterns may include `/` and `**` and are matched against
@@ -260,6 +288,105 @@ static func _glob_pattern_to_regex(glob: String) -> String:
 	return build.build_string()
 
 
+# ---------------------------------------------------------------------------
+# Glob — ignore-style lines
+# ---------------------------------------------------------------------------
+
+## Returns whether one ignore-file glob line matches a relative file or directory path.
+##
+## Use this for rules taken from `.gitignore`, `.cursorignore`, `.agentignore`, and similar files: each non-comment
+## line is a glob (not a regular expression). This method answers “does this single line cover this path?” — it does
+## not read ignore files, merge multiple lines, or apply negation semantics by itself.
+##
+## [param glob_line]: One raw line from an ignore file (may include leading/trailing spaces). Examples from this repo:
+## [code].dependency/[/code], [code]*.tmp[/code], [code].cursor/skills/humanizer[/code], [code]!.agent/[/code].
+## [param path_or_file]: Path relative to the ignore file’s directory, using forward slashes (e.g. [code].dependency/cache/x[/code],
+## [code]src/main.gd[/code]). Backslashes are normalized to [code]/[/code] on both the line and the path.
+##
+## Line preprocessing (before glob matching):
+## - Blank lines and lines whose first non-space character is [code]#[/code] → always [code]false[/code] (comments).
+## - A leading [code]![/code] is removed; the rest is matched like a normal rule. Callers that build skip lists should
+##   treat negated lines separately (this method only reports pattern match, not “ignored vs un-ignored”).
+## - A trailing [code]/[/code] is removed; matching still applies to that directory and everything under it.
+##
+## Matching rules (after preprocessing), in order:
+## 1. **Wildcards** ([code]*[/code], [code]?[/code], [code][…][/code]): If the rule contains [code]/[/code], delegates
+##    to [method path_matches_glob] (supports [code]**[/code] across segments). Otherwise uses [method String.match]
+##    on the path basename and on each [code]/[/code]-separated segment (e.g. [code]*.tmp[/code], [code]data_*[/code]).
+##    Wildcard semantics follow Godot: [code]*[/code] is zero or more characters; [code]?[/code] is one character
+##    except [code].[/code] (see Godot [method String.match]).
+## 2. **Fixed path with [code]/[/code]** (e.g. [code].cursor/skills/humanizer[/code]): Path equals the rule or is
+##    nested under it ([code]rule/sub/file[/code]).
+## 3. **Fixed name without [code]/[/code]** (e.g. [code].idea[/code], [code]export.cfg[/code]): Path equals the rule,
+##    is under [code]rule/…[/code], basename equals the rule, or any path segment equals the rule (name match in any
+##    directory level, aligned with common ignore-file usage and [code]GlobTool[/code] skip lists).
+##
+## Not a full Git ignore implementation: no [code]**[/code] in bare filename rules via [method String.match], no
+## anchored-vs-unanchored path modes, and no “last matching line wins” when combining [code]![/code] with other rules.
+## For pure glob without comment/[code]![/code]/trailing-[code]/[/code] handling, use [method path_matches_glob] instead.
+##
+## Examples:
+## [code]FileUtils.glob_matches_path(".dependency/", ".dependency/cache/bin")[/code] → [code]true[/code]
+## [code]FileUtils.glob_matches_path("*.tmp", "build/out.tmp")[/code] → [code]true[/code]
+## [code]FileUtils.glob_matches_path("# AI", ".dependency/")[/code] → [code]false[/code]
+## [code]FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/humanizer/a.gd")[/code] → [code]true[/code]
+static func glob_matches_path(glob_line: String, path_or_file: String) -> bool:
+	# Raw ignore line → pattern (see class doc above).
+	var rule := glob_line.strip_edges()
+	if rule.is_empty() or rule.begins_with("#"):
+		return false
+	# Negation marker; caller decides whether a matching line un-ignores the path.
+	if rule.begins_with("!"):
+		rule = rule.substr(1).strip_edges()
+		if rule.is_empty():
+			return false
+
+	rule = rule.replace("\\", "/").strip_edges()
+	if rule.is_empty():
+		return false
+
+	var path := path_or_file.replace("\\", "/").strip_edges()
+	if path.is_empty():
+		return false
+
+	# Trailing slash = directory rule; strip before compare (same as GlobTool._static_init).
+	if rule.ends_with("/"):
+		rule = rule.substr(0, rule.length() - 1)
+	rule = rule.strip_edges()
+	if rule.is_empty():
+		return false
+
+	# Glob branch: * ? [ — path-shaped rules use path_matches_glob (** supported).
+	if rule.contains("*") or rule.contains("?") or rule.contains("["):
+		if rule.contains("/"):
+			return path_matches_glob(path, rule)
+		# No slash: match basename (e.g. *.tmp) or any directory segment (e.g. data_*).
+		if path.get_file().match(rule):
+			return true
+		for segment in path.split("/"):
+			if segment.match(rule):
+				return true
+		return false
+
+	# Literal path prefix (e.g. .cursor/skills/humanizer/...).
+	if rule.contains("/"):
+		return path == rule or path.begins_with(rule + "/")
+
+	# Literal name without slash: root, prefix, basename, or any segment (.idea, export.cfg).
+	if path == rule or path.begins_with(rule + "/"):
+		return true
+	if path.get_file() == rule:
+		return true
+	for segment in path.split("/"):
+		if segment == rule:
+			return true
+	return false
+
+
+# ---------------------------------------------------------------------------
+# Folder file queries
+# ---------------------------------------------------------------------------
+
 # Returns the absolute path of the newest file in folderPath (non-recursive).
 static func get_newest_file_in_folder(folder_path: String) -> String:
 	if not DirAccess.dir_exists_absolute(folder_path):
@@ -274,6 +401,10 @@ static func get_newest_file_in_folder(folder_path: String) -> String:
 			newest_path = file_path
 	return newest_path
 
+
+# ---------------------------------------------------------------------------
+# Filename sanitization
+# ---------------------------------------------------------------------------
 
 # Convert a string into a valid filename using underscores as separators.
 # aa bb cc dd -> aa_bb_cc
