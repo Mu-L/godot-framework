@@ -7,15 +7,19 @@ static var tools: Dictionary[String, AgentTool] = {}
 static var schemas: Array[OpenAiToolDef] = []
 
 static func _static_init() -> void:
+	# core tools
+	register(BashTool.new())
 	register(ReadTool.new())
 	register(WriteTool.new())
 	register(EditTool.new())
+	
+	# enhance tools
 	register(DeleteTool.new())
 	register(GrepTool.new())
 	register(GlobTool.new())
 	register(ListDirTool.new())
-	register(BashTool.new())
 
+	# web tools
 	var detection := await ProxyUtils.async_detect_proxy()
 	var proxy_address := detection.address if detection != null else ""
 	register(WebFetchTool.new(proxy_address))
