@@ -127,6 +127,16 @@ static func truncate(s: String, max_length: int) -> String:
 	return s.substr(0, max_length - ELLIPSIS.length()) + ELLIPSIS
 
 
+## Returns s truncated to max_length keeping the end; prepends "..." when longer. Total length never exceeds max_length.
+## Example: truncate_last("abcdef", 5) -> "...ef"; truncate_last("abcdef", 6) -> "abcdef"
+static func truncate_last(s: String, max_length: int) -> String:
+	if is_empty(s) or s.length() <= max_length:
+		return s
+	if max_length <= ELLIPSIS.length():
+		return s.substr(s.length() - max_length, max_length)
+	return ELLIPSIS + s.substr(s.length() - (max_length - ELLIPSIS.length()), max_length - ELLIPSIS.length())
+
+
 ## Returns the first max_lines lines of s; later lines are dropped with no ellipsis.
 ## Example: first_lines("a\nb\nc", 2) -> "a\nb"; first_lines("a\nb", 3) -> "a\nb"
 static func first_lines(s: String, max_lines: int) -> String:
