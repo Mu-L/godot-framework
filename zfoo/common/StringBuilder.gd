@@ -6,6 +6,18 @@ extends RefCounted
 var parts: PackedStringArray = PackedStringArray()
 
 
+func _init(items: Array[String] = []) -> void:
+	append_all(items)
+	pass
+
+
+## Appends every string in [param items]. Returns self for chaining.
+func append_all(items: Array[String]) -> StringBuilder:
+	for item: String in items:
+		parts.append(item)
+	return self
+
+
 ## Appends text. Returns self for chaining.
 func append(text: String) -> StringBuilder:
 	parts.append(text)

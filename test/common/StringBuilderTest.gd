@@ -1,4 +1,17 @@
 
+func StringBuilder_from_array_test() -> void:
+	var builder := StringBuilder.new(["a", "b", "c"])
+	assert(builder.build_joined(", ") == "a, b, c")
+	pass
+
+
+func StringBuilder_append_all_test() -> void:
+	var builder := StringBuilder.new()
+	builder.append("x").append_all(["y", "z"])
+	assert(builder.build_string() == "xyz")
+	pass
+
+
 func StringBuilder_append_test() -> void:
 	var builder := StringBuilder.new()
 	builder.append("Hel").append("lo")
