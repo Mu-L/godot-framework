@@ -298,7 +298,7 @@ static func _glob_pattern_to_regex(glob: String) -> String:
 ## line is a glob (not a regular expression). This method answers “does this single line cover this path?” — it does
 ## not read ignore files, merge multiple lines, or apply negation semantics by itself.
 ##
-## [param glob_line]: One raw line from an ignore file (may include leading/trailing spaces). Examples from this repo:
+## [param glob_rule]: One raw line from an ignore file (may include leading/trailing spaces). Examples from this repo:
 ## [code].dependency/[/code], [code]*.tmp[/code], [code].cursor/skills/humanizer[/code], [code]!.agent/[/code].
 ## [param path_or_file]: Path relative to the ignore file’s directory, using forward slashes (e.g. [code].dependency/cache/x[/code],
 ## [code]src/main.gd[/code]). Backslashes are normalized to [code]/[/code] on both the line and the path.
@@ -326,13 +326,13 @@ static func _glob_pattern_to_regex(glob: String) -> String:
 ## For pure glob without comment/[code]![/code]/trailing-[code]/[/code] handling, use [method path_matches_glob] instead.
 ##
 ## Examples:
-## [code]FileUtils.glob_matches_path(".dependency/", ".dependency/cache/bin")[/code] → [code]true[/code]
-## [code]FileUtils.glob_matches_path("*.tmp", "build/out.tmp")[/code] → [code]true[/code]
-## [code]FileUtils.glob_matches_path("# AI", ".dependency/")[/code] → [code]false[/code]
-## [code]FileUtils.glob_matches_path(".cursor/skills/humanizer", ".cursor/skills/humanizer/a.gd")[/code] → [code]true[/code]
-static func glob_matches_path(glob_line: String, path_or_file: String) -> bool:
+## [code]FileUtils.glob_match(".dependency/", ".dependency/cache/bin")[/code] → [code]true[/code]
+## [code]FileUtils.glob_match("*.tmp", "build/out.tmp")[/code] → [code]true[/code]
+## [code]FileUtils.glob_match("# AI", ".dependency/")[/code] → [code]false[/code]
+## [code]FileUtils.glob_match(".cursor/skills/humanizer", ".cursor/skills/humanizer/a.gd")[/code] → [code]true[/code]
+static func glob_match(glob_rule: String, path_or_file: String) -> bool:
 	# Raw ignore line → pattern (see class doc above).
-	var rule := glob_line.strip_edges()
+	var rule := glob_rule.strip_edges()
 	if rule.is_empty() or rule.begins_with("#"):
 		return false
 	# Negation marker; caller decides whether a matching line un-ignores the path.
@@ -379,6 +379,26 @@ static func glob_matches_path(glob_line: String, path_or_file: String) -> bool:
 		return true
 	for segment in path.split("/"):
 		if segment == rule:
+			return true
+	return false
+
+
+## Returns [code]true[/code] when [param path_or_file] matches **any** entry in [param glob_rules] via [method glob_match].
+##
+## Use after reading an ignore file into lines (e.g. [method read_file_to_lines]). Comments and blank lines in the array
+## are harmless — [method glob_match] skips them. Does not implement full Git ignore precedence ([code]![/code] last-wins);
+## each rule is tested independently and one match returns [code]true[/code].
+##
+## [param glob_rules]: Ignore-style glob lines (same format as [method glob_match]’s [param glob_rule]).
+## [param path_or_file]: Relative path, same as [method glob_match].
+##
+## Returns [code]false[/code] when [param glob_rules] is empty or no rule matches.
+##
+## Example:
+## [code]FileUtils.glob_match_any(["# AI", ".dependency/", "*.tmp"], "cache/x.tmp")[/code] → [code]true[/code] ([code]*.tmp[/code])
+static func glob_match_any(glob_rules: Array[String], path_or_file: String) -> bool:
+	for glob_rule in glob_rules:
+		if glob_match(glob_rule, path_or_file):
 			return true
 	return false
 
