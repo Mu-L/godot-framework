@@ -71,17 +71,18 @@ func build_joined(separator: String) -> String:
 	return separator.join(parts)
 
 
-## Drops trailing parts when [method build_string] exceeds [param max_length]. Returns self for chaining.
+## Drops trailing parts when [method build_string] exceeds [param max_length].
+## Returns true when any part was removed or shortened.
 ## If the first part alone exceeds [param max_length], it is shortened with [method StringUtils.truncate].
-func truncate_by_line(max_length: int) -> StringBuilder:
+func truncate_by_line(max_length: int) -> bool:
 	if parts.is_empty():
-		return self
+		return false
 	if max_length <= 0:
 		parts.clear()
-		return self
+		return true
 	var total := length()
 	if total <= max_length:
-		return self
+		return false
 	var end := parts.size()
 	var running := total
 	while end > 1 and running > max_length:
@@ -89,6 +90,6 @@ func truncate_by_line(max_length: int) -> StringBuilder:
 		running -= parts[end].length()
 	if end == 1 and parts[0].length() > max_length:
 		parts = PackedStringArray([StringUtils.truncate(parts[0], max_length)])
-		return self
+		return true
 	parts = parts.slice(0, end)
-	return self
+	return true
