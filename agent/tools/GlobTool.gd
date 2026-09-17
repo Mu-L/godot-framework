@@ -24,15 +24,15 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	if pattern.is_empty():
 		return AgentToolResult.error("error: pattern is required")
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
-	var all_files := collect_files(search_root, pattern)
-	var truncated := all_files.size() > MAX_GLOB_RESULTS
-	var files := all_files.slice(0, MAX_GLOB_RESULTS) if truncated else all_files
+	var all_files := FileUtils.collect_files_glob(search_root, pattern, merged_skip_dir_names, MAX_FILE_BYTES, merged_skip_path_prefixes)
+	var truncated := all_files.size() > MAX_FILE_RESULTS
+	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated else all_files
 	var lines: Array[String] = []
 	for file_path in files:
 		lines.append(AgentWorkspace.workspace_relative(file_path))
 	var text := "\n".join(lines)
 	if truncated:
-		text += StringUtils.format("\n... (truncated at {} files)", MAX_GLOB_RESULTS)
+		text += StringUtils.format("\n... (truncated at {} files)", MAX_FILE_RESULTS)
 	if text.is_empty():
 		text = "No files matched"
 	text = StringUtils.truncate_last(text, MAX_OUTPUT)
@@ -58,10 +58,7 @@ static var WORKSPACE_IGNORE_FILES: PackedStringArray = PackedStringArray([
 	".aiignore",
 ])
 
-## Result caps applied by GlobTool / GrepTool after [method collect_files] (not in FileUtils).
-const MAX_GLOB_RESULTS := 2_000
-const MAX_GREP_FILES := 8_000
-const MAX_FILE_BYTES := 1_048_576
+## Grep file-list cap after [method collect_files] (glob uses [constant MAX_FILE_RESULTS]).
 
 static var merged_skip_dir_names: PackedStringArray = PackedStringArray()
 static var merged_skip_path_prefixes: Array[String] = []
@@ -101,8 +98,3 @@ static func _static_init() -> void:
 			merged_skip_dir_names.append(_name)
 	merged_skip_path_prefixes = path_prefixes
 	pass
-
-
-## All matching files under [param search_root]; caller may slice to [constant MAX_GLOB_RESULTS] or [constant MAX_GREP_FILES].
-static func collect_files(search_root: String, glob_filter: String) -> Array[String]:
-	return FileUtils.collect_files_glob(search_root, glob_filter, merged_skip_dir_names, MAX_FILE_BYTES, merged_skip_path_prefixes)

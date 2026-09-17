@@ -4,6 +4,9 @@ extends RefCounted
 ## Base tool definition. Each tool exposes an OpenAI function schema and async_execute() returning AgentToolResult.
 
 const MAX_OUTPUT := 32_000
+const MAX_FILE_RESULTS := 512
+const MAX_FILE_BYTES := FileUtils.BYTES_PER_KB * 128
+
 
 var name: String = ""
 var description: String = ""
