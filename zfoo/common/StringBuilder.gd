@@ -69,3 +69,26 @@ func build_string() -> String:
 ## Joins buffered fragments with a separator.
 func build_joined(separator: String) -> String:
 	return separator.join(parts)
+
+
+## Drops trailing parts when [method build_string] exceeds [param max_length]. Returns self for chaining.
+## If the first part alone exceeds [param max_length], it is shortened with [method StringUtils.truncate].
+func truncate_by_line(max_length: int) -> StringBuilder:
+	if parts.is_empty():
+		return self
+	if max_length <= 0:
+		parts.clear()
+		return self
+	var total := length()
+	if total <= max_length:
+		return self
+	var end := parts.size()
+	var running := total
+	while end > 1 and running > max_length:
+		end -= 1
+		running -= parts[end].length()
+	if end == 1 and parts[0].length() > max_length:
+		parts = PackedStringArray([StringUtils.truncate(parts[0], max_length)])
+		return self
+	parts = parts.slice(0, end)
+	return self
