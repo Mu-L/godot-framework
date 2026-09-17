@@ -32,11 +32,11 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 		return AgentToolResult.error(StringUtils.format("error: invalid regex: {}", pattern))
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	var glob_filter := str(args.get(ARG_GLOB, "")).strip_edges()
-	var all_files := GlobTool.collect_files(search_root, glob_filter)
+	var all_files := FileUtils.collect_files_glob(search_root, glob_filter, GlobTool.merged_skip_dir_names, MAX_FILE_BYTES, GlobTool.merged_skip_path_prefixes)
 	if all_files.is_empty():
 		return AgentToolResult.ok("No files to search")
-	var truncated_files := all_files.size() > GlobTool.MAX_GREP_FILES
-	var files := all_files.slice(0, GlobTool.MAX_GREP_FILES) if truncated_files else all_files
+	var truncated_files := all_files.size() > MAX_FILE_RESULTS
+	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated_files else all_files
 	var build := StringBuilder.new()
 	var match_count := 0
 	for file_path in files:
@@ -44,7 +44,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 			break
 		match_count += append_file_matches(build, file_path, regex, HEAD_LIMIT - match_count)
 	if truncated_files:
-		build.append_line(StringUtils.format("... (file list capped at {} files)", GlobTool.MAX_GREP_FILES))
+		build.append_line(StringUtils.format("... (file list capped at {} files)", MAX_FILE_RESULTS))
 	var text := build.build_string()
 	if build.is_empty():
 		text = "No matches found"

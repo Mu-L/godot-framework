@@ -12,6 +12,7 @@ class RunState:
 	var stop_requested: bool = false
 	var step_thinking_entry: ChatEntry = null
 	var step_agent_entry: ChatEntry = null
+	pass
 
 
 class SessionIndex:
