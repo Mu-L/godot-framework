@@ -102,6 +102,21 @@ static func get_all_files_in_folder(folderPath: String, recursive: bool = false)
 	return files
 
 
+# Returns absolute paths of subdirectories in the given folder.
+# Set recursive to true to include nested subdirectories (not the root folder itself).
+static func get_all_directories_in_folder(folderPath: String, recursive: bool = false) -> Array[String]:
+	var dirs: Array[String] = []
+	var dir := DirAccess.open(folderPath)
+	if dir == null:
+		return dirs
+	for dir_name in dir.get_directories():
+		var abs := folderPath.path_join(dir_name)
+		dirs.append(abs)
+		if recursive:
+			dirs.append_array(get_all_directories_in_folder(abs, true))
+	return dirs
+
+
 # Returns absolute paths of files in the given folder whose names match a glob pattern.
 # Supports * and ? wildcards (Godot String.match). Set recursive to true to search subfolders.
 # For path globs (`**/*.gd`) or skip lists, use collect_files_glob instead.

@@ -26,18 +26,24 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	if not DirAccess.dir_exists_absolute(search_root):
 		return AgentToolResult.error("error: directory not found")
 	var recursive := parse_bool(str(args.get(ARG_RECURSIVE, "")))
-	var all_files := FileUtils.get_all_files_in_folder(search_root, recursive)
-	all_files.sort()
-	var truncated := all_files.size() > MAX_ENTRIES
-	var files := all_files.slice(0, MAX_ENTRIES) if truncated else all_files
-	var build := StringBuilder.new()
+	var dirs := FileUtils.get_all_directories_in_folder(search_root, recursive)
+	var files := FileUtils.get_all_files_in_folder(search_root, recursive)
+	var lines: Array[String] = []
+	for dir_path in dirs:
+		lines.append(AgentWorkspace.workspace_relative(dir_path) + "/")
 	for file_path in files:
-		build.append(AgentWorkspace.workspace_relative(file_path))
+		lines.append(AgentWorkspace.workspace_relative(file_path))
+	var truncated := lines.size() > MAX_ENTRIES
+	if truncated:
+		lines = lines.slice(0, MAX_ENTRIES)
+	var build := StringBuilder.new()
+	for line in lines:
+		build.append(line)
 	if truncated:
 		build.append(StringUtils.format("... (truncated at {} entries)", MAX_ENTRIES))
 	var text := build.build_joined(StringUtils.LS)
 	if text.is_empty():
 		text = "(empty)"
-	text = StringUtils.truncate_last(text, MAX_OUTPUT)
+	text = StringUtils.truncate_last(text, AgentTool.MAX_OUTPUT)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 # AgentTool-Interface-Implement-End

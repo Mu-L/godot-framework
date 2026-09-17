@@ -91,6 +91,21 @@ func collect_files_glob_max_file_bytes_test() -> void:
 	pass
 
 
+func get_all_directories_in_folder_test() -> void:
+	var root := create_fixture_tree()
+	var top := relative_paths(root, FileUtils.get_all_directories_in_folder(root, false))
+	top.sort()
+	assert(top.has("src"))
+	assert(top.has(".git"))
+	assert(not top.has("src/nested"))
+	var all := relative_paths(root, FileUtils.get_all_directories_in_folder(root, true))
+	all.sort()
+	assert(all.has("src/nested"))
+	assert(all.has(".git/objects"))
+	remove_fixture_tree(root)
+	pass
+
+
 func collect_files_glob_single_file_test() -> void:
 	var root := create_fixture_tree()
 	var one := root.path_join("src/a.gd")
