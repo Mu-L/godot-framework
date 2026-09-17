@@ -74,7 +74,7 @@ func build_joined(separator: String) -> String:
 ## Drops trailing parts when [method build_string] exceeds [param max_length].
 ## Returns true when any part was removed or shortened.
 ## If the first part alone exceeds [param max_length], it is shortened with [method StringUtils.truncate].
-func truncate_by_line(max_length: int) -> bool:
+func truncate_by_part(max_length: int) -> bool:
 	if parts.is_empty():
 		return false
 	if max_length <= 0:
