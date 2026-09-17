@@ -143,7 +143,7 @@ static func get_all_directories_in_folder(folderPath: String, recursive: bool = 
 
 # Returns absolute paths of files in the given folder whose names match a glob pattern.
 # Supports * and ? wildcards (Godot String.match). Set recursive to true to search subfolders.
-# For path globs (`**/*.gd`) or skip lists, use collect_files_glob instead.
+# For path globs (`**/*.gd`), use [method glob] instead.
 static func get_files_in_folder_matching(folderPath: String, globPattern: String, recursive: bool = false) -> Array[String]:
 	var pattern := globPattern.strip_edges()
 	if pattern.is_empty():
@@ -163,23 +163,18 @@ static func get_files_in_folder_matching(folderPath: String, globPattern: String
 
 
 # ---------------------------------------------------------------------------
-# Glob file discovery
+# Recursive glob file discovery
 # ---------------------------------------------------------------------------
 
-## Recursive file discovery with path globs (`**/*.gd`, `agent/*.gd`) or filename globs (`*.gd`).
-## Unlike [method get_files_in_folder_matching], patterns may include `/` and `**` and are matched against
-## paths relative to [param search_root]. Returns sorted absolute file paths.
-## [param skip_dir_names]: do not descend into these directory names (e.g. `.git`).
-## [param max_file_bytes]: omit files larger than this; use `0` to disable the size check.
-## [param skip_path_prefixes]: do not descend into these paths relative to [param search_root] (from ignore files).
-static func collect_files_glob(search_root: String, glob_pattern: String, skip_dir_names: PackedStringArray = PackedStringArray(), max_file_bytes: int = 1_048_576, skip_path_prefixes: Array[String] = []) -> Array[String]:
+## Finds files under [param search_root] whose relative path matches [param glob_pattern] (`*`, `?`, `**`, `/`).
+## [param max_file_bytes]: omit larger files; [code]0[/code] disables. [param skip_glob_rules]: skip descending into dirs matched by [method glob_match_any].
+static func glob(search_root: String, glob_pattern: String, max_file_bytes: int = 1_048_576, skip_glob_rules: Array[String] = []) -> Array[String]:
 	var files: Array[String] = []
-	# Single-file search when path points at a file (grep on one path).
 	if FileAccess.file_exists(search_root):
 		if _glob_accepts_file(search_root, search_root, glob_pattern, max_file_bytes):
 			files.append(search_root)
 	elif DirAccess.dir_exists_absolute(search_root):
-		_collect_files_glob_walk(search_root, search_root, glob_pattern, skip_dir_names, max_file_bytes, skip_path_prefixes, files)
+		_glob_walk(search_root, search_root, glob_pattern, max_file_bytes, skip_glob_rules, files)
 	files.sort()
 	return files
 
@@ -216,7 +211,7 @@ static func _glob_accepts_file(search_root: String, abs_path: String, glob_patte
 		return false
 	if glob_pattern.strip_edges().is_empty():
 		return true
-	return path_matches_glob(_glob_relative_path_for_match(search_root, abs_path), glob_pattern)
+	return _path_matches_glob(_glob_relative_path_for_match(search_root, abs_path), glob_pattern)
 
 
 ## When [param search_root] is a single file, [method path_relative_to] yields `"."` — use the basename for glob.
@@ -227,8 +222,7 @@ static func _glob_relative_path_for_match(search_root: String, abs_path: String)
 	return rel
 
 
-## Depth-first walk; appends matching absolute paths to [param files].
-static func _collect_files_glob_walk(search_root: String, folder_path: String, glob_pattern: String, skip_dir_names: PackedStringArray, max_file_bytes: int, skip_path_prefixes: Array[String], files: Array[String]) -> void:
+static func _glob_walk(search_root: String, folder_path: String, glob_pattern: String, max_file_bytes: int, skip_glob_rules: Array[String], files: Array[String]) -> void:
 	var dir := DirAccess.open(folder_path)
 	if dir == null:
 		return
@@ -237,26 +231,14 @@ static func _collect_files_glob_walk(search_root: String, folder_path: String, g
 		if _glob_accepts_file(search_root, full, glob_pattern, max_file_bytes):
 			files.append(full)
 	for dir_name in dir.get_directories():
-		if _should_skip_dir_entry(search_root, folder_path, dir_name, skip_dir_names, skip_path_prefixes):
-			continue
-		_collect_files_glob_walk(search_root, folder_path.path_join(dir_name), glob_pattern, skip_dir_names, max_file_bytes, skip_path_prefixes, files)
+		if not skip_glob_rules.is_empty():
+			var child_rel := path_relative_to(search_root, folder_path.path_join(dir_name)).replace("\\", "/")
+			if glob_match_any(skip_glob_rules, child_rel):
+				continue
+		_glob_walk(search_root, folder_path.path_join(dir_name), glob_pattern, max_file_bytes, skip_glob_rules, files)
 	pass
 
 
-static func _should_skip_dir_entry(search_root: String, folder_path: String, dir_name: String, skip_dir_names: PackedStringArray, skip_path_prefixes: Array[String]) -> bool:
-	if skip_dir_names.has(dir_name):
-		return true
-	if skip_path_prefixes.is_empty():
-		return false
-	var child_rel := path_relative_to(search_root, folder_path.path_join(dir_name)).replace("\\", "/")
-	for prefix: String in skip_path_prefixes:
-		var norm_prefix := prefix.replace("\\", "/").strip_edges()
-		if child_rel == norm_prefix or child_rel.begins_with(norm_prefix + "/"):
-			return true
-	return false
-
-
-## Converts a path glob to an anchored regex; `*` is per-segment, `**` crosses `/`.
 static func _glob_pattern_to_regex(glob: String) -> String:
 	var build := StringBuilder.new()
 	build.append("^")
@@ -289,47 +271,15 @@ static func _glob_pattern_to_regex(glob: String) -> String:
 
 
 # ---------------------------------------------------------------------------
-# Glob — ignore-style lines
+# Ignore-file glob rules (.gitignore, .cursorignore, …)
 # ---------------------------------------------------------------------------
 
-## Returns whether one ignore-file glob line matches a relative file or directory path.
+## True when [param glob_rule] matches [param path_or_file] (relative path, forward slashes).
 ##
-## Use this for rules taken from `.gitignore`, `.cursorignore`, `.agentignore`, and similar files: each non-comment
-## line is a glob (not a regular expression). This method answers “does this single line cover this path?” — it does
-## not read ignore files, merge multiple lines, or apply negation semantics by itself.
+## [param glob_rule]: One line from an ignore file ([code].dependency/[/code], [code]*.tmp[/code], …). Blank and [code]#[/code] lines → [code]false[/code].
+## Leading [code]![/code] is stripped (negation is for the caller). [code]\[/code] normalized to [code]/[/code].
 ##
-## [param glob_rule]: One raw line from an ignore file (may include leading/trailing spaces). Examples from this repo:
-## [code].dependency/[/code], [code]*.tmp[/code], [code].cursor/skills/humanizer[/code], [code]!.agent/[/code].
-## [param path_or_file]: Path relative to the ignore file’s directory, using forward slashes (e.g. [code].dependency/cache/x[/code],
-## [code]src/main.gd[/code]). Backslashes are normalized to [code]/[/code] on both the line and the path.
-##
-## Line preprocessing (before glob matching):
-## - Blank lines and lines whose first non-space character is [code]#[/code] → always [code]false[/code] (comments).
-## - A leading [code]![/code] is removed; the rest is matched like a normal rule. Callers that build skip lists should
-##   treat negated lines separately (this method only reports pattern match, not “ignored vs un-ignored”).
-## - A trailing [code]/[/code] is removed; matching still applies to that directory and everything under it.
-##
-## Matching rules (after preprocessing), in order:
-## 1. **Wildcards** ([code]*[/code], [code]?[/code], [code][…][/code]): If the rule contains [code]/[/code], delegates
-##    to [method path_matches_glob] (supports [code]**[/code] across segments). Otherwise uses [method String.match]
-##    on the path basename and on each [code]/[/code]-separated segment (e.g. [code]*.tmp[/code], [code]data_*[/code]).
-##    Wildcard semantics follow Godot: [code]*[/code] is zero or more characters; [code]?[/code] is one character
-##    except [code].[/code] (see Godot [method String.match]).
-## 2. **Fixed path with [code]/[/code]** (e.g. [code].cursor/skills/humanizer[/code]): Path equals the rule or is
-##    nested under it ([code]rule/sub/file[/code]).
-## 3. **Fixed name without [code]/[/code]** (e.g. [code].idea[/code], [code]export.cfg[/code]): Path equals the rule,
-##    is under [code]rule/…[/code], basename equals the rule, or any path segment equals the rule (name match in any
-##    directory level, aligned with common ignore-file usage and [code]GlobTool[/code] skip lists).
-##
-## Not a full Git ignore implementation: no [code]**[/code] in bare filename rules via [method String.match], no
-## anchored-vs-unanchored path modes, and no “last matching line wins” when combining [code]![/code] with other rules.
-## For pure glob without comment/[code]![/code]/trailing-[code]/[/code] handling, use [method path_matches_glob] instead.
-##
-## Examples:
-## [code]FileUtils.glob_match(".dependency/", ".dependency/cache/bin")[/code] → [code]true[/code]
-## [code]FileUtils.glob_match("*.tmp", "build/out.tmp")[/code] → [code]true[/code]
-## [code]FileUtils.glob_match("# AI", ".dependency/")[/code] → [code]false[/code]
-## [code]FileUtils.glob_match(".cursor/skills/humanizer", ".cursor/skills/humanizer/a.gd")[/code] → [code]true[/code]
+## Wildcards use [method String.match] or internal path glob logic; not a full Git ignore engine.
 static func glob_match(glob_rule: String, path_or_file: String) -> bool:
 	# Raw ignore line → pattern (see class doc above).
 	var rule := glob_rule.strip_edges()
@@ -383,19 +333,7 @@ static func glob_match(glob_rule: String, path_or_file: String) -> bool:
 	return false
 
 
-## Returns [code]true[/code] when [param path_or_file] matches **any** entry in [param glob_rules] via [method glob_match].
-##
-## Use after reading an ignore file into lines (e.g. [method read_file_to_lines]). Comments and blank lines in the array
-## are harmless — [method glob_match] skips them. Does not implement full Git ignore precedence ([code]![/code] last-wins);
-## each rule is tested independently and one match returns [code]true[/code].
-##
-## [param glob_rules]: Ignore-style glob lines (same format as [method glob_match]’s [param glob_rule]).
-## [param path_or_file]: Relative path, same as [method glob_match].
-##
-## Returns [code]false[/code] when [param glob_rules] is empty or no rule matches.
-##
-## Example:
-## [code]FileUtils.glob_match_any(["# AI", ".dependency/", "*.tmp"], "cache/x.tmp")[/code] → [code]true[/code] ([code]*.tmp[/code])
+## True when [param path_or_file] matches any line in [param glob_rules] ([method glob_match]). Empty [param glob_rules] → [code]false[/code].
 static func glob_match_any(glob_rules: Array[String], path_or_file: String) -> bool:
 	for glob_rule in glob_rules:
 		if glob_match(glob_rule, path_or_file):

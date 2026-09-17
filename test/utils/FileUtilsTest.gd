@@ -1,4 +1,4 @@
-## FileUtils — read/write and collect_files_glob / path glob helpers.
+## FileUtils — read/write, glob, and glob_match helpers.
 
 
 func FileUtils_read_write_test() -> void:
@@ -30,36 +30,20 @@ func path_relative_to_test() -> void:
 	pass
 
 
-func collect_files_glob_ignore_prefix_test() -> void:
+func glob_skip_rules_test() -> void:
 	var root := create_fixture_tree()
 	DirAccess.make_dir_recursive_absolute(root.path_join(".cursor/skills/humanizer"))
 	FileUtils.write_string_to_file(root.path_join(".cursor/skills/humanizer/skip.gd"), "extends Node\n")
-	var rel := relative_paths(root, FileUtils.collect_files_glob(root, "**/*.gd", PackedStringArray([".git"]), 1_048_576, [".cursor/skills/humanizer"]))
+	var skip: Array[String] = [".git", ".cursor/skills/humanizer"]
+	var rel := relative_paths(root, FileUtils.glob(root, "**/*.gd", 1_048_576, skip))
 	assert(not rel.has(".cursor/skills/humanizer/skip.gd"))
 	remove_fixture_tree(root)
 	pass
 
 
-func path_matches_glob_filename_test() -> void:
-	assert(FileUtils.path_matches_glob("src/Player.gd", "*.gd"))
-	assert(not FileUtils.path_matches_glob("src/readme.txt", "*.gd"))
-	assert(FileUtils.path_matches_glob("any/path/x.gd", ""))
-	pass
-
-
-func path_matches_glob_path_test() -> void:
-	assert(FileUtils.path_matches_glob("agent/tools/ReadTool.gd", "**/*.gd"))
-	assert(FileUtils.path_matches_glob("ReadTool.gd", "**/*.gd"))
-	# `*` matches one path segment; use `**` for nested paths under agent/.
-	assert(FileUtils.path_matches_glob("agent/ReadTool.gd", "agent/*.gd"))
-	assert(not FileUtils.path_matches_glob("agent/tools/ReadTool.gd", "agent/*.gd"))
-	assert(not FileUtils.path_matches_glob("agent/sub/ReadTool.gd", "agent/*.gd"))
-	pass
-
-
-func collect_files_glob_pattern_test() -> void:
+func glob_pattern_test() -> void:
 	var root := create_fixture_tree()
-	var gd_files := FileUtils.collect_files_glob(root, "**/*.gd", PackedStringArray([".git"]), 1_048_576)
+	var gd_files := FileUtils.glob(root, "**/*.gd", 1_048_576, [".git"])
 	var rel := relative_paths(root, gd_files)
 	assert(rel.size() == 3)
 	assert(rel.has("root.gd"))
@@ -70,20 +54,20 @@ func collect_files_glob_pattern_test() -> void:
 	pass
 
 
-func collect_files_glob_skips_dirs_test() -> void:
+func glob_skips_dirs_test() -> void:
 	var root := create_fixture_tree()
-	var all := FileUtils.collect_files_glob(root, "**/*", PackedStringArray([".git"]), 1_048_576)
+	var all := FileUtils.glob(root, "**/*", 1_048_576, [".git"])
 	var rel := relative_paths(root, all)
 	assert(not rel.has(".git/objects/sha"))
 	remove_fixture_tree(root)
 	pass
 
 
-func collect_files_glob_max_file_bytes_test() -> void:
+func glob_max_file_bytes_test() -> void:
 	var root := create_fixture_tree()
 	var huge_path := root.path_join("src/huge.bin")
 	FileUtils.write_string_to_file(huge_path, "x".repeat(2_000))
-	var capped := FileUtils.collect_files_glob(root, "**/*", PackedStringArray([".git"]), 1_000)
+	var capped := FileUtils.glob(root, "**/*", 1_000, [".git"])
 	var rel := relative_paths(root, capped)
 	assert(not rel.has("src/huge.bin"))
 	assert(rel.has("src/a.gd"))
@@ -106,13 +90,13 @@ func get_all_directories_in_folder_test() -> void:
 	pass
 
 
-func collect_files_glob_single_file_test() -> void:
+func glob_single_file_test() -> void:
 	var root := create_fixture_tree()
 	var one := root.path_join("src/a.gd")
-	var matched := FileUtils.collect_files_glob(one, "*.gd", PackedStringArray(), 1_048_576)
+	var matched := FileUtils.glob(one, "*.gd", 1_048_576)
 	assert(matched.size() == 1)
 	assert(FileUtils.path_relative_to(root, matched[0]) == "src/a.gd")
-	var rejected := FileUtils.collect_files_glob(one, "*.txt", PackedStringArray(), 1_048_576)
+	var rejected := FileUtils.glob(one, "*.txt", 1_048_576)
 	assert(rejected.is_empty())
 	remove_fixture_tree(root)
 	pass

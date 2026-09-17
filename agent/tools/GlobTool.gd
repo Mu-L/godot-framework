@@ -24,7 +24,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	if pattern.is_empty():
 		return AgentToolResult.error("error: pattern is required")
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
-	var all_files := FileUtils.collect_files_glob(search_root, pattern, merged_skip_dir_names, MAX_FILE_BYTES, merged_skip_path_prefixes)
+	var all_files := FileUtils.glob(search_root, pattern, MAX_FILE_BYTES, workspace_skip_glob_rules)
 	var truncated := all_files.size() > MAX_FILE_RESULTS
 	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated else all_files
 	var lines: Array[String] = []
@@ -41,10 +41,10 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 
 
 # ---------------------------------------------------------------------------
-# Workspace file collection — shared by glob / grep (FileUtils.collect_files_glob)
+# Workspace file collection — shared by glob / grep (FileUtils.glob)
 # ---------------------------------------------------------------------------
 
-## Always skipped during agent repo search; merged with rules from workspace ignore files.
+## Always applied as skip globs during agent repo search (see [method workspace_path_skipped]).
 static var SKIP_DIR_NAMES: PackedStringArray = PackedStringArray([
 	".git",
 	"node_modules",
@@ -58,43 +58,42 @@ static var WORKSPACE_IGNORE_FILES: PackedStringArray = PackedStringArray([
 	".aiignore",
 ])
 
-## Grep file-list cap after [method collect_files] (glob uses [constant MAX_FILE_RESULTS]).
-
-static var merged_skip_dir_names: PackedStringArray = PackedStringArray()
-static var merged_skip_path_prefixes: Array[String] = []
+## Literal ignore lines (no [code]*[/code] / [code]?[/code] / [code][[/code]) from [constant WORKSPACE_IGNORE_FILES], plus [constant SKIP_DIR_NAMES].
+static var workspace_skip_glob_rules: Array[String] = []
 
 
 static func _static_init() -> void:
-	var dir_names: Array[String] = []
-	var path_prefixes: Array[String] = []
+	workspace_skip_glob_rules = _load_workspace_skip_glob_rules()
+	pass
+
+
+## True when [param relative_path] matches any [member workspace_skip_glob_rules] entry ([method FileUtils.glob_match_any]).
+static func workspace_path_skipped(relative_path: String) -> bool:
+	return FileUtils.glob_match_any(workspace_skip_glob_rules, relative_path)
+
+
+static func _load_workspace_skip_glob_rules() -> Array[String]:
+	var rules: Array[String] = []
+	for dir_name in SKIP_DIR_NAMES:
+		rules.append(dir_name)
 	for file_name in WORKSPACE_IGNORE_FILES:
 		var path := AgentWorkspace.resolve_path(file_name)
 		if not FileAccess.file_exists(path):
 			continue
-		for line in FileUtils.read_file_to_string(path).split(StringUtils.LS, false):
-			var rule := line.strip_edges()
-			if rule.is_empty() or rule.begins_with("#"):
+		for line in FileUtils.read_file_to_lines(path):
+			if not _include_ignore_line_in_skip_rules(line):
 				continue
-			if rule.begins_with("!"):
-				continue
-			if rule.contains("*") or rule.contains("?") or rule.contains("["):
-				continue
-			if rule.ends_with("/"):
-				rule = rule.substr(0, rule.length() - 1)
-			rule = rule.replace("\\", "/").strip_edges()
-			if rule.is_empty():
-				continue
-			if rule.contains("/"):
-				if not path_prefixes.has(rule):
-					path_prefixes.append(rule)
-			elif not dir_names.has(rule):
-				dir_names.append(rule)
-	merged_skip_dir_names = PackedStringArray()
-	for _name in SKIP_DIR_NAMES:
-		if not merged_skip_dir_names.has(_name):
-			merged_skip_dir_names.append(_name)
-	for _name in dir_names:
-		if not merged_skip_dir_names.has(_name):
-			merged_skip_dir_names.append(_name)
-	merged_skip_path_prefixes = path_prefixes
-	pass
+			rules.append(line)
+	return rules
+
+
+## Ignore lines that participate in workspace directory skip (comments, negation, and wildcards excluded — same as before).
+static func _include_ignore_line_in_skip_rules(line: String) -> bool:
+	var trimmed := line.strip_edges()
+	if trimmed.is_empty() or trimmed.begins_with("#"):
+		return false
+	if trimmed.begins_with("!"):
+		return false
+	if trimmed.contains("*") or trimmed.contains("?") or trimmed.contains("["):
+		return false
+	return true
