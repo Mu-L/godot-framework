@@ -64,16 +64,17 @@ func decode_complete() -> String:
 		if seq_len == 0:
 			i += 1
 			continue
-		if i + seq_len > pending.size():
-			break
 		var valid := true
-		for j in range(1, seq_len):
+		var available_len := mini(seq_len, pending.size() - i)
+		for j in range(1, available_len):
 			if (pending[i + j] & 0xC0) != 0x80:
 				valid = false
 				break
 		if not valid:
 			i += 1
 			continue
+		if available_len < seq_len:
+			break
 		out.append(pending.slice(i, i + seq_len).get_string_from_utf8())
 		i += seq_len
 	if i > 0:

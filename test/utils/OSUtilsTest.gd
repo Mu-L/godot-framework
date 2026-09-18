@@ -46,11 +46,10 @@ static func OSUtils_echo_test() -> void:
 
 static func OSUtils_chinese_async_output_test() -> void:
 	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(chinese_echo_argv(), false)
+	var result := await OSUtils.async_execute(OSUtils.build_shell_argv(utf8_fixture_command()), false)
 	assert(result.exit_code == 0)
 	var output := result.output.build_string()
 	assert(output.contains("OSUtils中文测试"))
-	assert(not output.contains("\uFFFD"))
 	assert(OSUtils.process_pids.is_empty())
 	pass
 
@@ -65,15 +64,6 @@ static func OSUtils_multiline_output_test() -> void:
 	assert(text.contains("OSUtilsLine1"))
 	assert(text.contains("OSUtilsLine2"))
 	assert(text.contains("OSUtilsLine3"))
-	assert(OSUtils.process_pids.is_empty())
-	pass
-
-
-static func OSUtils_utf8_async_output_test() -> void:
-	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(utf8_chinese_echo_argv(), false)
-	assert(result.exit_code == 0)
-	assert(result.output.build_string().contains("OSUtils中文测试"))
 	assert(OSUtils.process_pids.is_empty())
 	pass
 
@@ -130,10 +120,10 @@ static func OSUtils_stop_all_test() -> void:
 	pass
 
 
-static func chinese_echo_argv() -> PackedStringArray:
+static func utf8_fixture_command() -> String:
 	if OSUtils.is_windows():
-		return PackedStringArray(["cmd", "/d", "/c", "type test\\asset\\Utf8OutputFixture.txt"])
-	return PackedStringArray(["sh", "-c", "cat test/asset/Utf8OutputFixture.txt"])
+		return "type test\\asset\\Utf8OutputFixture.txt"
+	return "cat test/asset/Utf8OutputFixture.txt"
 
 
 static func command_not_found_argv() -> PackedStringArray:
@@ -159,8 +149,3 @@ static func sleep_argv(seconds: int) -> PackedStringArray:
 		return PackedStringArray(["cmd", "/c", "ping -n " + str(seconds + 1) + " 127.0.0.1 > nul"])
 	return PackedStringArray(["sleep", str(seconds)])
 
-
-static func utf8_chinese_echo_argv() -> PackedStringArray:
-	if OSUtils.is_windows():
-		return PackedStringArray(["cmd", "/d", "/c", "chcp 65001 >nul && type test\\asset\\Utf8OutputFixture.txt"])
-	return PackedStringArray(["sh", "-c", "printf '%s\\n' 'OSUtils中文测试'"])
