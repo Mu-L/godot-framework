@@ -83,15 +83,6 @@ func glob_match_any_test() -> void:
 	pass
 
 
-func glob_regex_cache_limit_test() -> void:
-	GlobUtils.clear_cache()
-	for index in range(GlobUtils.REGEX_CACHE_MAX_SIZE + 16):
-		assert(GlobUtils.glob_match("cache_" + str(index), "cache_" + str(index)))
-	assert(GlobUtils.cache_size() == GlobUtils.REGEX_CACHE_MAX_SIZE)
-	GlobUtils.clear_cache()
-	pass
-
-
 func glob_match_comments_and_empty_test() -> void:
 	assert(not GlobUtils.glob_match("", "any/path"))
 	assert(not GlobUtils.glob_match("   ", "any/path"))

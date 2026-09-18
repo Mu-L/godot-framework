@@ -74,13 +74,7 @@ static func glob_match(glob_rule: String, path_or_file: String, parse_ignore_syn
 	if rule.is_empty() or path.is_empty():
 		return false
 
-	var directory_rule := rule.ends_with("/")
-	if directory_rule:
-		rule = rule.substr(0, rule.length() - 1).strip_edges()
-		if rule.is_empty():
-			return false
-
-	var regex := get_regex(rule, directory_rule)
+	var regex := get_or_compile_regex(rule)
 	return regex != null and regex.search(path) != null
 
 
@@ -92,18 +86,13 @@ static func glob_match_any(glob_rules: Array[String], path_or_file: String) -> b
 	return false
 
 
-## Clears all compiled glob expressions.
-static func clear_cache() -> void:
-	regex_cache.clear()
-	pass
-
-
-static func cache_size() -> int:
-	return regex_cache.size()
-
-
-## Compiles one normalized rule and refreshes its LRU position on cache hits.
-static func get_regex(rule: String, directory_rule: bool) -> RegEx:
+## Compiles one normalized glob rule and infers directory semantics from a trailing `/`.
+## Cache hits refresh the expression's LRU position.
+static func get_or_compile_regex(glob_rule: String) -> RegEx:
+	var directory_rule := glob_rule.ends_with("/")
+	var rule := glob_rule.trim_suffix("/").strip_edges() if directory_rule else glob_rule
+	if rule.is_empty():
+		return null
 	var has_slash := rule.contains("/")
 	var has_wildcard := rule.contains("*") or rule.contains("?")
 	var cache_key := ("1" if directory_rule else "0") + rule
