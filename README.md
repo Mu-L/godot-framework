@@ -9,8 +9,8 @@ Shared: root [`AGENTS.md`](AGENTS.md), [`.agents/skills/`](.agents/skills/README
 | **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
 | **DeepSeek** | Native Support |
 | **Codex** | Native Support |
-| **Cursor** | Keep root `AGENTS.md`. Copy [`.agents/skills/`](.agents/skills/README.md) → `.cursor/skills` |
-| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy [`.agents/skills/`](.agents/skills/README.md) → `.claude/skills` |
+| **Cursor** | Keep root `AGENTS.md`. Copy `.agents/skills/` → `.cursor/skills` |
+| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy `.agents/skills/` → `.claude/skills` |
 
 ![gui.png](gui/gui.png)
 
@@ -18,7 +18,7 @@ Shared: root [`AGENTS.md`](AGENTS.md), [`.agents/skills/`](.agents/skills/README
 
 # Agent Skills
 
-Batch asset tools in [`.agents/skills/`](.agents/skills/README.md); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
+Batch asset tools in [`.agents/skills/`](.agents/skills/); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
 
 | Category | Pipeline | Skills |
 |----------|----------|--------|
