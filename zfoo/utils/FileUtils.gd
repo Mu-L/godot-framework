@@ -31,6 +31,12 @@ static func normalize_line_endings_to_lf(s: String) -> String:
 	return s.replace(NEWLINE_CRLF, NEWLINE_LF).replace(NEWLINE_CR, NEWLINE_LF)
 
 
+static func count_lines(text: String) -> int:
+	if text.is_empty():
+		return 0
+	return text.count(NEWLINE_LF) + (0 if text.ends_with(NEWLINE_LF) else 1)
+
+
 # ---------------------------------------------------------------------------
 # Project root
 # ---------------------------------------------------------------------------

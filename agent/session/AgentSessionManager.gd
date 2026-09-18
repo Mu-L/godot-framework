@@ -311,22 +311,22 @@ static func append_chat_entry_stream(session_id: int, stream_kind: String, chunk
 	var run := session_index.run
 	if stream_kind == OpenAiClient.STREAM_KIND_REASONING:
 		if run.step_thinking_entry == null:
-			run.step_thinking_entry = add_chat_entry(session_id, ChatEntry.KIND_THINKING, ChatEntry.TITLE_THINKING, chunk, false)
+			run.step_thinking_entry = add_chat_entry(session_id, ChatEntry.KIND_THINKING, ChatEntry.TITLE_THINKING, chunk)
 		else:
 			run.step_thinking_entry.body += chunk
 		return run.step_thinking_entry
 	if run.step_agent_entry == null:
-		run.step_agent_entry = add_chat_entry(session_id, ChatEntry.KIND_AGENT, ChatEntry.TITLE_AGENT, chunk, false)
+		run.step_agent_entry = add_chat_entry(session_id, ChatEntry.KIND_AGENT, ChatEntry.TITLE_AGENT, chunk)
 	else:
 		run.step_agent_entry.body += chunk
 	return run.step_agent_entry
 
 
-static func add_chat_entry(session_id: int, kind: String, entry_title: String, body: String, _emit_end: bool = true) -> ChatEntry:
+static func add_chat_entry(session_id: int, kind: String, entry_title: String, body: String, details: Dictionary[String, String] = {}) -> ChatEntry:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
 		return null
-	var entry := ChatEntry.new(kind, entry_title, body)
+	var entry := ChatEntry.new(kind, entry_title, body, details)
 	session.chat_entries.append(entry)
 	AgentEvents.events.chat_entry_add.emit(session_id, entry)
 	return entry
@@ -424,10 +424,10 @@ static func on_message_complete(session_id: int, usage: OpenAiUsage) -> void:
 # ---------------------------------------------------------------------------
 
 static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, Variant]) -> void:
+	if AgentHelper.is_file_tool(tool_name):
+		return
 	var body := ""
 	match tool_name:
-		ReadTool.NAME, WriteTool.NAME, EditTool.NAME, DeleteTool.NAME:
-			body = str(args.get(ReadTool.ARG_PATH, ""))
 		GrepTool.NAME:
 			body = str(args.get(GrepTool.ARG_PATTERN, ""))
 		GlobTool.NAME:
@@ -450,8 +450,12 @@ static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool
 	pass
 
 
-static func on_tool_execution_end(session_id: int, _tool_call_id: String, _tool_name: String, agent_tool_result: AgentToolResult) -> void:
-	var title: String= agent_tool_result.details.get(AgentToolResult.DETAIL_TITLE, "")
-	var body: String= agent_tool_result.details.get(AgentToolResult.DETAIL_BODY, "")
-	add_chat_entry(session_id, ChatEntry.KIND_RESULT, title, body)
+static func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, agent_tool_result: AgentToolResult) -> void:
+	if AgentHelper.is_file_tool(tool_name):
+		var path: String = agent_tool_result.details.get(AgentToolResult.DETAIL_PATH, "")
+		add_chat_entry(session_id, ChatEntry.KIND_FILE_TOOL, tool_name, path, agent_tool_result.details)
+		return
+	var title: String = agent_tool_result.details.get(AgentToolResult.DETAIL_TITLE, "")
+	var body: String = agent_tool_result.details.get(AgentToolResult.DETAIL_BODY, "")
+	add_chat_entry(session_id, ChatEntry.KIND_RESULT, title, body, agent_tool_result.details)
 	pass

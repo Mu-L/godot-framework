@@ -140,6 +140,8 @@ func on_markdown_changed(_enabled: bool) -> void:
 		match entry.kind:
 			ChatEntry.KIND_THINKING, ChatEntry.KIND_RESULT:
 				ChatBubblePreview.apply(rich_text, entry.body)
+			ChatEntry.KIND_FILE_TOOL:
+				FileBubble.refresh(rich_text, entry)
 			ChatEntry.KIND_ERROR:
 				ErrorBubble.refresh(rich_text, entry)
 			_:
@@ -282,14 +284,20 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 					AgentColors.chat_text
 			)
 		ChatEntry.KIND_TOOL:
-			var tool_color := AgentColors.tool_title_color(chat_entry.title)
 			rich_text = append_bubble(
 					chat_list,
 					chat_entry,
-					tool_color,
-					AgentColors.tool_bubble_color(chat_entry.title),
-					tool_color
+					AgentColors.success,
+					AgentColors.tool_bubble,
+					AgentColors.success
 			)
+		ChatEntry.KIND_FILE_TOOL:
+			rich_text = FileBubble.append(
+					chat_list,
+					chat_entry,
+					build_bubble_style(AgentColors.file_tool_bubble)
+			)
+			queue_scroll_to_bottom()
 		ChatEntry.KIND_RESULT:
 			rich_text = ResultBubble.append(
 					chat_list,

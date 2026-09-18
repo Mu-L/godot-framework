@@ -23,7 +23,11 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 		return AgentToolResult.error(StringUtils.format("error: path is a directory (not deleted): {}", path))
 	if not FileAccess.file_exists(path):
 		return AgentToolResult.error(StringUtils.format("error: file not found: {}", path))
+	var removed_lines := FileUtils.count_lines(FileUtils.read_file_to_string(path))
 	FileUtils.delete_file(path)
 	var message := StringUtils.format("deleted {}", path)
-	return AgentToolResult.ok(message, AgentToolResult.ui_details(ChatEntry.TITLE_RESULT, message))
+	return AgentToolResult.ok(
+		message,
+		AgentToolResult.ui_details(ChatEntry.TITLE_RESULT, StringUtils.EMPTY, 0, removed_lines, path)
+	)
 # AgentTool-Interface-Implement-End

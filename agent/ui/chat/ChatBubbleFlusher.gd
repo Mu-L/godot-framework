@@ -69,6 +69,9 @@ static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry, increm
 	if entry.kind == ChatEntry.KIND_THINKING or entry.kind == ChatEntry.KIND_RESULT:
 		ChatBubblePreview.apply(rich_text, entry.body)
 		return
+	if entry.kind == ChatEntry.KIND_FILE_TOOL:
+		FileBubble.refresh(rich_text, entry)
+		return
 	if entry.kind == ChatEntry.KIND_SKILL:
 		SkillBubble.refresh(rich_text, entry)
 		return

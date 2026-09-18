@@ -124,24 +124,6 @@ static func code_block_bg_html() -> String:
 	return code_block_bg.to_html(false)
 
 
-## read / write / edit share one amber file-tool color; other tools stay green.
-static func is_file_tool(tool_name: String) -> bool:
-	return (
-		tool_name == ReadTool.NAME
-		or tool_name == WriteTool.NAME
-		or tool_name == EditTool.NAME
-		or tool_name == DeleteTool.NAME
-	)
-
-
-static func tool_bubble_color(tool_name: String) -> Color:
-	return file_tool_bubble if is_file_tool(tool_name) else tool_bubble
-
-
-static func tool_title_color(tool_name: String) -> Color:
-	return file_tool_title if is_file_tool(tool_name) else success
-
-
 # ---------------------------------------------------------------------------
 # Dark palette
 # ---------------------------------------------------------------------------

@@ -72,7 +72,7 @@ static func phase_color_from_theme(
 
 static func keywords_for(phase: Phase, tool_name: String = "") -> Array[String]:
 	if phase == Phase.TOOL_EXEC and not tool_name.is_empty():
-		if AgentColors.is_file_tool(tool_name):
+		if AgentHelper.is_file_tool(tool_name):
 			return ["SOURCE", "PATCH", "FILE"]
 		if tool_name == BashTool.NAME:
 			return ["EXECUTE", "PIPELINE", "SHELL"]
