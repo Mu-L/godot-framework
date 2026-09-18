@@ -4,14 +4,15 @@ class_name GlobUtils
 extends Object
 
 ## Keeps repeated ignore rules cheap without allowing unbounded process-lifetime growth.
-const REGEX_CACHE_MAX_SIZE: int = 128
+const REGEX_CACHE_MAX_SIZE: int = 256
 
 static var regex_cache := LruStringCache.new(REGEX_CACHE_MAX_SIZE)
 
 
 ## Finds files under [param search_root] whose relative path matches [param glob_pattern].
+## Set [param recursive] to [code]false[/code] to search only the root folder.
 ## Uses breadth-first traversal and skips files larger than [param max_file_bytes]; [code]0[/code] disables the limit.
-static func glob(search_root: String, glob_pattern: String, max_file_bytes: int = 1_048_576, skip_glob_rules: Array[String] = []) -> Array[String]:
+static func glob(search_root: String, glob_pattern: String, recursive: bool = true, max_file_bytes: int = 0, skip_glob_rules: Array[String] = []) -> Array[String]:
 	var files: Array[String] = []
 	var pattern := glob_pattern.strip_edges().replace("\\", "/")
 	var pattern_has_path := pattern.contains("/")
@@ -43,12 +44,13 @@ static func glob(search_root: String, glob_pattern: String, max_file_bytes: int 
 			var match_path := relative_path if pattern_has_path else file_name
 			if pattern.is_empty() or glob_match(pattern, match_path, false):
 				files.append(file_path)
-		for dir_name in dir.get_directories():
-			var child_path := folder_path.path_join(dir_name)
-			var normalized_child := child_path.replace("\\", "/")
-			var relative_child := normalized_child.substr(root_prefix.length())
-			if not glob_match_any(skip_glob_rules, relative_child):
-				folders.append(child_path)
+		if recursive:
+			for dir_name in dir.get_directories():
+				var child_path := folder_path.path_join(dir_name)
+				var normalized_child := child_path.replace("\\", "/")
+				var relative_child := normalized_child.substr(root_prefix.length())
+				if not glob_match_any(skip_glob_rules, relative_child):
+					folders.append(child_path)
 		# Periodically discard consumed queue entries so a large tree is not retained forever.
 		if folder_index >= 1024 and folder_index * 2 >= folders.size():
 			folders = folders.slice(folder_index)

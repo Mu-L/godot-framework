@@ -6,7 +6,7 @@ func glob_skip_rules_test() -> void:
 	DirAccess.make_dir_recursive_absolute(root.path_join(".cursor/skills/humanizer"))
 	FileUtils.write_string_to_file(root.path_join(".cursor/skills/humanizer/skip.gd"), "extends Node\n")
 	var skip: Array[String] = [".git", ".cursor/skills/humanizer"]
-	var rel := relative_paths(root, GlobUtils.glob(root, "**/*.gd", 1_048_576, skip))
+	var rel := relative_paths(root, GlobUtils.glob(root, "**/*.gd", true, 1_048_576, skip))
 	assert(not rel.has(".cursor/skills/humanizer/skip.gd"))
 	remove_fixture_tree(root)
 	pass
@@ -14,7 +14,7 @@ func glob_skip_rules_test() -> void:
 
 func glob_pattern_test() -> void:
 	var root := create_fixture_tree()
-	var gd_files := GlobUtils.glob(root, "**/*.gd", 1_048_576, [".git"])
+	var gd_files := GlobUtils.glob(root, "**/*.gd", true, 1_048_576, [".git"])
 	var rel := relative_paths(root, gd_files)
 	assert(rel.size() == 3)
 	assert(rel.has("root.gd"))
@@ -25,9 +25,17 @@ func glob_pattern_test() -> void:
 	pass
 
 
+func glob_non_recursive_test() -> void:
+	var root := create_fixture_tree()
+	var files := relative_paths(root, GlobUtils.glob(root, "*.gd", false, 0))
+	assert(files == ["root.gd"])
+	remove_fixture_tree(root)
+	pass
+
+
 func glob_skips_dirs_test() -> void:
 	var root := create_fixture_tree()
-	var all := GlobUtils.glob(root, "**/*", 1_048_576, [".git"])
+	var all := GlobUtils.glob(root, "**/*", true, 1_048_576, [".git"])
 	var rel := relative_paths(root, all)
 	assert(not rel.has(".git/objects/sha"))
 	remove_fixture_tree(root)
@@ -38,7 +46,7 @@ func glob_max_file_bytes_test() -> void:
 	var root := create_fixture_tree()
 	var huge_path := root.path_join("src/huge.bin")
 	FileUtils.write_string_to_file(huge_path, "x".repeat(2_000))
-	var capped := GlobUtils.glob(root, "**/*", 1_000, [".git"])
+	var capped := GlobUtils.glob(root, "**/*", true, 1_000, [".git"])
 	var rel := relative_paths(root, capped)
 	assert(not rel.has("src/huge.bin"))
 	assert(rel.has("src/a.gd"))
@@ -49,10 +57,10 @@ func glob_max_file_bytes_test() -> void:
 func glob_single_file_test() -> void:
 	var root := create_fixture_tree()
 	var one := root.path_join("src/a.gd")
-	var matched := GlobUtils.glob(one, "*.gd", 1_048_576)
+	var matched := GlobUtils.glob(one, "*.gd")
 	assert(matched.size() == 1)
 	assert(matched[0] == one)
-	var rejected := GlobUtils.glob(one, "*.txt", 1_048_576)
+	var rejected := GlobUtils.glob(one, "*.txt")
 	assert(rejected.is_empty())
 	remove_fixture_tree(root)
 	pass

@@ -32,7 +32,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 		return AgentToolResult.error(StringUtils.format("error: invalid regex: {}", pattern))
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	var glob_filter := str(args.get(ARG_GLOB, "")).strip_edges()
-	var all_files := GlobUtils.glob(search_root, glob_filter, MAX_FILE_BYTES, GlobTool.workspace_skip_glob_rules)
+	var all_files := GlobUtils.glob(search_root, glob_filter, true, MAX_FILE_BYTES, GlobTool.workspace_skip_glob_rules)
 	if all_files.is_empty():
 		return AgentToolResult.ok("No files to search")
 	var truncated_files := all_files.size() > MAX_FILE_RESULTS

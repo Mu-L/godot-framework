@@ -141,29 +141,6 @@ static func get_all_directories_in_folder(folderPath: String, recursive: bool = 
 	return dirs
 
 
-# Returns absolute paths of files in the given folder whose names match a glob pattern.
-# Supports * and ? wildcards (Godot String.match). Set recursive to true to search subfolders.
-# For path globs (`**/*.gd`), use [method glob] instead.
-static func get_files_in_folder_matching(folderPath: String, globPattern: String, recursive: bool = false) -> Array[String]:
-	var pattern := globPattern.strip_edges()
-	if pattern.is_empty():
-		pattern = "*.*"
-
-	var all_files := get_all_files_in_folder(folderPath, recursive)
-	if pattern == "*" or pattern == "*.*":
-		all_files.sort()
-		return all_files
-
-	var matched: Array[String] = []
-	for file_path in all_files:
-		if file_path.get_file().match(pattern):
-			matched.append(file_path)
-	matched.sort()
-	return matched
-
-
-
-
 # ---------------------------------------------------------------------------
 # Folder file queries
 # ---------------------------------------------------------------------------
