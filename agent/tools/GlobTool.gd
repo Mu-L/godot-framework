@@ -25,16 +25,17 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 		return AgentToolResult.error("error: pattern is required")
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	var all_files := GlobUtils.glob(search_root, pattern, true, MAX_FILE_BYTES, workspace_skip_glob_rules)
-	
-	var files := all_files.slice(0, MAX_FILE_RESULTS) if all_files.size() > MAX_FILE_RESULTS else all_files
+	if all_files.is_empty():
+		return AgentToolResult.ok("No files matched")
+
+	var truncated_files := all_files.size() > MAX_FILE_RESULTS
+	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated_files else all_files
 	var build := StringBuilder.new(files)
 	
 	var truncated := build.truncate_by_part(MAX_OUTPUT)
-	if truncated:
-		build.append(StringUtils.format("... (truncated at {} files)", MAX_FILE_RESULTS))
+	if truncated_files || truncated:
+		build.append("... (truncated)")
 	var text := build.build_joined(StringUtils.LS)
-	if build.is_empty():
-		text = "No files matched"
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 # AgentTool-Interface-Implement-End
 
