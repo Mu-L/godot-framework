@@ -22,17 +22,19 @@ func _init(_content: String = "", _is_error: bool = false, _details: Dictionary[
 	pass
 
 
-static func ui_details(
-	title: String,
-	body: String = StringUtils.EMPTY,
+static func ui_details(title: String, body: String = StringUtils.EMPTY) -> Dictionary[String, String]:
+	return {
+		DETAIL_TITLE: title,
+		DETAIL_BODY: body,
+	}
+
+
+static func ui_file_details(
 	lines_added: int = -1,
 	lines_removed: int = -1,
 	path: String = StringUtils.EMPTY
 ) -> Dictionary[String, String]:
-	var result: Dictionary[String, String] = {
-		DETAIL_TITLE: title,
-		DETAIL_BODY: body,
-	}
+	var result := ui_details(ChatEntry.TITLE_RESULT)
 	if lines_added >= 0:
 		result[DETAIL_LINES_ADDED] = str(lines_added)
 	if lines_removed >= 0:

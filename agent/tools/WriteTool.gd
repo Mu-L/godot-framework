@@ -31,14 +31,5 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	if not FileUtils.write_string_to_file(path, content):
 		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path))
 	var message := StringUtils.format("wrote {} bytes to {}", content.length(), path)
-	return AgentToolResult.ok(
-		message,
-		AgentToolResult.ui_details(
-			ChatEntry.TITLE_RESULT,
-			StringUtils.EMPTY,
-			FileUtils.count_lines(content),
-			FileUtils.count_lines(previous_content),
-			path
-		)
-	)
+	return AgentToolResult.ok(message, AgentToolResult.ui_file_details(FileUtils.count_lines(content), FileUtils.count_lines(previous_content), path))
 # AgentTool-Interface-Implement-End

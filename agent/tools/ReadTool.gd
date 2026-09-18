@@ -22,8 +22,5 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	if not FileAccess.file_exists(path):
 		return AgentToolResult.error(StringUtils.format("error: file not found: {}", path))
 	var content := FileUtils.read_file_to_string(path)
-	return AgentToolResult.ok(
-		StringUtils.truncate(content, MAX_OUTPUT, TRUNCATED_SUFFIX),
-		AgentToolResult.ui_details(ChatEntry.TITLE_RESULT, StringUtils.EMPTY, -1, -1, path)
-	)
+	return AgentToolResult.ok(StringUtils.truncate(content, MAX_OUTPUT, TRUNCATED_SUFFIX), AgentToolResult.ui_file_details(-1, -1, path))
 # AgentTool-Interface-Implement-End

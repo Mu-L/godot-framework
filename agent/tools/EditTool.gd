@@ -41,8 +41,5 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var message := StringUtils.format("edited {}", path)
 	var lines_added := FileUtils.count_lines(new_string)
 	var lines_removed := FileUtils.count_lines(old_string)
-	return AgentToolResult.ok(
-		message,
-		AgentToolResult.ui_details(ChatEntry.TITLE_RESULT, StringUtils.EMPTY, lines_added, lines_removed, path)
-	)
+	return AgentToolResult.ok(message, AgentToolResult.ui_file_details(lines_added, lines_removed, path))
 # AgentTool-Interface-Implement-End
