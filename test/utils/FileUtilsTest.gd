@@ -22,14 +22,6 @@ func read_file_to_string_rejects_nul_test() -> void:
 	pass
 
 
-func path_relative_to_test() -> void:
-	var base := "C:/proj/game".replace("\\", "/")
-	assert(FileUtils.path_relative_to(base, "C:/proj/game/main.gd") == "main.gd")
-	assert(FileUtils.path_relative_to(base, "C:/proj/game") == ".")
-	assert(FileUtils.path_relative_to(base, "C:/other/x.gd") == "C:/other/x.gd")
-	pass
-
-
 func glob_skip_rules_test() -> void:
 	var root := create_fixture_tree()
 	DirAccess.make_dir_recursive_absolute(root.path_join(".cursor/skills/humanizer"))
@@ -95,9 +87,23 @@ func glob_single_file_test() -> void:
 	var one := root.path_join("src/a.gd")
 	var matched := FileUtils.glob(one, "*.gd", 1_048_576)
 	assert(matched.size() == 1)
-	assert(FileUtils.path_relative_to(root, matched[0]) == "src/a.gd")
+	assert(matched[0] == one)
 	var rejected := FileUtils.glob(one, "*.txt", 1_048_576)
 	assert(rejected.is_empty())
+	remove_fixture_tree(root)
+	pass
+
+
+func glob_treats_hash_and_bang_as_literal_pattern_test() -> void:
+	var root := create_fixture_tree()
+	DirAccess.make_dir_recursive_absolute(root.path_join("#cache"))
+	DirAccess.make_dir_recursive_absolute(root.path_join("!data"))
+	FileUtils.write_string_to_file(root.path_join("#cache/item.txt"), "text\n")
+	FileUtils.write_string_to_file(root.path_join("!data/item.json"), "{}\n")
+	var hash_matches := relative_paths(root, FileUtils.glob(root, "#cache/*.txt"))
+	var bang_matches := relative_paths(root, FileUtils.glob(root, "!data/*.json"))
+	assert(hash_matches == ["#cache/item.txt"])
+	assert(bang_matches == ["!data/item.json"])
 	remove_fixture_tree(root)
 	pass
 
@@ -210,6 +216,8 @@ func glob_match_wildcard_with_slash_test() -> void:
 	assert(FileUtils.glob_match("**/*.gd", "agent/tools/ReadTool.gd"))
 	assert(FileUtils.glob_match("**/*.gd", "ReadTool.gd"))
 	assert(not FileUtils.glob_match("**/*.gd", "agent/tools/ReadTool.txt"))
+	assert(FileUtils.glob_match("foo/*/", "foo/bar/file.txt"))
+	assert(not FileUtils.glob_match("foo/*/", "other/bar/file.txt"))
 	pass
 
 
@@ -241,8 +249,10 @@ func glob_match_repo_gitignore_smoke_test() -> void:
 
 static func relative_paths(search_root: String, files: Array[String]) -> Array[String]:
 	var rel: Array[String] = []
+	var root := search_root.replace("\\", "/").rstrip("/")
 	for file_path in files:
-		rel.append(FileUtils.path_relative_to(search_root, file_path))
+		var normalized_path := file_path.replace("\\", "/")
+		rel.append(normalized_path.substr(root.length() + 1))
 	return rel
 
 

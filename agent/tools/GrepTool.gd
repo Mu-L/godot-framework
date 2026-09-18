@@ -56,7 +56,7 @@ static func append_file_matches(build: StringBuilder, file_path: String, regex: 
 	var lines := FileUtils.read_file_to_lines(file_path)
 	if lines.is_empty():
 		return 0
-	var rel := AgentWorkspace.workspace_relative(file_path)
+	var rel := file_path
 	var matches_out := 0
 	for i in lines.size():
 		if matches_out >= remaining:

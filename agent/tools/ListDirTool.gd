@@ -32,9 +32,9 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	files.sort()
 	var lines: Array[String] = []
 	for dir_path in dirs:
-		lines.append(AgentWorkspace.workspace_relative(dir_path) + "/")
+		lines.append(dir_path + "/")
 	for file_path in files:
-		lines.append(AgentWorkspace.workspace_relative(file_path))
+		lines.append(file_path)
 	var truncated := lines.size() > MAX_ENTRIES
 	lines = lines.slice(0, MAX_ENTRIES)
 	var build := StringBuilder.new(lines)

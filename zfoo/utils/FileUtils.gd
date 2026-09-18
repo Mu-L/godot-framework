@@ -166,108 +166,55 @@ static func get_files_in_folder_matching(folderPath: String, globPattern: String
 # Recursive glob file discovery
 # ---------------------------------------------------------------------------
 
+
 ## Finds files under [param search_root] whose relative path matches [param glob_pattern] (`*`, `?`, `**`, `/`).
 ## [param max_file_bytes]: omit larger files; [code]0[/code] disables. [param skip_glob_rules]: skip descending into dirs matched by [method glob_match_any].
 static func glob(search_root: String, glob_pattern: String, max_file_bytes: int = 1_048_576, skip_glob_rules: Array[String] = []) -> Array[String]:
 	var files: Array[String] = []
+	var pattern := glob_pattern.strip_edges().replace("\\", "/")
+	var pattern_has_path := pattern.contains("/")
 	if FileAccess.file_exists(search_root):
-		if _glob_accepts_file(search_root, search_root, glob_pattern, max_file_bytes):
+		var file_name := search_root.replace("\\", "/").get_file()
+		var single_file_matches := pattern.is_empty() or glob_match(pattern, file_name, false)
+		if single_file_matches and (max_file_bytes <= 0 or FileAccess.get_size(search_root) <= max_file_bytes):
 			files.append(search_root)
-	elif DirAccess.dir_exists_absolute(search_root):
-		_glob_walk(search_root, search_root, glob_pattern, max_file_bytes, skip_glob_rules, files)
+		return files
+	if not DirAccess.dir_exists_absolute(search_root):
+		return files
+
+	var normalized_root := search_root.replace("\\", "/")
+	var root_prefix := normalized_root if normalized_root.ends_with("/") else normalized_root + "/"
+	var folders: Array[String] = [search_root]
+	var folder_index := 0
+	while folder_index < folders.size():
+		var folder_path := folders[folder_index]
+		folder_index += 1
+		var dir := DirAccess.open(folder_path)
+		if dir == null:
+			continue
+		for file_name in dir.get_files():
+			var file_path := folder_path.path_join(file_name)
+			if max_file_bytes > 0 and FileAccess.get_size(file_path) > max_file_bytes:
+				continue
+			var normalized_path := file_path.replace("\\", "/")
+			var relative_path := normalized_path.substr(root_prefix.length())
+			var match_path := relative_path if pattern_has_path else file_name
+			var file_matches := pattern.is_empty() or glob_match(pattern, match_path, false)
+			if file_matches:
+				files.append(file_path)
+		for dir_name in dir.get_directories():
+			var child_path := folder_path.path_join(dir_name)
+			var normalized_child := child_path.replace("\\", "/")
+			var relative_child := normalized_child.substr(root_prefix.length())
+			if not glob_match_any(skip_glob_rules, relative_child):
+				folders.append(child_path)
+		if folder_index >= 1024 and folder_index * 2 >= folders.size():
+			folders = folders.slice(folder_index)
+			folder_index = 0
 	files.sort()
 	return files
 
 
-## Path of [param abs_path] relative to [param base_dir], using forward slashes (for glob matching).
-static func path_relative_to(base_dir: String, abs_path: String) -> String:
-	var base := base_dir.replace("\\", "/").rstrip("/")
-	var norm := abs_path.replace("\\", "/")
-	if norm.begins_with(base + "/"):
-		return norm.substr(base.length() + 1)
-	return "." if norm == base else abs_path
-
-
-## True when [param relative_path] matches [param glob_pattern] (`*`, `?`, optional `/` and `**`).
-static func path_matches_glob(relative_path: String, glob_pattern: String) -> bool:
-	var pattern := glob_pattern.strip_edges().replace("\\", "/")
-	if pattern.is_empty():
-		return true
-	var path := relative_path.replace("\\", "/")
-	# `*.gd` — filename only, same as get_files_in_folder_matching.
-	if not pattern.contains("/") and not pattern.contains("**"):
-		return path.get_file().match(pattern)
-	var regex := RegEx.new()
-	if regex.compile(_glob_pattern_to_regex(pattern)) != OK:
-		return path.get_file().match(pattern)
-	return regex.search(path) != null
-
-
-## Exists, within size limit, and matches glob (empty glob matches all).
-static func _glob_accepts_file(search_root: String, abs_path: String, glob_pattern: String, max_file_bytes: int) -> bool:
-	if not FileAccess.file_exists(abs_path):
-		return false
-	if max_file_bytes > 0 and FileAccess.get_size(abs_path) > max_file_bytes:
-		return false
-	if glob_pattern.strip_edges().is_empty():
-		return true
-	return _path_matches_glob(_glob_relative_path_for_match(search_root, abs_path), glob_pattern)
-
-
-## When [param search_root] is a single file, [method path_relative_to] yields `"."` — use the basename for glob.
-static func _glob_relative_path_for_match(search_root: String, abs_path: String) -> String:
-	var rel := path_relative_to(search_root, abs_path)
-	if rel == ".":
-		return abs_path.replace("\\", "/").get_file()
-	return rel
-
-
-static func _glob_walk(search_root: String, folder_path: String, glob_pattern: String, max_file_bytes: int, skip_glob_rules: Array[String], files: Array[String]) -> void:
-	var dir := DirAccess.open(folder_path)
-	if dir == null:
-		return
-	for file_name in dir.get_files():
-		var full := folder_path.path_join(file_name)
-		if _glob_accepts_file(search_root, full, glob_pattern, max_file_bytes):
-			files.append(full)
-	for dir_name in dir.get_directories():
-		if not skip_glob_rules.is_empty():
-			var child_rel := path_relative_to(search_root, folder_path.path_join(dir_name)).replace("\\", "/")
-			if glob_match_any(skip_glob_rules, child_rel):
-				continue
-		_glob_walk(search_root, folder_path.path_join(dir_name), glob_pattern, max_file_bytes, skip_glob_rules, files)
-	pass
-
-
-static func _glob_pattern_to_regex(glob: String) -> String:
-	var build := StringBuilder.new()
-	build.append("^")
-	var i := 0
-	while i < glob.length():
-		var two := glob.substr(i, 2) if i + 1 < glob.length() else glob.substr(i, 1)
-		if two == "**":
-			# `**/` or `**` at end — zero or more path segments.
-			build.append("(?:.*/)?")
-			i += 2
-			if i < glob.length() and glob[i] == "/":
-				i += 1
-			continue
-		var ch := glob[i]
-		match ch:
-			"*":
-				build.append("[^/]*")
-			"?":
-				build.append("[^/]")
-			".":
-				build.append("\\.")
-			"+", "(", ")", "|", "^", "$", "[", "]", "{", "}", "\\":
-				build.append("\\")
-				build.append(ch)
-			_:
-				build.append(ch)
-		i += 1
-	build.append("$")
-	return build.build_string()
 
 
 # ---------------------------------------------------------------------------
@@ -279,14 +226,15 @@ static func _glob_pattern_to_regex(glob: String) -> String:
 ## [param glob_rule]: One line from an ignore file ([code].dependency/[/code], [code]*.tmp[/code], …). Blank and [code]#[/code] lines → [code]false[/code].
 ## Leading [code]![/code] is stripped (negation is for the caller). [code]\[/code] normalized to [code]/[/code].
 ##
+## Set [param parse_ignore_syntax] to [code]false[/code] for regular globs where leading `#` and `!` are literal.
 ## Wildcards use [method String.match] or internal path glob logic; not a full Git ignore engine.
-static func glob_match(glob_rule: String, path_or_file: String) -> bool:
+static func glob_match(glob_rule: String, path_or_file: String, parse_ignore_syntax: bool = true) -> bool:
 	# Raw ignore line → pattern (see class doc above).
 	var rule := glob_rule.strip_edges()
-	if rule.is_empty() or rule.begins_with("#"):
+	if rule.is_empty() or (parse_ignore_syntax and rule.begins_with("#")):
 		return false
 	# Negation marker; caller decides whether a matching line un-ignores the path.
-	if rule.begins_with("!"):
+	if parse_ignore_syntax and rule.begins_with("!"):
 		rule = rule.substr(1).strip_edges()
 		if rule.is_empty():
 			return false
@@ -299,21 +247,42 @@ static func glob_match(glob_rule: String, path_or_file: String) -> bool:
 	if path.is_empty():
 		return false
 
-	# Trailing slash = directory rule; strip before compare (same as GlobTool._static_init).
-	if rule.ends_with("/"):
+	# A directory rule also matches every path below the matched directory.
+	var directory_rule := rule.ends_with("/")
+	if directory_rule:
 		rule = rule.substr(0, rule.length() - 1)
 	rule = rule.strip_edges()
 	if rule.is_empty():
 		return false
 
-	# Glob branch: * ? [ — path-shaped rules use path_matches_glob (** supported).
-	if rule.contains("*") or rule.contains("?") or rule.contains("["):
+	# Glob branch: path-shaped rules are matched segment by segment (`**` supported).
+	if rule.contains("*") or rule.contains("?"):
 		if rule.contains("/"):
-			return path_matches_glob(path, rule)
+			var path_segments := path.split("/", false)
+			var rule_segments := rule.split("/", false)
+			var previous: Array[bool] = []
+			previous.resize(path_segments.size() + 1)
+			previous[0] = true
+			for rule_segment in rule_segments:
+				var current: Array[bool] = []
+				current.resize(path_segments.size() + 1)
+				if rule_segment == "**":
+					current[0] = previous[0]
+					for path_index in range(1, path_segments.size() + 1):
+						current[path_index] = previous[path_index] or current[path_index - 1]
+				else:
+					for path_index in range(1, path_segments.size() + 1):
+						current[path_index] = previous[path_index - 1] and path_segments[path_index - 1].match(rule_segment)
+				previous = current
+			if previous[path_segments.size()]:
+				return true
+			if directory_rule:
+				for path_index in range(path_segments.size()):
+					if previous[path_index]:
+						return true
+			return false
 		# No slash: match basename (e.g. *.tmp) or any directory segment (e.g. data_*).
-		if path.get_file().match(rule):
-			return true
-		for segment in path.split("/"):
+		for segment in path.split("/", false):
 			if segment.match(rule):
 				return true
 		return false
@@ -331,6 +300,8 @@ static func glob_match(glob_rule: String, path_or_file: String) -> bool:
 		if segment == rule:
 			return true
 	return false
+
+
 
 
 ## True when [param path_or_file] matches any line in [param glob_rules] ([method glob_match]). Empty [param glob_rules] → [code]false[/code].

@@ -29,7 +29,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated else all_files
 	var lines: Array[String] = []
 	for file_path in files:
-		lines.append(AgentWorkspace.workspace_relative(file_path))
+		lines.append(file_path)
 	var text := "\n".join(lines)
 	if truncated:
 		text += StringUtils.format("\n... (truncated at {} files)", MAX_FILE_RESULTS)
