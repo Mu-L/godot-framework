@@ -55,6 +55,7 @@ func truncate_test() -> void:
 	assert(StringUtils.truncate("abcdef", 5) == "ab...")
 	assert(StringUtils.truncate("abcdef", 3) == "...")
 	assert(StringUtils.truncate("abcdef", 2) == "ab")
+	assert(StringUtils.truncate("abcdef", 5, "~") == "abcd~")
 	assert(StringUtils.truncate("", 5) == StringUtils.EMPTY)
 	pass
 
@@ -62,6 +63,7 @@ func truncate_last_test() -> void:
 	assert(StringUtils.truncate_last("abcdef", 10) == "abcdef")
 	assert(StringUtils.truncate_last("abcdef", 6) == "abcdef")
 	assert(StringUtils.truncate_last("abcdef", 5) == "...ef")
+	assert(StringUtils.truncate_last("abcdef", 5, "~") == "~cdef")
 	assert(StringUtils.truncate_last("abcdef", 3) == "def")
 	assert(StringUtils.truncate_last("abcdef", 2) == "ef")
 	assert(StringUtils.truncate_last("", 5) == StringUtils.EMPTY)

@@ -7,6 +7,7 @@ const MAX_OUTPUT := 32_000
 const MAX_FILE_RESULTS := 512
 const MAX_FILE_BYTES := FileUtils.BYTES_PER_KB * 128
 const ARG_PARSE_ERROR := "__agent_tool_parse_error"
+const TRUNCATED_SUFFIX := "... (truncated)"
 
 
 var name: String = ""

@@ -25,7 +25,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	
 	var build := StringBuilder.new()
 	build.append_line(exit_code)
-	build.append(StringUtils.truncate_last(exec_output, MAX_OUTPUT))
+	build.append(StringUtils.truncate_last(exec_output, MAX_OUTPUT, TRUNCATED_SUFFIX + FileUtils.NEWLINE_LF))
 	
 	var text := build.build_string()
 	var is_error := exec_result.exit_code != 0

@@ -115,24 +115,24 @@ static func substring_after_last(s: String, delimiter: String) -> String:
 		return EMPTY
 	return s.substr(index + delimiter.length(), s.length())
 
-## Returns s truncated to max_length, appending "..." when longer. Total length never exceeds max_length; returns s when empty or already short enough.
+## Returns s truncated to max_length, appending suffix when longer. Total length never exceeds max_length; returns s when empty or already short enough.
 ## Example: truncate("abcdef", 5) -> "ab..."; truncate("abcdef", 6) -> "abcdef"
-static func truncate(s: String, max_length: int) -> String:
+static func truncate(s: String, max_length: int, suffix: String = ELLIPSIS) -> String:
 	if is_empty(s) or s.length() <= max_length:
 		return s
-	if max_length < ELLIPSIS.length():
+	if max_length < suffix.length():
 		return s.substr(0, max_length)
-	return s.substr(0, max_length - ELLIPSIS.length()) + ELLIPSIS
+	return s.substr(0, max_length - suffix.length()) + suffix
 
 
-## Returns s truncated to max_length keeping the end; prepends "..." when longer. Total length never exceeds max_length.
+## Returns s truncated to max_length keeping the end; prepends prefix when longer. Total length never exceeds max_length.
 ## Example: truncate_last("abcdef", 5) -> "...ef"; truncate_last("abcdef", 6) -> "abcdef"
-static func truncate_last(s: String, max_length: int) -> String:
+static func truncate_last(s: String, max_length: int, prefix: String = ELLIPSIS) -> String:
 	if is_empty(s) or s.length() <= max_length:
 		return s
-	if max_length <= ELLIPSIS.length():
+	if max_length <= prefix.length():
 		return s.substr(s.length() - max_length, max_length)
-	return ELLIPSIS + s.substr(s.length() - (max_length - ELLIPSIS.length()), max_length - ELLIPSIS.length())
+	return prefix + s.substr(s.length() - (max_length - prefix.length()), max_length - prefix.length())
 
 
 ## Returns the first max_lines lines of s; later lines are dropped with no ellipsis.

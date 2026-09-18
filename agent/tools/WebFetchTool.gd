@@ -50,9 +50,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var text := html_to_text(body)
 	if StringUtils.is_blank(text):
 		text = body.strip_edges()
-	var truncated := text.length() > max_chars
-	if truncated:
-		text = text.substr(0, max_chars) + "\n... (truncated)"
+	text = StringUtils.truncate(text, max_chars, FileUtils.NEWLINE_LF + TRUNCATED_SUFFIX)
 	var title := StringUtils.format("Fetched {}", url)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(title, text))
 

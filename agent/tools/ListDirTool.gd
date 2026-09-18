@@ -41,7 +41,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	
 	var truncated := build.truncate_by_part(MAX_OUTPUT)
 	if truncated_files || truncated:
-		build.append("... (truncated)")
+		build.append(TRUNCATED_SUFFIX)
 	var text := build.build_joined(FileUtils.NEWLINE_LF)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 # AgentTool-Interface-Implement-End
