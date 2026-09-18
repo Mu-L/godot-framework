@@ -37,13 +37,14 @@ static func run(session: AgentSession) -> void:
 				AgentEvents.events.agent_end.emit(session.id, "Stop...")
 				return
 			var tool_name := tool_call.function.name
-			if tool_name.is_empty():
-				continue
 			var tool_call_id := tool_call.id if StringUtils.is_not_blank(tool_call.id) else tool_name
 			var tool: AgentTool = AgentToolRegistry.tools.get(tool_name)
 			if tool == null:
-				AgentEvents.events.agent_end.emit(session.id, StringUtils.format("unknown tool '{}'", tool_name))
-				return
+				var unknown_tool_result := AgentToolResult.error(StringUtils.format("unknown tool '{}'", tool_name))
+				AgentEvents.events.tool_execution_start.emit(session.id, tool_call_id, tool_name, {})
+				AgentEvents.events.tool_execution_end.emit(session.id, tool_call_id, tool_name, unknown_tool_result)
+				session.messages.append(ChatMessage.tool_result(tool_call.id, unknown_tool_result.content))
+				continue
 			var args := tool.parse_args(tool_call.function.arguments)
 			AgentEvents.events.tool_execution_start.emit(session.id, tool_call_id, tool_name, args)
 			var agent_tool_result: AgentToolResult
