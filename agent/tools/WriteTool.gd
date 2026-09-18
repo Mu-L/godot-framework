@@ -27,7 +27,8 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var dir := path.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):
 		DirAccess.make_dir_recursive_absolute(dir)
-	FileUtils.write_string_to_file(path, content)
+	if not FileUtils.write_string_to_file(path, content):
+		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path))
 	var message := StringUtils.format("wrote {} bytes to {}", content.length(), path)
 	return AgentToolResult.ok(message, AgentToolResult.ui_details(ChatEntry.TITLE_RESULT))
 # AgentTool-Interface-Implement-End

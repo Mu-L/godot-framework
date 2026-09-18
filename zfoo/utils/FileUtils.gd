@@ -53,12 +53,14 @@ static func get_project_root_path() -> String:
 # ---------------------------------------------------------------------------
 
 # Append content to the file.
-static func write_string_to_file(filePath: String, content: String) -> void:
+static func write_string_to_file(filePath: String, content: String) -> bool:
 	var file := FileAccess.open(filePath, FileAccess.WRITE)
-	# bread and butter
+	if file == null:
+		return false
 	file.store_string(content)
+	var error := file.get_error()
 	file = null
-	pass
+	return error == OK
 
 
 static func read_file_to_string(filePath: String) -> String:

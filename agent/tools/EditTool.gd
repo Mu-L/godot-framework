@@ -36,7 +36,8 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	if count > 1:
 		return AgentToolResult.error(StringUtils.format("error: old_string found {} times; must be unique", count))
 	var updated := content.replace(old_string, new_string)
-	FileUtils.write_string_to_file(path, updated)
+	if not FileUtils.write_string_to_file(path, updated):
+		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path))
 	var message := StringUtils.format("edited {}", path)
 	return AgentToolResult.ok(message, AgentToolResult.ui_details(ChatEntry.TITLE_RESULT))
 # AgentTool-Interface-Implement-End
