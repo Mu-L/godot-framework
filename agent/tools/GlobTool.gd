@@ -24,7 +24,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	if pattern.is_empty():
 		return AgentToolResult.error("error: pattern is required")
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
-	var all_files := FileUtils.glob(search_root, pattern, MAX_FILE_BYTES, workspace_skip_glob_rules)
+	var all_files := GlobUtils.glob(search_root, pattern, MAX_FILE_BYTES, workspace_skip_glob_rules)
 	var truncated := all_files.size() > MAX_FILE_RESULTS
 	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated else all_files
 	var lines: Array[String] = []
@@ -67,9 +67,9 @@ static func _static_init() -> void:
 	pass
 
 
-## True when [param relative_path] matches any [member workspace_skip_glob_rules] entry ([method FileUtils.glob_match_any]).
+## True when [param relative_path] matches any [member workspace_skip_glob_rules] entry ([method GlobUtils.glob_match_any]).
 static func workspace_path_skipped(relative_path: String) -> bool:
-	return FileUtils.glob_match_any(workspace_skip_glob_rules, relative_path)
+	return GlobUtils.glob_match_any(workspace_skip_glob_rules, relative_path)
 
 
 static func _load_workspace_skip_glob_rules() -> Array[String]:
