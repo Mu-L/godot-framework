@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Persists agent chat sessions as JSON files under the workspace `.agent/sessions/` folder.
 
-const CHATS_SUBDIR := ".agent/sessions"
+const SESSIONS_SUBDIR := ".gai/sessions"
 const FILE_SUFFIX := ".json"
 const NEXT_SESSION_ID_KEY := "agent_next_session_id"
 
@@ -14,16 +14,16 @@ static var sessions: Dictionary[int, AgentSession] = {}
 # Paths
 # ---------------------------------------------------------------------------
 
-static func get_chats_dir() -> String:
-	return AgentWorkspace.get_root().path_join(CHATS_SUBDIR)
+static func get_sessions_dir() -> String:
+	return AgentWorkspace.get_root().path_join(SESSIONS_SUBDIR)
 
 
 static func get_session_path(session_id: int) -> String:
-	return get_chats_dir().path_join(str(session_id) + FILE_SUFFIX)
+	return get_sessions_dir().path_join(str(session_id) + FILE_SUFFIX)
 
 
-static func ensure_chats_dir() -> bool:
-	var dir_path := get_chats_dir()
+static func ensure_sessions_dir() -> bool:
+	var dir_path := get_sessions_dir()
 	if DirAccess.dir_exists_absolute(dir_path):
 		return true
 	var err := DirAccess.make_dir_recursive_absolute(dir_path)
@@ -56,8 +56,8 @@ static func save_session(session_id: int) -> void:
 	var session: AgentSession = load_session(session_id)
 	if session == null:
 		return
-	if not ensure_chats_dir():
-		Log.error("agent chat save failed, cannot create dir:[{}]", get_chats_dir())
+	if not ensure_sessions_dir():
+		Log.error("agent chat save failed, cannot create dir:[{}]", get_sessions_dir())
 		return
 	var json := JsonUtils.object_to_json(session)
 	FileUtils.write_string_to_file(get_session_path(session.id), json)
@@ -78,7 +78,7 @@ static func delete_session(session_id: int) -> void:
 
 static func load_all_sessions() -> Array[AgentSession]:
 	var result: Array[AgentSession] = []
-	var dir_path := get_chats_dir()
+	var dir_path := get_sessions_dir()
 	if not DirAccess.dir_exists_absolute(dir_path):
 		return result
 

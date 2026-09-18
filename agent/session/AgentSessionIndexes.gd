@@ -44,7 +44,7 @@ class SessionIndex:
 
 
 static func get_index_path() -> String:
-	return AgentSessionStore.get_chats_dir().path_join(INDEX_FILE)
+	return AgentSessionStore.get_sessions_dir().path_join(INDEX_FILE)
 
 
 static func load_index() -> AgentSessionIndexes:
