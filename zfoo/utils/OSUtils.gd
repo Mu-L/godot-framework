@@ -2,8 +2,8 @@
 extends Object
 
 ## Subprocess execution. Sync `execute` uses OS.execute; async `async_execute`
-## uses OS.execute_with_pipe on a worker thread. Output chunks append to
-## ExecResult.output. Pass `log=false` to silence command/output/result logs.
+## uses OS.execute_with_pipe on a worker thread and expects UTF-8 output.
+## Output chunks append to ExecResult.output. Pass `log=false` to silence logs.
 
 static var process_pids: RingIntList = RingIntList.new(32)
 
@@ -18,6 +18,12 @@ static func godot_version() -> String:
 	if StringUtils.is_not_blank(version_text):
 		return version_text
 	return StringUtils.format("{}.{}.{}", version_info.get("major", 0), version_info.get("minor", 0), version_info.get("patch", 0))
+
+
+static func build_shell_argv(command: String) -> PackedStringArray:
+	if is_windows():
+		return PackedStringArray(["cmd.exe", "/d", "/c", "chcp 65001 >nul && " + command])
+	return PackedStringArray(["/bin/sh", "-c", command])
 
 
 class ExecResult:
@@ -86,14 +92,16 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 		process_pids.add(pid)
 	var stdio: FileAccess = proc.get("stdio")
 	var stderr_pipe: FileAccess = proc.get("stderr")
+	var stdout_decoder := Utf8StreamDecoder.new()
+	var stderr_decoder := Utf8StreamDecoder.new()
 
 	while pid > 0 and OS.is_process_running(pid):
-		drain_pipe(result, stdio)
-		drain_pipe(result, stderr_pipe)
+		drain_pipe(result, stdio, false, stdout_decoder)
+		drain_pipe(result, stderr_pipe, false, stderr_decoder)
 		OS.delay_msec(16)
 
-	drain_pipe(result, stdio, true)
-	drain_pipe(result, stderr_pipe, true)
+	drain_pipe(result, stdio, true, stdout_decoder)
+	drain_pipe(result, stderr_pipe, true, stderr_decoder)
 	close_pipe(stdio)
 	close_pipe(stderr_pipe)
 
@@ -103,7 +111,7 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 	pass
 
 
-static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool = false) -> void:
+static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool, utf8_decoder: Utf8StreamDecoder) -> void:
 	if pipe == null or not pipe.is_open():
 		return
 
@@ -115,12 +123,11 @@ static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool = false
 				break
 			return
 
-		if is_windows():
-			append_output(result, chunk.get_string_from_multibyte_char(""))
-		else:
-			append_output(result, chunk.get_string_from_utf8())
+		append_output(result, utf8_decoder.push(chunk))
 		if err != OK:
 			break
+	if final and utf8_decoder != null:
+		append_output(result, utf8_decoder.flush())
 	pass
 
 

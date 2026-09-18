@@ -36,19 +36,10 @@ func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArra
 	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
 	if command.is_empty():
 		return PackedStringArray()
-	return build_argv(wrap_command(command))
-
-
-static func build_argv(command: String) -> PackedStringArray:
-	if OSUtils.is_windows():
-		return PackedStringArray(["cmd.exe", "/c", command])
-	return PackedStringArray(["/bin/sh", "-c", command])
-
-
-static func wrap_command(command: String) -> String:
 	var workspace_root := AgentWorkspace.get_root()
-	if StringUtils.is_blank(workspace_root):
-		return command
-	if OSUtils.is_windows():
-		return StringUtils.format('cd /d "{}" && {}', workspace_root, command)
-	return StringUtils.format('cd "{}" && {}', workspace_root, command)
+	if StringUtils.is_not_blank(workspace_root):
+		if OSUtils.is_windows():
+			command = StringUtils.format('cd /d "{}" && {}', workspace_root, command)
+		else:
+			command = StringUtils.format('cd "{}" && {}', workspace_root, command)
+	return OSUtils.build_shell_argv(command)
