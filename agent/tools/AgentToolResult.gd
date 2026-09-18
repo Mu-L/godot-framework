@@ -29,11 +29,7 @@ static func ui_details(title: String, body: String = StringUtils.EMPTY) -> Dicti
 	}
 
 
-static func ui_file_details(
-	lines_added: int = -1,
-	lines_removed: int = -1,
-	path: String = StringUtils.EMPTY
-) -> Dictionary[String, String]:
+static func ui_file_details(lines_added: int = -1, lines_removed: int = -1, path: String = StringUtils.EMPTY) -> Dictionary[String, String]:
 	var result := ui_details(ChatEntry.TITLE_RESULT)
 	if lines_added >= 0:
 		result[DETAIL_LINES_ADDED] = str(lines_added)
