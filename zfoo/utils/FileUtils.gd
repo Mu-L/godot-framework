@@ -94,7 +94,7 @@ static func read_file_to_lines(abs_path: String) -> PackedStringArray:
 	var text := read_file_to_string(abs_path)
 	if text.is_empty() and FileAccess.file_exists(abs_path) and FileAccess.get_size(abs_path) > 0:
 		return PackedStringArray()
-	return text.split(StringUtils.LS, false)
+	return text.split(NEWLINE_LF, false)
 
 
 static func delete_file(filePath: String) -> void:

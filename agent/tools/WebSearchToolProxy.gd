@@ -67,16 +67,16 @@ static func format_api_results(data: Dictionary, query: String, max_results: int
 		build.append("Summary: ")
 		build.append(abstract)
 		if StringUtils.is_not_blank(abstract_url):
-			build.append(StringUtils.LS + "URL: " + abstract_url)
-		build.append(StringUtils.LS + StringUtils.LS)
+			build.append(FileUtils.NEWLINE_LF + "URL: " + abstract_url)
+		build.append(FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF)
 	var hits := collect_related_topics(data.get("RelatedTopics", []), max_results)
 	for index in hits.size():
 		var hit: Dictionary = hits[index]
 		build.append(StringUtils.format("{}. {}\n   {}", index + 1, hit.get("title", ""), hit.get("url", "")))
 		var snippet := str(hit.get("snippet", "")).strip_edges()
 		if StringUtils.is_not_blank(snippet):
-			build.append(StringUtils.LS + "   " + snippet)
-		build.append(StringUtils.LS)
+			build.append(FileUtils.NEWLINE_LF + "   " + snippet)
+		build.append(FileUtils.NEWLINE_LF)
 	if build.is_empty():
 		return StringUtils.EMPTY
 	return StringUtils.format("Web search results for \"{}\":\n\n{}", query, build.build_string()).strip_edges()

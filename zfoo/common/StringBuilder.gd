@@ -33,7 +33,7 @@ func append_if_not_empty(text: String) -> StringBuilder:
 
 ## Appends text followed by a newline. Returns self for chaining.
 func append_line(text: String = "") -> StringBuilder:
-	parts.append(text + StringUtils.LS)
+	parts.append(text + FileUtils.NEWLINE_LF)
 	return self
 
 

@@ -267,7 +267,7 @@ func on_field_gui_input(event: InputEvent) -> void:
 		if not is_enter:
 			return
 		if key.shift_pressed:
-			input_field.insert_text_at_caret("\n")
+			input_field.insert_text_at_caret(FileUtils.NEWLINE_LF)
 			input_field.accept_event()
 			input_field.get_viewport().set_input_as_handled()
 			return
@@ -304,7 +304,7 @@ func insert_dropped_files(paths: String) -> void:
 		var col := input_field.get_caret_column()
 		if col > 0:
 			var before := input_field.get_line(line).substr(0, col)
-			if before.length() > 0 and not before.ends_with(" ") and not before.ends_with("\n"):
+			if before.length() > 0 and not before.ends_with(" ") and not before.ends_with(FileUtils.NEWLINE_LF):
 				insert = " " + insert
 	input_field.insert_text_at_caret(insert)
 	focus_input_field.call_deferred()

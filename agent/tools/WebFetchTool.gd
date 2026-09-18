@@ -68,7 +68,7 @@ static func html_to_text(html: String) -> String:
 	text = style.sub(text, "", true)
 	var block_tags := RegEx.new()
 	block_tags.compile("(?i)</?(?:br|p|div|h[1-6]|li|tr|table|section|article|header|footer|nav)[^>]*>")
-	text = block_tags.sub(text, "\n", true)
+		text = block_tags.sub(text, FileUtils.NEWLINE_LF, true)
 	var strip := RegEx.new()
 	strip.compile("(?i)<[^>]+>")
 	text = strip.sub(text, " ", true)
@@ -92,10 +92,10 @@ static func collapse_whitespace(text: String) -> String:
 	var spaces := RegEx.new()
 	spaces.compile("\\s+")
 	var lines: PackedStringArray = PackedStringArray()
-	for line in text.split("\n", false):
+	for line in text.split(FileUtils.NEWLINE_LF, false):
 		var trimmed := line.strip_edges()
 		if trimmed.is_empty():
 			continue
 		lines.append(spaces.sub(trimmed, " ", true))
-	return "\n".join(lines)
+	return FileUtils.NEWLINE_LF.join(lines)
 # AgentTool-Interface-Implement-End

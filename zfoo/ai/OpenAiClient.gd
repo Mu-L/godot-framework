@@ -105,7 +105,7 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 		return result
 	var tail := pending_build.build_string() + utf8_decoder.flush()
 	if StringUtils.is_not_empty(tail):
-		consume_sse_buffer_tools(tail + "\n", content_build, tool_calls_acc, on_delta)
+		consume_sse_buffer_tools(tail + FileUtils.NEWLINE_LF, content_build, tool_calls_acc, on_delta)
 	result.content = content_build.build_string()
 	result.tool_calls = filter_tool_calls(tool_calls_acc)
 	var body := response.get_body_string()
@@ -141,7 +141,7 @@ static func extract_finish_reason(body: String) -> String:
 	if StringUtils.is_blank(body):
 		return StringUtils.EMPTY
 	var finish_reason := StringUtils.EMPTY
-	for line: String in body.split("\n", false):
+	for line: String in body.split(FileUtils.NEWLINE_LF, false):
 		line = line.strip_edges()
 		if line.is_empty() or not line.begins_with("data:"):
 			continue
@@ -160,7 +160,7 @@ static func extract_stream_usage(body: String) -> OpenAiUsage:
 	var usage := OpenAiUsage.new()
 	if StringUtils.is_blank(body):
 		return usage
-	for line: String in body.split("\n", false):
+	for line: String in body.split(FileUtils.NEWLINE_LF, false):
 		line = line.strip_edges()
 		if line.is_empty() or not line.begins_with("data:"):
 			continue
@@ -179,9 +179,9 @@ const STREAM_KIND_REASONING := "reasoning"
 static func consume_sse_buffer_tools(buffer: String, text_build: StringBuilder, tool_calls_acc: Array[OpenAiToolCall], on_delta: Callable = Callable()) -> String:
 	if buffer.is_empty():
 		return StringUtils.EMPTY
-	var lines: PackedStringArray = buffer.split("\n", false)
+	var lines: PackedStringArray = buffer.split(FileUtils.NEWLINE_LF, false)
 	var remaining := StringUtils.EMPTY
-	if not buffer.ends_with("\n"):
+	if not buffer.ends_with(FileUtils.NEWLINE_LF):
 		remaining = lines[lines.size() - 1]
 		lines = lines.slice(0, lines.size() - 1)
 	for line: String in lines:

@@ -232,7 +232,7 @@ static func set_title_from_prompt(session_id: int, prompt: String) -> void:
 	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
-	var title := StringUtils.truncate(prompt.strip_edges().replace("\n", " "), TITLE_MAX)
+	var title := StringUtils.truncate(prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " "), TITLE_MAX)
 	session_index.title = title
 	AgentEvents.events.session_title_changed.emit(session_id, title)
 	pass

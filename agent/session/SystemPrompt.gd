@@ -45,7 +45,7 @@ static func build_godot_context() -> String:
 	var executable_path := OS.get_executable_path()
 	if StringUtils.is_not_blank(executable_path):
 		build.append(StringUtils.format("Godot executable: {}", executable_path))
-	return build.build_joined(StringUtils.LS)
+	return build.build_joined(FileUtils.NEWLINE_LF)
 
 
 static func build_os_context() -> String:
@@ -69,7 +69,7 @@ static func build_os_context() -> String:
 		build.append("Bash tool runs via: cmd.exe")
 	else:
 		build.append("Bash tool runs via: /bin/sh")
-	return build.build_joined(StringUtils.LS)
+	return build.build_joined(FileUtils.NEWLINE_LF)
 
 
 static func detect_architecture() -> String:

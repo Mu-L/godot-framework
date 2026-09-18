@@ -18,7 +18,7 @@ static func preview(s: String) -> String:
 static func extra_line_count(s: String) -> int:
 	if StringUtils.is_empty(s):
 		return 0
-	return maxi(0, s.count("\n") + 1 - PREVIEW_LINES)
+	return maxi(0, s.count(FileUtils.NEWLINE_LF) + 1 - PREVIEW_LINES)
 
 
 static func apply(rich_text: RichTextLabel, body: String) -> void:

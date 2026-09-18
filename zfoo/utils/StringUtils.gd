@@ -44,8 +44,6 @@ const SHARP_REGEX: String = "\\#"
 
 const DOLLAR: String = "$" # dollar sign
 
-const LS: String = "\n"
-
 ## Example: is_empty("") -> true; is_empty("a") -> false
 static func is_empty(s: String) -> bool:
 	return s == null or s.length() == 0
@@ -144,11 +142,11 @@ static func first_lines(s: String, max_lines: int) -> String:
 		return EMPTY
 	if is_empty(s):
 		return s
-	if s.count("\n") < max_lines:
+	if s.count(FileUtils.NEWLINE_LF) < max_lines:
 		return s
 	var pos := 0
 	for _n in max_lines:
-		var idx := s.find("\n", pos)
+		var idx := s.find(FileUtils.NEWLINE_LF, pos)
 		if idx == -1:
 			return s
 		pos = idx + 1
@@ -162,11 +160,11 @@ static func first_lines_after(s: String, max_lines: int) -> String:
 		return s
 	if is_empty(s):
 		return s
-	if s.count("\n") < max_lines:
+	if s.count(FileUtils.NEWLINE_LF) < max_lines:
 		return EMPTY
 	var pos := 0
 	for _n in max_lines:
-		var idx := s.find("\n", pos)
+		var idx := s.find(FileUtils.NEWLINE_LF, pos)
 		if idx == -1:
 			return EMPTY
 		pos = idx + 1
@@ -180,11 +178,11 @@ static func last_lines(s: String, max_lines: int) -> String:
 		return EMPTY
 	if is_empty(s):
 		return s
-	if s.count("\n") < max_lines:
+	if s.count(FileUtils.NEWLINE_LF) < max_lines:
 		return s
 	var idx := s.length()
 	for _n in max_lines:
-		idx = s.rfind("\n", idx - 1)
+		idx = s.rfind(FileUtils.NEWLINE_LF, idx - 1)
 		if idx < 0:
 			return s
 	return s.substr(idx + 1)

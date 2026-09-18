@@ -85,7 +85,7 @@ static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPT
 		return StringUtils.EMPTY
 
 	var fence_bg := code_block_bg if StringUtils.is_not_empty(code_block_bg) else CODE_BLOCK_BG
-	var lines := normalize_newlines(markdown).split("\n")
+	var lines := normalize_newlines(markdown).split(FileUtils.NEWLINE_LF)
 	var out: PackedStringArray = []
 	var i := 0
 	while i < lines.size():
@@ -102,7 +102,7 @@ static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPT
 				i += 1
 			if i < lines.size():
 				i += 1
-			out.append(format_code_fence_bbcode("\n".join(code_lines), fence_bg))
+			out.append(format_code_fence_bbcode(FileUtils.NEWLINE_LF.join(code_lines), fence_bg))
 			continue
 
 		# --- / *** / ___  →  [hr width=100% …]
@@ -131,7 +131,7 @@ static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPT
 			while i < lines.size() and is_blockquote_line(lines[i]):
 				quote_lines.append(strip_blockquote_prefix(lines[i]))
 				i += 1
-			out.append(format_blockquote_bbcode("\n".join(quote_lines)))
+			out.append(format_blockquote_bbcode(FileUtils.NEWLINE_LF.join(quote_lines)))
 			continue
 
 		# | h1 | h2 | + |---|  →  [table=2][cell][b]h1[/b][/cell]…[/table]
@@ -154,12 +154,12 @@ static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPT
 			out.append(inline_to_bbcode(line))
 		i += 1
 
-	return "\n".join(out)
+	return FileUtils.NEWLINE_LF.join(out)
 
 
 ## CRLF / lone CR → LF so Windows sources do not leave `\r` on markers.
 static func normalize_newlines(text: String) -> String:
-	return text.replace("\r\n", "\n").replace("\r", "\n")
+	return text.replace(FileUtils.NEWLINE_CRLF, FileUtils.NEWLINE_LF).replace(FileUtils.NEWLINE_CR, FileUtils.NEWLINE_LF)
 
 
 static func count_leading_spaces(line: String) -> int:

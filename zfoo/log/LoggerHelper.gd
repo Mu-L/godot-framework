@@ -32,7 +32,7 @@ static func log_format_error_message(function: String, file: String, line: int, 
 				continue
 			builder.append(StringUtils.format("at {}", part))
 	gdf.events.log_error.emit()
-	return builder.build_joined(StringUtils.LS)
+	return builder.build_joined(FileUtils.NEWLINE_LF)
 
 
 

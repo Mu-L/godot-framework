@@ -9,7 +9,7 @@ const MIN_PHRASE_LEN := 2
 
 
 static func is_delimiter(ch: String, lines_only: bool = false) -> bool:
-	if ch == "\n" or ch == "\r":
+	if ch == FileUtils.NEWLINE_LF or ch == FileUtils.NEWLINE_CR:
 		return true
 	if lines_only:
 		return false
@@ -43,7 +43,7 @@ static func drain_remainder(buffer: StringBuilder) -> String:
 ## Tool / error entries — newline splits only.
 static func split_line_segments(text: String) -> Array[String]:
 	var segments: Array[String] = []
-	for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n", false):
+	for line in text.replace(FileUtils.NEWLINE_CRLF, FileUtils.NEWLINE_LF).replace(FileUtils.NEWLINE_CR, FileUtils.NEWLINE_LF).split(FileUtils.NEWLINE_LF, false):
 		var seg := line.strip_edges()
 		if not seg.is_empty():
 			segments.append(seg)

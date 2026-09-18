@@ -53,7 +53,7 @@ static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 	var builder := StringBuilder.new()
 	for line in lines:
 		builder.append(str(line))
-	append_output(result, builder.build_joined(StringUtils.LS))
+	append_output(result, builder.build_joined(FileUtils.NEWLINE_LF))
 	log_result(argv, result, log)
 	return result
 

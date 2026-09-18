@@ -154,7 +154,7 @@ static func needs_expand(body: String) -> bool:
 static func hidden_line_count(body: String) -> int:
 	if StringUtils.is_blank(body):
 		return 0
-	return maxi(0, body.count("\n") + 1 - PREVIEW_LINES)
+	return maxi(0, body.count(FileUtils.NEWLINE_LF) + 1 - PREVIEW_LINES)
 
 
 static func append(
