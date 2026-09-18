@@ -15,7 +15,7 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return OpenAiToolDef.Parameters.object().string_prop(ARG_PATH, "Absolute or project-relative file path", true)
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
 		return AgentToolResult.error("error: path is required")

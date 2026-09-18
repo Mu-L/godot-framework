@@ -31,7 +31,7 @@ class Events:
 	signal message_complete(session_id: int, usage: OpenAiUsage)
 
 	# Tool execution lifecycle
-	signal tool_execution_start(session_id: int, tool_call_id: String, tool_name: String, args: Dictionary[String, String])
+	signal tool_execution_start(session_id: int, tool_call_id: String, tool_name: String, args: Dictionary[String, Variant])
 	signal tool_execution_end(session_id: int, tool_call_id: String, tool_name: String, agent_tool_result: AgentToolResult)
 
 	# Session management

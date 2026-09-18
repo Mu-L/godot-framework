@@ -24,11 +24,11 @@ func _init(detected_proxy_address: String = "") -> void:
 func get_parameters() -> OpenAiToolDef.Parameters:
 	var params := OpenAiToolDef.Parameters.object()
 	params.string_prop(ARG_URL, "HTTP or HTTPS URL to fetch", true)
-	params.string_prop(ARG_MAX_CHARS, "Maximum characters to return (default 80000, max 200000)", false)
+	params.integer_prop(ARG_MAX_CHARS, "Maximum characters to return (default 80000, max 200000)", false)
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var url := str(args.get(ARG_URL, "")).strip_edges()
 	if url.is_empty():
 		return AgentToolResult.error("error: url is required")

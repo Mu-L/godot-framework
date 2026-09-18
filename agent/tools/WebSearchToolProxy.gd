@@ -23,11 +23,11 @@ func _init(detected_proxy_address: String = "") -> void:
 func get_parameters() -> OpenAiToolDef.Parameters:
 	var params := OpenAiToolDef.Parameters.object()
 	params.string_prop(ARG_QUERY, "Search query", true)
-	params.string_prop(ARG_MAX_RESULTS, "Maximum number of results (1-10, default 5)", false)
+	params.integer_prop(ARG_MAX_RESULTS, "Maximum number of results (1-10, default 5)", false)
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var query := str(args.get(ARG_QUERY, "")).strip_edges()
 	if query.is_empty():
 		return AgentToolResult.error("error: query is required")

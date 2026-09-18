@@ -46,7 +46,11 @@ static func run(session: AgentSession) -> void:
 				return
 			var args := tool.parse_args(tool_call.function.arguments)
 			AgentEvents.events.tool_execution_start.emit(session.id, tool_call_id, tool_name, args)
-			var agent_tool_result := await tool.async_execute(args)
+			var agent_tool_result: AgentToolResult
+			if args.has(AgentTool.ARG_PARSE_ERROR):
+				agent_tool_result = AgentToolResult.error(str(args[AgentTool.ARG_PARSE_ERROR]))
+			else:
+				agent_tool_result = await tool.async_execute(args)
 			AgentEvents.events.tool_execution_end.emit(session.id, tool_call_id, tool_name, agent_tool_result)
 			session.messages.append(ChatMessage.tool_result(tool_call.id, agent_tool_result.content))
 		AgentEvents.events.turn_end.emit(session.id)

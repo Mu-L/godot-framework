@@ -23,7 +23,7 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var pattern := str(args.get(ARG_PATTERN, "")).strip_edges()
 	if pattern.is_empty():
 		return AgentToolResult.error("error: pattern is required")

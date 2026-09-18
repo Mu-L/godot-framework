@@ -190,7 +190,7 @@ func on_message_complete(session_id: int, _usage: OpenAiUsage) -> void:
 	pass
 
 
-func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, String]) -> void:
+func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, Variant]) -> void:
 	if not _should_handle(session_id):
 		return
 	current_tool_name = tool_name

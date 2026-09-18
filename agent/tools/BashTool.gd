@@ -15,7 +15,7 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 	return OpenAiToolDef.Parameters.object().string_prop(ARG_COMMAND, "Shell command to execute", true)
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var argv := build_argv_from_args(args)
 	if argv.is_empty():
 		return AgentToolResult.error("error: command is required")
@@ -32,7 +32,7 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	return AgentToolResult.new(text, is_error,  AgentToolResult.ui_details(exit_code, exec_output))
 # AgentTool-Interface-Implement-End
 
-func build_argv_from_args(args: Dictionary[String, String]) -> PackedStringArray:
+func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArray:
 	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
 	if command.is_empty():
 		return PackedStringArray()

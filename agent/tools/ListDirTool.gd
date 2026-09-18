@@ -17,15 +17,15 @@ func _init() -> void:
 func get_parameters() -> OpenAiToolDef.Parameters:
 	var params := OpenAiToolDef.Parameters.object()
 	params.string_prop(ARG_PATH, "Directory path (default: workspace root)", false)
-	params.string_prop(ARG_RECURSIVE, "Set to true to list subdirectories recursively (default false)", false)
+	params.boolean_prop(ARG_RECURSIVE, "Whether to list subdirectories recursively (default false)", false)
 	return params
 
 
-func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
+func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if not DirAccess.dir_exists_absolute(search_root):
 		return AgentToolResult.error("error: directory not found")
-	var recursive := parse_bool(str(args.get(ARG_RECURSIVE, "")))
+	var recursive := parse_bool(args.get(ARG_RECURSIVE, false))
 	var dirs := FileUtils.get_all_directories_in_folder(search_root, recursive)
 	var files := FileUtils.get_all_files_in_folder(search_root, recursive)
 	dirs.sort()

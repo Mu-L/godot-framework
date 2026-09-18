@@ -423,7 +423,7 @@ static func on_message_complete(session_id: int, usage: OpenAiUsage) -> void:
 # Event handlers — tool execution
 # ---------------------------------------------------------------------------
 
-static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, String]) -> void:
+static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool_name: String, args: Dictionary[String, Variant]) -> void:
 	var body := ""
 	match tool_name:
 		ReadTool.NAME, WriteTool.NAME, EditTool.NAME, DeleteTool.NAME:
