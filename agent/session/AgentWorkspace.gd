@@ -28,9 +28,9 @@ static func set_root(path: String) -> bool:
 static func resolve_path(raw: String) -> String:
 	var path := raw.strip_edges()
 	if path.is_empty():
-		return get_root()
+		return get_root().simplify_path()
 	if path.begins_with("res://"):
-		return ProjectSettings.globalize_path(path)
+		return ProjectSettings.globalize_path(path).simplify_path()
 	if path.is_absolute_path():
-		return path
-	return get_root().path_join(path)
+		return path.simplify_path()
+	return get_root().path_join(path).simplify_path()
