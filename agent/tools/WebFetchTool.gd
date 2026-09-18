@@ -68,7 +68,7 @@ static func html_to_text(html: String) -> String:
 	text = style.sub(text, "", true)
 	var block_tags := RegEx.new()
 	block_tags.compile("(?i)</?(?:br|p|div|h[1-6]|li|tr|table|section|article|header|footer|nav)[^>]*>")
-		text = block_tags.sub(text, FileUtils.NEWLINE_LF, true)
+	text = block_tags.sub(text, FileUtils.NEWLINE_LF, true)
 	var strip := RegEx.new()
 	strip.compile("(?i)<[^>]+>")
 	text = strip.sub(text, " ", true)

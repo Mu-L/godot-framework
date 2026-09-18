@@ -14,25 +14,10 @@ Project root: {}
 
 {}
 
-You have ten tools: read, write, edit, delete, grep, glob, list_dir, bash, web_search, web_fetch.
-- read: read file contents
-- write: create or overwrite a file
-- edit: replace an exact unique string in a file
-- delete: remove a file (not directories)
-- grep: regex search in workspace files (optional glob); use read for context around a line
-- glob: find files by glob pattern (e.g. **/*.gd)
-- list_dir: list directory entries (optional recursive)
-- bash: run shell commands from project root
-- web_search: search the web for docs, errors, APIs, or facts
-- web_fetch: fetch a URL and read page text
-
 Rules:
-- Prefer edit over write when changing existing files.
-- Use read before edit to verify content.
-- Prefer grep/glob/list_dir over bash for exploring the repo.
-- Use web_search for discovery; use web_fetch to read a specific URL from results.
+- Inspect relevant files before modifying them.
 - Keep changes minimal and focused.
-- Explain briefly what you did after finishing.""",
+- Briefly summarize completed changes.""",
 		AgentWorkspace.get_root(),
 		build_godot_context(),
 		build_os_context()
