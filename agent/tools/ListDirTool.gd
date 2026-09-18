@@ -30,19 +30,18 @@ func async_execute(args: Dictionary[String, String]) -> AgentToolResult:
 	var files := FileUtils.get_all_files_in_folder(search_root, recursive)
 	dirs.sort()
 	files.sort()
-	var lines: Array[String] = []
-	for dir_path in dirs:
-		lines.append(dir_path + "/")
-	for file_path in files:
-		lines.append(file_path)
-	var truncated := lines.size() > MAX_ENTRIES
-	lines = lines.slice(0, MAX_ENTRIES)
-	var build := StringBuilder.new(lines)
-	if truncated:
-		build.append(StringUtils.format("... (truncated at {} entries)", MAX_ENTRIES))
+	for i in dirs.size():
+		dirs[i] += "/"
+	var entries: Array[String] = []
+	entries.append_array(dirs)
+	entries.append_array(files)
+	var truncated_files := entries.size() > MAX_ENTRIES
+	entries = entries.slice(0, MAX_ENTRIES)
+	var build := StringBuilder.new(entries)
+	
+	var truncated := build.truncate_by_part(MAX_OUTPUT)
+	if truncated_files || truncated:
+		build.append("... (truncated)")
 	var text := build.build_joined(StringUtils.LS)
-	if text.is_empty():
-		text = "(empty)"
-	text = StringUtils.truncate(text, MAX_OUTPUT)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
 # AgentTool-Interface-Implement-End
