@@ -99,3 +99,43 @@ func Utf8StreamDecoder_reuse_after_clear_test() -> void:
 	assert(decoder.push("第二".to_utf8_buffer()) == "第二")
 	assert(decoder.push("😀".to_utf8_buffer()) == "😀")
 	pass
+
+
+func Utf8StreamDecoder_rejects_invalid_code_points_test() -> void:
+	assert(not Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xC0, 0x80])))
+	assert(not Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xED, 0xA0, 0x80])))
+	assert(not Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xF4, 0x90, 0x80, 0x80])))
+	assert(not Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xF5, 0x80, 0x80, 0x80])))
+	pass
+
+
+func Utf8StreamDecoder_accepts_valid_boundary_code_points_test() -> void:
+	assert(Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xC2, 0x80])))
+	assert(Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xE0, 0xA0, 0x80])))
+	assert(Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xED, 0x9F, 0xBF])))
+	assert(Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xF0, 0x90, 0x80, 0x80])))
+	assert(Utf8StreamDecoder.is_valid_utf8(PackedByteArray([0xF4, 0x8F, 0xBF, 0xBF])))
+	pass
+
+
+func Utf8StreamDecoder_replaces_invalid_bytes_test() -> void:
+	var decoder := Utf8StreamDecoder.new()
+	assert(decoder.push(PackedByteArray([0x80, 0x41])) == "�A")
+	assert(decoder.push(PackedByteArray([0xC0, 0x80])) == "��")
+	pass
+
+
+func Utf8StreamDecoder_rejects_invalid_prefix_before_sequence_is_complete_test() -> void:
+	var decoder := Utf8StreamDecoder.new()
+	assert(decoder.push(PackedByteArray([0xE0])).is_empty())
+	assert(decoder.push(PackedByteArray([0x80])) == "��")
+	assert(decoder.flush().is_empty())
+	pass
+
+
+func Utf8StreamDecoder_flush_replaces_incomplete_sequence_test() -> void:
+	var decoder := Utf8StreamDecoder.new()
+	assert(decoder.push(PackedByteArray([0xF0, 0x9F])).is_empty())
+	assert(decoder.flush() == "�")
+	assert(decoder.flush().is_empty())
+	pass

@@ -54,6 +54,18 @@ static func OSUtils_chinese_async_output_test() -> void:
 	pass
 
 
+static func OSUtils_windows_date_chinese_output_test() -> void:
+	if not OSUtils.is_windows():
+		return
+	OSUtils.stop_all()
+	var result := await OSUtils.async_execute(OSUtils.build_shell_argv("date /t"), true)
+	assert(result.exit_code == 0)
+	var output := result.output.build_string()
+	assert(output.contains("周"), "Unexpected date output: " + output)
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_multiline_output_test() -> void:
 	OSUtils.stop_all()
 	var result := await OSUtils.async_execute(multiline_argv(), false)
@@ -148,4 +160,3 @@ static func sleep_argv(seconds: int) -> PackedStringArray:
 	if OSUtils.is_windows():
 		return PackedStringArray(["cmd", "/c", "ping -n " + str(seconds + 1) + " 127.0.0.1 > nul"])
 	return PackedStringArray(["sleep", str(seconds)])
-
