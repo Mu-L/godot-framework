@@ -92,11 +92,11 @@ static func read_file_to_byte_array(filePath: String) -> PackedByteArray:
 
 
 ## Reads a text file as packed lines; empty for missing, binary, or non-UTF-8 files.
-static func read_file_to_lines(abs_path: String) -> PackedStringArray:
+static func read_file_to_lines(abs_path: String, allow_empty: bool = false) -> PackedStringArray:
 	var text := read_file_to_string(abs_path)
-	if text.is_empty() and FileAccess.file_exists(abs_path) and FileAccess.get_size(abs_path) > 0:
+	if text.is_empty():
 		return PackedStringArray()
-	return text.split(NEWLINE_LF, false)
+	return text.split(NEWLINE_LF, allow_empty)
 
 
 static func delete_file(filePath: String) -> void:
