@@ -8,10 +8,15 @@ const SETTING_KEY := "agent_skill_in_prompt_enabled"
 var button: Button
 
 
-static func _static_init() -> void:
+func setup(p_button: Button) -> void:
+	button = p_button
+	button.toggled.connect(on_toggled)
+	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.session_selected.connect(sync_toggle_button)
 	AgentEvents.events.session_added.connect(on_session_added)
+	sync_toggle_button(AgentSessionManager.active_session_id)
 	pass
-
 
 static func default_for_new_sessions() -> bool:
 	return Setting.get_bool(SETTING_KEY, true)
@@ -38,10 +43,6 @@ static func has_skill_context_in(session: AgentSession) -> bool:
 	return false
 
 
-static func is_skill_llm_message(msg: ChatMessage) -> bool:
-	return SkillPrompt.is_llm_message(msg)
-
-
 static func append_skill_context(session_id: int) -> void:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null or has_skill_context_in(session):
@@ -60,7 +61,7 @@ static func remove_skill_context(session_id: int) -> void:
 
 	var kept_messages: Array[ChatMessage] = []
 	for msg: ChatMessage in session.messages:
-		if not is_skill_llm_message(msg):
+		if not SkillPrompt.is_llm_message(msg):
 			kept_messages.append(msg)
 	session.messages = kept_messages
 
@@ -69,16 +70,6 @@ static func remove_skill_context(session_id: int) -> void:
 		if entry.kind != ChatEntry.KIND_SKILL:
 			kept_entries.append(entry)
 	session.chat_entries = kept_entries
-	pass
-
-
-func setup(p_button: Button) -> void:
-	button = p_button
-	button.toggled.connect(on_toggled)
-	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.session_selected.connect(sync_toggle_button)
-	sync_toggle_button(AgentSessionManager.active_session_id)
 	pass
 
 
