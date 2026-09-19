@@ -22,7 +22,7 @@ static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 		return result
 
 	if log:
-		Log.info("command:[{}]", format_command_line(argv))
+		Log.info("execute command:{}", JSON.stringify(argv))
 
 	var lines: Array = []
 	result.exit_code = OS.execute(argv[0], argv.slice(1), lines, true)
@@ -40,7 +40,7 @@ static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResu
 		return result
 
 	if log:
-		Log.info("command:[{}]", format_command_line(argv))
+		Log.info("async_execute command:{}", JSON.stringify(argv))
 
 	var thread := Thread.new()
 	thread.start(_run_process_async.bind(argv, result))
@@ -134,19 +134,6 @@ static func close_pipe(pipe: FileAccess) -> void:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Command formatting and logging
-static func format_command_line(argv: PackedStringArray) -> String:
-	var builder := StringBuilder.new()
-	for arg in argv:
-		if arg.is_empty():
-			builder.append("\"\"")
-		elif arg.find(" ") >= 0 or arg.find("\t") >= 0:
-			builder.append(StringUtils.format("\"{}\"", arg.replace("\"", "\\\"")))
-		else:
-			builder.append(arg)
-	return builder.build_joined(StringUtils.SPACE)
-
-
 static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -> void:
 	if not log or argv.is_empty():
 		return
@@ -156,30 +143,13 @@ static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -
 	if result.exit_code == 0:
 		Log.info("process finished exit:[{}]", result.exit_code)
 		return
-	Log.error("process failed exit:[{}] command:[{}]", result.exit_code, format_command_line(argv))
+	Log.error("process failed exit:[{}] command:{}", result.exit_code, JSON.stringify(argv))
 	if result.exit_code < 0:
 		Log.error("failed to start process; check runtime exists:[{}]", argv[0])
 		return
 	if output.is_empty():
 		Log.error("no process output")
 	pass
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Platform and shell command construction
-
-const POWERSHELL_UTF8_PREFIX := "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Console]::OutputEncoding; "
-const POWERSHELL_WORKSPACE_COMMAND := "Set-Location -LiteralPath $args[0]; & ([ScriptBlock]::Create($args[1]))"
-const BASH_WORKSPACE_COMMAND := "cd -- \"$1\" && exec /bin/bash --noprofile --norc -c \"$2\""
-
-static func build_shell_argv(command: String, working_directory: String = "") -> PackedStringArray:
-	if is_windows():
-		if StringUtils.is_not_blank(working_directory):
-			return PackedStringArray(["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_UTF8_PREFIX + POWERSHELL_WORKSPACE_COMMAND, working_directory, command])
-		return PackedStringArray(["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_UTF8_PREFIX + command])
-	if StringUtils.is_not_blank(working_directory):
-		return PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", BASH_WORKSPACE_COMMAND, "bash", working_directory, command])
-	return PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", command])
-
 
 static func is_windows() -> bool:
 	return OS.get_name().strip_edges().to_lower() == "windows"
@@ -191,3 +161,8 @@ static func godot_version() -> String:
 	if StringUtils.is_not_blank(version_text):
 		return version_text
 	return StringUtils.format("{}.{}.{}", version_info.get("major", 0), version_info.get("minor", 0), version_info.get("patch", 0))
+
+static func build_shell_argv(command: String) -> PackedStringArray:
+	if is_windows():
+		return PackedStringArray(["cmd.exe", "/c", "chcp 65001 >nul && " + command])
+	return PackedStringArray(["/bin/sh", "-c", command])

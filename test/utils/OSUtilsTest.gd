@@ -11,20 +11,9 @@ static func OSUtils_godot_version_test() -> void:
 static func OSUtils_build_shell_argv_test() -> void:
 	var argv := OSUtils.build_shell_argv("echo hello")
 	if OSUtils.is_windows():
-		assert(argv[0] == "powershell.exe")
-		assert(argv[argv.size() - 1].ends_with("echo hello"))
+		assert(argv == PackedStringArray(["cmd.exe", "/c", "chcp 65001 >nul && echo hello"]))
 	else:
-		assert(argv == PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", "echo hello"]))
-	pass
-
-
-static func OSUtils_build_shell_argv_working_directory_test() -> void:
-	var argv := OSUtils.build_shell_argv("echo hello", "path/it's here")
-	if OSUtils.is_windows():
-		assert(argv[argv.size() - 2] == "path/it's here")
-		assert(argv[argv.size() - 1] == "echo hello")
-	else:
-		assert(argv == PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", OSUtils.BASH_WORKSPACE_COMMAND, "bash", "path/it's here", "echo hello"]))
+		assert(argv == PackedStringArray(["/bin/sh", "-c", "echo hello"]))
 	pass
 
 
@@ -61,18 +50,6 @@ static func OSUtils_chinese_async_output_test() -> void:
 	assert(result.exit_code == 0)
 	var output := result.output.build_string()
 	assert(output.contains("OSUtils中文测试"))
-	assert(OSUtils.process_pids.is_empty())
-	pass
-
-
-static func OSUtils_windows_powershell_date_utf8_output_test() -> void:
-	if not OSUtils.is_windows():
-		return
-	OSUtils.stop_all()
-	var result := await OSUtils.async_execute(OSUtils.build_shell_argv("Get-Date -Format 'yyyy/MM/dd dddd'"), false)
-	assert(result.exit_code == 0)
-	var output := result.output.build_string()
-	assert(output.contains("星期"), "Unexpected date output: " + output)
 	assert(OSUtils.process_pids.is_empty())
 	pass
 
@@ -145,7 +122,7 @@ static func OSUtils_stop_all_test() -> void:
 
 static func utf8_fixture_command() -> String:
 	if OSUtils.is_windows():
-		return "Get-Content -Encoding UTF8 test\\asset\\Utf8OutputFixture.txt"
+		return "type test\\asset\\Utf8OutputFixture.txt"
 	return "cat test/asset/Utf8OutputFixture.txt"
 
 
