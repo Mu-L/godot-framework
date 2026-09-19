@@ -2,6 +2,7 @@ class_name UserBubble
 extends Object
 
 ## User message bubble — flowing border beam (same shader as chat input).
+## Delete truncates the chat from this entry; the message body stays on the clipboard for re-editing.
 
 const BeamLayer := preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
 const BUBBLE_CORNER_RADIUS := 8.0
@@ -50,7 +51,7 @@ static func append(
 	var delete_from_here_button := Button.new()
 	delete_from_here_button.name = "DeleteFromHereButton"
 	delete_from_here_button.text = "Delete"
-	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here", 52.0)
+	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here (message is copied)", 52.0)
 	delete_from_here_button.pressed.connect(on_delete_from_here_pressed.bind(session_id, entry))
 	header.add_child(delete_from_here_button)
 
@@ -84,7 +85,11 @@ static func append(
 	return rich_text
 
 
+## Truncating drops the message — keep a copy on the clipboard so it can be pasted back.
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
+	if entry != null and StringUtils.is_not_blank(entry.body):
+		DisplayServer.clipboard_set(entry.body)
+		Alert.alert("Message copied — paste to edit", Colors.success)
 	AgentSessionManager.truncate_chat_from_entry(session_id, entry)
 	pass
 
