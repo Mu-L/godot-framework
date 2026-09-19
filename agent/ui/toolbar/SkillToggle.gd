@@ -13,9 +13,9 @@ func setup(p_button: Button) -> void:
 	button.toggled.connect(on_toggled)
 	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.session_selected.connect(sync_toggle_button)
+	AgentEvents.events.session_selected.connect(refresh_toggle_button)
 	AgentEvents.events.session_added.connect(on_session_added)
-	sync_toggle_button(AgentSessionManager.active_session_id)
+	refresh_toggle_button(AgentSessionManager.active_session_id)
 	pass
 
 static func on_session_added(session_id: int, _title: String) -> void:
@@ -65,11 +65,11 @@ static func remove_skill_context(session_id: int) -> void:
 
 
 func on_ui_theme_changed() -> void:
-	sync_toggle_button(AgentSessionManager.active_session_id)
+	refresh_toggle_button(AgentSessionManager.active_session_id)
 	pass
 
 
-func sync_toggle_button(session_id: int) -> void:
+func refresh_toggle_button(session_id: int) -> void:
 	if button == null:
 		return
 	var enabled := Setting.get_bool(SETTING_KEY, true)
@@ -89,7 +89,7 @@ func on_toggled(enabled: bool) -> void:
 
 	var session_id := AgentSessionManager.active_session_id
 	if session_id == AgentSessionManager.INVALID_SESSION_ID:
-		sync_toggle_button(session_id)
+		refresh_toggle_button(session_id)
 		return
 
 	if enabled:
@@ -99,5 +99,5 @@ func on_toggled(enabled: bool) -> void:
 
 	AgentSessionManager.persist_session(session_id)
 	AgentEvents.events.skill_context_changed.emit(session_id)
-	sync_toggle_button(session_id)
+	refresh_toggle_button(session_id)
 	pass
