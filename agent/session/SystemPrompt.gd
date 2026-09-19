@@ -51,7 +51,7 @@ static func build_os_context() -> String:
 	if StringUtils.is_not_blank(arch):
 		build.append(StringUtils.format("Architecture: {}", arch))
 	if OSUtils.is_windows():
-		build.append("Bash tool runs via: Windows PowerShell")
+		build.append("Bash tool runs via: Git Bash")
 	else:
 		build.append("Bash tool runs via: /bin/bash")
 	return build.build_joined(FileUtils.NEWLINE_LF)

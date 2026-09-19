@@ -3,11 +3,15 @@ extends AgentTool
 
 const NAME := "bash"
 const ARG_COMMAND := "command"
+const WINDOWS_GIT_BASH_PATHS: PackedStringArray = [
+	"C:/Program Files/Git/bin/bash.exe",
+	"C:/Program Files (x86)/Git/bin/bash.exe",
+]
 
 
 func _init() -> void:
 	name = NAME
-	description = "Run a shell command in the project root. Returns stdout/stderr and exit code."
+	description = "Run a Bash command in the project root (Git Bash on Windows). Returns stdout/stderr and exit code."
 	pass
 
 # AgentTool-Interface-Implement-Start
@@ -36,4 +40,13 @@ func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArra
 	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
 	if command.is_empty():
 		return PackedStringArray()
-	return OSUtils.build_shell_argv(command, AgentWorkspace.get_root())
+	var bash := "/bin/bash"
+	if OSUtils.is_windows():
+		bash = "bash.exe"
+		for path in WINDOWS_GIT_BASH_PATHS:
+			if FileAccess.file_exists(path):
+				bash = path
+				break
+	var working_directory := AgentWorkspace.get_root()
+	var bash_command := "cd -- " + working_directory + " && " + command
+	return PackedStringArray([bash, "--noprofile", "--norc", "-c", bash_command])
