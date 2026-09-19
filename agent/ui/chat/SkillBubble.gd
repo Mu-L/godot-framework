@@ -5,26 +5,16 @@ extends RefCounted
 
 
 # ---------------------------------------------------------------------------
-# SkillContext — README load, LLM message, session append/remove, SK toggle
+# SkillContext — session append/remove of the cached skill prompt, SK toggle
 # ---------------------------------------------------------------------------
 
 const SETTING_KEY := "agent_skill_in_prompt_enabled"
-const README_REL := ".cursor/skills/README.md"
-const LLM_MESSAGE_HEADER := "Skill index (.cursor/skills/README.md):"
-
-static var cached_readme_text: String = ""
-static var cached_llm_message: String = ""
 
 var button: Button
 
 
 static func _static_init() -> void:
 	AgentEvents.events.session_added.connect(on_session_added)
-	var path := AgentWorkspace.resolve_path(README_REL)
-	if FileAccess.file_exists(path):
-		cached_readme_text = FileUtils.read_file_to_string(path)
-		if StringUtils.is_not_blank(cached_readme_text):
-			cached_llm_message = StringUtils.format("{}\n\n{}", LLM_MESSAGE_HEADER, cached_readme_text.strip_edges())
 	pass
 
 
@@ -54,17 +44,17 @@ static func has_skill_context_in(session: AgentSession) -> bool:
 
 
 static func is_skill_llm_message(msg: ChatMessage) -> bool:
-	return msg.role == ChatMessage.ROLE_SYSTEM and msg.content.begins_with(LLM_MESSAGE_HEADER)
+	return SkillPrompt.is_llm_message(msg)
 
 
 static func append_skill_context(session_id: int) -> void:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null or has_skill_context_in(session):
 		return
-	if StringUtils.is_blank(cached_readme_text):
+	if not SkillPrompt.has_readme():
 		return
-	session.messages.append(ChatMessage.system(cached_llm_message))
-	AgentSessionManager.add_chat_entry(session_id, ChatEntry.KIND_SKILL, ChatEntry.TITLE_SKILL, cached_readme_text)
+	session.messages.append(ChatMessage.system(SkillPrompt.llm_message()))
+	AgentSessionManager.add_chat_entry(session_id, ChatEntry.KIND_SKILL, ChatEntry.TITLE_SKILL, SkillPrompt.readme_text())
 	pass
 
 
