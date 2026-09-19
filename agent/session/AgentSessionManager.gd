@@ -161,7 +161,7 @@ static func get_title(session_id: int) -> String:
 static func add_session_index(session: AgentSession) -> void:
 	var session_index := AgentSessionIndexes.SessionIndex.new()
 	session_index.id = session.id
-	session_index.title = StringUtils.format("New Chat {}", session.id)
+	session_index.title = "New Chat"
 	session_indexes.indexes.insert(0, session_index)
 	pass
 
