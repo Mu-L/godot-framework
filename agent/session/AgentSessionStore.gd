@@ -34,7 +34,7 @@ static func ensure_sessions_dir() -> bool:
 # ---------------------------------------------------------------------------
 
 static func create_session() -> AgentSession:
-	var session_id := IdUtils.small_uuid()
+	var session_id := IdUtils.short_uuid()
 	var session := AgentSession.new(session_id)
 	sessions[session.id] = session
 	return session
