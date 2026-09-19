@@ -13,9 +13,8 @@ func setup(p_button: Button) -> void:
 	button.toggled.connect(on_toggled)
 	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.session_selected.connect(refresh_toggle_button)
 	AgentEvents.events.session_added.connect(on_session_added)
-	refresh_toggle_button(AgentSessionManager.active_session_id)
+	refresh_toggle_button()
 	pass
 
 static func on_session_added(session_id: int, _title: String) -> void:
@@ -65,16 +64,12 @@ static func remove_skill_context(session_id: int) -> void:
 
 
 func on_ui_theme_changed() -> void:
-	refresh_toggle_button(AgentSessionManager.active_session_id)
+	refresh_toggle_button()
 	pass
 
 
-func refresh_toggle_button(session_id: int) -> void:
-	if button == null:
-		return
+func refresh_toggle_button() -> void:
 	var enabled := Setting.get_bool(SETTING_KEY, true)
-	if session_id != AgentSessionManager.INVALID_SESSION_ID:
-		enabled = has_skill_context_in(AgentSessionStore.load_session(session_id))
 	var tooltip := "Add skill index to this chat" if not enabled else "Remove skill index from this chat"
 	AgentToolbarButton.style(button, tooltip)
 	button.set_block_signals(true)
@@ -87,17 +82,16 @@ func on_toggled(enabled: bool) -> void:
 	Setting.set_bool(SETTING_KEY, enabled)
 	Setting.save()
 
+	refresh_toggle_button()
+	
 	var session_id := AgentSessionManager.active_session_id
-	if session_id == AgentSessionManager.INVALID_SESSION_ID:
-		refresh_toggle_button(session_id)
+	if AgentSessionManager.has_chat_history(session_id):
 		return
-
+	
 	if enabled:
 		append_skill_context(session_id)
 	else:
 		remove_skill_context(session_id)
-
 	AgentSessionManager.persist_session(session_id)
 	AgentEvents.events.skill_context_changed.emit(session_id)
-	refresh_toggle_button(session_id)
 	pass
