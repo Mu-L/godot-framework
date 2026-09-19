@@ -48,5 +48,8 @@ func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArra
 				bash = path
 				break
 	var working_directory := AgentWorkspace.get_root()
-	var bash_command := "cd -- " + working_directory + " && " + command
+	var bash_command := StringUtils.format("cd -- '{}' && {}", working_directory, command)
+	if OSUtils.is_windows():
+		var encoded_command := Marshalls.raw_to_base64(command.to_utf8_buffer())
+		bash_command = StringUtils.format("cd -- '{}' && /bin/bash --noprofile --norc <(printf %s {} | /usr/bin/base64 --decode)", working_directory, encoded_command)
 	return PackedStringArray([bash, "--noprofile", "--norc", "-c", bash_command])
