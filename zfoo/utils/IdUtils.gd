@@ -78,7 +78,10 @@ static func uuid() -> int:
 			timestamp = _last_timestamp
 	_last_timestamp = timestamp
 	if _worker_id < 0:
-		_worker_id = _random_worker_id()
+		# The worker id is random, which lowers the chance of duplicated ids between processes.
+		var rng := RandomNumberGenerator.new()
+		rng.seed = TimeUtils.current_time_millis() ^ (OS.get_process_id() * 1_000_003)
+		_worker_id = rng.randi() & UUID_MAX_WORKER_ID
 	var id: int = ((timestamp - UUID_EPOCH) << UUID_TIMESTAMP_SHIFT) | (_worker_id << UUID_WORKER_ID_SHIFT) | _sequence
 	_mutex.unlock()
 	return id
@@ -121,14 +124,3 @@ static func short_uuid() -> int:
 	var id: int = ((second & SHORT_MAX_SECOND) << SHORT_SEQUENCE_BITS) | _short_sequence
 	_mutex.unlock()
 	return id
-
-
-# ---------------------------------------------------------------------------
-# Internal
-# ---------------------------------------------------------------------------
-
-# A random worker id is used to lower the chance of duplicated ids between processes.
-static func _random_worker_id() -> int:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = TimeUtils.current_time_millis() ^ (OS.get_process_id() * 1_000_003)
-	return rng.randi() & UUID_MAX_WORKER_ID
