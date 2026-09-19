@@ -18,20 +18,11 @@ func setup(p_button: Button) -> void:
 	sync_toggle_button(AgentSessionManager.active_session_id)
 	pass
 
-static func default_for_new_sessions() -> bool:
-	return Setting.get_bool(SETTING_KEY, true)
-
-
 static func on_session_added(session_id: int, _title: String) -> void:
-	if not default_for_new_sessions():
+	if not Setting.get_bool(SETTING_KEY, true):
 		return
 	append_skill_context(session_id)
 	pass
-
-
-static func has_skill_context(session_id: int) -> bool:
-	var session := AgentSessionStore.load_session(session_id)
-	return has_skill_context_in(session)
 
 
 static func has_skill_context_in(session: AgentSession) -> bool:
@@ -81,7 +72,9 @@ func on_ui_theme_changed() -> void:
 func sync_toggle_button(session_id: int) -> void:
 	if button == null:
 		return
-	var enabled := has_skill_context(session_id) if session_id != AgentSessionManager.INVALID_SESSION_ID else default_for_new_sessions()
+	var enabled := Setting.get_bool(SETTING_KEY, true)
+	if session_id != AgentSessionManager.INVALID_SESSION_ID:
+		enabled = has_skill_context_in(AgentSessionStore.load_session(session_id))
 	var tooltip := "Add skill index to this chat" if not enabled else "Remove skill index from this chat"
 	AgentToolbarButton.style(button, tooltip)
 	button.set_block_signals(true)
