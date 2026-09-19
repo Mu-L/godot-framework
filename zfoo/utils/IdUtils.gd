@@ -20,17 +20,17 @@ const UUID_MAX_SEQUENCE: int = (1 << UUID_SEQUENCE_BITS) - 1
 const UUID_WORKER_ID_SHIFT: int = UUID_SEQUENCE_BITS
 const UUID_TIMESTAMP_SHIFT: int = UUID_SEQUENCE_BITS + UUID_WORKER_ID_BITS
 
-## compact_uuid layout: 21 bits timestamp in seconds | 10 bits sequence.
+## small_uuid layout: 21 bits timestamp in seconds | 10 bits sequence.
 ## 21 + 10 = 31 bits, so every id fits [constant NumberUtils.INT32_MAX] (2147483647).
 ##
 ## Only 31 bits are available, so this id is best effort, not globally unique:
 ## - the timestamp has second resolution (instead of millisecond) and its 21 bits wrap every
 ##   2^21 seconds (about 24 days), so an id can repeat an id generated 24 days earlier;
 ## - there is no worker id, so two processes can generate the same id in the same second.
-const COMPACT_SEQUENCE_BITS: int = 10
-const COMPACT_MAX_SEQUENCE: int = (1 << COMPACT_SEQUENCE_BITS) - 1
-const COMPACT_SECOND_BITS: int = 21
-const COMPACT_MAX_SECOND: int = (1 << COMPACT_SECOND_BITS) - 1
+const SMALL_SEQUENCE_BITS: int = 10
+const SMALL_MAX_SEQUENCE: int = (1 << SMALL_SEQUENCE_BITS) - 1
+const SMALL_SECOND_BITS: int = 21
+const SMALL_MAX_SECOND: int = (1 << SMALL_SECOND_BITS) - 1
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ static func local_id() -> int:
 # Uuid — globally unique, 63 bits
 # ---------------------------------------------------------------------------
 
-## Guards [method uuid] and [method compact_uuid].
+## Guards [method uuid] and [method small_uuid].
 static var _mutex: Mutex = Mutex.new()
 static var _sequence: int = 0
 static var _last_timestamp: int = 0
@@ -85,40 +85,40 @@ static func uuid() -> int:
 
 
 # ---------------------------------------------------------------------------
-# Compact uuid — int32, best effort
+# Small uuid — int32, best effort
 # ---------------------------------------------------------------------------
 
-static var _compact_second: int = 0
-static var _compact_sequence: int = 0
+static var _small_second: int = 0
+static var _small_sequence: int = 0
 
-## Returns a compact best effort id that always fits a positive 32 bit integer
+## Returns a small best effort id that always fits a positive 32 bit integer
 ## (0 <= id <= [constant NumberUtils.INT32_MAX]), for ids that only have to be unique inside one
 ## process: chat / session numbers, UI element ids, log tags, and so on.
 ##
-## Unlike [method uuid] this id is not globally unique, see the notes on [constant COMPACT_SECOND_BITS]:
+## Unlike [method uuid] this id is not globally unique, see the notes on [constant SMALL_SECOND_BITS]:
 ## after about 24 days the 21 bit second counter wraps and an id can repeat, and without a worker id
 ## two processes can generate the same id in the same second.
 ## Within one process the ids still increase monotonically, and the call never waits: once more than
-## [constant COMPACT_MAX_SEQUENCE] + 1 ids have been generated inside one second, the following ones
+## [constant SMALL_MAX_SEQUENCE] + 1 ids have been generated inside one second, the following ones
 ## borrow the next second, so the encoded second can lead the wall clock.
-static func compact_uuid() -> int:
+static func small_uuid() -> int:
 	_mutex.lock()
 	@warning_ignore("integer_division")
 	var second: int = (TimeUtils.current_time_millis() - UUID_EPOCH) / TimeUtils.MILLIS_PER_SECOND
-	if second > _compact_second:
+	if second > _small_second:
 		# A new second, the sequence restarts from zero.
-		_compact_sequence = 0
+		_small_sequence = 0
 	else:
 		# The same second, or the clock moved backwards: reuse the last second to stay monotonic.
-		_compact_sequence += 1
-		if _compact_sequence > COMPACT_MAX_SEQUENCE:
+		_small_sequence += 1
+		if _small_sequence > SMALL_MAX_SEQUENCE:
 			# The sequence of this second is exhausted, borrow the next second instead of waiting.
-			second = _compact_second + 1
-			_compact_sequence = 0
+			second = _small_second + 1
+			_small_sequence = 0
 		else:
-			second = _compact_second
-	_compact_second = second
-	var id: int = ((second & COMPACT_MAX_SECOND) << COMPACT_SEQUENCE_BITS) | _compact_sequence
+			second = _small_second
+	_small_second = second
+	var id: int = ((second & SMALL_MAX_SECOND) << SMALL_SEQUENCE_BITS) | _small_sequence
 	_mutex.unlock()
 	return id
 

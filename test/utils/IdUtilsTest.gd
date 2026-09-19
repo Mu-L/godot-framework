@@ -44,35 +44,35 @@ func uuid_sequence_overflow_test() -> void:
 	pass
 
 
-func compact_uuid_test() -> void:
+func small_uuid_test() -> void:
 	var uniqueIds: Dictionary = {}
 	var previous := -1
 	var id := 0
 	for i in 2000:
-		id = IdUtils.compact_uuid()
+		id = IdUtils.small_uuid()
 		assert(id >= 0 and id <= NumberUtils.INT32_MAX)
 		assert(id > previous)
 		assert(!uniqueIds.has(id))
 		uniqueIds[id] = true
 		previous = id
 	# 21 bits second + 10 bits sequence uses at most 31 bits.
-	var second: int = (id >> IdUtils.COMPACT_SEQUENCE_BITS) & IdUtils.COMPACT_MAX_SECOND
-	assert(second <= IdUtils.COMPACT_MAX_SECOND)
-	assert(id == (second << IdUtils.COMPACT_SEQUENCE_BITS) | (id & IdUtils.COMPACT_MAX_SEQUENCE))
+	var second: int = (id >> IdUtils.SMALL_SEQUENCE_BITS) & IdUtils.SMALL_MAX_SECOND
+	assert(second <= IdUtils.SMALL_MAX_SECOND)
+	assert(id == (second << IdUtils.SMALL_SEQUENCE_BITS) | (id & IdUtils.SMALL_MAX_SEQUENCE))
 	pass
 
 
-# The compact id must borrow the next second instead of spinning, and stay inside int32 even when the
+# The small id must borrow the next second instead of spinning, and stay inside int32 even when the
 # 21 bit second counter wraps.
-func compact_uuid_sequence_overflow_test() -> void:
+func small_uuid_sequence_overflow_test() -> void:
 	var count := 200
 	var start := Time.get_ticks_usec()
 	var uniqueIds: Dictionary = {}
 	var previous := -1
 	for i in count:
 		# Force the sequence to the end of its second on every call.
-		IdUtils._compact_sequence = IdUtils.COMPACT_MAX_SEQUENCE
-		var id := IdUtils.compact_uuid()
+		IdUtils._small_sequence = IdUtils.SMALL_MAX_SEQUENCE
+		var id := IdUtils.small_uuid()
 		assert(id >= 0 and id <= NumberUtils.INT32_MAX)
 		assert(id > previous)
 		assert(!uniqueIds.has(id))
@@ -81,5 +81,5 @@ func compact_uuid_sequence_overflow_test() -> void:
 	assert(Time.get_ticks_usec() - start < count * 250)
 
 	# The packed layout must fill exactly the positive int32 range, so no combination can overflow it.
-	assert((IdUtils.COMPACT_MAX_SECOND << IdUtils.COMPACT_SEQUENCE_BITS) | IdUtils.COMPACT_MAX_SEQUENCE == NumberUtils.INT32_MAX)
+	assert((IdUtils.SMALL_MAX_SECOND << IdUtils.SMALL_SEQUENCE_BITS) | IdUtils.SMALL_MAX_SEQUENCE == NumberUtils.INT32_MAX)
 	pass
