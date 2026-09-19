@@ -88,7 +88,7 @@ static func append(
 ## Truncating drops the message — keep a copy on the clipboard so it can be pasted back.
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
 	if entry != null and StringUtils.is_not_blank(entry.body):
-		DisplayServer.clipboard_set(entry.body)
+		MarkdownUtils.copy_to_clipboard(entry.body)
 		Alert.alert("Message copied — paste to edit", Colors.success)
 	AgentSessionManager.truncate_chat_from_entry(session_id, entry)
 	pass

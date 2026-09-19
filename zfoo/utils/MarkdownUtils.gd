@@ -1,4 +1,4 @@
-﻿class_name MarkdownUtils
+class_name MarkdownUtils
 extends Object
 
 ## Markdown → RichTextLabel BBCode.
@@ -599,7 +599,8 @@ static func wrap_code(code: String) -> String:
 	return StringUtils.format("[code]{}[/code]", escape_bbcode_literals(preserve_code_spaces(code)))
 
 
-## RichTextLabel collapses ASCII spaces in `[code]`; NBSP keeps indent visible.
+## RichTextLabel collapses ASCII spaces in `[code]`; NBSP keeps indent visible and
+## [method copy_to_clipboard] turns them back into spaces on the way out.
 static func preserve_code_spaces(code: String) -> String:
 	return code.replace("\t", "    ").replace(" ", NBSP)
 
@@ -677,6 +678,24 @@ static func configure_rich_text_label(label: RichTextLabel, text_color: Color) -
 	label.add_theme_font_override("mono_font", Fonts.regular())
 	label.add_theme_constant_override("table_v_separation", TABLE_V_SEPARATION)
 	label.custom_minimum_size = Vector2(0, BODY_LABEL_MIN_HEIGHT)
+	# RichTextLabel copies what it draws, so a selection carries the `[code]` NBSP
+	# padding and pastes as mojibake; copy the spaces the user meant instead.
+	label.gui_input.connect(
+			func(event: InputEvent) -> void:
+				if not event.is_action_pressed("ui_copy"):
+					return
+				label.accept_event()
+				copy_to_clipboard(label.get_selected_text())
+	)
+	pass
+
+
+## Put [param text] on the clipboard with the `[code]` NBSP padding
+## (see [method preserve_code_spaces]) turned back into real spaces.
+static func copy_to_clipboard(text: String) -> void:
+	if StringUtils.is_blank(text):
+		return
+	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE))
 	pass
 
 

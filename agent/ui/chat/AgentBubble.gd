@@ -61,7 +61,7 @@ static func append(
 static func on_copy_pressed(entry: ChatEntry) -> void:
 	if entry == null or StringUtils.is_blank(entry.body):
 		return
-	DisplayServer.clipboard_set(entry.body)
+	MarkdownUtils.copy_to_clipboard(entry.body)
 	Alert.alert("Copied", Colors.success)
 	pass
 
