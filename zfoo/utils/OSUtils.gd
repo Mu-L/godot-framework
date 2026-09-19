@@ -7,45 +7,15 @@ extends Object
 
 static var process_pids: RingIntList = RingIntList.new(32)
 
-
-static func is_windows() -> bool:
-	return OS.get_name().strip_edges().to_lower() == "windows"
-
-
-static func godot_version() -> String:
-	var version_info := Engine.get_version_info()
-	var version_text := str(version_info.get("string", ""))
-	if StringUtils.is_not_blank(version_text):
-		return version_text
-	return StringUtils.format("{}.{}.{}", version_info.get("major", 0), version_info.get("minor", 0), version_info.get("patch", 0))
-
-
-static func build_shell_argv(command: String) -> PackedStringArray:
-	if is_windows():
-		return PackedStringArray(["cmd.exe", "/d", "/c", "chcp 65001 >nul && " + command])
-	return PackedStringArray(["/bin/sh", "-c", command])
-
-
+# ----------------------------------------------------------------------------------------------------------------------
+# Execution result
 class ExecResult:
 	var exit_code: int = -1
 	var output: StringBuilder = StringBuilder.new()
 
 
-static func stop_current() -> void:
-	var pid := process_pids.latest()
-	if pid > 0 and OS.is_process_running(pid):
-		OS.kill(pid)
-	pass
-
-
-static func stop_all() -> void:
-	for pid in process_pids.to_array():
-		if pid > 0 and OS.is_process_running(pid):
-			OS.kill(pid)
-	process_pids.clear()
-	pass
-
-
+# ----------------------------------------------------------------------------------------------------------------------
+# Public execution API
 static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
@@ -81,6 +51,23 @@ static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResu
 	return result
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Process lifecycle and async worker
+static func stop_current() -> void:
+	var pid := process_pids.latest()
+	if pid > 0 and OS.is_process_running(pid):
+		OS.kill(pid)
+	pass
+
+
+static func stop_all() -> void:
+	for pid in process_pids.to_array():
+		if pid > 0 and OS.is_process_running(pid):
+			OS.kill(pid)
+	process_pids.clear()
+	pass
+
+
 static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> void:
 	var proc := OS.execute_with_pipe(argv[0], argv.slice(1), false)
 	if proc.is_empty():
@@ -111,6 +98,8 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 	pass
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Pipe decoding and output collection
 static func drain_pipe(result: ExecResult, pipe: FileAccess, final: bool, utf8_decoder: Utf8StreamDecoder) -> void:
 	if pipe == null or not pipe.is_open():
 		return
@@ -144,6 +133,8 @@ static func close_pipe(pipe: FileAccess) -> void:
 	pass
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Command formatting and logging
 static func format_command_line(argv: PackedStringArray) -> String:
 	var builder := StringBuilder.new()
 	for arg in argv:
@@ -172,3 +163,31 @@ static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -
 	if output.is_empty():
 		Log.error("no process output")
 	pass
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Platform and shell command construction
+
+const POWERSHELL_UTF8_PREFIX := "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Console]::OutputEncoding; "
+const POWERSHELL_WORKSPACE_COMMAND := "Set-Location -LiteralPath $args[0]; & ([ScriptBlock]::Create($args[1]))"
+const BASH_WORKSPACE_COMMAND := "cd -- \"$1\" && exec /bin/bash --noprofile --norc -c \"$2\""
+
+static func build_shell_argv(command: String, working_directory: String = "") -> PackedStringArray:
+	if is_windows():
+		if StringUtils.is_not_blank(working_directory):
+			return PackedStringArray(["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_UTF8_PREFIX + POWERSHELL_WORKSPACE_COMMAND, working_directory, command])
+		return PackedStringArray(["powershell.exe", "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", POWERSHELL_UTF8_PREFIX + command])
+	if StringUtils.is_not_blank(working_directory):
+		return PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", BASH_WORKSPACE_COMMAND, "bash", working_directory, command])
+	return PackedStringArray(["/bin/bash", "--noprofile", "--norc", "-c", command])
+
+
+static func is_windows() -> bool:
+	return OS.get_name().strip_edges().to_lower() == "windows"
+
+
+static func godot_version() -> String:
+	var version_info := Engine.get_version_info()
+	var version_text := str(version_info.get("string", ""))
+	if StringUtils.is_not_blank(version_text):
+		return version_text
+	return StringUtils.format("{}.{}.{}", version_info.get("major", 0), version_info.get("minor", 0), version_info.get("patch", 0))

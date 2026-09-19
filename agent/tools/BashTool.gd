@@ -36,10 +36,4 @@ func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArra
 	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
 	if command.is_empty():
 		return PackedStringArray()
-	var workspace_root := AgentWorkspace.get_root()
-	if StringUtils.is_not_blank(workspace_root):
-		if OSUtils.is_windows():
-			command = StringUtils.format('cd /d "{}" && {}', workspace_root, command)
-		else:
-			command = StringUtils.format('cd "{}" && {}', workspace_root, command)
-	return OSUtils.build_shell_argv(command)
+	return OSUtils.build_shell_argv(command, AgentWorkspace.get_root())
