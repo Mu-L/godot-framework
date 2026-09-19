@@ -695,7 +695,7 @@ static func configure_rich_text_label(label: RichTextLabel, text_color: Color) -
 static func copy_to_clipboard(text: String) -> void:
 	if StringUtils.is_blank(text):
 		return
-	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE))
+	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).strip_edges())
 	pass
 
 
