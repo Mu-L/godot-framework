@@ -1,6 +1,10 @@
 class_name IdUtils
 extends Object
 
+# ---------------------------------------------------------------------------
+# Constants — epochs and bit layouts
+# ---------------------------------------------------------------------------
+
 ## Epoch of the uuid timestamp: 2021-01-01T00:00:00Z in milliseconds, the ids stay unique for about 69 years.
 const UUID_EPOCH: int = 1609459200000
 
@@ -16,6 +20,23 @@ const UUID_MAX_SEQUENCE: int = (1 << UUID_SEQUENCE_BITS) - 1
 const UUID_WORKER_ID_SHIFT: int = UUID_SEQUENCE_BITS
 const UUID_TIMESTAMP_SHIFT: int = UUID_SEQUENCE_BITS + UUID_WORKER_ID_BITS
 
+## compact_uuid layout: 21 bits timestamp in seconds | 10 bits sequence.
+## 21 + 10 = 31 bits, so every id fits [constant NumberUtils.INT32_MAX] (2147483647).
+##
+## Only 31 bits are available, so this id is best effort, not globally unique:
+## - the timestamp has second resolution (instead of millisecond) and its 21 bits wrap every
+##   2^21 seconds (about 24 days), so an id can repeat an id generated 24 days earlier;
+## - there is no worker id, so two processes can generate the same id in the same second.
+const COMPACT_SEQUENCE_BITS: int = 10
+const COMPACT_MAX_SEQUENCE: int = (1 << COMPACT_SEQUENCE_BITS) - 1
+const COMPACT_SECOND_BITS: int = 21
+const COMPACT_MAX_SECOND: int = (1 << COMPACT_SECOND_BITS) - 1
+
+
+# ---------------------------------------------------------------------------
+# Local id — unique inside the current run
+# ---------------------------------------------------------------------------
+
 static var _local_id: int = 0
 
 ## Returns an id which is unique inside the current run, it restarts from 1 after every run.
@@ -24,6 +45,11 @@ static func local_id() -> int:
 	return _local_id
 
 
+# ---------------------------------------------------------------------------
+# Uuid — globally unique, 63 bits
+# ---------------------------------------------------------------------------
+
+## Guards [method uuid] and [method compact_uuid].
 static var _mutex: Mutex = Mutex.new()
 static var _sequence: int = 0
 static var _last_timestamp: int = 0
@@ -56,6 +82,50 @@ static func uuid() -> int:
 	var id: int = ((timestamp - UUID_EPOCH) << UUID_TIMESTAMP_SHIFT) | (_worker_id << UUID_WORKER_ID_SHIFT) | _sequence
 	_mutex.unlock()
 	return id
+
+
+# ---------------------------------------------------------------------------
+# Compact uuid — int32, best effort
+# ---------------------------------------------------------------------------
+
+static var _compact_second: int = 0
+static var _compact_sequence: int = 0
+
+## Returns a compact best effort id that always fits a positive 32 bit integer
+## (0 <= id <= [constant NumberUtils.INT32_MAX]), for ids that only have to be unique inside one
+## process: chat / session numbers, UI element ids, log tags, and so on.
+##
+## Unlike [method uuid] this id is not globally unique, see the notes on [constant COMPACT_SECOND_BITS]:
+## after about 24 days the 21 bit second counter wraps and an id can repeat, and without a worker id
+## two processes can generate the same id in the same second.
+## Within one process the ids still increase monotonically, and the call never waits: once more than
+## [constant COMPACT_MAX_SEQUENCE] + 1 ids have been generated inside one second, the following ones
+## borrow the next second, so the encoded second can lead the wall clock.
+static func compact_uuid() -> int:
+	_mutex.lock()
+	@warning_ignore("integer_division")
+	var second: int = (TimeUtils.current_time_millis() - UUID_EPOCH) / TimeUtils.MILLIS_PER_SECOND
+	if second > _compact_second:
+		# A new second, the sequence restarts from zero.
+		_compact_sequence = 0
+	else:
+		# The same second, or the clock moved backwards: reuse the last second to stay monotonic.
+		_compact_sequence += 1
+		if _compact_sequence > COMPACT_MAX_SEQUENCE:
+			# The sequence of this second is exhausted, borrow the next second instead of waiting.
+			second = _compact_second + 1
+			_compact_sequence = 0
+		else:
+			second = _compact_second
+	_compact_second = second
+	var id: int = ((second & COMPACT_MAX_SECOND) << COMPACT_SEQUENCE_BITS) | _compact_sequence
+	_mutex.unlock()
+	return id
+
+
+# ---------------------------------------------------------------------------
+# Internal
+# ---------------------------------------------------------------------------
 
 # A random worker id is used to lower the chance of duplicated ids between processes.
 static func _random_worker_id() -> int:

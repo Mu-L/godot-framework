@@ -5,7 +5,6 @@ extends RefCounted
 
 const SESSIONS_SUBDIR := ".gai/sessions"
 const FILE_SUFFIX := ".json"
-const NEXT_SESSION_ID_KEY := "agent_next_session_id"
 
 static var sessions: Dictionary[int, AgentSession] = {}
 
@@ -35,18 +34,10 @@ static func ensure_sessions_dir() -> bool:
 # ---------------------------------------------------------------------------
 
 static func create_session() -> AgentSession:
-	var session_id := next_session_id()
+	var session_id := IdUtils.compact_uuid()
 	var session := AgentSession.new(session_id)
 	sessions[session.id] = session
 	return session
-
-
-static func next_session_id() -> int:
-	var session_id := Setting.get_int(NEXT_SESSION_ID_KEY, 0)
-	Setting.set_int(NEXT_SESSION_ID_KEY, session_id + 1)
-	Setting.save()
-	return session_id
-
 
 # ---------------------------------------------------------------------------
 # Save
