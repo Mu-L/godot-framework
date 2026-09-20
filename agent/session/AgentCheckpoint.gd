@@ -8,7 +8,6 @@ extends RefCounted
 ## A snapshot is taken before each user turn; reverting a chat entry restores that state.
 
 const CHECKPOINTS_SUBDIR := ".gai/checkpoints"
-const GIT_DIR_NAME := "git"
 const EXCLUDE_FILE := "info/exclude"
 ## `.git` is the user's real repository — snapshots must never swallow it.
 const EXCLUDE_RULES := ".git/\n.gai/\n.godot/\n"
@@ -33,7 +32,7 @@ static var available: bool = true
 # ---------------------------------------------------------------------------
 
 static func get_git_dir() -> String:
-	return AgentWorkspace.get_root().path_join(CHECKPOINTS_SUBDIR).path_join(GIT_DIR_NAME)
+	return AgentWorkspace.get_root().path_join(CHECKPOINTS_SUBDIR)
 
 
 # ---------------------------------------------------------------------------
