@@ -86,13 +86,12 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 	var request := OpenAiRequest.new(model, messages, true)
 	request.tools = tools
 	request.max_tokens = 8192
-	var tool_calls_acc: Array[OpenAiToolCall] = []
 	var pending_build := StringBuilder.new()
 	var utf8_decoder := Utf8StreamDecoder.new()
 	var on_chunk := func(chunk: PackedByteArray) -> void:
 		var buffer := pending_build.build_string() + utf8_decoder.push(chunk)
 		pending_build.clear()
-		var remaining := consume_sse_buffer_tools(buffer, tool_calls_acc, on_delta)
+		var remaining := consume_sse_buffer(buffer, on_delta)
 		pending_build.append_if_not_empty(remaining)
 		pass
 	var response := await HttpHelper.async_post(
@@ -107,11 +106,11 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 		return result
 	var tail := pending_build.build_string() + utf8_decoder.flush()
 	if StringUtils.is_not_empty(tail):
-		consume_sse_buffer_tools(tail + FileUtils.NEWLINE_LF, tool_calls_acc, on_delta)
+		consume_sse_buffer(tail + FileUtils.NEWLINE_LF, on_delta)
 	var chunks := parse_stream_chunks(body)
 	result.content = extract_stream_content(chunks)
 	result.reasoning_content = extract_stream_reasoning_content(chunks)
-	result.tool_calls = filter_tool_calls(tool_calls_acc)
+	result.tool_calls = extract_stream_tool_calls(chunks)
 	result.finish_reason = extract_finish_reason(chunks)
 	result.usage = extract_stream_usage(chunks)
 	return result
@@ -120,7 +119,7 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 const STREAM_KIND_CONTENT := "content"
 const STREAM_KIND_REASONING := "reasoning"
 
-static func consume_sse_buffer_tools(buffer: String, tool_calls_acc: Array[OpenAiToolCall], on_delta: Callable = Callable()) -> String:
+static func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) -> String:
 	if buffer.is_empty():
 		return StringUtils.EMPTY
 	var lines: PackedStringArray = buffer.split(FileUtils.NEWLINE_LF, false)
@@ -144,7 +143,6 @@ static func consume_sse_buffer_tools(buffer: String, tool_calls_acc: Array[OpenA
 				on_delta.call(choice.delta.content, STREAM_KIND_CONTENT)
 			if StringUtils.is_not_empty(choice.delta.reasoning_content):
 				on_delta.call(choice.delta.reasoning_content, STREAM_KIND_REASONING)
-			OpenAiToolCall.merge_stream_deltas(tool_calls_acc, choice.delta.tool_calls)
 	return remaining
 
 
@@ -198,6 +196,18 @@ static func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -
 			continue
 		build.append_if_not_empty(delta.reasoning_content)
 	return build.build_string()
+
+
+static func extract_stream_tool_calls(chunks: Array[OpenAiStreamChunk]) -> Array[OpenAiToolCall]:
+	var tool_calls: Array[OpenAiToolCall] = []
+	for chunk: OpenAiStreamChunk in chunks:
+		if chunk.choices.is_empty():
+			continue
+		var delta := chunk.choices[0].delta
+		if delta == null:
+			continue
+		OpenAiToolCall.merge_stream_deltas(tool_calls, delta.tool_calls)
+	return filter_tool_calls(tool_calls)
 
 static func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
 	var finish_reason := StringUtils.EMPTY

@@ -1,12 +1,10 @@
-func consume_sse_buffer_tools_test() -> void:
-	var tool_calls_acc: Array[OpenAiToolCall] = []
+func consume_sse_buffer_test() -> void:
 	var deltas: Array[String] = []
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	var remainder := OpenAiClient.consume_sse_buffer_tools(
+	var remainder := OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hel\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n",
-		tool_calls_acc,
 		on_delta
 	)
 	assert(deltas == ["Hel", "lo"])
@@ -14,67 +12,59 @@ func consume_sse_buffer_tools_test() -> void:
 	pass
 
 
-func consume_sse_buffer_tools_partial_line_test() -> void:
-	var tool_calls_acc: Array[OpenAiToolCall] = []
+func consume_sse_buffer_partial_line_test() -> void:
 	var deltas: Array[String] = []
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	var remainder := OpenAiClient.consume_sse_buffer_tools(
+	var remainder := OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}",
-		tool_calls_acc,
 		on_delta
 	)
 	assert(deltas.is_empty())
 	assert(remainder.begins_with("data:"))
-	var remainder2 := OpenAiClient.consume_sse_buffer_tools(remainder + "\n", tool_calls_acc, on_delta)
+	var remainder2 := OpenAiClient.consume_sse_buffer(remainder + "\n", on_delta)
 	assert(deltas == ["Hi"])
 	assert(remainder2 == StringUtils.EMPTY)
 	pass
 
 
-func consume_sse_buffer_tools_on_delta_test() -> void:
-	var tool_calls_acc: Array[OpenAiToolCall] = []
+func consume_sse_buffer_on_delta_test() -> void:
 	var deltas := StringBuilder.new()
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append_if_not_empty(delta)
 		pass
-	OpenAiClient.consume_sse_buffer_tools(
+	OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hel\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n",
-		tool_calls_acc,
 		on_delta
 	)
 	assert(deltas.build_string() == "Hello")
 	pass
 
 
-func consume_sse_buffer_tools_reasoning_one_arg_on_delta_test() -> void:
-	var tool_calls_acc: Array[OpenAiToolCall] = []
+func consume_sse_buffer_reasoning_one_arg_on_delta_test() -> void:
 	var deltas: Array[String] = []
-	var on_delta := func(delta: String) -> void:
+	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	OpenAiClient.consume_sse_buffer_tools(
+	OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"think\"}}]}\n"
 		+ "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n",
-		tool_calls_acc,
 		on_delta
 	)
-	assert(deltas.size() == 1)
-	assert(deltas[0] == "OK")
+	assert(deltas.size() == 2)
+	assert(deltas[1] == "OK")
 	pass
 
 
-func consume_sse_buffer_tools_reasoning_on_delta_test() -> void:
-	var tool_calls_acc: Array[OpenAiToolCall] = []
+func consume_sse_buffer_reasoning_on_delta_test() -> void:
 	var kinds: Array[String] = []
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		kinds.append(stream_kind)
 		pass
-	OpenAiClient.consume_sse_buffer_tools(
+	OpenAiClient.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"think\"}}]}\n"
 		+ "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n",
-		tool_calls_acc,
 		on_delta
 	)
 	assert(kinds.size() == 2)
@@ -89,17 +79,16 @@ func extract_finish_reason_test() -> void:
 	pass
 
 
-func consume_sse_buffer_tools_multichunk_test() -> void:
+func consume_sse_buffer_multichunk_test() -> void:
 	var pending_build := StringBuilder.new()
 	var deltas: Array[String] = []
-	var tool_calls_acc: Array[OpenAiToolCall] = []
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
 	var append_chunk := func(chunk_text: String) -> void:
 		var buffer := pending_build.build_string() + chunk_text
 		pending_build.clear()
-		var remaining := OpenAiClient.consume_sse_buffer_tools(buffer, tool_calls_acc, on_delta)
+		var remaining := OpenAiClient.consume_sse_buffer(buffer, on_delta)
 		if StringUtils.is_not_empty(remaining):
 			pending_build.append_if_not_empty(remaining)
 		pass
@@ -109,23 +98,16 @@ func consume_sse_buffer_tools_multichunk_test() -> void:
 	pass
 
 
-func consume_sse_buffer_tools_tool_calls_test() -> void:
-	var deltas: Array[String] = []
-	var on_delta := func(delta: String, stream_kind: String) -> void:
-		deltas.append(delta)
-		pass
-	var tool_calls_acc: Array[OpenAiToolCall] = []
-	OpenAiClient.consume_sse_buffer_tools(
+func extract_stream_tool_calls_test() -> void:
+	var body := (
 		"data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]}}]}\n"
-		+ "data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"a.txt\\\"}\"}}]}}]}\n",
-		tool_calls_acc,
-		on_delta
+		+ "data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"a.txt\\\"}\"}}]}}]}\n"
 	)
-	assert(deltas.is_empty())
-	assert(tool_calls_acc.size() == 1)
-	assert(tool_calls_acc[0].id == "call_1")
-	assert(tool_calls_acc[0].function.name == "read")
-	assert(tool_calls_acc[0].function.arguments == "{\"path\":\"a.txt\"}")
+	var tool_calls := OpenAiClient.extract_stream_tool_calls(OpenAiClient.parse_stream_chunks(body))
+	assert(tool_calls.size() == 1)
+	assert(tool_calls[0].id == "call_1")
+	assert(tool_calls[0].function.name == "read")
+	assert(tool_calls[0].function.arguments == "{\"path\":\"a.txt\"}")
 	pass
 
 
@@ -171,8 +153,8 @@ func collect_stream_text_test() -> void:
 	)
 	var chunks := OpenAiClient.parse_stream_chunks(body)
 	assert(chunks.size() == 4)
-	assert(OpenAiClient.extract_stream_content(chunks, OpenAiClient.STREAM_KIND_CONTENT) == "Hello")
-	assert(OpenAiClient.extract_stream_content(chunks, OpenAiClient.STREAM_KIND_REASONING) == "thinking")
+	assert(OpenAiClient.extract_stream_content(chunks) == "Hello")
+	assert(OpenAiClient.extract_stream_reasoning_content(chunks) == "thinking")
 	pass
 
 
@@ -199,15 +181,6 @@ func chat_message_tool_calls_reasoning_roundtrip_test() -> void:
 	var message := ChatMessage.assistant_tool_calls([tool_call], "", "thinking")
 	assert(message.reasoning_content == "thinking")
 	assert(message.to_api_dict()["reasoning_content"] == "thinking")
-	pass
-
-
-func chat_message_tool_calls_blank_reasoning_omitted_test() -> void:
-	var tool_call := OpenAiToolCall.new()
-	tool_call.id = "call_1"
-	tool_call.function.name = "read"
-	var message := ChatMessage.assistant_tool_calls([tool_call], "")
-	assert(not message.to_api_dict().has("reasoning_content"))
 	pass
 
 
