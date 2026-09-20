@@ -37,10 +37,10 @@ static func append_skill_context(session_id: int) -> void:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null or has_skill_context_in(session):
 		return
-	if not SkillPrompt.has_readme():
+	if not SkillPrompt.has_skill_context():
 		return
-	session.messages.append(ChatMessage.system(SkillPrompt.llm_message()))
-	AgentSessionManager.add_chat_entry(session_id, ChatEntry.KIND_SKILL, ChatEntry.TITLE_SKILL, SkillPrompt.readme_text())
+	session.messages.append(ChatMessage.system(SkillPrompt.get_skill_context()))
+	AgentSessionManager.add_chat_entry(session_id, ChatEntry.KIND_SKILL, ChatEntry.TITLE_SKILL, SkillPrompt.get_skill_context())
 	pass
 
 
@@ -50,8 +50,8 @@ static func remove_skill_context(session_id: int) -> void:
 		return
 
 	var kept_messages: Array[ChatMessage] = []
-	for msg: ChatMessage in session.messages:
-		if not SkillPrompt.is_llm_message(msg):
+	for msg in session.messages:
+		if not SkillPrompt.is_skill_context_message(msg):
 			kept_messages.append(msg)
 	session.messages = kept_messages
 

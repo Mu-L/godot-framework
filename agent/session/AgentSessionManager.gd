@@ -452,7 +452,7 @@ static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool
 
 static func on_tool_execution_end(session_id: int, _tool_call_id: String, tool_name: String, agent_tool_result: AgentToolResult) -> void:
 	if AgentHelper.is_file_tool(tool_name):
-		var path: String = agent_tool_result.details.get(AgentToolResult.DETAIL_PATH, "")
+		var path: String = agent_tool_result.details.get(AgentToolResult.DETAIL_FILE_PATH, "")
 		add_chat_entry(session_id, ChatEntry.KIND_FILE_TOOL, tool_name, path, agent_tool_result.details)
 		return
 	var title: String = agent_tool_result.details.get(AgentToolResult.DETAIL_TITLE, "")

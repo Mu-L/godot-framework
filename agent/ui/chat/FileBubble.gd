@@ -24,12 +24,15 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 	title_label.add_theme_font_size_override("font_size", 12)
 	header.add_child(title_label)
 
-	var lines_added := int(entry.details.get(AgentToolResult.DETAIL_LINES_ADDED, "0"))
-	var lines_removed := int(entry.details.get(AgentToolResult.DETAIL_LINES_REMOVED, "0"))
-	if lines_added > 0:
-		header.add_child(create_line_count_label(StringUtils.format("+{}", lines_added), AgentColors.success))
-	if lines_removed > 0:
-		header.add_child(create_line_count_label(StringUtils.format("-{}", lines_removed), AgentColors.error))
+	var file_lines_added := int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_ADDED, "0"))
+	var file_lines_removed := int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_REMOVED, "0"))
+	var file_message: String = entry.details.get(AgentToolResult.DETAIL_FILE_MESSAGE, "")
+	if file_lines_added > 0:
+		header.add_child(create_file_detail_label(StringUtils.format("+{}", file_lines_added), AgentColors.success))
+	if file_lines_removed > 0:
+		header.add_child(create_file_detail_label(StringUtils.format("-{}", file_lines_removed), AgentColors.error))
+	if StringUtils.is_not_blank(file_message):
+		header.add_child(create_file_detail_label(file_message, AgentColors.error))
 	vbox.add_child(header)
 
 	var rich_text := ResultBubble.create_rich_text(entry.body)
@@ -63,7 +66,7 @@ static func open_file(meta: Variant) -> void:
 	pass
 
 
-static func create_line_count_label(text: String, color: Color) -> Label:
+static func create_file_detail_label(text: String, color: Color) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)

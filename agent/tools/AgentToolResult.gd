@@ -6,9 +6,11 @@ extends RefCounted
 
 const DETAIL_TITLE := "title"
 const DETAIL_BODY := "body"
-const DETAIL_PATH := "path"
-const DETAIL_LINES_ADDED := "lines_added"
-const DETAIL_LINES_REMOVED := "lines_removed"
+const DETAIL_FILE_LINES_ADDED := "file_lines_added"
+const DETAIL_FILE_LINES_REMOVED := "file_lines_removed"
+const DETAIL_FILE_PATH := "file_path"
+const DETAIL_FILE_MESSAGE := "file_message"
+
 
 var content: String = ""
 var is_error: bool = false
@@ -29,14 +31,16 @@ static func ui_details(title: String, body: String = StringUtils.EMPTY) -> Dicti
 	}
 
 
-static func ui_file_details(lines_added: int = -1, lines_removed: int = -1, path: String = StringUtils.EMPTY) -> Dictionary[String, String]:
+static func ui_file_details(lines_added: int = -1, lines_removed: int = -1, path: String = StringUtils.EMPTY, message: String = StringUtils.EMPTY) -> Dictionary[String, String]:
 	var result := ui_details(ChatEntry.TITLE_RESULT)
 	if lines_added >= 0:
-		result[DETAIL_LINES_ADDED] = str(lines_added)
+		result[DETAIL_FILE_LINES_ADDED] = str(lines_added)
 	if lines_removed >= 0:
-		result[DETAIL_LINES_REMOVED] = str(lines_removed)
+		result[DETAIL_FILE_LINES_REMOVED] = str(lines_removed)
 	if StringUtils.is_not_blank(path):
-		result[DETAIL_PATH] = path
+		result[DETAIL_FILE_PATH] = path
+	if StringUtils.is_not_blank(message):
+		result[DETAIL_FILE_MESSAGE] = message
 	return result
 
 
