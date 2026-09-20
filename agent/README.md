@@ -60,6 +60,7 @@ run/main_scene="res://agent/CodeAgent.tscn"
 - **Concurrent chats** — each session runs independently; switch sessions while others are thinking
 - **Chat area** — user / assistant / tool messages with streaming
 - **Input bar** — type a task; **Ctrl+Enter** or **Send** to run
+- **Revert / Delete** — a user bubble's **Revert** drops that turn and everything after it, and restores the workspace files to the snapshot taken before that turn (see `session/AgentCheckpoint.gd`). **Delete** drops the same turns but leaves the workspace alone.
 
 ## Extend
 

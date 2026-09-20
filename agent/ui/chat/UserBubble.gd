@@ -2,7 +2,9 @@ class_name UserBubble
 extends Object
 
 ## User message bubble — flowing border beam (same shader as chat input).
-## Delete truncates the chat from this entry; the message body stays on the clipboard for re-editing.
+## Delete drops this turn and everything after it — chat only, code is left alone.
+## Revert does the same and restores the workspace snapshot taken before the turn (only shown when
+## the entry has one). Both keep the message body on the clipboard for re-editing.
 ## The body is shown as plain text — what the user typed is never Markdown-rendered.
 
 const BeamLayer := preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
@@ -49,10 +51,19 @@ static func append(
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(spacer)
 
+	# Revert is only offered when this turn has a workspace snapshot (older chats have none).
+	if StringUtils.is_not_blank(entry.checkpoint):
+		var revert_button := Button.new()
+		revert_button.name = "RevertButton"
+		revert_button.text = "Revert"
+		AgentBubble.style_header_button(revert_button, panel_style.bg_color, "Delete from here and restore the workspace (message is copied)", 58.0)
+		revert_button.pressed.connect(on_revert_pressed.bind(session_id, entry))
+		header.add_child(revert_button)
+
 	var delete_from_here_button := Button.new()
 	delete_from_here_button.name = "DeleteFromHereButton"
 	delete_from_here_button.text = "Delete"
-	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here (message is copied)", 52.0)
+	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here (message is copied, workspace is kept)", 52.0)
 	delete_from_here_button.pressed.connect(on_delete_from_here_pressed.bind(session_id, entry))
 	header.add_child(delete_from_here_button)
 
@@ -87,12 +98,25 @@ static func append(
 	return rich_text
 
 
-## Truncating drops the message — keep a copy on the clipboard so it can be pasted back.
+## Both actions drop the message — keep a copy on the clipboard so it can be pasted back.
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
-	if entry != null and StringUtils.is_not_blank(entry.body):
-		MarkdownUtils.copy_to_clipboard(entry.body)
-		Alert.alert("Message copied — paste to edit", Colors.success)
-	AgentSessionManager.truncate_chat_from_entry(session_id, entry)
+	copy_message(entry)
+	AgentSessionManager.delete_chat_from_entry(session_id, entry)
+	pass
+
+
+## Delete plus a workspace revert to the snapshot taken before this turn.
+static func on_revert_pressed(session_id: int, entry: ChatEntry) -> void:
+	copy_message(entry)
+	AgentSessionManager.revert_to_entry(session_id, entry)
+	pass
+
+
+static func copy_message(entry: ChatEntry) -> void:
+	if entry == null or StringUtils.is_blank(entry.body):
+		return
+	MarkdownUtils.copy_to_clipboard(entry.body)
+	Alert.alert("Message copied — paste to edit", Colors.success)
 	pass
 
 

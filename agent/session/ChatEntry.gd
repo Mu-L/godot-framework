@@ -25,6 +25,8 @@ var kind: String = ""
 var title: String = ""
 var body: String = ""
 var details: Dictionary[String, String] = {}
+## Workspace snapshot taken before this turn (see AgentCheckpoint); empty when there is none.
+var checkpoint: String = ""
 
 
 ## Context entries are seeded into the LLM history (system prompt, skill index, AGENTS.md) instead of a chat turn.

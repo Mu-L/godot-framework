@@ -257,7 +257,9 @@ static func async_send(session_id: int, user_text: String) -> void:
 	var trimmed := user_text.strip_edges()
 	set_title_from_prompt(session_id, trimmed)
 	session.messages.append(ChatMessage.user(trimmed))
-	add_chat_entry(session_id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, trimmed)
+	var user_entry := add_chat_entry(session_id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, trimmed)
+	# Snapshot before the agent can touch the workspace — deleting this bubble reverts to it.
+	user_entry.checkpoint = await AgentCheckpoint.async_snapshot()
 	await run_agent(session)
 	pass
 
@@ -334,7 +336,8 @@ static func add_chat_entry(session_id: int, kind: String, entry_title: String, b
 
 
 ## Removes this user entry and every chat entry after it; trims LLM messages to match.
-static func truncate_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
+## Chat only — workspace files are left untouched.
+static func delete_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
 	if entry == null or entry.kind != ChatEntry.KIND_USER:
 		return
 	var session := AgentSessionStore.load_session(session_id)
@@ -350,6 +353,18 @@ static func truncate_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
 	session.messages = session.messages.slice(0, msg_idx)
 	persist_session(session_id)
 	AgentEvents.events.chat_truncated.emit(session_id)
+	pass
+
+
+## Truncates the chat from [param entry] and reverts the workspace to the snapshot taken before that turn.
+## Entries without a snapshot (older chats, checkpoints unavailable) just truncate.
+static func revert_to_entry(session_id: int, entry: ChatEntry) -> void:
+	if entry == null:
+		return
+	var sha := entry.checkpoint
+	delete_chat_from_entry(session_id, entry)
+	# Workspace revert runs in the background; the transcript rebuilds immediately. Fire and forget.
+	AgentCheckpoint.async_restore(sha)
 	pass
 
 
