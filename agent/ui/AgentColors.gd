@@ -3,18 +3,6 @@ extends RefCounted
 
 ## Cursor / Codex inspired palettes for Code Agent UI (dark + light).
 
-enum ColorScheme {
-	DARK,
-	LIGHT,
-}
-
-const SETTING_KEY := "agent_dark_theme"
-const THEME_COLOR_SETTING_KEY := "agent_theme_color"
-const DEFAULT_THEME_COLOR := Color(0.0, 0.84, 0.68, 0.58)
-
-static var current_scheme: ColorScheme = ColorScheme.DARK
-static var theme_color: Color = DEFAULT_THEME_COLOR
-
 static var sidebar: Color
 static var sidebar_border: Color
 static var sidebar_title: Color
@@ -61,40 +49,35 @@ static func _static_init() -> void:
 
 
 static func is_dark() -> bool:
-	return current_scheme == ColorScheme.DARK
+	return ThemeColor.current_scheme == ThemeColor.ColorScheme.DARK
 
 
 static func load_saved_theme() -> void:
-	var use_dark := Setting.get_bool(SETTING_KEY, true)
-	apply_color_scheme(ColorScheme.DARK if use_dark else ColorScheme.LIGHT, false, false)
+	var use_dark := ThemeColor.is_dark()
+	apply_color_scheme(ThemeColor.ColorScheme.DARK if use_dark else ThemeColor.ColorScheme.LIGHT, false, false)
 	load_theme_color_from_settings()
 	pass
 
 
 static func load_theme_color_from_settings() -> void:
-	var saved := Setting.get_string(THEME_COLOR_SETTING_KEY, "")
-	if saved.is_empty():
-		theme_color = DEFAULT_THEME_COLOR
-		return
-	theme_color = Color.from_string(saved, DEFAULT_THEME_COLOR)
+	ThemeColor.theme_color = ThemeColor.load_color()
 	pass
 
 
 static func set_theme_color(new_color: Color) -> void:
-	theme_color = new_color
-	Setting.set_string(THEME_COLOR_SETTING_KEY, theme_color.to_html(true))
-	Setting.save()
+	ThemeColor.theme_color = new_color
+	ThemeColor.save_color(ThemeColor.theme_color)
 	AgentEvents.events.theme_color_changed.emit()
 	pass
 
 
 static func orb_synapse_line_color() -> Color:
-	return theme_color
+	return ThemeColor.theme_color
 
 
 ## Theme swatch RGB for UI fills and text; alpha forced to 1.
 static func theme_accent_solid() -> Color:
-	var c := theme_color
+	var c := ThemeColor.theme_color
 	return Color(c.r, c.g, c.b, 1.0)
 
 
@@ -104,18 +87,17 @@ static func theme_selection_bg() -> Color:
 
 
 static func toggle_theme() -> void:
-	apply_color_scheme(ColorScheme.LIGHT if is_dark() else ColorScheme.DARK)
+	apply_color_scheme(ThemeColor.ColorScheme.LIGHT if is_dark() else ThemeColor.ColorScheme.DARK)
 
 
-static func apply_color_scheme(scheme: ColorScheme, persist: bool = true, emit_signal: bool = true) -> void:
-	current_scheme = scheme
-	if scheme == ColorScheme.DARK:
+static func apply_color_scheme(scheme: ThemeColor.ColorScheme, persist: bool = true, emit_signal: bool = true) -> void:
+	ThemeColor.current_scheme = scheme
+	if scheme == ThemeColor.ColorScheme.DARK:
 		apply_dark_palette()
 	else:
 		apply_light_palette()
 	if persist:
-		Setting.set_bool(SETTING_KEY, scheme == ColorScheme.DARK)
-		Setting.save()
+		ThemeColor.save_dark(scheme == ThemeColor.ColorScheme.DARK)
 	if emit_signal:
 		AgentEvents.events.theme_changed.emit()
 

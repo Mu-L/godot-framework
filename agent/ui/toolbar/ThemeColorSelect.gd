@@ -28,7 +28,7 @@ func setup(p_button: Button) -> void:
 
 func on_ui_theme_changed() -> void:
 	color_picker.set_block_signals(true)
-	color_picker.color = AgentColors.theme_color
+	color_picker.color = ThemeColor.theme_color
 	color_picker.set_block_signals(false)
 	apply_theme()
 	pass
@@ -38,7 +38,7 @@ func build_popup() -> void:
 	popup = PopupPanel.new()
 	color_picker = ColorPicker.new()
 	color_picker.edit_alpha = true
-	color_picker.color = AgentColors.theme_color
+	color_picker.color = ThemeColor.theme_color
 	color_picker.custom_minimum_size = Vector2(300, 320)
 	color_picker.color_changed.connect(on_picker_color_changed)
 	popup.add_child(color_picker)
@@ -159,7 +159,7 @@ static func composite_layers(layers: Array[Color]) -> Color:
 
 
 func on_pressed() -> void:
-	color_picker.color = AgentColors.theme_color
+	color_picker.color = ThemeColor.theme_color
 	var anchor := button.global_position + Vector2(0.0, button.size.y + 6.0)
 	popup.position = Vector2i(int(anchor.x - 140.0), int(anchor.y))
 	popup.popup()

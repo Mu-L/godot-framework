@@ -54,14 +54,14 @@ static func color_for(phase: Phase) -> Color:
 			return phase_color_from_theme(0.0, 1.0, 1.0, 0.6)
 
 
-## Hue/sat/value offsets relative to AgentColors.theme_color (HSV).
+## Hue/sat/value offsets relative to ThemeColor.theme_color (HSV).
 static func phase_color_from_theme(
 	hue_offset: float = 0.0,
 	sat_mul: float = 1.0,
 	val_mul: float = 1.0,
 	alpha: float = 1.0,
 ) -> Color:
-	var base := AgentColors.theme_color
+	var base := ThemeColor.theme_color
 	var rgb := Color.from_hsv(
 		fmod(base.h + hue_offset, 1.0),
 		clampf(base.s * sat_mul, 0.0, 1.0),

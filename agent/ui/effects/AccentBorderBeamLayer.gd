@@ -82,7 +82,7 @@ func sync_shader_uniforms() -> void:
 		beam_size = Vector2(offset_right - offset_left, offset_bottom - offset_top)
 	if beam_size.x < 1.0 or beam_size.y < 1.0:
 		return
-	beam_material.set_shader_parameter("accent_color", AgentColors.theme_color)
+	beam_material.set_shader_parameter("accent_color", ThemeColor.theme_color)
 	beam_material.set_shader_parameter("strength", highlight_strength)
 	beam_material.set_shader_parameter("corner_radius", corner_radius_for_size())
 	beam_material.set_shader_parameter("rect_size", beam_size)
