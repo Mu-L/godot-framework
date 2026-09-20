@@ -24,9 +24,10 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
-		return AgentToolResult.error("error: path is required")
+		return AgentToolResult.error("error: path is required", AgentToolResult.ui_file_details_message("", "path is required"))
 	if not FileAccess.file_exists(path):
-		return AgentToolResult.error(StringUtils.format("error: file not found: {}", path))
+		var error_message := StringUtils.format("error: file not found: {}", path)
+		return AgentToolResult.error(error_message, AgentToolResult.ui_file_details_message(path, "file not found"))
 	var old_string := str(args.get(ARG_OLD_STRING, ""))
 	var new_string := str(args.get(ARG_NEW_STRING, ""))
 	var content := FileUtils.read_file_to_string(path)

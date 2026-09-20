@@ -24,7 +24,7 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var search_root := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if not DirAccess.dir_exists_absolute(search_root):
-		return AgentToolResult.error("error: directory not found")
+		return AgentToolResult.error("error: directory not found", AgentToolResult.ui_file_details_message(search_root, "directory not found"))
 	var recursive := parse_bool(args.get(ARG_RECURSIVE, false))
 	var dirs := FileUtils.get_all_directories_in_folder(search_root, recursive)
 	var files := FileUtils.get_all_files_in_folder(search_root, recursive)

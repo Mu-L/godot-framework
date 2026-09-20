@@ -22,7 +22,7 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
-		return AgentToolResult.error("error: path is required")
+		return AgentToolResult.error("error: path is required", AgentToolResult.ui_file_details_message("", "path is required"))
 	var content := str(args.get(ARG_CONTENT, ""))
 	var previous_content := FileUtils.read_file_to_string(path)
 	var dir := path.get_base_dir()

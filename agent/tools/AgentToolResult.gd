@@ -1,19 +1,41 @@
 class_name AgentToolResult
 extends RefCounted
 
-## Outcome of a tool execution. `content` is sent to the LLM as the tool message body.
-## UI uses `details` for the result bubble, including optional changed-line counts.
+## Outcome of a tool execution.
+##
+## Two independent payloads travel together here:
+## - [member content] — the raw text handed back to the LLM as the tool message body.
+## - [member details] — presentation-only data used by the UI to render the result bubble
+##   (optional file changed-line counts, file path, custom title/body).
+##
+## Tools should always be built through [method ok] / [method error] so both payloads stay consistent.
 
+
+# ---------------------------------------------------------------------------
+# Detail keys — dictionary keys of [member details]
+# ---------------------------------------------------------------------------
+
+## Bubble title; defaults to [constant ChatEntry.TITLE_RESULT].
 const DETAIL_TITLE := "title"
+## Bubble body text; usually mirrors [member content] but may be shorter/different for display.
 const DETAIL_BODY := "body"
+
+## For tool call
 const DETAIL_FILE_LINES_ADDED := "file_lines_added"
 const DETAIL_FILE_LINES_REMOVED := "file_lines_removed"
 const DETAIL_FILE_PATH := "file_path"
 const DETAIL_FILE_MESSAGE := "file_message"
 
 
+# ---------------------------------------------------------------------------
+# State
+# ---------------------------------------------------------------------------
+
+## Tool output for the LLM. May be truncated and stays the same whether or not [member is_error] is set.
 var content: String = ""
+## True when the tool failed; the loop surfaces this back to the model as a failed tool call.
 var is_error: bool = false
+## UI-only metadata keyed by the DETAIL_* constants above. Values are strings because every entry is display text.
 var details: Dictionary[String, String] = {}
 
 
@@ -24,6 +46,11 @@ func _init(_content: String = "", _is_error: bool = false, _details: Dictionary[
 	pass
 
 
+# ---------------------------------------------------------------------------
+# UI detail builders
+# ---------------------------------------------------------------------------
+
+## Generic bubble: custom title plus a body copy of the tool output.
 static func ui_details(title: String, body: String = StringUtils.EMPTY) -> Dictionary[String, String]:
 	return {
 		DETAIL_TITLE: title,
@@ -31,6 +58,8 @@ static func ui_details(title: String, body: String = StringUtils.EMPTY) -> Dicti
 	}
 
 
+## File bubble: title is fixed to the generic result title, the optional extras drive the
+## added/removed line badge and the clickable path. Pass -1 / "" to omit a field.
 static func ui_file_details(lines_added: int = -1, lines_removed: int = -1, path: String = StringUtils.EMPTY, message: String = StringUtils.EMPTY) -> Dictionary[String, String]:
 	var result := ui_details(ChatEntry.TITLE_RESULT)
 	if lines_added >= 0:
@@ -43,13 +72,26 @@ static func ui_file_details(lines_added: int = -1, lines_removed: int = -1, path
 		result[DETAIL_FILE_MESSAGE] = message
 	return result
 
+static func ui_file_details_message(path: String = StringUtils.EMPTY, message: String = StringUtils.EMPTY) -> Dictionary[String, String]:
+	var result := ui_details(ChatEntry.TITLE_RESULT)
+	if StringUtils.is_not_blank(path):
+		result[DETAIL_FILE_PATH] = path
+	if StringUtils.is_not_blank(message):
+		result[DETAIL_FILE_MESSAGE] = message
+	return result
 
+# ---------------------------------------------------------------------------
+# Factories — the only intended entry points for tools
+# ---------------------------------------------------------------------------
+
+## Success result. When no details are supplied the output doubles as the bubble body.
 static func ok(text: String, _details: Dictionary[String, String] = {}) -> AgentToolResult:
 	if _details.is_empty():
 		_details = ui_details(ChatEntry.TITLE_RESULT, text)
 	return AgentToolResult.new(text, false, _details)
 
 
+## Failure result; same detail fallback as [method ok], plus [member is_error] = true.
 static func error(text: String, _details: Dictionary[String, String] = {}) -> AgentToolResult:
 	if _details.is_empty():
 		_details = ui_details(ChatEntry.TITLE_RESULT, text)
