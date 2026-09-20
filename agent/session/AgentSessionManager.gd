@@ -90,6 +90,7 @@ static func delete_session(session_id: int) -> void:
 		request_stop(session_id)
 
 	AgentSessionStore.delete_session(session_id)
+	AgentCheckpoint.async_cleanup()
 	remove_session_index(session_id)
 	AgentSessionIndexes.save_index(session_indexes)
 	AgentEvents.events.session_removed.emit(session_id)

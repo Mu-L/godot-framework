@@ -9,7 +9,10 @@ extends RefCounted
 
 const CHECKPOINTS_SUBDIR := ".gai/checkpoints"
 const EXCLUDE_FILE := "info/exclude"
+const SHALLOW_FILE := "shallow"
 const COMMIT_MESSAGE := "checkpoint"
+const MAX_CHECKPOINTS := 100
+const CHECKPOINTS_AFTER_CLEANUP := 50
 
 ## Injected per call so the shadow repo ignores whatever global git config the machine has.
 const GIT_CONFIG_ARGS: PackedStringArray = [
@@ -110,7 +113,15 @@ static func stage_all() -> bool:
 static func async_snapshot() -> String:
 	if not await ensure_repo() or not await stage_all():
 		return StringUtils.EMPTY
-	var commit := await run_git(PackedStringArray(["commit", "--quiet", "--allow-empty", "-m", COMMIT_MESSAGE]))
+	var previous_head := await run_git(PackedStringArray(["rev-parse", "--verify", "HEAD"]))
+	if previous_head.exit_code == 0:
+		var diff := await run_git(PackedStringArray(["diff", "--cached", "--quiet", "HEAD", "--"]))
+		if diff.exit_code == 0:
+			return previous_head.output.build_string().strip_edges()
+		if diff.exit_code > 1:
+			Log.error("agent checkpoint tree comparison failed:[{}]", diff.output.build_string())
+			return StringUtils.EMPTY
+	var commit := await run_git(PackedStringArray(["commit", "--quiet", "-m", COMMIT_MESSAGE]))
 	if commit.exit_code != 0:
 		Log.error("agent checkpoint commit failed:[{}]", commit.output.build_string())
 		return StringUtils.EMPTY
@@ -118,7 +129,36 @@ static func async_snapshot() -> String:
 	if head.exit_code != 0:
 		Log.error("agent checkpoint head lookup failed:[{}]", head.output.build_string())
 		return StringUtils.EMPTY
-	return head.output.build_string().strip_edges()
+	var sha := head.output.build_string().strip_edges()
+	await async_cleanup(false)
+	return sha
+
+
+## When history exceeds [constant MAX_CHECKPOINTS], keeps the newest [constant CHECKPOINTS_AFTER_CLEANUP] commits.
+static func async_cleanup(force_gc: bool = true) -> void:
+	if not await ensure_repo():
+		return
+	var history := await run_git(PackedStringArray(["rev-list", "--max-count=" + str(MAX_CHECKPOINTS + 1), "HEAD"]))
+	if history.exit_code != 0:
+		# An initialized repository without its first commit has nothing to clean.
+		return
+	var commits := history.output.build_string().strip_edges().split(FileUtils.NEWLINE_LF, false)
+	var truncated := commits.size() > MAX_CHECKPOINTS
+	if truncated:
+		var boundary := commits[CHECKPOINTS_AFTER_CLEANUP - 1].strip_edges()
+		if not FileUtils.write_string_to_file(get_git_dir().path_join(SHALLOW_FILE), boundary + FileUtils.NEWLINE_LF):
+			Log.error("agent checkpoint shallow boundary write failed:[{}]", boundary)
+			return
+	if not truncated and not force_gc:
+		return
+	var reflog := await run_git(PackedStringArray(["reflog", "expire", "--expire=now", "--all"]))
+	if reflog.exit_code != 0:
+		Log.error("agent checkpoint reflog cleanup failed:[{}]", reflog.output.build_string())
+		return
+	var gc := await run_git(PackedStringArray(["gc", "--prune=now", "--quiet"]))
+	if gc.exit_code != 0:
+		Log.error("agent checkpoint gc failed:[{}]", gc.output.build_string())
+	pass
 
 
 ## Reverts the workspace to [param sha]: files changed since then are put back, files created since are removed.
@@ -132,7 +172,15 @@ static func async_restore(sha: String) -> bool:
 	if diff.exit_code != 0:
 		Log.error("agent checkpoint restore diff failed:[{}]", diff.output.build_string())
 		return false
-	var removed := collect_removed_paths(diff.output.build_string())
+	# Added / copied / renamed targets did not exist at the checkpoint — revert removes them.
+	var removed := PackedStringArray()
+	for line in diff.output.build_string().split(FileUtils.NEWLINE_LF, false):
+		var parts := line.split("\t", false)
+		if parts.size() < 2:
+			continue
+		var status := parts[0].strip_edges()
+		if status.begins_with("A") or status.begins_with("C") or status.begins_with("R"):
+			removed.append(parts[parts.size() - 1].strip_edges())
 	# `:/` is the worktree root regardless of the process working directory.
 	var checkout := await run_git(PackedStringArray(["checkout", sha, "--", ":/"]))
 	if checkout.exit_code != 0:
@@ -147,16 +195,3 @@ static func async_restore(sha: String) -> bool:
 			Log.error("agent checkpoint restore delete failed path:[{}] error:[{}]", absolute_path, error)
 			return false
 	return true
-
-
-## Added / copied / renamed targets did not exist at the checkpoint — revert removes them.
-static func collect_removed_paths(name_status_text: String) -> PackedStringArray:
-	var paths := PackedStringArray()
-	for line in name_status_text.split(FileUtils.NEWLINE_LF, false):
-		var parts := line.split("\t", false)
-		if parts.size() < 2:
-			continue
-		var status := parts[0].strip_edges()
-		if status.begins_with("A") or status.begins_with("C") or status.begins_with("R"):
-			paths.append(parts[parts.size() - 1].strip_edges())
-	return paths
