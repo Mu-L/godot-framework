@@ -280,6 +280,11 @@ func on_field_gui_input(event: InputEvent) -> void:
 func on_files_dropped(files: PackedStringArray) -> void:
 	if not input_field.editable or files.is_empty() or not input_bar.is_inside_tree():
 		return
+	var build := StringBuilder.new()
+	for file in files:
+		if file.ends_with(".uid"):
+			continue
+		build.append(file)
 	var mouse := input_bar.get_global_mouse_position()
 	if not input_wrap.get_global_rect().has_point(mouse) and not input_bar.get_global_rect().has_point(mouse):
 		return
@@ -288,7 +293,7 @@ func on_files_dropped(files: PackedStringArray) -> void:
 		layout_tween.kill()
 		layout_tween = null
 	set_expanded(true, false)
-	insert_dropped_files.call_deferred("  ".join(files))
+	insert_dropped_files.call_deferred(build.build_joined("  "))
 	var guard_timer := input_bar.get_tree().create_timer(0.4)
 	guard_timer.timeout.connect(clear_drop_focus_guard, CONNECT_ONE_SHOT)
 	pass
