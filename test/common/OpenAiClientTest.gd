@@ -184,9 +184,15 @@ func chat_message_tool_calls_reasoning_roundtrip_test() -> void:
 	pass
 
 
-func chat_message_plain_assistant_omits_reasoning_test() -> void:
+func chat_message_plain_assistant_reasoning_roundtrip_test() -> void:
+	var message := ChatMessage.assistant("done", "thinking")
+	assert(message.reasoning_content == "thinking")
+	assert(message.to_api_dict()["reasoning_content"] == "thinking")
+	pass
+
+
+func chat_message_plain_assistant_without_reasoning_omits_field_test() -> void:
 	var message := ChatMessage.assistant("done")
-	message.reasoning_content = "thinking"
 	assert(not message.to_api_dict().has("reasoning_content"))
 	pass
 

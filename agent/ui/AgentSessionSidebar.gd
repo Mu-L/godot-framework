@@ -257,7 +257,6 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	select_button.mouse_default_cursor_shape = Control.CURSOR_MOVE
 	select_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	select_button.pressed.connect(on_session_row_pressed.bind(session_id))
-	select_button.set_drag_forwarding(get_row_drag_data.bind(session_id), can_drop_on_row.bind(session_id), drop_on_row)
 	bind_row_hover(select_button, session_id)
 
 	var delete_button := Button.new()
@@ -268,6 +267,11 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	delete_button.flat = true
 	delete_button.pressed.connect(on_session_delete_pressed.bind(session_id))
 	bind_row_hover(delete_button, session_id)
+
+	# Whole row (padding, title, close button) is a drag handle and a drop target.
+	bind_row_drag(row_panel, session_id)
+	bind_row_drag(select_button, session_id)
+	bind_row_drag(delete_button, session_id)
 
 	row.add_child(select_button)
 	row.add_child(delete_button)
@@ -380,6 +384,11 @@ func get_row_drag_data(_at_position: Vector2, session_id: int) -> Variant:
 	return session_id
 
 
+func bind_row_drag(host: Control, session_id: int) -> void:
+	host.set_drag_forwarding(get_row_drag_data.bind(session_id), can_drop_on_row.bind(session_id), drop_on_row.bind(session_id))
+	pass
+
+
 func row_is_pinned(session_id: int) -> bool:
 	var row_panel: PanelContainer = session_rows.get(session_id)
 	if row_panel == null:
@@ -414,36 +423,44 @@ func apply_row_move(session_id: int, from_row: PanelContainer, target_list: VBox
 	pass
 
 
+## Query only — the reorder is applied in `drop_on_row` when the mouse is released.
 func can_drop_on_row(_at_position: Vector2, data: Variant, target_id: int) -> bool:
+	if typeof(data) != TYPE_INT:
+		return false
+	return session_rows.has(data) and session_rows.has(target_id)
+
+
+func drop_on_row(_at_position: Vector2, data: Variant, target_id: int) -> bool:
 	if typeof(data) != TYPE_INT:
 		return false
 	var session_id: int = data
 	var from_row: PanelContainer = session_rows.get(session_id)
 	var target_row: PanelContainer = session_rows.get(target_id)
 	if from_row == null or target_row == null:
-		return from_row != null
-	if from_row == target_row:
-		return true
+		return false
 	var to_pinned := row_is_pinned(target_id)
-	var target_list := list_for_pinned(to_pinned)
-	apply_row_move(session_id, from_row, target_list, target_row.get_index(), to_pinned)
+	apply_row_move(session_id, from_row, list_for_pinned(to_pinned), target_row.get_index(), to_pinned)
 	return true
-
-
-func drop_on_row(_at_position: Vector2, _data: Variant) -> void:
-	pass
 
 
 func bind_list_drop(host: Control, pinned: bool) -> void:
 	host.set_drag_forwarding(
 		func(_at: Vector2) -> Variant: return null,
 		can_drop_on_list.bind(pinned),
-		drop_on_list
+		drop_on_list.bind(pinned)
 	)
 	pass
 
 
-func can_drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> bool:
+## Query only — the reorder is applied in `drop_on_list` when the mouse is released.
+func can_drop_on_list(_at_position: Vector2, data: Variant, _pinned: bool) -> bool:
+	if typeof(data) != TYPE_INT:
+		return false
+	return session_rows.has(data)
+
+
+## Dropping on the list background appends the row to the end of that list.
+func drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> bool:
 	if typeof(data) != TYPE_INT:
 		return false
 	var session_id: int = data
@@ -456,10 +473,6 @@ func can_drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> boo
 		to_index -= 1
 	apply_row_move(session_id, from_row, target_list, to_index, pinned)
 	return true
-
-
-func drop_on_list(_at_position: Vector2, _data: Variant) -> void:
-	pass
 
 
 # ---------------------------------------------------------------------------

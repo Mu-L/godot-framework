@@ -28,8 +28,10 @@ static func user(text: String) -> ChatMessage:
 	return ChatMessage.new(ROLE_USER, text)
 
 
-static func assistant(text: String) -> ChatMessage:
-	return ChatMessage.new(ROLE_ASSISTANT, text)
+static func assistant(text: String, reasoning: String = "") -> ChatMessage:
+	var msg := ChatMessage.new(ROLE_ASSISTANT, text)
+	msg.reasoning_content = reasoning
+	return msg
 
 
 static func tool_result(call_id: String, text: String) -> ChatMessage:
@@ -61,7 +63,10 @@ func to_api_dict() -> Dictionary:
 			"tool_calls": tool_calls,
 		}
 		return wire
-	return {
+	var wire := {
 		"role": role,
 		"content": content,
 	}
+	if role == ROLE_ASSISTANT and StringUtils.is_not_blank(reasoning_content):
+		wire["reasoning_content"] = StringUtils.trim(reasoning_content)
+	return wire

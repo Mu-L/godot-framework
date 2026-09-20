@@ -26,7 +26,7 @@ static func run(session: AgentSession) -> void:
 		var tool_calls := completion.tool_calls
 
 		if tool_calls.is_empty() and StringUtils.is_not_blank(content):
-			session.messages.append(ChatMessage.assistant(content))
+			session.messages.append(ChatMessage.assistant(content, completion.reasoning_content))
 			AgentEvents.events.agent_end.emit(session.id, StringUtils.EMPTY)
 			return
 
