@@ -87,96 +87,40 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 	request.tools = tools
 	request.max_tokens = 8192
 	var tool_calls_acc: Array[OpenAiToolCall] = []
-	var content_build := StringBuilder.new()
 	var pending_build := StringBuilder.new()
 	var utf8_decoder := Utf8StreamDecoder.new()
 	var on_chunk := func(chunk: PackedByteArray) -> void:
 		var buffer := pending_build.build_string() + utf8_decoder.push(chunk)
 		pending_build.clear()
-		var remaining := consume_sse_buffer_tools(buffer, content_build, tool_calls_acc, on_delta)
+		var remaining := consume_sse_buffer_tools(buffer, tool_calls_acc, on_delta)
 		pending_build.append_if_not_empty(remaining)
 		pass
 	var response := await HttpHelper.async_post(
 		base_url, build_request_json(request), build_headers(true), REQUEST_TIMEOUT_MILLIS, "", on_chunk
 	)
+	## The final body carries every delta verbatim, so content / reasoning / finish_reason / usage
+	## all come from that one string instead of being accumulated during streaming.
+	var body := response.get_body_string()
 	if not response.success or response.code != 200:
-		Log.error("OpenAI stream failed code:[{}] body:[{}]", response.code, StringUtils.truncate(response.get_body_string(), 512))
-		result.error = response.get_body_string()
+		Log.error("OpenAI stream failed code:[{}] body:[{}]", response.code, StringUtils.truncate(body, 512))
+		result.error = body
 		return result
 	var tail := pending_build.build_string() + utf8_decoder.flush()
 	if StringUtils.is_not_empty(tail):
-		consume_sse_buffer_tools(tail + FileUtils.NEWLINE_LF, content_build, tool_calls_acc, on_delta)
-	result.content = content_build.build_string()
+		consume_sse_buffer_tools(tail + FileUtils.NEWLINE_LF, tool_calls_acc, on_delta)
+	var chunks := parse_stream_chunks(body)
+	result.content = extract_stream_content(chunks)
+	result.reasoning_content = extract_stream_reasoning_content(chunks)
 	result.tool_calls = filter_tool_calls(tool_calls_acc)
-	var body := response.get_body_string()
-	result.finish_reason = extract_finish_reason(body)
-	result.usage = extract_stream_usage(body)
+	result.finish_reason = extract_finish_reason(chunks)
+	result.usage = extract_stream_usage(chunks)
 	return result
-
-static func filter_tool_calls(raw_calls: Variant) -> Array[OpenAiToolCall]:
-	var tool_calls: Array[OpenAiToolCall] = []
-	for call: OpenAiToolCall in OpenAiToolCall.parse_list(raw_calls):
-		if StringUtils.is_not_blank(call.function.name):
-			tool_calls.append(call)
-	return tool_calls
-
-
-static func extract_stream_delta(json_line: String) -> String:
-	var chunk: OpenAiStreamChunk = JsonUtils.json_to_object(json_line, OpenAiStreamChunk)
-	if chunk == null or chunk.choices.is_empty():
-		return StringUtils.EMPTY
-	return extract_stream_text(chunk.choices[0].delta)
-
-
-static func extract_stream_text(delta: OpenAiStreamChunk.StreamDelta) -> String:
-	if delta == null:
-		return StringUtils.EMPTY
-	if StringUtils.is_not_empty(delta.content):
-		return delta.content
-	if StringUtils.is_not_empty(delta.reasoning_content):
-		return delta.reasoning_content
-	return StringUtils.EMPTY
-
-static func extract_finish_reason(body: String) -> String:
-	if StringUtils.is_blank(body):
-		return StringUtils.EMPTY
-	var finish_reason := StringUtils.EMPTY
-	for line: String in body.split(FileUtils.NEWLINE_LF, false):
-		line = line.strip_edges()
-		if line.is_empty() or not line.begins_with("data:"):
-			continue
-		var payload := StringUtils.substring_after(line, "data:").strip_edges()
-		if payload.to_upper() == "[DONE]":
-			continue
-		var chunk: OpenAiStreamChunk = JsonUtils.json_to_object(payload, OpenAiStreamChunk)
-		if chunk == null or chunk.choices.is_empty():
-			continue
-		if StringUtils.is_not_empty(chunk.choices[0].finish_reason):
-			finish_reason = chunk.choices[0].finish_reason
-	return finish_reason
-
-
-static func extract_stream_usage(body: String) -> OpenAiUsage:
-	var usage := OpenAiUsage.new()
-	if StringUtils.is_blank(body):
-		return usage
-	for line: String in body.split(FileUtils.NEWLINE_LF, false):
-		line = line.strip_edges()
-		if line.is_empty() or not line.begins_with("data:"):
-			continue
-		var payload := StringUtils.substring_after(line, "data:").strip_edges()
-		if payload.to_upper() == "[DONE]":
-			continue
-		var chunk: OpenAiStreamChunk = JsonUtils.json_to_object(payload, OpenAiStreamChunk)
-		if chunk != null and chunk.usage.has_data():
-			usage = chunk.usage
-	return usage
 
 # ----------------------------------------------------------------------------------------------------------------------
 const STREAM_KIND_CONTENT := "content"
 const STREAM_KIND_REASONING := "reasoning"
 
-static func consume_sse_buffer_tools(buffer: String, text_build: StringBuilder, tool_calls_acc: Array[OpenAiToolCall], on_delta: Callable = Callable()) -> String:
+static func consume_sse_buffer_tools(buffer: String, tool_calls_acc: Array[OpenAiToolCall], on_delta: Callable = Callable()) -> String:
 	if buffer.is_empty():
 		return StringUtils.EMPTY
 	var lines: PackedStringArray = buffer.split(FileUtils.NEWLINE_LF, false)
@@ -197,20 +141,77 @@ static func consume_sse_buffer_tools(buffer: String, text_build: StringBuilder, 
 		var choice := chunk.choices[0]
 		if choice.delta != null:
 			if StringUtils.is_not_empty(choice.delta.content):
-				text_build.append(choice.delta.content)
-				emit_stream_delta(on_delta, choice.delta.content, STREAM_KIND_CONTENT)
+				on_delta.call(choice.delta.content, STREAM_KIND_CONTENT)
 			if StringUtils.is_not_empty(choice.delta.reasoning_content):
-				emit_stream_delta(on_delta, choice.delta.reasoning_content, STREAM_KIND_REASONING)
+				on_delta.call(choice.delta.reasoning_content, STREAM_KIND_REASONING)
 			OpenAiToolCall.merge_stream_deltas(tool_calls_acc, choice.delta.tool_calls)
 	return remaining
 
 
-## 1-arg callbacks receive content deltas only; 2-arg callbacks also receive reasoning.
-static func emit_stream_delta(on_delta: Callable, delta: String, stream_kind: String) -> void:
-	if not on_delta.is_valid():
-		return
-	if on_delta.get_argument_count() >= 2:
-		on_delta.call(delta, stream_kind)
-	elif stream_kind == STREAM_KIND_CONTENT:
-		on_delta.call(delta)
-	pass
+
+static func filter_tool_calls(raw_calls: Variant) -> Array[OpenAiToolCall]:
+	var tool_calls: Array[OpenAiToolCall] = []
+	for call: OpenAiToolCall in OpenAiToolCall.parse_list(raw_calls):
+		if StringUtils.is_not_blank(call.function.name):
+			tool_calls.append(call)
+	return tool_calls
+
+# ----------------------------------------------------------------------------------------------------------------------
+## Parses a raw SSE body, skipping blank lines, non-`data:` lines and `[DONE]`.
+static func parse_stream_chunks(body: String) -> Array[OpenAiStreamChunk]:
+	var chunks: Array[OpenAiStreamChunk] = []
+	if StringUtils.is_blank(body):
+		return chunks
+	for line: String in body.split(FileUtils.NEWLINE_LF, false):
+		line = line.strip_edges()
+		if line.is_empty() or not line.begins_with("data:"):
+			continue
+		var payload := StringUtils.substring_after(line, "data:").strip_edges()
+		if payload.to_upper() == "[DONE]":
+			continue
+		var chunk: OpenAiStreamChunk = JsonUtils.json_to_object(payload, OpenAiStreamChunk)
+		if chunk != null:
+			chunks.append(chunk)
+	return chunks
+
+
+## Joins every content (or reasoning) delta of the parsed chunks in stream order.
+static func extract_stream_content(chunks: Array[OpenAiStreamChunk]) -> String:
+	var build := StringBuilder.new()
+	for chunk: OpenAiStreamChunk in chunks:
+		if chunk.choices.is_empty():
+			continue
+		var delta := chunk.choices[0].delta
+		if delta == null:
+			continue
+		build.append_if_not_empty(delta.content)
+	return build.build_string()
+
+
+static func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -> String:
+	var build := StringBuilder.new()
+	for chunk: OpenAiStreamChunk in chunks:
+		if chunk.choices.is_empty():
+			continue
+		var delta := chunk.choices[0].delta
+		if delta == null:
+			continue
+		build.append_if_not_empty(delta.reasoning_content)
+	return build.build_string()
+
+static func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
+	var finish_reason := StringUtils.EMPTY
+	for chunk: OpenAiStreamChunk in chunks:
+		if chunk.choices.is_empty():
+			continue
+		if StringUtils.is_not_empty(chunk.choices[0].finish_reason):
+			finish_reason = chunk.choices[0].finish_reason
+	return finish_reason
+
+
+static func extract_stream_usage(chunks: Array[OpenAiStreamChunk]) -> OpenAiUsage:
+	var usage := OpenAiUsage.new()
+	for chunk: OpenAiStreamChunk in chunks:
+		if chunk.usage.has_data():
+			usage = chunk.usage
+	return usage

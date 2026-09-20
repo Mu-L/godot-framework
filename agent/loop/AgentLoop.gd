@@ -30,7 +30,7 @@ static func run(session: AgentSession) -> void:
 			AgentEvents.events.agent_end.emit(session.id, StringUtils.EMPTY)
 			return
 
-		session.messages.append(ChatMessage.assistant_tool_calls(tool_calls, content))
+		session.messages.append(ChatMessage.assistant_tool_calls(tool_calls, content, completion.reasoning_content))
 		for tool_call: OpenAiToolCall in tool_calls:
 			session_index = AgentSessionManager.get_session_index(session.id)
 			if session_index != null and session_index.is_stop_requested():

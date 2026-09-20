@@ -10,6 +10,8 @@ var role: String = ""
 var content: String = ""
 var tool_call_id: String = ""
 var tool_calls: Array[OpenAiToolCall] = []
+## Thinking-mode output. Thinking models reject a tool-call turn that drops it.
+var reasoning_content: String = ""
 
 
 func _init(_role: String = "", _content: String = "") -> void:
@@ -36,9 +38,10 @@ static func tool_result(call_id: String, text: String) -> ChatMessage:
 	return msg
 
 
-static func assistant_tool_calls(calls: Array[OpenAiToolCall], text: String = "") -> ChatMessage:
+static func assistant_tool_calls(calls: Array[OpenAiToolCall], text: String = "", reasoning: String = "") -> ChatMessage:
 	var msg := ChatMessage.new(ROLE_ASSISTANT, text)
 	msg.tool_calls = calls
+	msg.reasoning_content = reasoning
 	return msg
 
 
@@ -51,11 +54,13 @@ func to_api_dict() -> Dictionary:
 			"tool_call_id": tool_call_id,
 		}
 	if not tool_calls.is_empty():
-		return {
+		var wire := {
 			"role": role,
-			"content": content if StringUtils.is_not_blank(content) else null,
+			"content": StringUtils.trim(content),
+			"reasoning_content": StringUtils.trim(reasoning_content),
 			"tool_calls": tool_calls,
 		}
+		return wire
 	return {
 		"role": role,
 		"content": content,

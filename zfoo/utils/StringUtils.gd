@@ -66,6 +66,13 @@ static func is_blank(s: String) -> bool:
 static func is_not_blank(s: String) -> bool:
 	return !is_blank(s)
 
+## Removes whitespace from both ends of s; preserves whitespace inside the string.
+## Example: trim("  hello world  ") -> "hello world"
+static func trim(s: String) -> String:
+	if is_empty(s):
+		return EMPTY
+	return s.strip_edges(true, true)
+
 ## Returns template with args filled into format placeholders; returns template unchanged when empty or args are empty.
 ## Example: format("score:[{}] name:[{}]", 10, "bob") -> "score:[10] name:[bob]"
 static func format(template: String, ...args: Array) -> String:

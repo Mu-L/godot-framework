@@ -15,6 +15,13 @@ func is_empty_or_blank_test() -> void:
 	assert(StringUtils.is_blank(blankStr))
 	pass
 
+func trim_test() -> void:
+	assert(StringUtils.trim("  hello world  ") == "hello world")
+	assert(StringUtils.trim("\t\nhello\r\n") == "hello")
+	assert(StringUtils.trim("hello  world") == "hello  world")
+	assert(StringUtils.trim("") == StringUtils.EMPTY)
+	pass
+
 func enum_to_string_test() -> void:
 	assert(StringUtils.enum_to_string(State, State.IDLE), "IDLE")
 	pass
