@@ -118,7 +118,11 @@ static func delete_directory_recursive(path: String) -> bool:
 	if dir == null:
 		return false
 	for file_name in dir.get_files():
-		if DirAccess.remove_absolute(path.path_join(file_name)) != OK:
+		var file_path := path.path_join(file_name)
+		# Git marks loose objects read-only on Windows.
+		if FileAccess.set_read_only_attribute(file_path, false) != OK:
+			return false
+		if DirAccess.remove_absolute(file_path) != OK:
 			return false
 	for directory_name in dir.get_directories():
 		var directory_path := path.path_join(directory_name)

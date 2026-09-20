@@ -42,10 +42,18 @@ static func run_git(args: PackedStringArray) -> OSUtils.ExecResult:
 	return await OSUtils.async_execute(argv, false)
 
 
+static func run_git_dir(args: PackedStringArray) -> OSUtils.ExecResult:
+	var argv := PackedStringArray(["git", "--git-dir", get_git_dir()])
+	argv.append_array(GIT_CONFIG_ARGS)
+	argv.append_array(args)
+	return await OSUtils.async_execute(argv, false)
+
+
 static func ensure_repo() -> bool:
 	var git_dir := get_git_dir()
 	if DirAccess.dir_exists_absolute(git_dir):
-		var check := await run_git(PackedStringArray(["rev-parse", "--is-bare-repository"]))
+		# Supplying --work-tree makes Git report false even for a valid bare repository.
+		var check := await run_git_dir(PackedStringArray(["rev-parse", "--is-bare-repository"]))
 		if check.exit_code == 0 and check.output.build_string().strip_edges() == "true":
 			return write_exclude_rules(git_dir)
 		# A missing Git executable is an environment failure, not repository corruption.
