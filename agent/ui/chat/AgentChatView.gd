@@ -33,7 +33,8 @@ func setup(
 	chat_bubble_flusher.setup()
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
-	AgentEvents.events.skill_context_changed.connect(on_skill_context_changed)
+	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
+	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.theme_changed.connect(on_theme_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
 	AgentEvents.events.session_removed.connect(on_session_removed)
@@ -121,8 +122,8 @@ func on_chat_truncated(session_id: int) -> void:
 # AgentEvents — appearance
 # ---------------------------------------------------------------------------
 
-## Re-render every bubble body after Markdown toggle changes.
-func on_skill_context_changed(session_id: int) -> void:
+## Re-render the transcript after a context prompt (skill index / AGENTS.md) is added or removed.
+func on_agent_context_changed(session_id: int) -> void:
 	clear_bubble_list(session_id)
 	if AgentSessionManager.is_active(session_id):
 		show_session(session_id)
@@ -252,7 +253,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 	match chat_entry.kind:
 		ChatEntry.KIND_SYSTEM:
 			rich_text = append_bubble(chat_list, chat_entry, AgentColors.chat_text_muted, AgentColors.system_bubble, AgentColors.system_title)
-		ChatEntry.KIND_SKILL:
+		ChatEntry.KIND_SKILL, ChatEntry.KIND_AGENT_PROMPT:
 			rich_text = SkillBubble.append(
 					chat_list,
 					chat_entry,

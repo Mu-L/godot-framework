@@ -1,8 +1,8 @@
 class_name SkillBubble
 extends RefCounted
 
-## Skill index chat bubble — expand/collapse with Markdown preview.
-## Session / toolbar toggle lives in SkillToggle.
+## Skill index / AGENTS.md context chat bubble — expand/collapse with Markdown preview.
+## Session / toolbar toggles live in SkillToggle and AgentPromptToggle.
 
 
 const PREVIEW_LINES := 8
@@ -106,7 +106,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry, wrapper: PanelCo
 			else:
 				var hidden := hidden_line_count(entry.body)
 				expand_button.text = StringUtils.format("Expand (+{} line{})", hidden, "" if hidden == 1 else "s")
-				expand_button.tooltip_text = "Show full skill index"
+				expand_button.tooltip_text = "Show full context"
 	pass
 
 

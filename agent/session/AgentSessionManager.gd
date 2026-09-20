@@ -63,7 +63,7 @@ static func on_persist_session(session_id: int, _arg: Variant = null) -> void:
 
 ## New session is prepended to the index; it is not selected here — [method select_default_session]
 ## covers the boot case and the sidebar selects its own new session explicitly.
-## Seeds the system prompt, then session_added so listeners (e.g. SkillToggle) can append context.
+## Seeds the system prompt, then session_added so listeners (e.g. SkillToggle, AgentPromptToggle) can append context.
 static func create_session() -> AgentSession:
 	var session := AgentSessionStore.create_session()
 	add_session_index(session)
@@ -216,7 +216,7 @@ static func has_chat_history(session_id: int) -> bool:
 	if session == null:
 		return false
 	for entry in session.chat_entries:
-		if entry.kind != ChatEntry.KIND_SYSTEM and entry.kind != ChatEntry.KIND_SKILL:
+		if not ChatEntry.is_context_kind(entry.kind):
 			return true
 	return false
 

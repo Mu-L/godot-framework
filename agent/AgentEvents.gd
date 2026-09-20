@@ -51,6 +51,8 @@ class Events:
 	signal markdown_changed(enabled: bool)
 	signal jarvis_orb_changed(enabled: bool)
 	signal skill_context_changed(session_id: int)
+	## AGENTS.md project prompt added to / removed from a session (see AgentPromptToggle).
+	signal agent_context_changed(session_id: int)
 	signal theme_changed
 	signal theme_color_changed
 	pass
