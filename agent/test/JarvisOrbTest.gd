@@ -5,7 +5,7 @@ extends Control
 
 const DEMO_PROMPT := "请为 Jarvis Orb 添加一个独立测试场景，方便预览全息科幻效果"
 
-var demo_session_id: int = AgentSessionManager.INVALID_SESSION_ID
+var demo_session_id: int = 0
 var demo_running: bool = false
 var demo_generation: int = 0
 
@@ -59,12 +59,9 @@ func apply_scene_theme() -> void:
 
 
 func setup_demo_session() -> void:
+	# load_from_disk always leaves a session selected — it creates one when the index is empty.
 	AgentSessionManager.load_from_disk()
 	demo_session_id = AgentSessionManager.active_session_id
-	if demo_session_id == AgentSessionManager.INVALID_SESSION_ID:
-		AgentSessionManager.create_session()
-		demo_session_id = AgentSessionManager.active_session_id
-	AgentSessionManager.select_session(demo_session_id)
 	seed_demo_user_prompt()
 	pass
 

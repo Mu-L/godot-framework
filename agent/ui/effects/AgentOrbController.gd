@@ -8,7 +8,8 @@ const REVEAL_DURATION_S := 0.82
 const HIDE_DURATION_S := 0.68
 const ORB_ALPHA := 0.88
 
-var running_session_id: int = AgentSessionManager.INVALID_SESSION_ID
+## Session whose run the orb visualizes; 0 while no run is shown.
+var running_session_id: int = 0
 var phase: OrbPhase.Phase = OrbPhase.Phase.IDLE
 var current_tool_name: String = ""
 
@@ -133,7 +134,7 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 	await get_tree().create_timer(delay).timeout
 	if running_session_id == session_id:
 		set_orb_visible(false, true)
-		running_session_id = AgentSessionManager.INVALID_SESSION_ID
+		running_session_id = 0
 	pass
 
 
@@ -142,14 +143,11 @@ func on_session_stop(session_id: int) -> void:
 		return
 	if visible:
 		return
-	running_session_id = AgentSessionManager.INVALID_SESSION_ID
+	running_session_id = 0
 	pass
 
 
-func on_session_selected(session_id: int) -> void:
-	if running_session_id == AgentSessionManager.INVALID_SESSION_ID:
-		set_orb_visible(false, false)
-		return
+func on_session_selected(_session_id: int) -> void:
 	var running := AgentSessionManager.is_active(running_session_id) and AgentSessionManager.is_running(running_session_id)
 	set_orb_visible(running, false)
 	pass
@@ -229,8 +227,6 @@ func on_theme_changed() -> void:
 func on_jarvis_orb_changed(enabled: bool) -> void:
 	if not enabled:
 		set_orb_visible(false, false)
-		return
-	if running_session_id == AgentSessionManager.INVALID_SESSION_ID:
 		return
 	if not AgentSessionManager.is_active(running_session_id):
 		return

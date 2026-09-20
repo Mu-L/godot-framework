@@ -151,8 +151,6 @@ func on_markdown_changed(_enabled: bool) -> void:
 
 
 func on_theme_changed() -> void:
-	if AgentSessionManager.active_session_id == AgentSessionManager.INVALID_SESSION_ID:
-		return
 	rebuild(AgentSessionManager.active_session_id)
 	pass
 

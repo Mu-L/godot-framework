@@ -13,7 +13,8 @@ var new_session_button: Button
 var sidebar_panel: PanelContainer
 
 var session_rows: Dictionary[int, PanelContainer] = {}
-var hover_session_id: int = AgentSessionManager.INVALID_SESSION_ID
+## 0 = no row hovered; it is never a real session id.
+var hover_session_id: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -285,7 +286,7 @@ func remove_row(session_id: int) -> void:
 	if row_panel == null:
 		return
 	if hover_session_id == session_id:
-		hover_session_id = AgentSessionManager.INVALID_SESSION_ID
+		hover_session_id = 0
 	row_panel.queue_free()
 	session_rows.erase(session_id)
 	pass
@@ -312,7 +313,7 @@ func on_session_row_mouse_exited(session_id: int) -> void:
 	if row_panel != null and row_panel.get_global_rect().has_point(row_panel.get_global_mouse_position()):
 		return
 	if hover_session_id == session_id:
-		hover_session_id = AgentSessionManager.INVALID_SESSION_ID
+		hover_session_id = 0
 	style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
 	pass
 

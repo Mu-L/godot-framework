@@ -3,12 +3,12 @@ extends RefCounted
 
 ## Manages multiple agent sessions and the active selection.
 
-const INVALID_SESSION_ID := -1
 ## Sidebar title cap for the first user prompt.
 const TITLE_MAX := 32
 
 static var session_indexes := AgentSessionIndexes.new()
-static var active_session_id: int = INVALID_SESSION_ID
+## Selected session. 0 only before [method load_from_disk]; from then on this is always a live session id.
+static var active_session_id: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -38,11 +38,10 @@ static func _static_init() -> void:
 # Persistence — load / save
 # ---------------------------------------------------------------------------
 
-## Boot: reload the index, then select the first session (create one if the list is empty).
+## Boot: reload the index of the current workspace, then select the first session (create one if the list is empty).
 static func load_from_disk() -> void:
-	active_session_id = INVALID_SESSION_ID
 	session_indexes = AgentSessionIndexes.load_index()
-	select_session()
+	select_default_session()
 	pass
 
 
@@ -62,7 +61,8 @@ static func on_persist_session(session_id: int, _arg: Variant = null) -> void:
 # Session registry — create, delete
 # ---------------------------------------------------------------------------
 
-## New session is prepended to the index. Selects it only when nothing is active.
+## New session is prepended to the index; it is not selected here — [method select_default_session]
+## covers the boot case and the sidebar selects its own new session explicitly.
 ## Seeds the system prompt, then session_added so listeners (e.g. SkillToggle) can append context.
 static func create_session() -> AgentSession:
 	var session := AgentSessionStore.create_session()
@@ -76,14 +76,12 @@ static func create_session() -> AgentSession:
 	# After system prompt is in place — listeners (e.g. SkillToggle) may append more context.
 	AgentEvents.events.session_added.emit(session.id, get_title(session.id))
 
-	# Save empty chat; auto-select when booting with no prior active session.
+	# Save empty chat.
 	persist_session(session.id)
-	if active_session_id == INVALID_SESSION_ID:
-		select_session(session.id)
 	return session
 
 
-## Deleting the active session clears the selection, then falls back via select_session().
+## Deleting the active session falls back to the first remaining one (or a fresh session).
 static func delete_session(session_id: int) -> void:
 	if not has_index(session_id):
 		return
@@ -97,8 +95,7 @@ static func delete_session(session_id: int) -> void:
 	AgentEvents.events.session_removed.emit(session_id)
 
 	if active_session_id == session_id:
-		active_session_id = INVALID_SESSION_ID
-		select_session()
+		select_default_session()
 	pass
 
 
@@ -106,16 +103,19 @@ static func delete_session(session_id: int) -> void:
 # Selection
 # ---------------------------------------------------------------------------
 
-## Omit session_id (or pass INVALID) to pick the first pinned or normal entry, or create a session when empty.
-static func select_session(session_id: int = INVALID_SESSION_ID) -> void:
-	if session_id == INVALID_SESSION_ID:
-		if session_indexes.pinned_indexes.is_empty() and session_indexes.indexes.is_empty():
-			create_session()
-			return
-		if not session_indexes.pinned_indexes.is_empty():
-			session_id = session_indexes.pinned_indexes[0].id
-		else:
-			session_id = session_indexes.indexes[0].id
+## Selects the first pinned or normal entry, creating a session when the index is empty.
+static func select_default_session() -> void:
+	if session_indexes.pinned_indexes.is_empty() and session_indexes.indexes.is_empty():
+		select_session(create_session().id)
+		return
+	var session_index := session_indexes.indexes[0]
+	if not session_indexes.pinned_indexes.is_empty():
+		session_index = session_indexes.pinned_indexes[0]
+	select_session(session_index.id)
+
+
+## Selects [param session_id]; ids missing from the index are ignored.
+static func select_session(session_id: int) -> void:
 	if not has_index(session_id):
 		return
 	var session := AgentSessionStore.load_session(session_id)
