@@ -36,8 +36,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	if all_files.is_empty():
 		return AgentToolResult.ok("No files to search")
 
-	var truncated_files := all_files.size() > MAX_FILE_RESULTS
-	var files := all_files.slice(0, MAX_FILE_RESULTS) if truncated_files else all_files
+	var files := all_files.slice(0, MAX_FILE_RESULTS) if all_files.size() > MAX_FILE_RESULTS else all_files
 	var build := StringBuilder.new()
 	var match_count := 0
 	for file_path in files:
@@ -53,7 +52,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 			match_count += 1
 
 	var truncated := build.truncate_by_part(MAX_OUTPUT)
-	if truncated_files || truncated:
+	if truncated:
 		build.append(TRUNCATED_SUFFIX)
 	var text := build.build_joined(FileUtils.NEWLINE_LF)
 	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
