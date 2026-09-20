@@ -304,6 +304,13 @@ static func request_stop(session_id: int) -> void:
 	HttpHelper.stop_last()
 	pass
 
+static func is_stop_requested(session_id: int) -> bool:
+	var session_index := get_session_index(session_id)
+	if session_index == null:
+		return true
+	if not session_index.is_running():
+		return true
+	return session_index.is_stop_requested()
 
 # ---------------------------------------------------------------------------
 # Chat Entry
