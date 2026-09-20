@@ -84,10 +84,6 @@ static func toggle_theme() -> void:
 	pass
 
 
-static func code_block_bg_html() -> String:
-	return code_block_bg.to_html(false)
-
-
 # ---------------------------------------------------------------------------
 # Dark palette
 # ---------------------------------------------------------------------------

@@ -86,5 +86,5 @@ static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry, increm
 			rich_text.set_meta(MarkdownUtils.META_RAW_BODY, entry.body)
 			return
 	# Full re-render — markdown on, or body changed in a non-prefix way.
-	MarkdownUtils.set_rich_text_label_text(rich_text, entry.body, markdown_enabled, 0.0, AgentColors.code_block_bg_html())
+	MarkdownUtils.set_rich_text_label_text(rich_text, entry.body, markdown_enabled, 0.0, AgentColors.code_block_bg.to_html(false))
 	pass
