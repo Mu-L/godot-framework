@@ -6,13 +6,13 @@ extends RefCounted
 ## identified by role + content so the AGENTS.md text never has to be re-read for matching.
 
 
-const PROMPT_REL := "AGENTS.md"
+const AGENTS_PATH := "AGENTS.md"
 
 static var agent_context: String = ""
 
 
 static func _static_init() -> void:
-	var path := AgentWorkspace.resolve_path(PROMPT_REL)
+	var path := AgentWorkspace.resolve_path(AGENTS_PATH)
 	if not FileAccess.file_exists(path):
 		return
 	agent_context = FileUtils.read_file_to_string(path)

@@ -6,13 +6,13 @@ extends RefCounted
 ## identified by role + position so the auto-generated README text never has to be matched.
 
 
-const README_REL := ".agents/skills/README.md"
+const SKILL_README_PATH := ".agents/skills/README.md"
 
 static var skill_context: String = ""
 
 
 static func _static_init() -> void:
-	var path := AgentWorkspace.resolve_path(README_REL)
+	var path := AgentWorkspace.resolve_path(SKILL_README_PATH)
 	if not FileAccess.file_exists(path):
 		return
 	skill_context = FileUtils.read_file_to_string(path)
