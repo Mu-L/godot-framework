@@ -100,25 +100,17 @@ static func append(
 
 ## Both actions drop the message — keep a copy on the clipboard so it can be pasted back.
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
-	copy_message(entry)
+	MarkdownUtils.copy_to_clipboard(entry.body)
+	Alert.alert("Message copied — paste to edit", Colors.success)
 	AgentSessionManager.delete_chat_from_entry(session_id, entry)
 	pass
 
 
 ## Delete plus a workspace revert to the snapshot taken before this turn.
 static func on_revert_pressed(session_id: int, entry: ChatEntry) -> void:
-	copy_message(entry)
+	MarkdownUtils.copy_to_clipboard(entry.body)
 	AgentSessionManager.revert_to_entry(session_id, entry)
 	pass
-
-
-static func copy_message(entry: ChatEntry) -> void:
-	if entry == null or StringUtils.is_blank(entry.body):
-		return
-	MarkdownUtils.copy_to_clipboard(entry.body)
-	Alert.alert("Message copied — paste to edit", Colors.success)
-	pass
-
 
 static func sync_layout(host: Control, panel: PanelContainer, beam: AccentBorderBeamLayer) -> void:
 	if not is_instance_valid(host) or not is_instance_valid(panel) or not is_instance_valid(beam):
