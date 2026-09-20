@@ -23,10 +23,6 @@ const GIT_CONFIG_ARGS: PackedStringArray = [
 	"-c", "core.quotepath=false",
 ]
 
-## Cleared after the first failure — no git, no checkpoints; the agent keeps working.
-static var available: bool = true
-
-
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -47,32 +43,54 @@ static func run_git(args: PackedStringArray) -> OSUtils.ExecResult:
 
 
 static func ensure_repo() -> bool:
-	if not available:
-		return false
 	var git_dir := get_git_dir()
 	if DirAccess.dir_exists_absolute(git_dir):
-		return true
-	DirAccess.make_dir_recursive_absolute(git_dir.get_base_dir())
+		var check := await run_git(PackedStringArray(["rev-parse", "--is-bare-repository"]))
+		if check.exit_code == 0 and check.output.build_string().strip_edges() == "true":
+			return write_exclude_rules(git_dir)
+		# A missing Git executable is an environment failure, not repository corruption.
+		if check.exit_code < 0:
+			Log.error("agent checkpoint validation failed to start git:[{}]", check.output.build_string())
+			return false
+		Log.error("agent checkpoint repository is invalid, recreating:[{}]", check.output.build_string())
+		if not remove_checkpoint_repo(git_dir):
+			return false
+	var mkdir_error := DirAccess.make_dir_recursive_absolute(git_dir.get_base_dir())
+	if mkdir_error != OK:
+		Log.error("agent checkpoint parent directory create failed path:[{}] error:[{}]", git_dir.get_base_dir(), mkdir_error)
+		return false
 	var init := await OSUtils.async_execute(PackedStringArray(["git", "init", "--bare", "--quiet", git_dir]), false)
 	if init.exit_code != 0:
-		disable(init)
+		Log.error("agent checkpoint init failed:[{}]", init.output.build_string())
 		return false
-	FileUtils.write_string_to_file(git_dir.path_join(EXCLUDE_FILE), EXCLUDE_RULES)
-	return true
+	return write_exclude_rules(git_dir)
+
+
+static func write_exclude_rules(git_dir: String) -> bool:
+	if FileUtils.write_string_to_file(git_dir.path_join(EXCLUDE_FILE), EXCLUDE_RULES):
+		return true
+	Log.error("agent checkpoint exclude write failed:[{}]", git_dir.path_join(EXCLUDE_FILE))
+	return false
+
+
+## Deletes only the exact shadow repository path after validation has declared it invalid.
+static func remove_checkpoint_repo(git_dir: String) -> bool:
+	var expected := AgentWorkspace.get_root().path_join(CHECKPOINTS_SUBDIR).simplify_path()
+	if git_dir.simplify_path() != expected:
+		Log.error("agent checkpoint refused unexpected delete path:[{}]", git_dir)
+		return false
+	if FileUtils.delete_directory_recursive(git_dir):
+		return true
+	Log.error("agent checkpoint repository delete failed:[{}]", git_dir)
+	return false
 
 
 static func stage_all() -> bool:
 	var add := await run_git(PackedStringArray(["add", "-A"]))
 	if add.exit_code == 0:
 		return true
-	disable(add)
+	Log.error("agent checkpoint stage failed:[{}]", add.output.build_string())
 	return false
-
-
-static func disable(result: OSUtils.ExecResult) -> void:
-	available = false
-	Log.error("agent checkpoint disabled, git failed:[{}]", result.output.build_string())
-	pass
 
 
 # ---------------------------------------------------------------------------
@@ -85,16 +103,19 @@ static func async_snapshot() -> String:
 		return StringUtils.EMPTY
 	var commit := await run_git(PackedStringArray(["commit", "--quiet", "--allow-empty", "-m", COMMIT_MESSAGE]))
 	if commit.exit_code != 0:
-		disable(commit)
+		Log.error("agent checkpoint commit failed:[{}]", commit.output.build_string())
 		return StringUtils.EMPTY
 	var head := await run_git(PackedStringArray(["rev-parse", "HEAD"]))
-	return head.output.build_string().strip_edges() if head.exit_code == 0 else StringUtils.EMPTY
+	if head.exit_code != 0:
+		Log.error("agent checkpoint head lookup failed:[{}]", head.output.build_string())
+		return StringUtils.EMPTY
+	return head.output.build_string().strip_edges()
 
 
 ## Reverts the workspace to [param sha]: files changed since then are put back, files created since are removed.
 ## Returns false when Git cannot complete the restore; callers must keep chat history intact on failure.
 static func async_restore(sha: String) -> bool:
-	if StringUtils.is_blank(sha) or not DirAccess.dir_exists_absolute(get_git_dir()):
+	if StringUtils.is_blank(sha) or not await ensure_repo():
 		return false
 	if not await stage_all():
 		return false
