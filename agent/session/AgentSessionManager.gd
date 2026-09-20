@@ -257,9 +257,10 @@ static func async_send(session_id: int, user_text: String) -> void:
 	var trimmed := user_text.strip_edges()
 	set_title_from_prompt(session_id, trimmed)
 	session.messages.append(ChatMessage.user(trimmed))
-	var user_entry := add_chat_entry(session_id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, trimmed)
-	# Snapshot before the agent can touch the workspace — deleting this bubble reverts to it.
-	user_entry.checkpoint = await AgentCheckpoint.async_snapshot()
+	# Snapshot before the agent can touch the workspace. The bubble decides at build time whether to
+	# offer Revert, so the commit id must be known before the entry is created.
+	var checkpoint := await AgentCheckpoint.async_snapshot()
+	add_chat_entry(session_id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, trimmed, {}, checkpoint)
 	await run_agent(session)
 	pass
 
@@ -325,11 +326,12 @@ static func append_chat_entry_stream(session_id: int, stream_kind: String, chunk
 	return run.step_agent_entry
 
 
-static func add_chat_entry(session_id: int, kind: String, entry_title: String, body: String, details: Dictionary[String, String] = {}) -> ChatEntry:
+static func add_chat_entry(session_id: int, kind: String, entry_title: String, body: String, details: Dictionary[String, String] = {}, checkpoint: String = "") -> ChatEntry:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
 		return null
 	var entry := ChatEntry.new(kind, entry_title, body, details)
+	entry.checkpoint = checkpoint
 	session.chat_entries.append(entry)
 	AgentEvents.events.chat_entry_add.emit(session_id, entry)
 	return entry
