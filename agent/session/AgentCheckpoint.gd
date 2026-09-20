@@ -92,21 +92,31 @@ static func async_snapshot() -> String:
 
 
 ## Reverts the workspace to [param sha]: files changed since then are put back, files created since are removed.
-static func async_restore(sha: String) -> void:
+## Returns false when Git cannot complete the restore; callers must keep chat history intact on failure.
+static func async_restore(sha: String) -> bool:
 	if StringUtils.is_blank(sha) or not DirAccess.dir_exists_absolute(get_git_dir()):
-		return
+		return false
 	if not await stage_all():
-		return
+		return false
 	var diff := await run_git(PackedStringArray(["diff", "--cached", "--name-status", sha]))
 	if diff.exit_code != 0:
-		return
+		Log.error("agent checkpoint restore diff failed:[{}]", diff.output.build_string())
+		return false
 	var removed := collect_removed_paths(diff.output.build_string())
 	# `:/` is the worktree root regardless of the process working directory.
-	await run_git(PackedStringArray(["checkout", sha, "--", ":/"]))
+	var checkout := await run_git(PackedStringArray(["checkout", sha, "--", ":/"]))
+	if checkout.exit_code != 0:
+		Log.error("agent checkpoint restore checkout failed:[{}]", checkout.output.build_string())
+		return false
 	for path in removed:
-		FileUtils.delete_file(AgentWorkspace.get_root().path_join(path))
-	Alert.alert("Workspace restored", Colors.success)
-	pass
+		var absolute_path := AgentWorkspace.get_root().path_join(path)
+		if not FileAccess.file_exists(absolute_path):
+			continue
+		var error := DirAccess.remove_absolute(absolute_path)
+		if error != OK:
+			Log.error("agent checkpoint restore delete failed path:[{}] error:[{}]", absolute_path, error)
+			return false
+	return true
 
 
 ## Added / copied / renamed targets did not exist at the checkpoint — revert removes them.

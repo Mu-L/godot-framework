@@ -364,9 +364,11 @@ static func revert_to_entry(session_id: int, entry: ChatEntry) -> void:
 	if entry == null:
 		return
 	var sha := entry.checkpoint
+	if not await AgentCheckpoint.async_restore(sha):
+		Alert.alert("Workspace restore failed; chat history was kept", Colors.error)
+		return
 	delete_chat_from_entry(session_id, entry)
-	# Workspace revert runs in the background; the transcript rebuilds immediately. Fire and forget.
-	AgentCheckpoint.async_restore(sha)
+	Alert.alert("Workspace restored", Colors.success)
 	pass
 
 
