@@ -145,15 +145,6 @@ static func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) 
 				on_delta.call(choice.delta.reasoning_content, STREAM_KIND_REASONING)
 	return remaining
 
-
-
-static func filter_tool_calls(raw_calls: Variant) -> Array[OpenAiToolCall]:
-	var tool_calls: Array[OpenAiToolCall] = []
-	for call: OpenAiToolCall in OpenAiToolCall.parse_list(raw_calls):
-		if StringUtils.is_not_blank(call.function.name):
-			tool_calls.append(call)
-	return tool_calls
-
 # ----------------------------------------------------------------------------------------------------------------------
 ## Parses a raw SSE body, skipping blank lines, non-`data:` lines and `[DONE]`.
 static func parse_stream_chunks(body: String) -> Array[OpenAiStreamChunk]:
@@ -199,15 +190,19 @@ static func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -
 
 
 static func extract_stream_tool_calls(chunks: Array[OpenAiStreamChunk]) -> Array[OpenAiToolCall]:
-	var tool_calls: Array[OpenAiToolCall] = []
+	var merged_calls: Array[OpenAiToolCall] = []
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.choices.is_empty():
 			continue
 		var delta := chunk.choices[0].delta
 		if delta == null:
 			continue
-		OpenAiToolCall.merge_stream_deltas(tool_calls, delta.tool_calls)
-	return filter_tool_calls(tool_calls)
+		OpenAiToolCall.merge_stream_deltas(merged_calls, delta.tool_calls)
+	var tool_calls: Array[OpenAiToolCall] = []
+	for call: OpenAiToolCall in merged_calls:
+		if StringUtils.is_not_blank(call.function.name):
+			tool_calls.append(call)
+	return tool_calls
 
 static func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
 	var finish_reason := StringUtils.EMPTY
