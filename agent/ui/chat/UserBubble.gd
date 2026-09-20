@@ -3,6 +3,7 @@ extends Object
 
 ## User message bubble — flowing border beam (same shader as chat input).
 ## Delete truncates the chat from this entry; the message body stays on the clipboard for re-editing.
+## The body is shown as plain text — what the user typed is never Markdown-rendered.
 
 const BeamLayer := preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
 const BUBBLE_CORNER_RADIUS := 8.0
@@ -57,6 +58,7 @@ static func append(
 
 	vbox.add_child(header)
 
+	# MarkdownToggle forces plain text for user entries, so the prompt shows verbatim.
 	var rich_text := MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,

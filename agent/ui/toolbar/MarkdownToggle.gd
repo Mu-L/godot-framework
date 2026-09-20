@@ -8,9 +8,10 @@ const SETTING_KEY := "agent_markdown_enabled"
 static var markdown_enabled: bool = true
 
 
-## Respect toolbar setting; tool bubbles always stay plain text.
+## Respect toolbar setting; tool and user bubbles always stay plain text.
+## A user prompt is echoed exactly as typed — never Markdown-rendered.
 static func markdown_enabled_for_entry(entry: ChatEntry) -> bool:
-	if entry.kind == ChatEntry.KIND_TOOL:
+	if entry.kind == ChatEntry.KIND_TOOL or entry.kind == ChatEntry.KIND_USER:
 		return false
 	return markdown_enabled
 
