@@ -89,7 +89,7 @@ static func OSUtils_stop_current_test() -> void:
 	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
 	await ThreadUtils.async_sleep(800)
 	assert(OSUtils.process_pids.size() > 0)
-	OSUtils.stop_current()
+	OSUtils.stop_last()
 	await ThreadUtils.async_sleep(1500)
 	assert(OSUtils.process_pids.is_empty())
 	pass

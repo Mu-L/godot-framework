@@ -53,7 +53,7 @@ static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResu
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Process lifecycle and async worker
-static func stop_current() -> void:
+static func stop_last() -> void:
 	var pid := process_pids.latest()
 	if pid > 0 and OS.is_process_running(pid):
 		OS.kill(pid)

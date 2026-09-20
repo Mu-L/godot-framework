@@ -20,7 +20,8 @@ func update() -> void:
 		return
 	var finishedTasks: Array[HttpTask] = []
 	for task in signalTasks:
-		_poll_task(task)
+		if !task.done:
+			_poll_task(task)
 		if task.done:
 			finishedTasks.append(task)
 	if finishedTasks.is_empty():
@@ -118,6 +119,22 @@ func complete(task: HttpTask) -> void:
 	task.done = true
 	client.close()
 	Log.info("HTTP request successful url:[{}] code:[{}] body length:[{}]", task.url, response.code, response.body.size())
+	pass
+
+
+## Stops the most recently started request that is still running.
+func stop_last() -> void:
+	for index in range(signalTasks.size() - 1, -1, -1):
+		var task := signalTasks[index]
+		if !task.done:
+			fail(task)
+			return
+	pass
+
+## Stops all requests that are still running.
+func stop_all() -> void:
+	for task in signalTasks:
+		fail(task)
 	pass
 
 

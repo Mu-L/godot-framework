@@ -6,7 +6,7 @@ var stop_requested: bool = false
 
 func request_stop() -> void:
 	stop_requested = true
-	OSUtils.stop_current()
+	OSUtils.stop_last()
 	pass
 
 

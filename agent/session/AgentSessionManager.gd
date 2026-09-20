@@ -296,7 +296,8 @@ static func request_stop(session_id: int) -> void:
 	if not session_index.is_running() or session_index.is_stop_requested():
 		return
 	session_index.run.stop_requested = true
-	OSUtils.stop_current()
+	OSUtils.stop_last()
+	HttpHelper.stop_last()
 	pass
 
 

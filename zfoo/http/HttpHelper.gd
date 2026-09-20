@@ -14,3 +14,13 @@ static func async_post(url: String, json: String, extra_headers: PackedStringArr
 	if not HttpUtils.has_header(headers, "Content-Type"):
 		headers.insert(0, "Content-Type: application/json")
 	return await http.async_request(HTTPClient.METHOD_POST, url, json, headers, timeout_millis, proxy, on_body_chunk)
+
+## Stops the most recently started HTTP request that is still running.
+static func stop_last() -> void:
+	http.stop_last()
+	pass
+
+## Stops all HTTP requests that are still running.
+static func stop_all() -> void:
+	http.stop_all()
+	pass
