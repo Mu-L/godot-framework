@@ -74,16 +74,14 @@ static func theme_selection_bg() -> Color:
 
 
 static func toggle_theme() -> void:
-	apply_color_scheme(ThemeColor.ThemeEnum.LIGHT if ThemeColor.is_dark_theme() else ThemeColor.ThemeEnum.DARK)
-
-
-static func apply_color_scheme(_theme: ThemeColor.ThemeEnum) -> void:
+	var _theme := ThemeColor.ThemeEnum.LIGHT if ThemeColor.is_dark_theme() else ThemeColor.ThemeEnum.DARK
 	ThemeColor.set_theme(_theme)
-	if _theme == ThemeColor.ThemeEnum.DARK:
+	if ThemeColor.is_dark_theme():
 		apply_dark_palette()
 	else:
 		apply_light_palette()
 	AgentEvents.events.theme_changed.emit()
+	pass
 
 
 static func code_block_bg_html() -> String:
