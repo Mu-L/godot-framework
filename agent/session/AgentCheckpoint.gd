@@ -9,8 +9,6 @@ extends RefCounted
 
 const CHECKPOINTS_SUBDIR := ".gai/checkpoints"
 const EXCLUDE_FILE := "info/exclude"
-## `.git` is the user's real repository — snapshots must never swallow it.
-const EXCLUDE_RULES := ".git/\n.gai/\n.godot/\n"
 const COMMIT_MESSAGE := "checkpoint"
 
 ## Injected per call so the shadow repo ignores whatever global git config the machine has.
@@ -42,18 +40,14 @@ static func run_git(args: PackedStringArray) -> OSUtils.ExecResult:
 	return await OSUtils.async_execute(argv, false)
 
 
-static func run_git_dir(args: PackedStringArray) -> OSUtils.ExecResult:
-	var argv := PackedStringArray(["git", "--git-dir", get_git_dir()])
-	argv.append_array(GIT_CONFIG_ARGS)
-	argv.append_array(args)
-	return await OSUtils.async_execute(argv, false)
-
-
 static func ensure_repo() -> bool:
 	var git_dir := get_git_dir()
 	if DirAccess.dir_exists_absolute(git_dir):
 		# Supplying --work-tree makes Git report false even for a valid bare repository.
-		var check := await run_git_dir(PackedStringArray(["rev-parse", "--is-bare-repository"]))
+		var check_args := PackedStringArray(["git", "--git-dir", git_dir])
+		check_args.append_array(GIT_CONFIG_ARGS)
+		check_args.append_array(PackedStringArray(["rev-parse", "--is-bare-repository"]))
+		var check := await OSUtils.async_execute(check_args, false)
 		if check.exit_code == 0 and check.output.build_string().strip_edges() == "true":
 			return write_exclude_rules(git_dir)
 		# A missing Git executable is an environment failure, not repository corruption.
@@ -75,7 +69,14 @@ static func ensure_repo() -> bool:
 
 
 static func write_exclude_rules(git_dir: String) -> bool:
-	if FileUtils.write_string_to_file(git_dir.path_join(EXCLUDE_FILE), EXCLUDE_RULES):
+	var project_rules := FileUtils.read_file_to_string(AgentWorkspace.get_root().path_join(".gitignore"))
+	var exclude_rules := project_rules
+	if not exclude_rules.is_empty() and not exclude_rules.ends_with(FileUtils.NEWLINE_LF):
+		exclude_rules += FileUtils.NEWLINE_LF
+	## `.git` is the user's real repository — snapshots must never swallow it.
+	## Mandatory rules come last so project negation rules cannot re-include these directories.
+	exclude_rules += ".git/\n.gai/\n.godot/\n"
+	if FileUtils.write_string_to_file(git_dir.path_join(EXCLUDE_FILE), exclude_rules):
 		return true
 	Log.error("agent checkpoint exclude write failed:[{}]", git_dir.path_join(EXCLUDE_FILE))
 	return false
