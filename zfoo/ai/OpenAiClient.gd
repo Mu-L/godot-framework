@@ -94,9 +94,8 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 		var remaining := consume_sse_buffer(buffer, on_delta)
 		pending_build.append_if_not_empty(remaining)
 		pass
-	var response := await HttpHelper.async_post(
-		base_url, build_request_json(request), build_headers(true), REQUEST_TIMEOUT_MILLIS, "", on_chunk
-	)
+	var response := await HttpHelper.async_post(base_url, build_request_json(request), build_headers(true)
+			, REQUEST_TIMEOUT_MILLIS, "", on_chunk)
 	## The final body carries every delta verbatim, so content / reasoning / finish_reason / usage
 	## all come from that one string instead of being accumulated during streaming.
 	var body := response.get_body_string()
