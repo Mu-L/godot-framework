@@ -34,7 +34,7 @@ func on_ui_theme_changed() -> void:
 # ---------------------------------------------------------------------------
 
 func apply_theme() -> void:
-	var tooltip := "Switch to light theme" if AgentColors.is_dark() else "Switch to dark theme"
+	var tooltip := "Switch to light theme" if ThemeColor.is_dark_theme() else "Switch to dark theme"
 	AgentToolbarButton.style(button, tooltip, BUTTON_SIZE / 2)
 	apply_equal_icon_margins(2)
 	button.text = ""
@@ -84,9 +84,9 @@ func on_mouse_exited() -> void:
 # ---------------------------------------------------------------------------
 
 func update_icon(hovered: bool) -> void:
-	var show_moon := not AgentColors.is_dark()
+	var show_moon := ThemeColor.is_light_theme()
 	var icon_color := AgentColors.toolbar_muted
-	if not AgentColors.is_dark():
+	if show_moon:
 		icon_color = AgentColors.theme_accent_solid()
 	if hovered:
 		if icon_color == AgentColors.toolbar_muted:

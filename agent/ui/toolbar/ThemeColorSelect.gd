@@ -14,7 +14,6 @@ var color_picker: ColorPicker
 
 func setup(p_button: Button) -> void:
 	button = p_button
-	AgentColors.load_theme_color_from_settings()
 	build_popup()
 	button.text = ""
 	button.pressed.connect(on_pressed)

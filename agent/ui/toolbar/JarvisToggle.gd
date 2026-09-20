@@ -92,7 +92,7 @@ func update_icon(hovered: bool) -> void:
 	var icon_color := AgentColors.toolbar_muted
 	if jarvis_orb_enabled:
 		var accent := AgentColors.theme_accent_solid()
-		icon_color = accent if AgentColors.is_dark() else accent.darkened(0.15)
+		icon_color = accent if ThemeColor.is_dark_theme() else accent.darkened(0.15)
 		if hovered:
 			icon_color = icon_color.lightened(0.12)
 	elif hovered:

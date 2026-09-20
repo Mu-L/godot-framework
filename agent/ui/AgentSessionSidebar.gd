@@ -92,7 +92,7 @@ func apply_new_session_button_theme() -> void:
 
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = Color(0, 0, 0, 0)
-	normal.border_color = Color(accent.r, accent.g, accent.b, 0.55 if AgentColors.is_dark() else 0.45)
+	normal.border_color = Color(accent.r, accent.g, accent.b, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(6)
 	normal.content_margin_left = 10
@@ -105,7 +105,7 @@ func apply_new_session_button_theme() -> void:
 	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
 
 	var pressed := hover.duplicate() as StyleBoxFlat
-	if AgentColors.is_dark():
+	if ThemeColor.current_theme == ThemeColor.ThemeEnum.DARK:
 		pressed.bg_color = pressed.bg_color.lightened(0.06)
 	else:
 		pressed.bg_color = pressed.bg_color.darkened(0.04)
@@ -123,7 +123,7 @@ func apply_new_session_button_theme() -> void:
 func build_pinned_separator_style() -> StyleBoxLine:
 	var line := StyleBoxLine.new()
 	var accent := AgentColors.theme_accent_solid()
-	var alpha := 0.42 if AgentColors.is_dark() else 0.32
+	var alpha := 0.42 if ThemeColor.is_dark_theme() else 0.32
 	line.color = Color(accent.r, accent.g, accent.b, alpha)
 	line.grow_begin = 2
 	line.grow_end = 2
@@ -438,9 +438,9 @@ func build_drag_ghost_style() -> StyleBoxFlat:
 	var style := build_session_row_style(false, false)
 	style.bg_color = AgentColors.theme_selection_bg()
 	var accent := AgentColors.theme_accent_solid()
-	style.border_color = Color(accent.r, accent.g, accent.b, 0.9 if AgentColors.is_dark() else 0.75)
+	style.border_color = Color(accent.r, accent.g, accent.b, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
-	style.shadow_color = Color(0, 0, 0, 0.35 if AgentColors.is_dark() else 0.18)
+	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
 	style.shadow_size = 6
 	style.shadow_offset = Vector2(0, 3)
 	return style
@@ -590,5 +590,5 @@ class SessionRowSciFiFx extends ColorRect:
 		fx_material.set_shader_parameter("rect_size", sz)
 		fx_material.set_shader_parameter("corner_radius", CORNER_RADIUS)
 		fx_material.set_shader_parameter("accent_color", AgentColors.theme_accent_solid())
-		fx_material.set_shader_parameter("is_dark", 1.0 if AgentColors.is_dark() else 0.0)
+		fx_material.set_shader_parameter("is_dark", 1.0 if ThemeColor.is_dark_theme() else 0.0)
 		pass

@@ -34,7 +34,7 @@ func set_tool_mode(enabled: bool) -> void:
 
 
 func apply_display_color(color: Color) -> void:
-	var theme_strength := 1.0 if AgentColors.is_dark() else 0.82
+	var theme_strength := 1.0 if ThemeColor.is_dark_theme() else 0.82
 	for i in ring_materials.size():
 		var mat := ring_materials[i]
 		var fade := 1.0 - float(i) * 0.14

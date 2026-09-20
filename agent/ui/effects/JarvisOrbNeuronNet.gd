@@ -66,7 +66,7 @@ func _ready() -> void:
 	sphere_mesh_outer.height = 0.036
 	sphere_mesh_outer.radial_segments = 6
 	sphere_mesh_outer.rings = 4
-	AgentColors.load_theme_color_from_settings()
+	ThemeColor.load_theme_color()
 	rebuild_neurons(OrbGrowth.NEURON_MIN)
 	var vp := get_viewport()
 	if vp != null and not vp.size_changed.is_connected(sync_filament_viewport_uniform):
@@ -197,7 +197,7 @@ func apply_display_color(color: Color) -> void:
 
 
 func apply_filament_theme_color() -> void:
-	var line_color := AgentColors.orb_synapse_line_color()
+	var line_color := ThemeColor.theme_color
 	if filament_shader_inner != null:
 		filament_shader_inner.set_shader_parameter("line_color", line_color)
 	if filament_shader_outer != null:
@@ -206,8 +206,8 @@ func apply_filament_theme_color() -> void:
 
 
 func sync_filament_theme() -> void:
-	var inner_strength := 0.88 if AgentColors.is_dark() else 0.62
-	var outer_strength := 0.72 if AgentColors.is_dark() else 0.48
+	var inner_strength := 0.88 if ThemeColor.is_dark_theme() else 0.62
+	var outer_strength := 0.72 if ThemeColor.is_dark_theme() else 0.48
 	apply_filament_theme_color()
 	if filament_shader_inner != null:
 		filament_shader_inner.set_shader_parameter("line_strength", inner_strength)

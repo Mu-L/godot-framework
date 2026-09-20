@@ -243,7 +243,7 @@ func transition_to(new_phase: OrbPhase.Phase, tool_name: String = "") -> void:
 
 
 func orb_vignette_target() -> float:
-	return 0.45 if AgentColors.is_dark() else 0.22
+	return 0.45 if ThemeColor.is_dark_theme() else 0.22
 
 
 func stop_orb_tween() -> void:

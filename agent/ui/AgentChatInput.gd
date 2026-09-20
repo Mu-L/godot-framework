@@ -579,7 +579,7 @@ func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
 	wrap_style.set_border_width_all(0)
 	var radius := 16 if is_expanded else int(COLLAPSED_SIZE / 2)
 	wrap_style.set_corner_radius_all(radius)
-	if AgentColors.is_dark():
+	if ThemeColor.is_dark_theme():
 		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
 		wrap_style.shadow_size = 16 if is_expanded else 10
 		wrap_style.shadow_offset = Vector2(0, 6 if is_expanded else 4)

@@ -48,31 +48,18 @@ static func _static_init() -> void:
 	pass
 
 
-static func is_dark() -> bool:
-	return ThemeColor.current_scheme == ThemeColor.ColorScheme.DARK
-
-
 static func load_saved_theme() -> void:
-	var use_dark := ThemeColor.is_dark()
-	apply_color_scheme(ThemeColor.ColorScheme.DARK if use_dark else ThemeColor.ColorScheme.LIGHT, false, false)
-	load_theme_color_from_settings()
-	pass
-
-
-static func load_theme_color_from_settings() -> void:
-	ThemeColor.theme_color = ThemeColor.load_color()
+	if ThemeColor.is_dark_theme():
+		apply_dark_palette()
+	else:
+		apply_light_palette()
 	pass
 
 
 static func set_theme_color(new_color: Color) -> void:
-	ThemeColor.theme_color = new_color
-	ThemeColor.save_color(ThemeColor.theme_color)
+	ThemeColor.save_theme_color(new_color)
 	AgentEvents.events.theme_color_changed.emit()
 	pass
-
-
-static func orb_synapse_line_color() -> Color:
-	return ThemeColor.theme_color
 
 
 ## Theme swatch RGB for UI fills and text; alpha forced to 1.
@@ -82,24 +69,21 @@ static func theme_accent_solid() -> Color:
 
 
 static func theme_selection_bg() -> Color:
-	var mix := 0.14 if is_dark() else 0.10
+	var mix := 0.14 if ThemeColor.is_dark_theme() else 0.10
 	return sidebar_row_selected.lerp(theme_accent_solid(), mix)
 
 
 static func toggle_theme() -> void:
-	apply_color_scheme(ThemeColor.ColorScheme.LIGHT if is_dark() else ThemeColor.ColorScheme.DARK)
+	apply_color_scheme(ThemeColor.ThemeEnum.LIGHT if ThemeColor.is_dark_theme() else ThemeColor.ThemeEnum.DARK)
 
 
-static func apply_color_scheme(scheme: ThemeColor.ColorScheme, persist: bool = true, emit_signal: bool = true) -> void:
-	ThemeColor.current_scheme = scheme
-	if scheme == ThemeColor.ColorScheme.DARK:
+static func apply_color_scheme(_theme: ThemeColor.ThemeEnum) -> void:
+	ThemeColor.set_theme(_theme)
+	if _theme == ThemeColor.ThemeEnum.DARK:
 		apply_dark_palette()
 	else:
 		apply_light_palette()
-	if persist:
-		ThemeColor.save_dark(scheme == ThemeColor.ColorScheme.DARK)
-	if emit_signal:
-		AgentEvents.events.theme_changed.emit()
+	AgentEvents.events.theme_changed.emit()
 
 
 static func code_block_bg_html() -> String:

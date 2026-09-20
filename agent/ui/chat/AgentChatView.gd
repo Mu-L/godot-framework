@@ -360,7 +360,7 @@ func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFla
 	style.content_margin_bottom = 10
 	if user_beam:
 		style.set_border_width_all(0)
-	elif AgentColors.is_dark():
+	elif ThemeColor.is_dark_theme():
 		style.set_border_width_all(0)
 	else:
 		style.border_color = AgentColors.chat_bubble_border

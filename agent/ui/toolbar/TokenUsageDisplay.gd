@@ -100,5 +100,5 @@ static func text_color_for_tokens(n: int) -> Color:
 	if ratio >= THRESHOLD_CAUTION:
 		return AgentColors.file_tool_title
 	if ratio >= THRESHOLD_WARN:
-		return Color(0.94, 0.84, 0.35) if AgentColors.is_dark() else Color("#CA8A04")
+		return Color(0.94, 0.84, 0.35) if ThemeColor.is_dark_theme() else Color("#CA8A04")
 	return AgentColors.theme_accent_solid()

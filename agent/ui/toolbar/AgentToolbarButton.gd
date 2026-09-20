@@ -34,7 +34,7 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 
 	var hover_pressed := pressed.duplicate() as StyleBoxFlat
 	hover_pressed.bg_color = AgentColors.theme_selection_bg()
-	if AgentColors.is_dark():
+	if ThemeColor.is_dark_theme():
 		hover_pressed.bg_color = hover_pressed.bg_color.lightened(0.06)
 	else:
 		hover_pressed.bg_color = hover_pressed.bg_color.darkened(0.04)

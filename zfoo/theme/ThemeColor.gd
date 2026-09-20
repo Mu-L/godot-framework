@@ -1,37 +1,49 @@
 class_name ThemeColor
 extends RefCounted
 
-const SETTING_KEY := "dark_theme"
+const THEME_SETTING_KEY := "theme"
 const THEME_COLOR_SETTING_KEY := "theme_color"
 const DEFAULT_THEME_COLOR := Color(0.0, 0.84, 0.68, 0.58)
 
-enum ColorScheme {
+enum ThemeEnum {
 	DARK,
 	LIGHT,
 }
 
-static var current_scheme: ColorScheme = ColorScheme.DARK
+static var current_theme: ThemeEnum = ThemeEnum.DARK
 static var theme_color: Color = DEFAULT_THEME_COLOR
 
+static func _static_init() -> void:
+	load_theme()
+	load_theme_color()
+	pass
 
-static func is_dark(default_value: bool = true) -> bool:
-	return Setting.get_bool(SETTING_KEY, default_value)
+static func load_theme() -> ThemeEnum:
+	var use_dark := Setting.get_bool(THEME_SETTING_KEY, true)
+	current_theme = ThemeEnum.DARK if use_dark else ThemeEnum.LIGHT
+	return current_theme
 
 
-static func save_dark(use_dark: bool) -> void:
-	Setting.set_bool(SETTING_KEY, use_dark)
+static func set_theme(_theme: ThemeEnum) -> void:
+	current_theme = _theme
+	Setting.set_bool(THEME_SETTING_KEY, current_theme == ThemeEnum.DARK)
 	Setting.save()
 	pass
 
+static func is_dark_theme() -> bool:
+	return current_theme == ThemeColor.ThemeEnum.DARK
 
-static func load_color(default_color: Color = DEFAULT_THEME_COLOR) -> Color:
-	var saved := Setting.get_string(THEME_COLOR_SETTING_KEY, "")
-	if saved.is_empty():
-		return default_color
-	return Color.from_string(saved, default_color)
+static func is_light_theme() -> bool:
+	return current_theme == ThemeColor.ThemeEnum.LIGHT
+# ----------------------------------------------------------------------------------------------------------------------
+static func load_theme_color() -> Color:
+	var saved := Setting.get_string(THEME_COLOR_SETTING_KEY)
+	theme_color = DEFAULT_THEME_COLOR if saved.is_empty() else Color.from_string(saved, DEFAULT_THEME_COLOR)
+	return theme_color
 
 
-static func save_color(color: Color) -> void:
-	Setting.set_string(THEME_COLOR_SETTING_KEY, color.to_html(true))
+static func save_theme_color(color: Color) -> void:
+	theme_color = color
+	Setting.set_string(THEME_COLOR_SETTING_KEY, theme_color.to_html(true))
 	Setting.save()
 	pass
