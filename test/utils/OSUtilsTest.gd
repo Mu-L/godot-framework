@@ -17,6 +17,35 @@ static func OSUtils_build_shell_argv_test() -> void:
 	pass
 
 
+static func OSUtils_split_command_line_test() -> void:
+	assert(OSUtils.split_command_line("git add -A") == PackedStringArray(["git", "add", "-A"]))
+	assert(OSUtils.split_command_line("  git   add -A  ") == PackedStringArray(["git", "add", "-A"]))
+	assert(OSUtils.split_command_line("git\tadd\t-A") == PackedStringArray(["git", "add", "-A"]))
+	assert(OSUtils.split_command_line("") == PackedStringArray())
+	assert(OSUtils.split_command_line("   ") == PackedStringArray())
+	pass
+
+
+static func OSUtils_split_command_line_quotes_test() -> void:
+	var argv := OSUtils.split_command_line("git --git-dir \"C:/has space/.gai/checkpoints\" add -A")
+	assert(argv == PackedStringArray(["git", "--git-dir", "C:/has space/.gai/checkpoints", "add", "-A"]))
+	assert(OSUtils.split_command_line("git commit -m 'two words'") == PackedStringArray(["git", "commit", "-m", "two words"]))
+	assert(OSUtils.split_command_line("git log \"a'b\"") == PackedStringArray(["git", "log", "a'b"]))
+	# Quotes only group arguments; an empty quoted argument is dropped.
+	assert(OSUtils.split_command_line("git log \"\"") == PackedStringArray(["git", "log"]))
+	pass
+
+
+static func OSUtils_split_command_line_execute_test() -> void:
+	OSUtils.stop_all()
+	var command := "cmd.exe /c echo OSUtilsSplitHello" if OSUtils.is_windows() else "/bin/sh -c 'echo OSUtilsSplitHello'"
+	var result := await OSUtils.async_execute(OSUtils.split_command_line(command), false)
+	assert(result.exit_code == 0)
+	assert(result.output.build_string().contains("OSUtilsSplitHello"))
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_empty_argv_test() -> void:
 	OSUtils.stop_all()
 	var result := await OSUtils.async_execute(PackedStringArray(), false)

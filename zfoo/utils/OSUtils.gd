@@ -1,4 +1,4 @@
-﻿class_name OSUtils
+class_name OSUtils
 extends Object
 
 ## Subprocess execution. Sync `execute` uses OS.execute; async `async_execute`
@@ -166,3 +166,33 @@ static func build_shell_argv(command: String) -> PackedStringArray:
 	if is_windows():
 		return PackedStringArray(["cmd.exe", "/c", "chcp 65001 >nul && " + command])
 	return PackedStringArray(["/bin/sh", "-c", command])
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+## Splits a command line into argv without any shell: quotes group one argument and are dropped,
+## spaces and tabs separate arguments. Empty quoted arguments are ignored.
+## Example: split_command_line("git --git-dir \"C:/a b\" add -A") -> ["git", "--git-dir", "C:/a b", "add", "-A"]
+static func split_command_line(command: String) -> PackedStringArray:
+	const QUOTES: PackedStringArray = ["\"", "'"]
+
+	var argv := PackedStringArray()
+	var current := StringUtils.EMPTY
+	var quote := StringUtils.EMPTY
+	for index in command.length():
+		var character := command[index]
+		if quote.is_empty():
+			if QUOTES.has(character):
+				quote = character
+				continue
+			if character == StringUtils.SPACE or character == StringUtils.TAB_ASCII:
+				if not current.is_empty():
+					argv.append(current)
+					current = StringUtils.EMPTY
+				continue
+		elif character == quote:
+			quote = StringUtils.EMPTY
+			continue
+		current += character
+	if not current.is_empty():
+		argv.append(current)
+	return argv

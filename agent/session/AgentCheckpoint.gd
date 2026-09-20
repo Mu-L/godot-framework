@@ -3,26 +3,19 @@ extends RefCounted
 
 ## Workspace snapshots for chat revert — one shared shadow git repo under `.gai/checkpoints/`.
 ##
-## Every call passes `--git-dir=<shadow>` + `--work-tree=<workspace root>`, so the user's own
+## Every command passes `--git-dir=<shadow>` + `--work-tree=<workspace root>`, so the user's own
 ## repository is never read or written (and the agent's `git` commands cannot disturb the shadow).
-## A snapshot is taken before each user turn; reverting a chat entry restores that state.
+## Command lines are written whole at each call site and split into argv by [method run_git];
+## a snapshot is taken before each user turn and reverting a chat entry restores that state.
 
 const CHECKPOINTS_SUBDIR := ".gai/checkpoints"
-const EXCLUDE_FILE := "info/exclude"
 const SHALLOW_FILE := "shallow"
 const COMMIT_MESSAGE := "checkpoint"
 const MAX_CHECKPOINTS := 100
 const CHECKPOINTS_AFTER_CLEANUP := 50
 
-## Injected per call so the shadow repo ignores whatever global git config the machine has.
-const GIT_CONFIG_ARGS: PackedStringArray = [
-	"-c", "user.name=gai",
-	"-c", "user.email=gai@gai.local",
-	"-c", "commit.gpgsign=false",
-	"-c", "core.autocrlf=false",
-	"-c", "core.filemode=false",
-	"-c", "core.quotepath=false",
-]
+## Embedded in every command so the shadow repo ignores whatever global git config the machine has.
+const GIT_CONFIG := "-c user.name=gai -c user.email=gai@gai.local -c commit.gpgsign=false -c core.autocrlf=false -c core.filemode=false -c core.quotepath=false"
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -36,21 +29,17 @@ static func get_git_dir() -> String:
 # Git
 # ---------------------------------------------------------------------------
 
-static func run_git(args: PackedStringArray) -> OSUtils.ExecResult:
-	var argv := PackedStringArray(["git", "--git-dir", get_git_dir(), "--work-tree", AgentWorkspace.get_root()])
-	argv.append_array(GIT_CONFIG_ARGS)
-	argv.append_array(args)
-	return await OSUtils.async_execute(argv, false)
+## Runs a full command line; [method OSUtils.split_command_line] keeps quoted paths as one argument.
+static func run_git(command: String) -> OSUtils.ExecResult:
+	return await OSUtils.async_execute(OSUtils.split_command_line(command), false)
 
 
 static func ensure_repo() -> bool:
 	var git_dir := get_git_dir()
 	if DirAccess.dir_exists_absolute(git_dir):
 		# Supplying --work-tree makes Git report false even for a valid bare repository.
-		var check_args := PackedStringArray(["git", "--git-dir", git_dir])
-		check_args.append_array(GIT_CONFIG_ARGS)
-		check_args.append_array(PackedStringArray(["rev-parse", "--is-bare-repository"]))
-		var check := await OSUtils.async_execute(check_args, false)
+		var check_command := StringUtils.format("git --git-dir \"{}\" {} rev-parse --is-bare-repository", git_dir, GIT_CONFIG)
+		var check := await run_git(check_command)
 		if check.exit_code == 0 and check.output.build_string().strip_edges() == "true":
 			return write_exclude_rules(git_dir)
 		# A missing Git executable is an environment failure, not repository corruption.
@@ -64,7 +53,7 @@ static func ensure_repo() -> bool:
 	if mkdir_error != OK:
 		Log.error("agent checkpoint parent directory create failed path:[{}] error:[{}]", git_dir.get_base_dir(), mkdir_error)
 		return false
-	var init := await OSUtils.async_execute(PackedStringArray(["git", "init", "--bare", "--quiet", git_dir]), false)
+	var init := await run_git(StringUtils.format("git init --bare --quiet \"{}\"", git_dir))
 	if init.exit_code != 0:
 		Log.error("agent checkpoint init failed:[{}]", init.output.build_string())
 		return false
@@ -79,9 +68,10 @@ static func write_exclude_rules(git_dir: String) -> bool:
 	## `.git` is the user's real repository — snapshots must never swallow it.
 	## Mandatory rules come last so project negation rules cannot re-include these directories.
 	exclude_rules += ".git/\n.gai/\n.godot/\n"
-	if FileUtils.write_string_to_file(git_dir.path_join(EXCLUDE_FILE), exclude_rules):
+	var git_exclude_path := git_dir.path_join("info/exclude")
+	if FileUtils.write_string_to_file(git_exclude_path, exclude_rules):
 		return true
-	Log.error("agent checkpoint exclude write failed:[{}]", git_dir.path_join(EXCLUDE_FILE))
+	Log.error("agent checkpoint exclude write failed:[{}]", git_exclude_path)
 	return false
 
 
@@ -98,7 +88,7 @@ static func remove_checkpoint_repo(git_dir: String) -> bool:
 
 
 static func stage_all() -> bool:
-	var add := await run_git(PackedStringArray(["add", "-A"]))
+	var add := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} add -A", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG))
 	if add.exit_code == 0:
 		return true
 	Log.error("agent checkpoint stage failed:[{}]", add.output.build_string())
@@ -113,19 +103,20 @@ static func stage_all() -> bool:
 static func async_snapshot() -> String:
 	if not await ensure_repo() or not await stage_all():
 		return StringUtils.EMPTY
-	var previous_head := await run_git(PackedStringArray(["rev-parse", "--verify", "HEAD"]))
+	var previous_head_command := StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} rev-parse --verify HEAD", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG)
+	var previous_head := await run_git(previous_head_command)
 	if previous_head.exit_code == 0:
-		var diff := await run_git(PackedStringArray(["diff", "--cached", "--quiet", "HEAD", "--"]))
+		var diff := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} diff --cached --quiet HEAD --", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG))
 		if diff.exit_code == 0:
 			return previous_head.output.build_string().strip_edges()
 		if diff.exit_code > 1:
 			Log.error("agent checkpoint tree comparison failed:[{}]", diff.output.build_string())
 			return StringUtils.EMPTY
-	var commit := await run_git(PackedStringArray(["commit", "--quiet", "-m", COMMIT_MESSAGE]))
+	var commit := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} commit --quiet -m {}", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG, COMMIT_MESSAGE))
 	if commit.exit_code != 0:
 		Log.error("agent checkpoint commit failed:[{}]", commit.output.build_string())
 		return StringUtils.EMPTY
-	var head := await run_git(PackedStringArray(["rev-parse", "HEAD"]))
+	var head := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} rev-parse HEAD", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG))
 	if head.exit_code != 0:
 		Log.error("agent checkpoint head lookup failed:[{}]", head.output.build_string())
 		return StringUtils.EMPTY
@@ -138,7 +129,7 @@ static func async_snapshot() -> String:
 static func async_cleanup(force_gc: bool = true) -> void:
 	if not await ensure_repo():
 		return
-	var history := await run_git(PackedStringArray(["rev-list", "--max-count=" + str(MAX_CHECKPOINTS + 1), "HEAD"]))
+	var history := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} rev-list --max-count={} HEAD", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG, MAX_CHECKPOINTS + 1))
 	if history.exit_code != 0:
 		# An initialized repository without its first commit has nothing to clean.
 		return
@@ -151,11 +142,11 @@ static func async_cleanup(force_gc: bool = true) -> void:
 			return
 	if not truncated and not force_gc:
 		return
-	var reflog := await run_git(PackedStringArray(["reflog", "expire", "--expire=now", "--all"]))
+	var reflog := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} reflog expire --expire=now --all", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG))
 	if reflog.exit_code != 0:
 		Log.error("agent checkpoint reflog cleanup failed:[{}]", reflog.output.build_string())
 		return
-	var gc := await run_git(PackedStringArray(["gc", "--prune=now", "--quiet"]))
+	var gc := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} gc --prune=now --quiet", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG))
 	if gc.exit_code != 0:
 		Log.error("agent checkpoint gc failed:[{}]", gc.output.build_string())
 	pass
@@ -168,7 +159,7 @@ static func async_restore(sha: String) -> bool:
 		return false
 	if not await stage_all():
 		return false
-	var diff := await run_git(PackedStringArray(["diff", "--cached", "--name-status", sha]))
+	var diff := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} diff --cached --name-status {}", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG, sha))
 	if diff.exit_code != 0:
 		Log.error("agent checkpoint restore diff failed:[{}]", diff.output.build_string())
 		return false
@@ -182,7 +173,7 @@ static func async_restore(sha: String) -> bool:
 		if status.begins_with("A") or status.begins_with("C") or status.begins_with("R"):
 			removed.append(parts[parts.size() - 1].strip_edges())
 	# `:/` is the worktree root regardless of the process working directory.
-	var checkout := await run_git(PackedStringArray(["checkout", sha, "--", ":/"]))
+	var checkout := await run_git(StringUtils.format("git --git-dir \"{}\" --work-tree \"{}\" {} checkout {} -- :/", get_git_dir(), AgentWorkspace.get_root(), GIT_CONFIG, sha))
 	if checkout.exit_code != 0:
 		Log.error("agent checkpoint restore checkout failed:[{}]", checkout.output.build_string())
 		return false
