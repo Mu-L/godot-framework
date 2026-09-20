@@ -3,6 +3,9 @@ extends RefCounted
 
 ## Left sidebar — pinned + normal session lists with select / delete / drag reorder.
 
+## Alpha of the floating row copy that follows the cursor while dragging.
+const DRAG_GHOST_ALPHA := 0.92
+
 var session_list_root: VBoxContainer
 var pinned_header: Label
 var pinned_list: VBoxContainer
@@ -380,8 +383,67 @@ func get_row_drag_data(_at_position: Vector2, session_id: int) -> Variant:
 	var row_panel: PanelContainer = session_rows.get(session_id)
 	if row_panel == null:
 		return null
-	row_panel.set_drag_preview(Control.new())
+	row_panel.set_drag_preview(build_drag_ghost(session_id, row_panel))
 	return session_id
+
+
+## Floating copy of the row that follows the cursor until the mouse is released.
+func build_drag_ghost(session_id: int, row_panel: PanelContainer) -> Control:
+	var row_size := row_panel.size
+	if row_size.x < 1.0 or row_size.y < 1.0:
+		row_size = row_panel.get_combined_minimum_size()
+
+	var preview := Control.new()
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.custom_minimum_size = row_size
+	preview.size = row_size
+	preview.modulate.a = DRAG_GHOST_ALPHA
+
+	var ghost := PanelContainer.new()
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.size = row_size
+	ghost.add_theme_stylebox_override("panel", build_drag_ghost_style())
+	preview.add_child(ghost)
+
+	var label := Label.new()
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	copy_row_font(label, row_panel)
+	ghost.add_child(label)
+
+	# The engine moves `preview` to the cursor, so offset the ghost by the grab point.
+	ghost.position = -clamp_to_row(row_panel.get_local_mouse_position(), row_size)
+	return preview
+
+
+## The cursor can already sit a few pixels outside the row once the drag starts.
+func clamp_to_row(point: Vector2, row_size: Vector2) -> Vector2:
+	return Vector2(clampf(point.x, 0.0, row_size.x), clampf(point.y, 0.0, row_size.y))
+
+
+## Reuse the row button's resolved font so the ghost matches the sidebar styling.
+func copy_row_font(label: Label, row_panel: PanelContainer) -> void:
+	var source: Button = row_panel.get_meta("select_button")
+	if source == null:
+		return
+	label.add_theme_font_override("font", source.get_theme_font("font"))
+	label.add_theme_font_size_override("font_size", source.get_theme_font_size("font_size"))
+	label.add_theme_color_override("font_color", AgentColors.sidebar_text)
+	pass
+
+
+func build_drag_ghost_style() -> StyleBoxFlat:
+	var style := build_session_row_style(false, false)
+	style.bg_color = AgentColors.theme_selection_bg()
+	var accent := AgentColors.theme_accent_solid()
+	style.border_color = Color(accent.r, accent.g, accent.b, 0.9 if AgentColors.is_dark() else 0.75)
+	style.set_border_width_all(1)
+	style.shadow_color = Color(0, 0, 0, 0.35 if AgentColors.is_dark() else 0.18)
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0, 3)
+	return style
 
 
 func bind_row_drag(host: Control, session_id: int) -> void:
