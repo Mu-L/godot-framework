@@ -57,12 +57,8 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 
 static func open_file(meta: Variant) -> void:
 	var path := str(meta)
-	if not FileAccess.file_exists(path):
+	if FileUtils.open_file(path) != OK:
 		Alert.alert(StringUtils.format("File not found: {}", path), Colors.error)
-		return
-	var error := OS.shell_open(path)
-	if error != OK:
-		Alert.alert(StringUtils.format("Failed to open file: {}", path), Colors.error)
 	pass
 
 
