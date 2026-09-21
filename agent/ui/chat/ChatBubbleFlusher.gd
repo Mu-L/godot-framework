@@ -56,15 +56,14 @@ func flush() -> void:
 	for item: PendingItem in batch:
 		if item.entry == null or item.rich_text == null or not is_instance_valid(item.rich_text):
 			continue
-		refresh_rich_text(item.rich_text, item.entry, true)
+		refresh_rich_text(item.rich_text, item.entry)
 	await ThreadUtils.async_sleep(FLUSH_MS)
 	AgentEvents.events.chat_bubble_flushed.emit()
 	pass
 
 
-## Push entry.body into the bubble RichTextLabel.
-## incremental=true appends plain-text deltas when markdown is off (streaming agent reply).
-static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry, incremental: bool = false) -> void:
+## Push entry.body into the bubble RichTextLabel — full re-render per flush.
+static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 	## Thinking / Result use their own preview rules; other kinds honor MarkdownToggle.
 	if entry.kind == ChatEntry.KIND_THINKING or entry.kind == ChatEntry.KIND_RESULT:
 		ChatBubblePreview.apply(rich_text, entry.body)
@@ -76,15 +75,11 @@ static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry, increm
 		SkillBubble.refresh(rich_text, entry)
 		return
 	rich_text.visible = StringUtils.is_not_blank(entry.body)
-	var markdown_enabled := MarkdownToggle.markdown_enabled_for_entry(entry)
-	if incremental and not markdown_enabled:
-		var cached := MarkdownUtils.get_raw_body_from_rich_text_label(rich_text)
-		if entry.body.length() > cached.length() and entry.body.begins_with(cached):
-			if rich_text.bbcode_enabled:
-				rich_text.bbcode_enabled = false
-			rich_text.append_text(entry.body.substr(cached.length()))
-			rich_text.set_meta(MarkdownUtils.META_RAW_BODY, entry.body)
-			return
-	# Full re-render — markdown on, or body changed in a non-prefix way.
-	MarkdownUtils.set_rich_text_label_text(rich_text, entry.body, markdown_enabled, 0.0, AgentColors.code_block_bg.to_html(false))
+	MarkdownUtils.set_rich_text_label_text(
+			rich_text,
+			entry.body,
+			MarkdownToggle.markdown_enabled_for_entry(entry),
+			0.0,
+			AgentColors.code_block_bg.to_html(false)
+	)
 	pass

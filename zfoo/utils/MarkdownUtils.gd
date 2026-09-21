@@ -656,7 +656,6 @@ static func escape_bbcode_literals(text: String) -> String:
 # RichTextLabel body (markdown UI)
 # ---------------------------------------------------------------------------
 
-const META_RAW_BODY := "raw_body"
 const BODY_LABEL_MIN_HEIGHT := 24
 const TABLE_V_SEPARATION := 0
 
@@ -708,13 +707,7 @@ static func copy_to_clipboard(text: String) -> void:
 	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).strip_edges())
 	pass
 
-
-static func get_raw_body_from_rich_text_label(label: RichTextLabel) -> String:
-	return str(label.get_meta(META_RAW_BODY, ""))
-
-
 static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> void:
-	label.set_meta(META_RAW_BODY, raw_text)
 	if markdown_enabled:
 		var bbcode := to_bbcode(raw_text, code_block_bg)
 		# Enabling bbcode re-parses existing text; raw markdown may contain literal
