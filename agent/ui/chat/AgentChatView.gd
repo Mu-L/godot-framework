@@ -32,6 +32,7 @@ func setup(
 	chat_host.clip_contents = true
 	chat_bubble_flusher.setup()
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
+	chat_scroll.get_window().window_input.connect(on_chat_window_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
@@ -415,6 +416,30 @@ func on_chat_scroll_gui_input(event: InputEvent) -> void:
 			stick_to_bottom = true
 	elif event is InputEventPanGesture:
 		stick_to_bottom = is_scrolled_to_bottom()
+	pass
+
+
+## Page keys belong to the focused TextEdit by default; route Godot's native page
+## actions to the transcript so they work while composing a message.
+func on_chat_window_input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if not key.pressed:
+		return
+	var direction := 0
+	if key.is_action_pressed(&"ui_page_up", true):
+		direction = -1
+	elif key.is_action_pressed(&"ui_page_down", true):
+		direction = 1
+	else:
+		return
+	var vbar := chat_scroll.get_v_scroll_bar()
+	if vbar == null or vbar.max_value <= vbar.page:
+		return
+	vbar.value = clampf(vbar.value + vbar.page * direction, vbar.min_value, vbar.max_value - vbar.page)
+	stick_to_bottom = is_scrolled_to_bottom()
+	chat_scroll.get_viewport().set_input_as_handled()
 	pass
 
 
