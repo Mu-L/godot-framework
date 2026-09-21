@@ -38,6 +38,7 @@ func build_toolbar_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = AgentColors.toolbar
 	style.border_color = AgentColors.toolbar_border
+	style.content_margin_left = 12
 	style.set_border_width(SIDE_BOTTOM, 1)
 	if ThemeColor.is_light_theme():
 		style.set_border_width(SIDE_TOP, 1)
