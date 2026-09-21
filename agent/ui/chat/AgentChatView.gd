@@ -437,6 +437,7 @@ func on_chat_window_input(event: InputEvent) -> void:
 	var direction := 0
 	if key.is_action_pressed(&"ui_page_up", true):
 		direction = -1
+		stick_to_bottom = false
 	elif key.is_action_pressed(&"ui_page_down", true):
 		direction = 1
 	else:
@@ -445,7 +446,8 @@ func on_chat_window_input(event: InputEvent) -> void:
 	if vbar == null or vbar.max_value <= vbar.page:
 		return
 	vbar.value = clampf(vbar.value + vbar.page * direction, vbar.min_value, vbar.max_value - vbar.page)
-	stick_to_bottom = is_scrolled_to_bottom()
+	if direction > 0:
+		stick_to_bottom = is_scrolled_to_bottom()
 	chat_scroll.get_viewport().set_input_as_handled()
 	pass
 
