@@ -33,6 +33,7 @@ func setup(
 	chat_scroll.clip_contents = true
 	chat_host.clip_contents = true
 	chat_bubble_flusher.setup()
+	SchedulerBus.schedule_at_fixed_rate(queue_scroll_to_bottom, 1000, "agent_chat_stick_to_bottom")
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
 	chat_scroll.get_window().window_input.connect(on_chat_window_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
