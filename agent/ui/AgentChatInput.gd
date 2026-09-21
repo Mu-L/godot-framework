@@ -515,6 +515,8 @@ func set_expanded(is_expanded: bool, animate: bool) -> void:
 	expanded = is_expanded
 	if is_expanded:
 		prepare_field_for_expand_measure()
+	else:
+		input_field.visible = false
 	if not animate or not input_bar.is_inside_tree():
 		layout_bar()
 		return
