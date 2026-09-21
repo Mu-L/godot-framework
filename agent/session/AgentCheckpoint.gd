@@ -8,7 +8,7 @@ extends RefCounted
 
 const CHECKPOINTS_SUBDIR := ".gai/checkpoints"
 const SHALLOW_FILE := "shallow"
-const COMMIT_MESSAGE := "gai checkpoint"
+const COMMIT_MESSAGE := "gai checkpoint message"
 const MAX_CHECKPOINTS := 100
 const CHECKPOINTS_AFTER_CLEANUP := 50
 
