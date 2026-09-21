@@ -99,7 +99,7 @@ func run_nodes(nodes: Array[WorkflowNodeData], document: WorkflowDocument, outpu
 		var primary_input: String = first_input_path(node_def, resolved)
 		var out_port_id := primary_output_port_id(node_def)
 		WorkflowEvents.events.step_started.emit(node_data.id, node_def.display_label())
-		Log.info("command:[{}]", OSUtils.format_command_line(argv))
+		Log.info("command:{}", JSON.stringify(argv))
 
 		var exec_result := await OSUtils.async_execute(argv, false)
 		if stop_requested:
