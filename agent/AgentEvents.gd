@@ -48,6 +48,8 @@ class Events:
 	signal chat_truncated(session_id: int)
 	## Emitted after ChatBubbleFlusher applies a pending batch (every ~100 ms while streaming).
 	signal chat_bubble_flushed
+	## A bubble handed its body back to the chat input (delete / revert) for re-editing.
+	signal chat_input_prefill(text: String)
 	signal markdown_changed(enabled: bool)
 	signal jarvis_orb_changed(enabled: bool)
 	signal skill_context_changed(session_id: int)

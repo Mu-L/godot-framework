@@ -71,6 +71,7 @@ func setup(
 	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
+	AgentEvents.events.chat_input_prefill.connect(on_chat_input_prefill)
 	setup_border_beam()
 	AgentEvents.events.agent_start.connect(on_agent_start)
 	AgentEvents.events.session_stop.connect(on_session_stop)
@@ -152,6 +153,17 @@ func on_session_stop(session_id: int) -> void:
 	if not AgentSessionManager.is_active(session_id):
 		return
 	refresh_from_active_session()
+	pass
+
+
+## A deleted / reverted bubble hands its body back here so it can be edited and resent.
+func on_chat_input_prefill(text: String) -> void:
+	if StringUtils.is_blank(text):
+		return
+	input_field.text = text
+	force_expanded = false
+	expand_if_collapsed()
+	focus_input_field.call_deferred()
 	pass
 
 
