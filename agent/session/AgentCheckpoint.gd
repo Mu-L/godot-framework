@@ -91,7 +91,7 @@ static func async_snapshot() -> String:
 	if not await ensure_repo() or not await stage_all():
 		return StringUtils.EMPTY
 	var git := GitUtils.Git.new(get_git_dir(), AgentWorkspace.get_root())
-	var previous_head := await git.async_get_head(true)
+	var previous_head := await git.async_get_head()
 	if previous_head.exit_code == 0:
 		var diff := await git.async_has_staged_changes()
 		if diff.exit_code == 0:

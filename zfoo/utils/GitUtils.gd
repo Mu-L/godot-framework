@@ -39,8 +39,8 @@ class Git:
 	func async_stage_all() -> OSUtils.ExecResult:
 		return await async_execute("add -A")
 
-	func async_get_head(verify: bool = false) -> OSUtils.ExecResult:
-		return await async_execute("rev-parse --verify HEAD" if verify else "rev-parse HEAD")
+	func async_get_head() -> OSUtils.ExecResult:
+		return await async_execute("rev-parse --verify HEAD")
 
 	func async_has_staged_changes(reference: String = "HEAD") -> OSUtils.ExecResult:
 		return await async_execute(StringUtils.format("diff --cached --quiet {} --", reference))
