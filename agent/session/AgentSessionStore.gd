@@ -59,7 +59,7 @@ static func delete_session(session_id: int) -> void:
 	if session_id < 0:
 		return
 	sessions.erase(session_id)
-	FileUtils.delete_file(get_session_path(session_id))
+	FileUtils.delete_file_or_directory(get_session_path(session_id))
 	pass
 
 

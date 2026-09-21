@@ -105,34 +105,33 @@ static func read_file_to_lines(abs_path: String, allow_empty: bool = false) -> P
 	return text.split(NEWLINE_LF, allow_empty)
 
 
-static func delete_file(filePath: String) -> void:
-	if !FileAccess.file_exists(filePath):
-		return
-	DirAccess.remove_absolute(filePath)
-	pass
-
-
-## Recursively deletes [param path] without following directory links.
-static func delete_directory_recursive(path: String) -> bool:
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return false
-	for file_name in dir.get_files():
-		var file_path := path.path_join(file_name)
-		# Git marks loose objects read-only on Windows.
-		if FileAccess.set_read_only_attribute(file_path, false) != OK:
+## Deletes [param path] — a file, or a directory with everything inside it.
+## Directories are removed recursively without following directory links,
+## so a link is unlinked instead of emptying the folder it points at.
+## Returns false when [param path] does not exist or any entry cannot be removed.
+static func delete_file_or_directory(path: String) -> bool:
+	if DirAccess.dir_exists_absolute(path):
+		var dir := DirAccess.open(path)
+		if dir == null:
 			return false
-		if DirAccess.remove_absolute(file_path) != OK:
-			return false
-	for directory_name in dir.get_directories():
-		var directory_path := path.path_join(directory_name)
-		if dir.is_link(directory_name):
-			if DirAccess.remove_absolute(directory_path) != OK:
+		for file_name in dir.get_files():
+			if not delete_file_or_directory(path.path_join(file_name)):
 				return false
-			continue
-		if not delete_directory_recursive(directory_path):
-			return false
-	dir = null
+		for directory_name in dir.get_directories():
+			var directory_path := path.path_join(directory_name)
+			if dir.is_link(directory_name):
+				if DirAccess.remove_absolute(directory_path) != OK:
+					return false
+				continue
+			if not delete_file_or_directory(directory_path):
+				return false
+		dir = null
+		return DirAccess.remove_absolute(path) == OK
+	if not FileAccess.file_exists(path):
+		return false
+	# Git marks loose objects read-only on Windows.
+	if FileAccess.set_read_only_attribute(path, false) != OK:
+		return false
 	return DirAccess.remove_absolute(path) == OK
 
 

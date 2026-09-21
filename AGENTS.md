@@ -308,7 +308,7 @@ var json := JsonUtils.object_to_json(obj)
 # FileUtils
 FileUtils.write_string_to_file("user://log.txt", content)
 var text := FileUtils.read_file_to_string("user://log.txt")
-FileUtils.delete_file("user://log.txt")
+FileUtils.delete_file_or_directory("user://log.txt")
 
 # RandomUtils
 var n := RandomUtils.random_int_limit(100)

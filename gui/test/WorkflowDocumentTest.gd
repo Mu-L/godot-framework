@@ -147,5 +147,5 @@ func workflow_manager_save_load_test() -> void:
 	var loaded := WorkflowManager.load(path)
 	assert_document_equal(source, loaded)
 
-	FileUtils.delete_file(path)
+	FileUtils.delete_file_or_directory(path)
 	pass

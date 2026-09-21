@@ -81,7 +81,7 @@ static func remove_checkpoint_repo(git_dir: String) -> bool:
 	if git_dir.simplify_path() != expected:
 		Log.error("agent checkpoint refused unexpected delete path:[{}]", git_dir)
 		return false
-	if FileUtils.delete_directory_recursive(git_dir):
+	if FileUtils.delete_file_or_directory(git_dir):
 		return true
 	Log.error("agent checkpoint repository delete failed:[{}]", git_dir)
 	return false

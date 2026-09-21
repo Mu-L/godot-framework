@@ -310,19 +310,5 @@ static func create_fixture_tree() -> String:
 
 
 static func remove_fixture_tree(root: String) -> void:
-	remove_dir_recursive(root)
-	pass
-
-
-static func remove_dir_recursive(path: String) -> void:
-	if not DirAccess.dir_exists_absolute(path):
-		return
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return
-	for file_name in dir.get_files():
-		DirAccess.remove_absolute(path.path_join(file_name))
-	for dir_name in dir.get_directories():
-		remove_dir_recursive(path.path_join(dir_name))
-	DirAccess.remove_absolute(path)
+	FileUtils.delete_file_or_directory(root)
 	pass

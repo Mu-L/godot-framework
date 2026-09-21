@@ -79,7 +79,7 @@ func downloading() -> void:
 	message = StringUtils.format("remote version:[{}] Update available ({}MB), downloading...", remote_hot_update_manifest.version, size_mb)
 	
 	var pck_url: String = remote_hot_update_manifest.pck_url
-	FileUtils.delete_file(PCK_PATH)
+	FileUtils.delete_file_or_directory(PCK_PATH)
 
 	if http_download == null:
 		http_download = HTTPRequest.new()
@@ -104,7 +104,7 @@ func get_download_progress() -> float:
 func on_download_completed(result: int, code: int, _headers: PackedStringArray, _body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS || code != 200:
 		_fail(StringUtils.format("Download failed, result: {}, code: {}", result, code))
-		FileUtils.delete_file(PCK_PATH)
+		FileUtils.delete_file_or_directory(PCK_PATH)
 		return
 	# check MD5
 	var expected_md5: String = remote_hot_update_manifest.md5
@@ -112,7 +112,7 @@ func on_download_completed(result: int, code: int, _headers: PackedStringArray, 
 		var actual_md5 := FileAccess.get_md5(PCK_PATH)
 		if actual_md5 != expected_md5:
 			_fail(StringUtils.format("MD5 mismatch, expected: [{}], actual: [{}]", expected_md5, actual_md5))
-			FileUtils.delete_file(PCK_PATH)
+			FileUtils.delete_file_or_directory(PCK_PATH)
 			return
 	Setting.set_string(SETTING_HOT_UPDATE_VERSION_KEY, remote_hot_update_manifest.version)
 	Setting.save()
@@ -140,7 +140,7 @@ func applying() -> void:
 	var success := ProjectSettings.load_resource_pack(PCK_PATH, true)
 	if !success:
 		_fail("Failed to load patch.pck")
-		FileUtils.delete_file(PCK_PATH)
+		FileUtils.delete_file_or_directory(PCK_PATH)
 		Setting.set_string(SETTING_HOT_UPDATE_VERSION_KEY, app_version)
 		Setting.save()
 		return

@@ -7,7 +7,7 @@ func FileUtils_read_write_test() -> void:
 	FileUtils.write_string_to_file(path, content)
 	var read_content := FileUtils.read_file_to_string(path)
 	assert(content == read_content)
-	FileUtils.delete_file(path)
+	FileUtils.delete_file_or_directory(path)
 	pass
 
 
@@ -18,7 +18,7 @@ func read_file_to_string_rejects_nul_test() -> void:
 	file = null
 	assert(FileUtils.read_file_to_string(path) == StringUtils.EMPTY)
 	assert(FileUtils.read_file_to_lines(path).is_empty())
-	FileUtils.delete_file(path)
+	FileUtils.delete_file_or_directory(path)
 	pass
 
 
@@ -34,6 +34,18 @@ func get_all_directories_in_folder_test() -> void:
 	assert(all.has("src/nested"))
 	assert(all.has(".git/objects"))
 	remove_fixture_tree(root)
+	pass
+
+
+func delete_file_or_directory_test() -> void:
+	var root := create_fixture_tree()
+	var file_path := root.path_join("src/nested/file.txt")
+	FileUtils.write_string_to_file(file_path, "content")
+	assert(FileUtils.delete_file_or_directory(file_path))
+	assert(not FileAccess.file_exists(file_path))
+	assert(FileUtils.delete_file_or_directory(root))
+	assert(not DirAccess.dir_exists_absolute(root))
+	assert(not FileUtils.delete_file_or_directory(root))
 	pass
 
 
@@ -54,19 +66,5 @@ static func create_fixture_tree() -> String:
 
 
 static func remove_fixture_tree(root: String) -> void:
-	remove_dir_recursive(root)
-	pass
-
-
-static func remove_dir_recursive(path: String) -> void:
-	if not DirAccess.dir_exists_absolute(path):
-		return
-	var dir := DirAccess.open(path)
-	if dir == null:
-		return
-	for file_name in dir.get_files():
-		DirAccess.remove_absolute(path.path_join(file_name))
-	for dir_name in dir.get_directories():
-		remove_dir_recursive(path.path_join(dir_name))
-	DirAccess.remove_absolute(path)
+	FileUtils.delete_file_or_directory(root)
 	pass
