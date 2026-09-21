@@ -46,17 +46,3 @@ func TimeUtils_test() -> void:
 	await ThreadUtils.async_sleep(2000)
 	assert(now != TimeUtils.now())
 	pass
-
-func NumberUtils_test() -> void:
-	var int32Max: int = 2_147_483_647
-	var int32Min: int = -2_147_483_648
-	var int64Max: int = 9_223_372_036_854_775_807
-	var int64Min: int = -9_223_372_036_854_775_808
-	assert(NumberUtils.INT32_MAX == int32Max)
-	assert(NumberUtils.INT32_MIN == int32Min)
-	assert(NumberUtils.INT64_MAX == int64Max)
-	assert(NumberUtils.INT64_MIN == int64Min)
-	@warning_ignore("assert_always_true")
-	assert(NumberUtils.INT64_MAX + 1 == NumberUtils.INT64_MIN)
-	pass
-

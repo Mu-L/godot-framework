@@ -45,24 +45,3 @@ func parse_args(raw: String) -> Dictionary[String, Variant]:
 		return args
 	args.assign(data)
 	return args
-
-
-func parse_bool(raw: Variant) -> bool:
-	if typeof(raw) == TYPE_BOOL:
-		return bool(raw)
-	var value := str(raw).strip_edges().to_lower()
-	return value == "true" or value == "1" or value == "yes"
-
-
-func parse_int(raw: Variant, default_value: int) -> int:
-	if typeof(raw) == TYPE_INT:
-		return int(raw)
-	if typeof(raw) == TYPE_FLOAT:
-		var number := float(raw)
-		if number != floor(number):
-			return default_value
-		return int(number)
-	var value := str(raw).strip_edges()
-	if value.is_empty() or not value.is_valid_int():
-		return default_value
-	return int(value)
