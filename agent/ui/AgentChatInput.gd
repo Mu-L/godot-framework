@@ -224,7 +224,10 @@ func on_global_input(event: InputEvent) -> void:
 		var mouse := event as InputEventMouseButton
 		if not mouse.pressed or mouse.button_index != MOUSE_BUTTON_LEFT:
 			return
-		if is_point_inside(mouse.global_position):
+		# Window input coordinates are not guaranteed to use the same canvas transform as
+		# Control.global_rect (for example with viewport stretch/scaling). Query the mouse
+		# through the control so both values are in canvas coordinates.
+		if is_point_inside(input_wrap.get_global_mouse_position()):
 			return
 		input_field.release_focus()
 		try_collapse()
