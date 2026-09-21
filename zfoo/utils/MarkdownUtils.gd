@@ -662,16 +662,6 @@ const TABLE_V_SEPARATION := 0
 
 static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> RichTextLabel:
 	var label := RichTextLabel.new()
-	configure_rich_text_label(label, text_color)
-	label.meta_clicked.connect(handle_meta_clicked)
-	set_rich_text_label_text(label, raw_text, markdown_enabled, content_width, code_block_bg)
-	return label
-
-
-## Chat / markdown body label. Selection is click-focus based: the label takes focus on
-## click and drops the highlight on focus loss, so callers only hand focus back to clear
-## a stale selection (see [method AgentChatView.drop_bubble_focus_outside]).
-static func configure_rich_text_label(label: RichTextLabel, text_color: Color) -> void:
 	label.selection_enabled = true
 	label.deselect_on_focus_loss_enabled = true
 	label.scroll_active = false
@@ -696,7 +686,9 @@ static func configure_rich_text_label(label: RichTextLabel, text_color: Color) -
 				label.accept_event()
 				copy_to_clipboard(label.get_selected_text())
 	)
-	pass
+	label.meta_clicked.connect(handle_meta_clicked)
+	set_rich_text_label_text(label, raw_text, markdown_enabled, content_width, code_block_bg)
+	return label
 
 
 ## Put [param text] on the clipboard with the `[code]` NBSP padding
