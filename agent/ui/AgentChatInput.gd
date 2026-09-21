@@ -269,9 +269,9 @@ func ensure_git_installed(session_id: int) -> bool:
 			"Git",
 			"Git is not installed. Install it, then restart the app."
 					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-					+ "The agent uses git to snapshot your workspace and run shell commands."
+					+ "The agent uses Git to track and revert code changes and Bash to execute shell commands."
 					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-					+ StringUtils.format("Download: [{}]({})", url, url)
+					+ StringUtils.format("Git Download: [{}]({})", url, url)
 	)
 	return false
 
