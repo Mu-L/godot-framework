@@ -1,6 +1,73 @@
 ﻿class_name GitUtils
 extends Object
 
+## Ignores machine-level Git behavior and supplies a non-interactive local identity.
+const GIT_CONFIG := "-c user.name=gai -c user.email=gai@gai.local -c commit.gpgsign=false -c core.autocrlf=false -c core.filemode=false -c core.quotepath=false"
+
+
+## A Git command context bound to an optional repository and work tree.
+## Commands use the same string form as the Git CLI and run without a shell.
+class Git:
+	var git_dir: String
+	var work_tree: String
+	var config: String
+
+	func _init(p_git_dir: String = "", p_work_tree: String = "", p_config: String = GitUtils.GIT_CONFIG) -> void:
+		git_dir = p_git_dir
+		work_tree = p_work_tree
+		config = p_config
+		pass
+
+	func async_execute(command: String, include_work_tree: bool = true) -> OSUtils.ExecResult:
+		var full_command := "git"
+		if StringUtils.is_not_blank(git_dir):
+			full_command += StringUtils.format(' --git-dir "{}"', git_dir)
+		if include_work_tree and StringUtils.is_not_blank(work_tree):
+			full_command += StringUtils.format(' --work-tree "{}"', work_tree)
+		if StringUtils.is_not_blank(config):
+			full_command += " " + config
+		if StringUtils.is_not_blank(command):
+			full_command += " " + command
+		return await OSUtils.async_execute(OSUtils.split_command_line(full_command), false)
+
+	func async_init_bare() -> OSUtils.ExecResult:
+		return await GitUtils.async_execute(StringUtils.format('init --bare --quiet "{}"', git_dir))
+
+	func async_is_bare() -> OSUtils.ExecResult:
+		return await async_execute("rev-parse --is-bare-repository", false)
+
+	func async_stage_all() -> OSUtils.ExecResult:
+		return await async_execute("add -A")
+
+	func async_get_head(verify: bool = false) -> OSUtils.ExecResult:
+		return await async_execute("rev-parse --verify HEAD" if verify else "rev-parse HEAD")
+
+	func async_has_staged_changes(reference: String = "HEAD") -> OSUtils.ExecResult:
+		return await async_execute(StringUtils.format("diff --cached --quiet {} --", reference))
+
+	func async_commit(message: String) -> OSUtils.ExecResult:
+		return await async_execute(StringUtils.format('commit --quiet -m "{}"', message))
+
+	func async_list_commits(max_count: int) -> OSUtils.ExecResult:
+		return await async_execute(StringUtils.format("rev-list --max-count={} HEAD", max_count))
+
+	func async_get_staged_name_status(reference: String) -> OSUtils.ExecResult:
+		return await async_execute(StringUtils.format("diff --cached --name-status {}", reference))
+
+	func async_checkout_tree(reference: String) -> OSUtils.ExecResult:
+		return await async_execute(StringUtils.format("checkout {} -- :/", reference))
+
+	func async_expire_reflogs() -> OSUtils.ExecResult:
+		return await async_execute("reflog expire --expire=now --all")
+
+	func async_gc_prune_now() -> OSUtils.ExecResult:
+		return await async_execute("gc --prune=now --quiet")
+
+
+## Runs a Git command without binding it to a repository.
+static func async_execute(command: String) -> OSUtils.ExecResult:
+	return await Git.new().async_execute(command)
+
 
 ## Checks whether the git command is installed and callable in the current environment.
 static func is_git_installed() -> bool:
