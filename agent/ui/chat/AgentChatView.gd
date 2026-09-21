@@ -17,6 +17,7 @@ var scroll_position_caches: Dictionary[int, float] = {}
 var chat_bubble_flusher: ChatBubbleFlusher = ChatBubbleFlusher.new()
 ## When true, new content keeps the transcript scrolled to the latest bubble.
 var stick_to_bottom: bool = true
+var scroll_to_bottom_queued: bool = false
 
 
 # ---------------------------------------------------------------------------
@@ -70,9 +71,6 @@ func on_session_stop(session_id: int) -> void:
 	if AgentSessionManager.is_active(session_id):
 		refresh_error_resume_buttons()
 	chat_bubble_flusher.flush_now()
-	var session := AgentSessionStore.load_session(session_id)
-	if session != null:
-		sync_new_entries(session)
 	pass
 
 
@@ -190,8 +188,6 @@ func show_session(session_id: int) -> void:
 
 	if list.get_child_count() == 0:
 		fill_list(session)
-	else:
-		sync_new_entries(session)
 
 	queue_restore_session_scroll_after_layout(session_id, has_cached_scroll)
 	pass
@@ -207,15 +203,6 @@ func rebuild(session_id: int) -> void:
 func fill_list(session: AgentSession) -> void:
 	for entry: ChatEntry in session.chat_entries:
 		append_entry_bubble(entry, session.id)
-	pass
-
-
-func sync_new_entries(session: AgentSession) -> void:
-	var list: VBoxContainer = chat_list_caches.get(session.id)
-	if list == null:
-		return
-	for index in range(list.get_child_count(), session.chat_entries.size()):
-		append_entry_bubble(session.chat_entries[index], session.id)
 	pass
 
 
@@ -470,6 +457,15 @@ func is_scrolled_to_bottom() -> bool:
 
 
 func queue_scroll_to_bottom() -> void:
+	if not stick_to_bottom or scroll_to_bottom_queued:
+		return
+	scroll_to_bottom_queued = true
+	flush_scroll_to_bottom.call_deferred()
+	pass
+
+
+func flush_scroll_to_bottom() -> void:
+	scroll_to_bottom_queued = false
 	if not stick_to_bottom:
 		return
 	var active_chat_list := get_active_chat_list()
@@ -478,7 +474,7 @@ func queue_scroll_to_bottom() -> void:
 	var count := active_chat_list.get_child_count()
 	if count == 0:
 		return
-	chat_scroll.call_deferred("ensure_control_visible", active_chat_list.get_child(count - 1))
+	chat_scroll.ensure_control_visible(active_chat_list.get_child(count - 1))
 	pass
 
 

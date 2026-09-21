@@ -12,7 +12,6 @@ const EXPANDED_HEIGHT_MIN := 88.0
 const EXPANDED_HEIGHT_MAX_RATIO := 0.55
 ## PanelContainer margins (8) between outer wrap and InputInner min height.
 const WRAP_INNER_PADDING := 8.0
-const EXPANDED_MIN_WIDTH := 420.0
 
 var input_bar: Control
 var input_wrap: PanelContainer
@@ -445,8 +444,8 @@ func prepare_field_for_expand_measure() -> void:
 func get_wrap_width(is_expanded: bool) -> float:
 	var bar_width := maxf(input_bar.size.x, 1.0)
 	if not is_expanded:
-		return COLLAPSED_SIZE
-	return maxf(EXPANDED_MIN_WIDTH, bar_width - SIDE_MARGIN * 2.0)
+		return minf(COLLAPSED_SIZE, maxf(1.0, bar_width - SIDE_MARGIN))
+	return maxf(1.0, bar_width - SIDE_MARGIN * 2.0)
 
 
 func get_expanded_height_max() -> float:
