@@ -1,4 +1,4 @@
-﻿class_name GitUtils
+class_name GitUtils
 extends Object
 
 ## Ignores machine-level Git behavior and supplies a non-interactive local identity.
@@ -69,10 +69,16 @@ static func async_execute(command: String) -> OSUtils.ExecResult:
 	return await Git.new().async_execute(command)
 
 
+## Cached positive probe — Git availability only changes across app restarts.
+static var git_installed := false
+
 ## Checks whether the git command is installed and callable in the current environment.
 static func is_git_installed() -> bool:
+	if git_installed:
+		return true
 	var result := OSUtils.execute(PackedStringArray(["git", "--version"]), false)
-	return result.exit_code == 0 and result.output.build_string().contains("git version")
+	git_installed = result.exit_code == 0 and result.output.build_string().contains("git version")
+	return git_installed
 
 # ----------------------------------------------------------------------------------------------------------------------
 static var windows_git_bash_path := ""

@@ -247,10 +247,29 @@ func on_input_action_pressed() -> void:
 		expand_if_collapsed()
 		focus_input_field.call_deferred()
 		return
+	if not ensure_git_installed(session.id):
+		return
 	clear_text()
 	collapse_after_send()
 	await AgentSessionManager.async_send(session.id, text)
 	pass
+
+
+## Blocks the turn when Git is missing and posts an install hint (clickable link) as an agent bubble.
+func ensure_git_installed(session_id: int) -> bool:
+	if GitUtils.is_git_installed():
+		return true
+	AgentSessionManager.add_chat_entry(
+			session_id,
+			ChatEntry.KIND_AGENT,
+			"Git",
+			"Git is required for workspace snapshots and the Bash tool, but it was not found on this machine."
+					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
+					+ "Install it, restart the app, then send again:"
+					+ FileUtils.NEWLINE_LF
+					+ "[https://git-scm.com/downloads](https://git-scm.com/downloads)"
+	)
+	return false
 
 
 ## Re-layout when line count changes (typing, paste, delete). Skip during expand tween.
