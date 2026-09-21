@@ -83,6 +83,20 @@ static func OSUtils_chinese_async_output_test() -> void:
 	pass
 
 
+static func OSUtils_chinese_folder_path_test() -> void:
+	OSUtils.stop_all()
+	var root := ProjectSettings.globalize_path("user://OSUtils_中文目录_" + str(TimeUtils.now()) + "_" + str(randi()))
+	var file_path := root.path_join("fixture.txt")
+	assert(DirAccess.make_dir_recursive_absolute(root) == OK)
+	assert(FileUtils.write_string_to_file(file_path, "OSUtilsChinesePathHello"))
+	var result := await OSUtils.async_execute(chinese_path_argv(file_path), false)
+	var removed := FileUtils.delete_file_or_directory(root)
+	assert(result.exit_code == 0)
+	assert(removed)
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_multiline_output_test() -> void:
 	OSUtils.stop_all()
 	var result := await OSUtils.async_execute(multiline_argv(), false)
@@ -159,6 +173,14 @@ static func command_not_found_argv() -> PackedStringArray:
 	if OSUtils.is_windows():
 		return PackedStringArray(["cmd", "/c", "__godot_osutils_missing_executable__"])
 	return PackedStringArray(["sh", "-c", "__godot_osutils_missing_executable__"])
+
+
+static func chinese_path_argv(file_path: String) -> PackedStringArray:
+	if OSUtils.is_windows():
+		var escaped_path := file_path.replace("'", "''")
+		var script := "$content = Get-Content -LiteralPath '" + escaped_path + "' -Raw; if ($content -ceq 'OSUtilsChinesePathHello') { exit 0 } else { exit 1 }"
+		return PackedStringArray(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script])
+	return PackedStringArray(["grep", "-F", "OSUtilsChinesePathHello", file_path])
 
 
 static func multiline_argv() -> PackedStringArray:
