@@ -2,6 +2,11 @@
 extends Object
 
 
+## Checks whether the git command is installed and callable in the current environment.
+static func is_git_installed() -> bool:
+	var result := OSUtils.execute(PackedStringArray(["git", "--version"]), false)
+	return result.exit_code == 0 and result.output.build_string().contains("git version")
+
 # ----------------------------------------------------------------------------------------------------------------------
 static var windows_git_bash_path := ""
 
