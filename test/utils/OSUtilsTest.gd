@@ -29,6 +29,7 @@ static func OSUtils_split_command_line_test() -> void:
 static func OSUtils_split_command_line_quotes_test() -> void:
 	var argv := OSUtils.split_command_line("git --git-dir \"C:/has space/.gai/checkpoints\" add -A")
 	assert(argv == PackedStringArray(["git", "--git-dir", "C:/has space/.gai/checkpoints", "add", "-A"]))
+	assert(OSUtils.split_command_line("type \"C:/中文 目录/fixture.txt\"") == PackedStringArray(["type", "C:/中文 目录/fixture.txt"]))
 	assert(OSUtils.split_command_line("git commit -m 'two words'") == PackedStringArray(["git", "commit", "-m", "two words"]))
 	assert(OSUtils.split_command_line("git log \"a'b\"") == PackedStringArray(["git", "log", "a'b"]))
 	# Quotes only group arguments; an empty quoted argument is dropped.
