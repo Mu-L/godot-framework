@@ -12,18 +12,10 @@ const RING_COUNT := 3
 ## Integer pixel radii on ICON_DRAW_SIZE canvas (Bresenham outline).
 const RING_RADII: Array[int] = [2, 7, 11]
 
-static var jarvis_orb_enabled: bool = true
-
 var button: Button
 
 
-static func refresh_from_settings() -> void:
-	jarvis_orb_enabled = Setting.get_bool(SETTING_KEY, true)
-	pass
-
-
 func setup(p_button: Button) -> void:
-	refresh_from_settings()
 	button = p_button
 	button.text = ""
 	button.toggled.connect(on_toggled)
@@ -41,9 +33,7 @@ func on_ui_theme_changed() -> void:
 
 
 func apply_theme() -> void:
-	refresh_from_settings()
-	if button == null:
-		return
+	var jarvis_orb_enabled := Setting.get_bool(SETTING_KEY, true)
 	var tooltip := (
 		"Hide run animation"
 		if jarvis_orb_enabled
@@ -89,6 +79,7 @@ func on_mouse_exited() -> void:
 
 
 func update_icon(hovered: bool) -> void:
+	var jarvis_orb_enabled := Setting.get_bool(SETTING_KEY, true)
 	var icon_color := AgentColors.toolbar_muted
 	if jarvis_orb_enabled:
 		var accent := AgentColors.theme_accent_solid()
@@ -148,7 +139,6 @@ func set_icon_pixel(img: Image, x: int, y: int, col: Color) -> void:
 
 
 func on_toggled(enabled: bool) -> void:
-	jarvis_orb_enabled = enabled
 	Setting.set_bool(SETTING_KEY, enabled)
 	Setting.save()
 	apply_theme()
