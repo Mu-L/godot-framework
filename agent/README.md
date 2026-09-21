@@ -1,4 +1,4 @@
-# Code Agent
+# gai Code Agent
 
 A minimal coding agent for Godot projects, inspired by [Pi](https://github.com/earendil-works/pi) — simple layers, four core tools, clear boundaries.
 
@@ -7,8 +7,8 @@ A minimal coding agent for Godot projects, inspired by [Pi](https://github.com/e
 ```
 agent/
 ├── AgentEvents.gd      # Global event bus (like gui/WorkflowEvents)
-├── CodeAgent.tscn      # Runnable Godot scene (F6)
-├── CodeAgent.gd        # Main app — wiring + toolbar / workspace
+├── Agent.tscn          # Runnable Godot scene (F6)
+├── Agent.gd            # Main app — wiring + toolbar / workspace
 ├── loop/               # Agent loop, tool registry
 ├── tools/              # read, write, edit, bash, web_search
 ├── session/            # AgentSession, AgentSessionManager, transcript
@@ -20,7 +20,7 @@ LLM calls go through **`zfoo/ai`** (`ChatMessage`, `OpenAiClient`, `OpenAiComple
 Dependency flow (top → bottom):
 
 ```
-CodeAgent  →  session/AgentSession  →  loop/AgentLoop  →  zfoo/ai/OpenAiClient
+Agent  →  session/AgentSession  →  loop/AgentLoop  →  zfoo/ai/OpenAiClient
                                               ↓
                                          tools/*
 ```
@@ -36,12 +36,12 @@ CodeAgent  →  session/AgentSession  →  loop/AgentLoop  →  zfoo/ai/OpenAiCl
 ## Run
 
 1. Set `OPENAI_API_KEY` (or configure `OpenAiClient.api_key` / `base_url` / `model` in code).
-2. Open `agent/CodeAgent.tscn` in Godot and press **F6** (Run Current Scene).
+2. Open `agent/Agent.tscn` in Godot and press **F6** (Run Current Scene).
 
 Or set main scene temporarily:
 
 ```
-run/main_scene="res://agent/CodeAgent.tscn"
+run/main_scene="res://agent/Agent.tscn"
 ```
 
 ## Tools

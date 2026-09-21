@@ -7,7 +7,10 @@ const ARG_COMMAND := "command"
 
 func _init() -> void:
 	name = NAME
-	description = "Run a Bash command in the project root (Git Bash on Windows). Returns stdout/stderr and exit code."
+	description = """
+		Run a Bash command in the project root (Git Bash on Windows). Returns stdout/stderr and exit code. 
+		When using the timeout command the time limit should generally be set to 30 seconds."
+	"""
 	pass
 
 # AgentTool-Interface-Implement-Start

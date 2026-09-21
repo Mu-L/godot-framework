@@ -1,6 +1,6 @@
 extends Control
 
-## CodeAgent main app — multi-session chat UI.
+## Agent main app — multi-session chat UI.
 
 @onready var toolbar_panel: PanelContainer = $Root/Toolbar
 @onready var toolbar_title: Label = $Root/Toolbar/ToolbarRow/Title

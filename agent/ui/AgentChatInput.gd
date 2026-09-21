@@ -505,7 +505,7 @@ func layout_bar() -> void:
 	input_field.visible = expanded
 	if not expanded:
 		input_field.scroll_fit_content_height = true
-	input_wrap.tooltip_text = "" if expanded else "Click to ask Code Agent…"
+	input_wrap.tooltip_text = "" if expanded else "Click to ask gai Code Agent…"
 	layout_send_button(expanded)
 	style_wrap()
 	layout_border_beam()
