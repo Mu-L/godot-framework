@@ -259,15 +259,17 @@ func on_input_action_pressed() -> void:
 func ensure_git_installed(session_id: int) -> bool:
 	if GitUtils.is_git_installed():
 		return true
+	var url := GitUtils.get_download_url()
 	AgentSessionManager.add_chat_entry(
 			session_id,
 			ChatEntry.KIND_AGENT,
 			"Git",
-			"Git is required for workspace snapshots and the Bash tool, but it was not found on this machine."
-					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-					+ "Install it, restart the app, then send again:"
-					+ FileUtils.NEWLINE_LF
-					+ "[https://git-scm.com/downloads](https://git-scm.com/downloads)"
+			StringUtils.format(
+					"Git doesn't seem to be installed on this machine yet, and the agent needs it to snapshot your workspace and run Bash commands.{}Install it, restart the app, then send your message again: [{}]({})",
+					FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF,
+					url,
+					url
+			)
 	)
 	return false
 

@@ -155,6 +155,14 @@ static func is_windows() -> bool:
 	return OS.get_name().strip_edges().to_lower() == "windows"
 
 
+static func is_mac() -> bool:
+	return OS.get_name().strip_edges().to_lower() == "macos"
+
+
+static func is_linux() -> bool:
+	return OS.get_name().strip_edges().to_lower() == "linux"
+
+
 static func godot_version() -> String:
 	var version_info := Engine.get_version_info()
 	var version_text := str(version_info.get("string", ""))

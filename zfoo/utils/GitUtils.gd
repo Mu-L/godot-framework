@@ -80,6 +80,17 @@ static func is_git_installed() -> bool:
 	git_installed = result.exit_code == 0 and result.output.build_string().contains("git version")
 	return git_installed
 
+
+## Official Git install page for the current platform.
+static func get_download_url() -> String:
+	if OSUtils.is_windows():
+		return "https://git-scm.com/install/windows"
+	if OSUtils.is_mac():
+		return "https://git-scm.com/install/mac"
+	if OSUtils.is_linux():
+		return "https://git-scm.com/install/linux"
+	return "https://git-scm.com"
+
 # ----------------------------------------------------------------------------------------------------------------------
 static var windows_git_bash_path := ""
 

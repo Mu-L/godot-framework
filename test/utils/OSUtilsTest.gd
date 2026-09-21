@@ -3,6 +3,16 @@ static func OSUtils_is_windows_test() -> void:
 	pass
 
 
+static func OSUtils_is_mac_test() -> void:
+	assert(OSUtils.is_mac() == (OS.get_name().strip_edges().to_lower() == "macos"))
+	pass
+
+
+static func OSUtils_is_linux_test() -> void:
+	assert(OSUtils.is_linux() == (OS.get_name().strip_edges().to_lower() == "linux"))
+	pass
+
+
 static func OSUtils_godot_version_test() -> void:
 	assert(StringUtils.is_not_blank(OSUtils.godot_version()))
 	pass

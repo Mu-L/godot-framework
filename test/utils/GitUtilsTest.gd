@@ -22,3 +22,17 @@ static func GitUtils_Git_command_context_test() -> void:
 	assert(git.work_tree == "repo path")
 	assert(git.config == GitUtils.GIT_CONFIG)
 	pass
+
+
+static func GitUtils_get_download_url_test() -> void:
+	var url := GitUtils.get_download_url()
+	assert(url.begins_with("https://git-scm.com/"))
+	if OSUtils.is_windows():
+		assert(url == "https://git-scm.com/install/windows")
+	elif OSUtils.is_mac():
+		assert(url == "https://git-scm.com/install/mac")
+	elif OSUtils.is_linux():
+		assert(url == "https://git-scm.com/install/linux")
+	else:
+		assert(url == "https://git-scm.com/downloads")
+	pass
