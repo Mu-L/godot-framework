@@ -37,7 +37,7 @@ class Events:
 	# Session management
 	signal session_added(session_id: int, title: String)
 	signal session_removed(session_id: int)
-	signal session_selected(session_id: int)
+	signal session_selected(session_id: int, previous_session_id: int)
 	signal session_title_changed(session_id: int, title: String)
 	signal session_resume(session_id: int)
 	signal session_stop(session_id: int)

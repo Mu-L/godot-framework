@@ -123,8 +123,9 @@ static func select_session(session_id: int) -> void:
 	if session == null:
 		session = AgentSession.new(session_id)
 		AgentSessionStore.sessions[session_id] = session
+	var previous_session_id := active_session_id
 	active_session_id = session_id
-	AgentEvents.events.session_selected.emit(session_id)
+	AgentEvents.events.session_selected.emit(session_id, previous_session_id)
 
 
 # ---------------------------------------------------------------------------

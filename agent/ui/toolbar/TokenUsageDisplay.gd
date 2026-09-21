@@ -39,7 +39,7 @@ func on_message_complete(session_id: int, _usage: OpenAiUsage) -> void:
 	pass
 
 
-func refresh(_session_id: int = 0) -> void:
+func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 	if label == null or wrap == null:
 		return
 	var session := AgentSessionStore.load_session(AgentSessionManager.active_session_id)

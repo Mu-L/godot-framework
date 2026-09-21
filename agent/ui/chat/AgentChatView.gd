@@ -13,6 +13,7 @@ var chat_scroll: ScrollContainer
 var chat_host: Control
 
 var chat_list_caches: Dictionary[int, VBoxContainer] = {}
+var scroll_position_caches: Dictionary[int, float] = {}
 var chat_bubble_flusher: ChatBubbleFlusher = ChatBubbleFlusher.new()
 ## When true, new content keeps the transcript scrolled to the latest bubble.
 var stick_to_bottom: bool = true
@@ -52,7 +53,8 @@ func setup(
 # AgentEvents — session lifecycle
 # ---------------------------------------------------------------------------
 
-func on_session_selected(session_id: int) -> void:
+func on_session_selected(session_id: int, previous_session_id: int) -> void:
+	cache_session_scroll(previous_session_id)
 	show_session(session_id)
 	refresh_error_resume_buttons()
 	pass
@@ -60,6 +62,7 @@ func on_session_selected(session_id: int) -> void:
 
 func on_session_removed(session_id: int) -> void:
 	clear_bubble_list(session_id)
+	scroll_position_caches.erase(session_id)
 	pass
 
 
@@ -113,8 +116,11 @@ func on_chat_bubble_flushed() -> void:
 
 
 func on_chat_truncated(session_id: int) -> void:
+	var is_active := AgentSessionManager.is_active(session_id)
+	if is_active:
+		cache_session_scroll(session_id)
 	clear_bubble_list(session_id)
-	if AgentSessionManager.is_active(session_id):
+	if is_active:
 		show_session(session_id)
 	pass
 
@@ -125,8 +131,11 @@ func on_chat_truncated(session_id: int) -> void:
 
 ## Re-render the transcript after a context prompt (skill index / AGENTS.md) is added or removed.
 func on_agent_context_changed(session_id: int) -> void:
+	var is_active := AgentSessionManager.is_active(session_id)
+	if is_active:
+		cache_session_scroll(session_id)
 	clear_bubble_list(session_id)
-	if AgentSessionManager.is_active(session_id):
+	if is_active:
 		show_session(session_id)
 	pass
 
@@ -165,9 +174,9 @@ func show_session(session_id: int) -> void:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
 		return
+	var has_cached_scroll := scroll_position_caches.has(session_id)
 
 	# One bubble list per session — create on first open, reuse on later switches.
-	var is_first_open := not chat_list_caches.has(session_id)
 	var list: VBoxContainer = chat_list_caches.get(session_id)
 	if list == null:
 		list = VBoxContainer.new()
@@ -184,13 +193,12 @@ func show_session(session_id: int) -> void:
 	else:
 		sync_new_entries(session)
 
-	if is_first_open:
-		stick_to_bottom = true
-		queue_scroll_to_bottom_after_layout()
+	queue_restore_session_scroll_after_layout(session_id, has_cached_scroll)
 	pass
 
 
 func rebuild(session_id: int) -> void:
+	cache_session_scroll(session_id)
 	clear_all_bubble_lists()
 	show_session(session_id)
 	pass
@@ -403,6 +411,16 @@ func reset_stick_to_bottom() -> void:
 	pass
 
 
+func cache_session_scroll(session_id: int) -> void:
+	if not AgentSessionManager.has_index(session_id):
+		return
+	var vbar := chat_scroll.get_v_scroll_bar()
+	if vbar == null:
+		return
+	scroll_position_caches[session_id] = vbar.value
+	pass
+
+
 func on_chat_scroll_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
@@ -464,13 +482,28 @@ func queue_scroll_to_bottom() -> void:
 	pass
 
 
-## First open may fill many bubbles; wait one frame so layout height is ready before scrolling.
-func queue_scroll_to_bottom_after_layout() -> void:
+## Wait one frame for the selected list to establish its scroll range, then restore it.
+func queue_restore_session_scroll_after_layout(session_id: int, has_cached_scroll: bool) -> void:
 	var tree := chat_scroll.get_tree()
 	if tree == null:
-		queue_scroll_to_bottom()
+		restore_session_scroll(session_id, has_cached_scroll)
 		return
 	tree.process_frame.connect(func() -> void:
-		queue_scroll_to_bottom()
+		restore_session_scroll(session_id, has_cached_scroll)
 	, CONNECT_ONE_SHOT)
+	pass
+
+
+func restore_session_scroll(session_id: int, has_cached_scroll: bool) -> void:
+	if not AgentSessionManager.is_active(session_id):
+		return
+	if not has_cached_scroll:
+		stick_to_bottom = true
+		queue_scroll_to_bottom()
+		return
+	var vbar := chat_scroll.get_v_scroll_bar()
+	if vbar == null:
+		return
+	var cached_position: float = scroll_position_caches.get(session_id, 0.0)
+	vbar.value = clampf(cached_position, vbar.min_value, vbar.max_value - vbar.page)
 	pass

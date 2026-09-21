@@ -137,7 +137,7 @@ func refresh_border_beam() -> void:
 	pass
 
 
-func on_session_selected(_session_id: int) -> void:
+func on_session_selected(_session_id: int, _previous_session_id: int) -> void:
 	refresh_from_active_session()
 	pass
 

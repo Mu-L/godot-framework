@@ -171,7 +171,7 @@ func refresh_all_row_styles() -> void:
 	pass
 
 
-func select_item(session_id: int) -> void:
+func select_item(session_id: int, _previous_session_id: int = 0) -> void:
 	refresh_item(session_id)
 	refresh_all_row_styles()
 	pass

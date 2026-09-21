@@ -147,7 +147,7 @@ func on_session_stop(session_id: int) -> void:
 	pass
 
 
-func on_session_selected(_session_id: int) -> void:
+func on_session_selected(_session_id: int, _previous_session_id: int) -> void:
 	var running := AgentSessionManager.is_active(running_session_id) and AgentSessionManager.is_running(running_session_id)
 	set_orb_visible(running, false)
 	pass
