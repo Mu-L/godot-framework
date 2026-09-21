@@ -669,8 +669,12 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	return label
 
 
+## Chat / markdown body label. Selection is click-focus based: the label takes focus on
+## click and drops the highlight on focus loss, so callers only hand focus back to clear
+## a stale selection (see [method AgentChatView.drop_bubble_focus_outside]).
 static func configure_rich_text_label(label: RichTextLabel, text_color: Color) -> void:
 	label.selection_enabled = true
+	label.deselect_on_focus_loss_enabled = true
 	label.scroll_active = false
 	label.fit_content = true
 	label.clip_contents = false
