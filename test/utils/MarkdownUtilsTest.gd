@@ -159,6 +159,17 @@ func url_with_parens_test() -> void:
 	pass
 
 
+func link_label_blue_test() -> void:
+	var bbcode := MarkdownUtils.inline_to_bbcode("[hi](https://a.com)")
+	assert(
+			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownUtils.LINK_TEXT_COLOR
+	)
+	var bold_label := MarkdownUtils.inline_to_bbcode("[**hi**](https://a.com)")
+	assert("[b]hi[/b]" in bold_label)
+	assert("[/color][/url]" in bold_label)
+	pass
+
+
 func crlf_normalized_test() -> void:
 	var bbcode := MarkdownUtils.to_bbcode("# Title\r\n\r\n**bold**")
 	assert("[font_size=32]" in bbcode)

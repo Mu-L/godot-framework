@@ -264,11 +264,11 @@ func ensure_git_installed(session_id: int) -> bool:
 			session_id,
 			ChatEntry.KIND_AGENT,
 			"Git",
-			"Git is not installed. The agent uses it to snapshot your workspace and run shell commands."
-					+ FileUtils.NEWLINE_LF
-					+ "Install it, then restart the app."
-					+ FileUtils.NEWLINE_LF
-					+ StringUtils.format("[{}]({})", url, url)
+			"Git is not installed. Install it, then restart the app."
+					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
+					+ "The agent uses git to snapshot your workspace and run shell commands."
+					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
+					+ StringUtils.format("Download: [{}]({})", url, url)
 	)
 	return false
 

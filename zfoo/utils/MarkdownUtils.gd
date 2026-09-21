@@ -17,7 +17,7 @@ extends Object
 ## `***both***`           → `[b][i]both[/i][/b]`
 ## `~~strike~~`           → `[s]strike[/s]`
 ## `<u>text</u>`          → `[u]text[/u]` (inline HTML, not CommonMark)
-## `[label](url)`         → `[url=url]label[/url]`
+## `[label](url)`         → `[url=url][color=…]label[/color][/url]` (label is blue)
 ## `![alt](url)`          → `[img]url[/img]`
 ## GFM `\| col \|` table  → `[table=N][cell border=…]…[/cell][/table]` (header row bold + bg)
 ## leftover `[` / `]`     → `[lb]` / `[rb]` (incl. literal `[b]`, `[url=…]`)
@@ -50,6 +50,9 @@ const TABLE_CELL_PADDING := "8,4,8,4"
 const CODE_BLOCK_BG := "#121418"
 const CODE_BLOCK_PADDING := "6,6,6,6"
 const BLOCKQUOTE_BAR := "#59a5f2"
+# RichTextLabel has no link theme color (its `[url]` body inherits `default_color`),
+# so link labels carry the blue markdown readers expect.
+const LINK_TEXT_COLOR := "#59a5f2"
 const BLOCKQUOTE_TEXT := "#8c919e"
 # Dest allows one `(...)` nest (Wikipedia). Title is optional `"..."` / `'...'`.
 const LINK_DEST := "((?:<[^>]+>|[^()\\s]+|\\([^)]*\\))+)"
@@ -503,14 +506,17 @@ static func apply_inline(text: String, parts: Array[String]) -> String:
 				var url := escape_bbcode_literals(parse_link_destination(m.get_string(2)))
 				return protect(parts, StringUtils.format("[img]{}[/img]", url))
 	)
-	# [label](url "title") → [url=url]label[/url]
+	# [label](url "title") → [url=url][color]label[/color][/url]
 	s = regex_sub(
 			s,
 			re_link,
 			func(m: RegExMatch) -> String:
 				var label := inline_body(m.get_string(1), parts)
 				var url := escape_bbcode_literals(parse_link_destination(m.get_string(2)))
-				return protect(parts, StringUtils.format("[url={}]{}[/url]", url, label))
+				return protect(
+						parts,
+						StringUtils.format("[url={}][color={}]{}[/color][/url]", url, LINK_TEXT_COLOR, label)
+				)
 	)
 	# `__init__` would otherwise become `[b]init[/b]` (and then `_init_` italic).
 	s = regex_sub(
@@ -720,11 +726,6 @@ static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, mar
 			label.bbcode_enabled = false
 		label.text = raw_text
 	sync_body_label_width(label, content_width)
-	pass
-
-
-static func append_body_text(label: RichTextLabel, delta: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> void:
-	set_rich_text_label_text(label, get_raw_body_from_rich_text_label(label) + delta, markdown_enabled, content_width, code_block_bg)
 	pass
 
 
