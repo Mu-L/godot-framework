@@ -265,7 +265,7 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	select_button.pressed.connect(on_session_row_pressed.bind(session_id))
 	bind_row_hover(select_button, session_id)
 
-	# Animated flame stays visible even when a long title is ellipsized.
+	# Animated wave stays visible even when a long title is ellipsized.
 	var run_fx := SessionRowRunFx.new()
 	run_fx.set_running(AgentSessionManager.is_running(session_id))
 
@@ -379,7 +379,7 @@ func style_session_row(session_id: int, selected: bool) -> void:
 
 
 ## Running state is no longer baked into the label text (ellipsis ate the marker);
-## it is shown by the `SessionRowRunFx` flame next to the close button.
+## it is shown by the `SessionRowRunFx` wave next to the close button.
 func format_session_label(_session_id: int, title: String) -> String:
 	return title
 
@@ -604,23 +604,28 @@ class SessionRowSciFiFx extends ColorRect:
 
 
 # ---------------------------------------------------------------------------
-# Running flame (drawn, animated; color follows the theme accent)
+# Running wave (drawn, animated; color follows the theme accent)
 # ---------------------------------------------------------------------------
 
-## Small burning / hopping flame placed left of the close button while a session runs.
+## Small flowing sine wave placed left of the close button while a session runs.
 ## Drawn in code so it always reflects the live theme accent and never gets ellipsized.
 class SessionRowRunFx extends Control:
 	const MIN_SIZE := Vector2(14, 20)
-	## Vertical samples per side of the flame silhouette.
-	const SEGMENTS := 10
-	const EMBER_COUNT := 3
-	## Inner padding that keeps flicker + embers inside the control rect.
-	const PAD := 1.5
-	## Hop cycles per second and the matching flicker speed.
-	const HOP_SPEED := 5.4
-	const FLICKER_SPEED := 8.6
-	## Fraction of the usable height the flame body spans.
-	const BODY_RATIO := 0.78
+	## Horizontal distance between samples, and the padding that keeps the stroked
+	## line inside the control rect.
+	const SAMPLE_STEP := 1.0
+	const PAD := 1.6
+	## Wave shape: radians per pixel and the base amplitude in pixels.
+	const WAVE_SCALE := 0.72
+	const AMPLITUDE := 4.2
+	## Scroll speed in radians per second (about one wavelength per second).
+	const FLOW_SPEED := 6.0
+	## Amplitude breathing, so the stream does not look like a static graph.
+	const BREATH_SPEED := 2.1
+	const BREATH_DEPTH := 0.08
+	## Beading along the wave reads as packets travelling downstream.
+	const PACKET_STEP := 3
+	const PACKET_RADIUS := 1.0
 
 	var phase := 0.0
 
@@ -635,100 +640,50 @@ class SessionRowRunFx extends Control:
 
 
 	func set_running(running: bool) -> void:
+		var was_running := visible
 		visible = running
 		set_process(running)
+		if running and not was_running:
+			phase = 0.0
 		queue_redraw()
 		pass
 
 
 	func _process(delta: float) -> void:
-		phase = fposmod(phase + delta, 64.0)
+		phase = fposmod(phase + delta * FLOW_SPEED, TAU * 512.0)
 		queue_redraw()
 		pass
 
 
 	func _draw() -> void:
-		var span_y := size.y - PAD * 2.0
-		if span_y <= 2.0 or size.x - PAD * 2.0 <= 2.0:
+		if size.x - PAD * 2.0 <= 2.0 or size.y <= PAD * 2.0:
 			return
 		var accent := AgentColors.theme_accent_solid()
-		var dark := ThemeColor.is_dark_theme()
-		var core := accent.lightened(0.45) if dark else accent.lightened(0.18)
-		# Burning: the halo around the flame breathes.
-		var glow_alpha := (0.32 if dark else 0.22) * (0.85 + 0.30 * sin(phase * 9.3))
-
-		var pose := flame_pose()
-		var base: Vector2 = pose["base"]
-		var body_h: float = pose["body_h"]
-		var sway: float = pose["sway"]
-		# Every layer burns on the wick; the shorter and thinner ones are the hot core.
-		draw_polygon(build_layer(base, body_h, sway, 1.0, 1.0), PackedColorArray([with_alpha(accent, glow_alpha)]))
-		draw_polygon(build_layer(base, body_h, sway, 0.84, 0.72), PackedColorArray([accent]))
-		draw_polygon(build_layer(base, body_h, sway, 0.55, 0.40), PackedColorArray([core]))
-		draw_embers(accent, base, body_h)
+		var points := wave_points()
+		# Glow pass keeps the thin stroke readable on either theme.
+		draw_polyline(points, with_alpha(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 3.0, true)
+		draw_polyline(points, accent, 1.8, true)
+		draw_packets(accent, points)
 		pass
 
 
-	## Current hop / flicker / sway state of the flame; `base` is the spot it burns on.
-	func flame_pose() -> Dictionary:
-		var span_y := size.y - PAD * 2.0
-		# Hop: the flame jumps off the wick, then settles back down.
-		var lift := absf(sin(phase * HOP_SPEED)) * span_y * 0.10
-		# Flicker: the silhouette breathes faster than the hop, plus a gentle sway.
-		var stretch := 1.0 + 0.10 * sin(phase * FLICKER_SPEED + 0.6)
-		var sway := sin(phase * 3.2) * size.x * 0.05
-		return {
-			"base": Vector2(size.x * 0.5 + sway * 0.5, size.y - PAD - lift),
-			"body_h": span_y * BODY_RATIO * stretch,
-			"sway": sway,
-		}
-
-
-	## One flame layer growing up from the wick.
-	func build_layer(base: Vector2, body_h: float, sway: float, height_scale: float, width_scale: float) -> PackedVector2Array:
-		var tip := Vector2(base.x, base.y - body_h * height_scale)
-		return build_flame(body_h * height_scale, sway, width_scale, tip)
-
-
-	## Teardrop silhouette: pointed tip on `origin`, flaring towards the base.
-	func build_flame(body_h: float, sway: float, width_scale: float, origin: Vector2) -> PackedVector2Array:
-		var half := (size.x - PAD * 2.0) * 0.42 * width_scale
+	## Traveling sine sampled across the whole control width.
+	func wave_points() -> PackedVector2Array:
+		var amplitude := AMPLITUDE * (1.0 + BREATH_DEPTH * sin(phase * BREATH_SPEED))
+		var center_y := size.y * 0.5
 		var points := PackedVector2Array()
-		points.append(origin)
-		for index in range(1, SEGMENTS + 1):
-			points.append(flame_edge(index, body_h, sway, origin, half, 1.0))
-		for index in range(SEGMENTS, 0, -1):
-			points.append(flame_edge(index, body_h, sway, origin, half, -1.0))
+		var x := PAD
+		while x <= size.x - PAD:
+			points.append(Vector2(x, center_y + sin(x * WAVE_SCALE - phase) * amplitude))
+			x += SAMPLE_STEP
 		return points
 
 
-	func flame_edge(index: int, body_h: float, sway: float, origin: Vector2, half: float, side: float) -> Vector2:
-		var t := float(index) / float(SEGMENTS)
-		var profile := pow(t, 0.6) * (1.0 - 0.18 * t)
-		var wobble := sin(t * 3.6 - phase * 5.6) * half * 0.20 * t
-		var x := origin.x + side * (half * profile + wobble) + sway * t * 0.5
-		return Vector2(x, origin.y + body_h * t)
-
-
-	## A few sparks drifting up through the flame body.
-	func draw_embers(accent: Color, base: Vector2, body_h: float) -> void:
-		for index in range(EMBER_COUNT):
-			var ember := ember_state(index, base, body_h)
-			var position: Vector2 = ember["position"]
-			draw_circle(position, ember["radius"], with_alpha(accent.lightened(0.35), ember["alpha"]))
+	## Bright beads on the samples, giving the wave a sense of flow.
+	func draw_packets(accent: Color, points: PackedVector2Array) -> void:
+		for index in range(0, points.size(), PACKET_STEP):
+			draw_circle(points[index], PACKET_RADIUS, with_alpha(accent.lightened(0.35), 0.55))
 		pass
-
-
-	## Sparks travel from the wick towards the tip and converge as they fade.
-	func ember_state(index: int, base: Vector2, body_h: float) -> Dictionary:
-		var cycle := fposmod(phase * 0.8 + float(index) * 0.33, 1.0)
-		var x := base.x + sin(phase * 2.3 + float(index) * 2.1) * size.x * 0.14 * (1.0 - cycle * 0.6)
-		var y := base.y - body_h * cycle * 0.95
-		return {
-			"position": Vector2(x, y),
-			"radius": maxf(0.6, 1.5 * (1.0 - cycle)),
-			"alpha": (1.0 - cycle) * 0.75,
-		}
 
 
 	func with_alpha(color: Color, alpha: float) -> Color:
