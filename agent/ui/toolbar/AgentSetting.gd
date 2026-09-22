@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection settings.
 
 const DIALOG_WIDTH := 580
-const DIALOG_HEIGHT := 560
+const DIALOG_HEIGHT := 690
 const SETTINGS_ICON_PATH := "res://agent/asset/image/icon/settings.svg"
 const SVG_BASE_COLOR := "#8B949E"
 
@@ -13,6 +13,7 @@ var dialog: ConfirmationDialog
 var content_panel: PanelContainer
 var heading_label: Label
 var description_label: Label
+var provider_select: OptionButton
 var api_url_edit: LineEdit
 var model_edit: LineEdit
 var api_token_edit: LineEdit
@@ -80,13 +81,39 @@ func build_dialog(dialog_parent: Node) -> void:
 	fields.add_child(description_label)
 	var separator := HSeparator.new()
 	fields.add_child(separator)
+	provider_select = add_provider_field(fields)
 	api_url_edit = add_field(fields, "API endpoint", "https://api.example.com/v1/chat/completions", "Full chat-completions endpoint URL")
 	model_edit = add_field(fields, "Model", ApiSetting.DEFAULT_MODEL, "Model sent with each request")
 	api_token_edit = add_token_field(fields)
 	api_token_edit.secret = true
 	api_token_edit.secret_character = "*"
-	proxy_address_edit = add_field(fields, "Proxy", "http://127.0.0.1:7890", "Optional HTTP/HTTPS proxy")
+	proxy_address_edit = add_field(fields, "Proxy", "http://127.0.0.1:10809", "Optional HTTP/HTTPS proxy")
 	pass
+
+
+func add_provider_field(parent: VBoxContainer) -> OptionButton:
+	var group := VBoxContainer.new()
+	group.add_theme_constant_override("separation", 7)
+	parent.add_child(group)
+	var label := Label.new()
+	label.text = "Provider"
+	label.add_theme_font_size_override("font_size", 13)
+	field_labels.append(label)
+	group.add_child(label)
+	var select := OptionButton.new()
+	select.custom_minimum_size = Vector2(0, 38)
+	select.add_item(ApiSupport.CUSTOM_PROVIDER)
+	for provider: ApiProvider in ApiSupport.PROVIDERS:
+		select.add_item(provider.name)
+	select.item_selected.connect(on_provider_selected)
+	select.get_popup().popup_hide.connect(on_provider_popup_hide)
+	group.add_child(select)
+	var help := Label.new()
+	help.text = "Selecting a provider fills the endpoint and recommended model"
+	help.add_theme_font_size_override("font_size", 11)
+	help_labels.append(help)
+	group.add_child(help)
+	return select
 
 
 func add_field(parent: Container, label_text: String, placeholder: String, help_text: String) -> LineEdit:
@@ -147,6 +174,7 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 func on_button_pressed() -> void:
 	api_url_edit.text = ApiSetting.get_api_url()
 	model_edit.text = ApiSetting.get_model()
+	provider_select.select(0)
 	api_token_edit.text = ApiSetting.get_api_token()
 	proxy_address_edit.text = ApiSetting.get_proxy_address()
 	api_token_edit.secret = true
@@ -154,12 +182,36 @@ func on_button_pressed() -> void:
 	var dialog_size := Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
 	dialog.popup_centered(dialog_size)
 	dialog.size = dialog_size
-	api_url_edit.grab_focus()
+	provider_select.grab_focus()
+	pass
+
+
+func on_provider_selected(selected_index: int) -> void:
+	if selected_index <= 0:
+		return
+	var provider: ApiProvider = ApiSupport.get_provider(selected_index - 1)
+	if provider == null:
+		return
+	api_url_edit.text = provider.api_url
+	model_edit.text = provider.model
 	pass
 
 
 func on_dialog_focus_exited() -> void:
-	dialog.hide()
+	check_dialog_focus.call_deferred()
+	pass
+
+
+func on_provider_popup_hide() -> void:
+	check_dialog_focus.call_deferred()
+	pass
+
+
+func check_dialog_focus() -> void:
+	if not dialog.visible or provider_select.get_popup().visible:
+		return
+	if not dialog.has_focus():
+		dialog.hide()
 	pass
 
 
@@ -231,9 +283,65 @@ func style_dialog() -> void:
 		help.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		style_line_edit(edit)
+	style_option_button(provider_select)
 	style_secondary_button(token_visibility_button)
 	style_secondary_button(dialog.get_cancel_button())
 	style_primary_button(dialog.get_ok_button())
+	pass
+
+
+func style_option_button(select: OptionButton) -> void:
+	select.add_theme_color_override("font_color", AgentColors.chat_text)
+	select.add_theme_color_override("font_hover_color", AgentColors.chat_text)
+	select.add_theme_color_override("font_pressed_color", AgentColors.chat_text)
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = AgentColors.chat_input
+	normal.border_color = AgentColors.chat_input_border
+	normal.set_border_width_all(1)
+	normal.set_corner_radius_all(7)
+	normal.content_margin_left = 12
+	normal.content_margin_right = 12
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.border_color = AgentColors.theme_accent_solid()
+	select.add_theme_stylebox_override("normal", normal)
+	select.add_theme_stylebox_override("hover", hover)
+	select.add_theme_stylebox_override("pressed", hover.duplicate())
+	select.add_theme_stylebox_override("focus", hover.duplicate())
+	style_provider_popup(select.get_popup())
+	pass
+
+
+func style_provider_popup(popup: PopupMenu) -> void:
+	popup.add_theme_color_override("font_color", AgentColors.chat_text)
+	popup.add_theme_color_override("font_hover_color", AgentColors.chat_text)
+	popup.add_theme_color_override("font_accelerator_color", AgentColors.chat_text_muted)
+	popup.add_theme_color_override("font_disabled_color", AgentColors.chat_text_muted)
+	popup.add_theme_color_override("font_separator_color", AgentColors.chat_text_muted)
+	popup.add_theme_font_size_override("font_size", 14)
+	popup.add_theme_constant_override("v_separation", 6)
+	popup.add_theme_constant_override("item_start_padding", 12)
+	popup.add_theme_constant_override("item_end_padding", 12)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = AgentColors.panel
+	panel_style.border_color = AgentColors.chat_input_border
+	panel_style.set_border_width_all(1)
+	panel_style.set_corner_radius_all(7)
+	panel_style.content_margin_left = 4
+	panel_style.content_margin_right = 4
+	panel_style.content_margin_top = 5
+	panel_style.content_margin_bottom = 5
+	popup.add_theme_stylebox_override("panel", panel_style)
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = AgentColors.theme_selection_bg()
+	hover_style.set_corner_radius_all(5)
+	hover_style.content_margin_left = 8
+	hover_style.content_margin_right = 8
+	popup.add_theme_stylebox_override("hover", hover_style)
+	var empty_icon := ImageTexture.new()
+	popup.add_theme_icon_override("radio_checked", empty_icon)
+	popup.add_theme_icon_override("radio_unchecked", empty_icon)
+	popup.add_theme_icon_override("checked", empty_icon)
+	popup.add_theme_icon_override("unchecked", empty_icon)
 	pass
 
 
