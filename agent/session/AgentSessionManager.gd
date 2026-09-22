@@ -3,9 +3,6 @@ extends RefCounted
 
 ## Manages multiple agent sessions and the active selection.
 
-## Sidebar title cap for the first user prompt.
-const TITLE_MAX := 32
-
 static var session_indexes := AgentSessionIndexes.new()
 ## Selected session. 0 only before [method load_from_disk]; from then on this is always a live session id.
 static var active_session_id: int = 0
@@ -228,13 +225,15 @@ static func has_chat_history(session_id: int) -> bool:
 # ---------------------------------------------------------------------------
 
 ## First user prompt becomes the sidebar title; later turns leave it unchanged.
+## The full prompt is kept — the sidebar cuts the label to the row width at draw time,
+## so a wider sidebar simply shows more of it.
 static func set_title_from_prompt(session_id: int, prompt: String) -> void:
 	if has_chat_history(session_id):
 		return
 	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
-	var title := StringUtils.truncate(prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " "), TITLE_MAX)
+	var title := prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " ")
 	session_index.title = title
 	AgentEvents.events.session_title_changed.emit(session_id, title)
 	pass

@@ -5,6 +5,9 @@ extends RefCounted
 
 ## Alpha of the floating row copy that follows the cursor while dragging.
 const DRAG_GHOST_ALPHA := 0.92
+## Close button and the running wave share this slot, so swapping them while a run
+## starts / stops never changes the row width (and never re-ellipsizes the title).
+const ROW_ACTION_SIZE := Vector2(28, 28)
 
 var session_list_root: VBoxContainer
 var pinned_header: Label
@@ -162,8 +165,17 @@ func refresh_item(session_id: int) -> void:
 	if select_button != null:
 		select_button.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
 	var run_fx: SessionRowRunFx = row_panel.get_meta("run_fx")
-	if run_fx != null:
-		run_fx.set_running(AgentSessionManager.is_running(session_id))
+	var delete_button: Button = row_panel.get_meta("delete_button")
+	if run_fx != null and delete_button != null:
+		apply_run_state(run_fx, delete_button, AgentSessionManager.is_running(session_id))
+	pass
+
+
+## Running sessions show the wave where the close button normally sits — same slot size,
+## so the row width (and the title's ellipsis) stays put across run start / stop.
+func apply_run_state(run_fx: SessionRowRunFx, delete_button: Button, running: bool) -> void:
+	run_fx.set_running(running)
+	delete_button.visible = not running
 	pass
 
 
@@ -261,22 +273,24 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	select_button.focus_mode = Control.FOCUS_NONE
 	select_button.flat = true
 	select_button.mouse_default_cursor_shape = Control.CURSOR_MOVE
-	select_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	select_button.pressed.connect(on_session_row_pressed.bind(session_id))
 	bind_row_hover(select_button, session_id)
+	# Cut at the row width, character by character, without an ellipsis.
+	select_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
 
-	# Animated wave stays visible even when a long title is ellipsized.
+	# The wave takes the close button's slot while this session runs.
 	var run_fx := SessionRowRunFx.new()
-	run_fx.set_running(AgentSessionManager.is_running(session_id))
+	run_fx.custom_minimum_size = ROW_ACTION_SIZE
 
 	var delete_button := Button.new()
 	delete_button.text = "×"
 	delete_button.tooltip_text = "Delete chat"
-	delete_button.custom_minimum_size = Vector2(28, 28)
+	delete_button.custom_minimum_size = ROW_ACTION_SIZE
 	delete_button.focus_mode = Control.FOCUS_NONE
 	delete_button.flat = true
 	delete_button.pressed.connect(on_session_delete_pressed.bind(session_id))
 	bind_row_hover(delete_button, session_id)
+	apply_run_state(run_fx, delete_button, AgentSessionManager.is_running(session_id))
 
 	# Whole row (padding, title, close button) is a drag handle and a drop target.
 	bind_row_drag(row_panel, session_id)
@@ -378,8 +392,8 @@ func style_session_row(session_id: int, selected: bool) -> void:
 	pass
 
 
-## Running state is no longer baked into the label text (ellipsis ate the marker);
-## it is shown by the `SessionRowRunFx` wave next to the close button.
+## Running state is not part of the label text; it is shown by the `SessionRowRunFx`
+## wave that takes the close button's slot.
 func format_session_label(_session_id: int, title: String) -> String:
 	return title
 
@@ -417,7 +431,7 @@ func build_drag_ghost(session_id: int, row_panel: PanelContainer) -> Control:
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	copy_row_font(label, row_panel)
 	ghost.add_child(label)
@@ -607,17 +621,17 @@ class SessionRowSciFiFx extends ColorRect:
 # Running wave (drawn, animated; color follows the theme accent)
 # ---------------------------------------------------------------------------
 
-## Small flowing sine wave placed left of the close button while a session runs.
-## Drawn in code so it always reflects the live theme accent and never gets ellipsized.
+## Small flowing sine wave shown in place of the close button while a session runs.
+## Drawn in code so it always reflects the live theme accent.
+## It shares the close button's slot size, so the swap costs no extra row width.
 class SessionRowRunFx extends Control:
-	const MIN_SIZE := Vector2(14, 20)
 	## Horizontal distance between samples, and the padding that keeps the stroked
 	## line inside the control rect.
 	const SAMPLE_STEP := 1.0
 	const PAD := 1.6
 	## Wave shape: radians per pixel and the base amplitude in pixels.
 	const WAVE_SCALE := 0.72
-	const AMPLITUDE := 4.2
+	const AMPLITUDE := 5.5
 	## Scroll speed in radians per second (about one wavelength per second).
 	const FLOW_SPEED := 6.0
 	## Amplitude breathing, so the stream does not look like a static graph.
@@ -628,22 +642,24 @@ class SessionRowRunFx extends Control:
 	const PACKET_RADIUS := 1.0
 
 	var phase := 0.0
+	var running := false
 
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		custom_minimum_size = MIN_SIZE
 		size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		visible = false
 		set_process(false)
 		pass
 
 
-	func set_running(running: bool) -> void:
-		var was_running := visible
-		visible = running
-		set_process(running)
-		if running and not was_running:
+	func set_running(value: bool) -> void:
+		if running == value:
+			return
+		running = value
+		visible = value
+		set_process(value)
+		if value:
 			phase = 0.0
 		queue_redraw()
 		pass
