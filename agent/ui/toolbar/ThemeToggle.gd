@@ -18,13 +18,8 @@ func setup(p_button: Button) -> void:
 	button.pressed.connect(on_pressed)
 	button.mouse_entered.connect(on_mouse_entered)
 	button.mouse_exited.connect(on_mouse_exited)
-	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
-	apply_theme()
-	pass
-
-
-func on_ui_theme_changed() -> void:
+	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_color_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

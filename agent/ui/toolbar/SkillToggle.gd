@@ -11,8 +11,8 @@ var button: Button
 func setup(p_button: Button) -> void:
 	button = p_button
 	button.toggled.connect(on_toggled)
-	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_changed.connect(refresh_toggle_button)
+	AgentEvents.events.theme_color_changed.connect(refresh_toggle_button)
 	AgentEvents.events.session_added.connect(on_session_added)
 	refresh_toggle_button()
 	pass
@@ -60,11 +60,6 @@ static func remove_skill_context(session_id: int) -> void:
 		if entry.kind != ChatEntry.KIND_SKILL:
 			kept_entries.append(entry)
 	session.chat_entries = kept_entries
-	pass
-
-
-func on_ui_theme_changed() -> void:
-	refresh_toggle_button()
 	pass
 
 

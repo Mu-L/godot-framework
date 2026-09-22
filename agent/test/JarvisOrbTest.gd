@@ -33,7 +33,7 @@ func _ready() -> void:
 	setup_demo_session()
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
-	AgentEvents.events.theme_changed.connect(on_theme_changed)
+	AgentEvents.events.theme_changed.connect(apply_scene_theme)
 	apply_scene_theme()
 	play_button.pressed.connect(on_play_demo_pressed)
 	stop_button.pressed.connect(on_stop_pressed)
@@ -42,11 +42,6 @@ func _ready() -> void:
 	tool_button.pressed.connect(on_tool_pressed)
 	error_button.pressed.connect(on_error_end_pressed)
 	set_status("按 Play Demo 自动播放完整流程，或用下方按钮单步触发。")
-	pass
-
-
-func on_theme_changed() -> void:
-	apply_scene_theme()
 	pass
 
 

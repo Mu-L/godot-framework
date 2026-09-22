@@ -49,19 +49,14 @@ func setup(
 	AgentEvents.events.session_title_changed.connect(on_session_refresh)
 	AgentEvents.events.agent_start.connect(on_session_refresh)
 	AgentEvents.events.session_stop.connect(on_session_refresh)
-	AgentEvents.events.theme_changed.connect(on_ui_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_ui_theme_changed)
+	AgentEvents.events.theme_changed.connect(apply_theme)
+	AgentEvents.events.theme_color_changed.connect(apply_theme)
 	pinned_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	normal_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	bind_list_drop(pinned_list, true)
 	bind_list_drop(pinned_header, true)
 	bind_list_drop(normal_list, false)
 	bind_list_drop(normal_header, false)
-	apply_theme()
-	pass
-
-
-func on_ui_theme_changed() -> void:
 	apply_theme()
 	pass
 
@@ -182,9 +177,12 @@ func refresh_all_row_styles() -> void:
 	pass
 
 
-func select_item(session_id: int, _previous_session_id: int = 0) -> void:
+## Only the row that lost the selection and the one that gained it need a restyle —
+## the rest are already styled when they are built.
+func select_item(session_id: int, previous_session_id: int = 0) -> void:
 	refresh_item(session_id)
-	refresh_all_row_styles()
+	style_session_row(previous_session_id)
+	style_session_row(session_id)
 	pass
 
 
@@ -673,11 +671,11 @@ class SessionRowRunFx extends Control:
 		var accent := AgentColors.theme_accent_solid()
 		var points := wave_points()
 		# Glow pass keeps the thin stroke readable on either theme.
-		draw_polyline(points, with_alpha(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
+		draw_polyline(points, Color(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
 		draw_polyline(points, accent, 0.8, true)
 		# Bright beads on the samples, giving the wave a sense of flow.
 		for index in range(0, points.size(), PACKET_STEP):
-			draw_circle(points[index], PACKET_RADIUS, with_alpha(accent.lightened(0.35), 0.55))
+			draw_circle(points[index], PACKET_RADIUS, Color(accent.lightened(0.35), 0.55))
 		pass
 
 
@@ -691,7 +689,3 @@ class SessionRowRunFx extends Control:
 			points.append(Vector2(x, center_y + sin(x * WAVE_SCALE - phase) * amplitude))
 			x += SAMPLE_STEP
 		return points
-
-
-	func with_alpha(color: Color, alpha: float) -> Color:
-		return Color(color.r, color.g, color.b, alpha)

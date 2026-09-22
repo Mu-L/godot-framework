@@ -69,8 +69,8 @@ func _ready() -> void:
 	theme_toggle.setup(theme_toggle_button)
 	style_log_button()
 	log_button.pressed.connect(on_log_pressed)
-	AgentEvents.events.theme_changed.connect(on_log_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_log_theme_changed)
+	AgentEvents.events.theme_changed.connect(style_log_button)
+	AgentEvents.events.theme_color_changed.connect(style_log_button)
 
 	AgentSessionManager.load_from_disk()
 	session_sidebar.rebuild()
@@ -107,11 +107,6 @@ func on_workspace_selected(path: String) -> void:
 
 func style_log_button() -> void:
 	AgentToolbarButton.style(log_button, "View system log")
-	pass
-
-
-func on_log_theme_changed() -> void:
-	style_log_button()
 	pass
 
 
