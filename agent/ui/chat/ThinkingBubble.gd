@@ -43,6 +43,7 @@ static func append(
 	vbox.add_child(header)
 
 	var rich_text := MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
+	ChatBubblePreview.enable_fixed_height_at_limit(rich_text)
 	vbox.add_child(rich_text)
 
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)

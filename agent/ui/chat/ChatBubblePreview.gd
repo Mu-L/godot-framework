@@ -6,6 +6,12 @@ extends Object
 
 const PREVIEW_LINES := 6
 const PREVIEW_CHARS := 600
+const META_FIXED_HEIGHT_AT_LIMIT := "preview_fixed_height_at_limit"
+
+
+static func enable_fixed_height_at_limit(rich_text: RichTextLabel) -> void:
+	rich_text.set_meta(META_FIXED_HEIGHT_AT_LIMIT, true)
+	pass
 
 
 static func preview(s: String) -> String:
@@ -35,4 +41,27 @@ static func apply(rich_text: RichTextLabel, body: String) -> void:
 		line_label.text = StringUtils.format("+{} line{}", extra_lines, "" if extra_lines == 1 else "s")
 	rich_text.text = text
 	rich_text.visible = StringUtils.is_not_blank(body)
+	if rich_text.has_meta(META_FIXED_HEIGHT_AT_LIMIT):
+		apply_height_limit(rich_text, extra_lines > 0)
+	pass
+
+
+## Stay compact for short content; lock the viewport only once preview truncation starts.
+static func apply_height_limit(rich_text: RichTextLabel, limit_reached: bool) -> void:
+	if not limit_reached:
+		rich_text.fit_content = true
+		rich_text.scroll_active = false
+		rich_text.custom_minimum_size.y = 0.0
+		return
+	var font := rich_text.get_theme_font("normal_font")
+	var font_size := rich_text.get_theme_font_size("normal_font_size")
+	var line_separation := rich_text.get_theme_constant("line_separation")
+	var preview_height := ceilf(font.get_height(font_size) * PREVIEW_LINES + line_separation * (PREVIEW_LINES - 1))
+	rich_text.fit_content = false
+	rich_text.scroll_active = true
+	rich_text.scroll_following = true
+	rich_text.custom_minimum_size.y = preview_height
+	var scroll_bar := rich_text.get_v_scroll_bar()
+	scroll_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scroll_bar.modulate.a = 0.0
 	pass
