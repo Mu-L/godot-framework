@@ -92,6 +92,13 @@ func code_block_bg_override_test() -> void:
 	pass
 
 
+func code_fence_right_gutter_test() -> void:
+	var bbcode := MarkdownUtils.to_bbcode("```\nx\n```")
+	assert(bbcode.begins_with("[table=1][cell padding=" + MarkdownUtils.CODE_BLOCK_RIGHT_GUTTER + "]"))
+	assert(bbcode.ends_with("[/cell][/table]"))
+	pass
+
+
 func inline_code_no_table_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("`x`")
 	assert("[code]" in bbcode)

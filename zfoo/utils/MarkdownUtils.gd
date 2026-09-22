@@ -6,7 +6,7 @@ extends Object
 ## Syntax map
 ## ----------
 ## `#`–`###### Title`     → `[font_size=N]Title[/font_size]`
-## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]`
+## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]` + right gutter
 ## `` `code` ``           → `[code]code[/code]`
 ## `---` `***` `___`      → full-width `[hr]` line
 ## `> quote`              → `[indent][color]▎[/color] [color]quote[/color][/indent]`
@@ -49,6 +49,12 @@ const TABLE_CELL_PADDING := "8,4,8,4"
 # Fenced code block: dark fill, no outer border.
 const CODE_BLOCK_BG := "#121418"
 const CODE_BLOCK_PADDING := "6,6,6,6"
+# RichTextLabel paints a `[cell]` background `padding + table_h_separation` wider than
+# the column it sits in (`RichTextLabel::_set_table_size`), so a one-column `expand=1`
+# cell runs past the label's right edge and the fill lands under the bubble's right
+# margin while the left one stays visible. Padding here is left, top, right, bottom:
+# the gutter reserves that spill so the fill ends on the label box.
+const CODE_BLOCK_RIGHT_GUTTER := "0,0,16,0"
 const BLOCKQUOTE_BAR := "#59a5f2"
 # RichTextLabel has no link theme color (its `[url]` body inherits `default_color`),
 # so link labels carry the blue markdown readers expect.
@@ -590,13 +596,20 @@ static func parse_link_destination(raw: String) -> String:
 	return dest.substr(0, cut).strip_edges()
 
 
-## Fenced block → one full-width `[cell]` with background only.
+## Fenced block → one full-width `[cell]` with background only, wrapped in an outer cell
+## that reserves the background spill ([constant CODE_BLOCK_RIGHT_GUTTER]) — the fill
+## otherwise ends on the bubble's right edge instead of keeping the left margin's gap.
 static func format_code_fence_bbcode(code: String, bg: String = CODE_BLOCK_BG) -> String:
-	return StringUtils.format(
+	var block := StringUtils.format(
 			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}[/cell][/table]",
 			bg,
 			CODE_BLOCK_PADDING,
 			wrap_code(code)
+	)
+	return StringUtils.format(
+			"[table=1][cell padding={}]{}[/cell][/table]",
+			CODE_BLOCK_RIGHT_GUTTER,
+			block
 	)
 
 
