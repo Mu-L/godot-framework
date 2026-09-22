@@ -153,6 +153,21 @@ size_flags_vertical = 4
 focus_mode = 0
 mouse_default_cursor_shape = 2
 
+[node name="AgentSettingWrap" type="MarginContainer" parent="Root/Toolbar/ToolbarRow"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/margin_right = 12
+
+[node name="AgentSettingButton" type="Button" parent="Root/Toolbar/ToolbarRow/AgentSettingWrap"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+mouse_default_cursor_shape = 2
+text = "Set"
+
 [node name="Body" type="HSplitContainer" parent="Root" unique_id=786630484]
 layout_mode = 2
 size_flags_vertical = 3

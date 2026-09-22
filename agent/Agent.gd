@@ -28,6 +28,7 @@ extends Control
 @onready var log_button: Button = $Root/Toolbar/ToolbarRow/LogButtonWrap/LogButton
 @onready var theme_color_select: Button = $Root/Toolbar/ToolbarRow/ThemeColorSelectWrap/ThemeColorSelect
 @onready var theme_toggle_button: Button = $Root/Toolbar/ToolbarRow/ThemeToggleWrap/ThemeToggleButton
+@onready var agent_setting_button: Button = $Root/Toolbar/ToolbarRow/AgentSettingWrap/AgentSettingButton
 @onready var workspace_dialog: FileDialog = $WorkspaceDialog
 
 var toolbar: AgentToolbar = AgentToolbar.new()
@@ -40,6 +41,7 @@ var skill_toggle: SkillToggle = SkillToggle.new()
 var agent_prompt_toggle: AgentPromptToggle = AgentPromptToggle.new()
 var token_usage_display: TokenUsageDisplay = TokenUsageDisplay.new()
 var markdown_toggle: MarkdownToggle = MarkdownToggle.new()
+var agent_setting: AgentSetting = AgentSetting.new()
 var session_sidebar: AgentSessionSidebar = AgentSessionSidebar.new()
 var chat_view: AgentChatView = AgentChatView.new()
 
@@ -67,6 +69,7 @@ func _ready() -> void:
 	chat_input.setup(input_bar, input_wrap, input_inner, input_field, send_button)
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
+	agent_setting.setup(agent_setting_button, self)
 	style_log_button()
 	log_button.pressed.connect(on_log_pressed)
 	AgentEvents.events.theme_changed.connect(style_log_button)
