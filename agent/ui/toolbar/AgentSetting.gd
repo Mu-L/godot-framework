@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection settings.
 
 const DIALOG_WIDTH := 580
-const DIALOG_HEIGHT := 550
+const DIALOG_HEIGHT := 560
 
 var button: Button
 var dialog: ConfirmationDialog
@@ -58,12 +58,12 @@ func build_dialog(dialog_parent: Node) -> void:
 	var card_margin := MarginContainer.new()
 	card_margin.add_theme_constant_override("margin_left", 20)
 	card_margin.add_theme_constant_override("margin_right", 20)
-	card_margin.add_theme_constant_override("margin_top", 18)
-	card_margin.add_theme_constant_override("margin_bottom", 18)
+	card_margin.add_theme_constant_override("margin_top", 16)
+	card_margin.add_theme_constant_override("margin_bottom", 16)
 	content_panel.add_child(card_margin)
 
 	var fields := VBoxContainer.new()
-	fields.add_theme_constant_override("separation", 15)
+	fields.add_theme_constant_override("separation", 13)
 	card_margin.add_child(fields)
 	heading_label = Label.new()
 	heading_label.text = "AI connection"
@@ -77,14 +77,11 @@ func build_dialog(dialog_parent: Node) -> void:
 	var separator := HSeparator.new()
 	fields.add_child(separator)
 	api_url_edit = add_field(fields, "API endpoint", "https://api.example.com/v1/chat/completions", "Full chat-completions endpoint URL")
-	var connection_row := HBoxContainer.new()
-	connection_row.add_theme_constant_override("separation", 12)
-	fields.add_child(connection_row)
-	model_edit = add_field(connection_row, "Model", ApiSetting.DEFAULT_MODEL, "Model sent with each request")
-	proxy_address_edit = add_field(connection_row, "Proxy", "http://127.0.0.1:7890", "Optional HTTP/HTTPS proxy")
+	model_edit = add_field(fields, "Model", ApiSetting.DEFAULT_MODEL, "Model sent with each request")
 	api_token_edit = add_token_field(fields)
 	api_token_edit.secret = true
 	api_token_edit.secret_character = "*"
+	proxy_address_edit = add_field(fields, "Proxy", "http://127.0.0.1:7890", "Optional HTTP/HTTPS proxy")
 	pass
 
 
