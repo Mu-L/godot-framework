@@ -26,6 +26,7 @@ func on_chat_stream_pressed() -> void:
 	var completion := await OpenAiClient.async_chat_messages_stream(
 		OpenAiClient.build_messages(PROMPT),
 		[],
+			"",
 		func(delta: String) -> void:
 			Log.info("OpenAI delta:[{}]", delta)
 	)

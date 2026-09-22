@@ -1,6 +1,8 @@
 class_name OpenAiClient
 extends Object
 
+const REQUEST_TIMEOUT_MILLIS := 5 * TimeUtils.MILLIS_PER_MINUTE
+
 ## Local-dev only. Replace with a backend proxy before shipping.
 ## Reads from env OPENAI_API_KEY by default; can still override at runtime.
 const API_KEY_ENV := "OPENAI_API_KEY"
@@ -39,14 +41,14 @@ static func build_request_json(request: OpenAiRequest) -> String:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-static func async_chat(prompt: String, system_prompt: String = "") -> String:
-	return await async_chat_messages(build_messages(prompt, system_prompt))
+static func async_chat(prompt: String, system_prompt: String = "", proxy: String = "") -> String:
+	return await async_chat_messages(build_messages(prompt, system_prompt), proxy)
 
-static func async_chat_messages(messages: Array[ChatMessage]) -> String:
+static func async_chat_messages(messages: Array[ChatMessage], proxy: String = "") -> String:
 	if not validate_messages(messages):
 		return StringUtils.EMPTY
 	var request := OpenAiRequest.new(model, messages, false)
-	var response := await HttpHelper.async_post(base_url, build_request_json(request), build_headers())
+	var response := await HttpHelper.async_post(base_url, build_request_json(request), build_headers(), REQUEST_TIMEOUT_MILLIS, proxy)
 	var body := response.get_body_string()
 	Log.info("OpenAI response body:[{}]", StringUtils.truncate(body, 512))
 	if not response.success or response.code != 200:
@@ -63,7 +65,6 @@ static func async_chat_messages(messages: Array[ChatMessage]) -> String:
 	return message.content
 
 # ----------------------------------------------------------------------------------------------------------------------
-const REQUEST_TIMEOUT_MILLIS := 5 * TimeUtils.MILLIS_PER_MINUTE
 # Example sse request:
 # HTTP/1.1 200 OK
 # Content-Type: text/event-stream
@@ -78,7 +79,7 @@ const REQUEST_TIMEOUT_MILLIS := 5 * TimeUtils.MILLIS_PER_MINUTE
 
 ## Streaming chat completion with optional tools.
 ## on_delta(delta, stream_kind) — stream_kind is STREAM_KIND_CONTENT or STREAM_KIND_REASONING.
-static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Array[OpenAiToolDef] = [], on_delta: Callable = Callable()) -> OpenAiCompletion:
+static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Array[OpenAiToolDef] = [], proxy: String = "", on_delta: Callable = Callable()) -> OpenAiCompletion:
 	var result := OpenAiCompletion.new()
 	if not validate_messages(messages):
 		result.error = "invalid messages"
