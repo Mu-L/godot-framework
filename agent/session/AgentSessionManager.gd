@@ -225,15 +225,15 @@ static func has_chat_history(session_id: int) -> bool:
 # ---------------------------------------------------------------------------
 
 ## First user prompt becomes the sidebar title; later turns leave it unchanged.
-## The full prompt is kept — the sidebar cuts the label to the row width at draw time,
-## so a wider sidebar simply shows more of it.
+## Capped to 64 characters (no ellipsis suffix) so a long prompt does not bloat the
+## session index; the sidebar shows as much of the title as fits the row width.
 static func set_title_from_prompt(session_id: int, prompt: String) -> void:
 	if has_chat_history(session_id):
 		return
 	var session_index := get_session_index(session_id)
 	if session_index == null:
 		return
-	var title := prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " ")
+	var title := prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " ").left(64)
 	session_index.title = title
 	AgentEvents.events.session_title_changed.emit(session_id, title)
 	pass

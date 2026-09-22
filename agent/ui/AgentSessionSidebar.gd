@@ -639,7 +639,7 @@ class SessionRowRunFx extends Control:
 	const BREATH_DEPTH := 0.08
 	## Beading along the wave reads as packets travelling downstream.
 	const PACKET_STEP := 3
-	const PACKET_RADIUS := 1.0
+	const PACKET_RADIUS := 0.6
 
 	var phase := 0.0
 	var running := false
@@ -677,8 +677,8 @@ class SessionRowRunFx extends Control:
 		var accent := AgentColors.theme_accent_solid()
 		var points := wave_points()
 		# Glow pass keeps the thin stroke readable on either theme.
-		draw_polyline(points, with_alpha(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 3.0, true)
-		draw_polyline(points, accent, 1.8, true)
+		draw_polyline(points, with_alpha(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
+		draw_polyline(points, accent, 0.8, true)
 		draw_packets(accent, points)
 		pass
 
