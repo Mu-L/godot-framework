@@ -734,7 +734,7 @@ class SelectableRichTextLabel extends RichTextLabel:
 		pass
 
 
-static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> RichTextLabel:
+static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool, code_block_bg: String = StringUtils.EMPTY) -> RichTextLabel:
 	var label := SelectableRichTextLabel.new()
 	label.scroll_active = false
 	label.fit_content = true
@@ -759,7 +759,7 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 				copy_to_clipboard(label.get_selected_text())
 	)
 	label.meta_clicked.connect(handle_meta_clicked)
-	set_rich_text_label_text(label, raw_text, markdown_enabled, content_width, code_block_bg)
+	set_rich_text_label_text(label, raw_text, markdown_enabled, code_block_bg)
 	return label
 
 
@@ -785,7 +785,7 @@ static func copy_to_clipboard(text: String) -> void:
 	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).strip_edges())
 	pass
 
-static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> void:
+static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool, code_block_bg: String = StringUtils.EMPTY) -> void:
 	if markdown_enabled:
 		var bbcode := to_bbcode(raw_text, code_block_bg)
 		# Enabling bbcode re-parses existing text; raw markdown may contain literal
@@ -800,18 +800,6 @@ static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, mar
 		if label.bbcode_enabled:
 			label.bbcode_enabled = false
 		label.text = raw_text
-	sync_body_label_width(label, content_width)
-	pass
-
-
-static func sync_body_label_width(label: RichTextLabel, content_width: float) -> void:
-	if content_width <= 0.0:
-		return
-	var min_y := label.custom_minimum_size.y
-	if label.is_inside_tree():
-		label.set_deferred("custom_minimum_size", Vector2(content_width, min_y))
-	else:
-		label.custom_minimum_size = Vector2(content_width, min_y)
 	pass
 
 

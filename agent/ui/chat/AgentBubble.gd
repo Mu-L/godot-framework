@@ -47,7 +47,6 @@ static func append(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry),
-		0.0,
 		AgentColors.code_block_bg.to_html(false)
 	)
 	rich_text.visible = StringUtils.is_not_blank(entry.body)

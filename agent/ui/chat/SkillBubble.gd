@@ -60,7 +60,6 @@ static func append(
 		AgentColors.chat_text_muted,
 		StringUtils.EMPTY,
 		true,
-		0.0,
 		AgentColors.code_block_bg.to_html(false)
 	)
 	vbox.add_child(rich_text)
@@ -94,7 +93,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry, wrapper: PanelCo
 	var can_expand := needs_expand(entry.body)
 	var display := entry.body if expanded or not can_expand else preview(entry.body)
 	rich_text.visible = StringUtils.is_not_blank(entry.body)
-	MarkdownUtils.set_rich_text_label_text(rich_text, display, true, 0.0, AgentColors.code_block_bg.to_html(false))
+	MarkdownUtils.set_rich_text_label_text(rich_text, display, true, AgentColors.code_block_bg.to_html(false))
 
 	var expand_button := wrapper.get_meta(META_EXPAND_BUTTON) as Button
 	if expand_button != null:
