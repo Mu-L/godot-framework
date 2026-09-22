@@ -654,35 +654,40 @@ class SessionRowRunFx extends Control:
 		var accent := AgentColors.theme_accent_solid()
 		var dark := ThemeColor.is_dark_theme()
 		var core := accent.lightened(0.45) if dark else accent.lightened(0.18)
-		var glow_alpha := 0.30 if dark else 0.20
+		# Burning: the halo around the flame breathes.
+		var glow_alpha := (0.32 if dark else 0.22) * (0.85 + 0.30 * sin(phase * 9.3))
 
 		var pose := flame_pose()
-		var origin: Vector2 = pose["origin"]
+		var base: Vector2 = pose["base"]
 		var body_h: float = pose["body_h"]
 		var sway: float = pose["sway"]
-		draw_polygon(build_flame(body_h, sway, 1.0, origin), PackedColorArray([with_alpha(accent, glow_alpha)]))
-		draw_polygon(build_flame(body_h * 0.82, sway, 0.72, origin), PackedColorArray([accent]))
-		draw_polygon(build_flame(body_h * 0.50, sway, 0.38, origin), PackedColorArray([core]))
-		draw_embers(accent, origin, body_h)
+		# Every layer burns on the wick; the shorter and thinner ones are the hot core.
+		draw_polygon(build_layer(base, body_h, sway, 1.0, 1.0), PackedColorArray([with_alpha(accent, glow_alpha)]))
+		draw_polygon(build_layer(base, body_h, sway, 0.84, 0.72), PackedColorArray([accent]))
+		draw_polygon(build_layer(base, body_h, sway, 0.55, 0.40), PackedColorArray([core]))
+		draw_embers(accent, base, body_h)
 		pass
 
 
-	## Current hop / flicker / sway state of the flame; shared with the geometry builders.
-	## `origin` is the pointed tip of the flame, which grows down towards the wick.
+	## Current hop / flicker / sway state of the flame; `base` is the spot it burns on.
 	func flame_pose() -> Dictionary:
 		var span_y := size.y - PAD * 2.0
-		# Hop: the whole flame jumps up, then settles back on the wick.
+		# Hop: the flame jumps off the wick, then settles back down.
 		var lift := absf(sin(phase * HOP_SPEED)) * span_y * 0.10
 		# Flicker: the silhouette breathes faster than the hop, plus a gentle sway.
 		var stretch := 1.0 + 0.10 * sin(phase * FLICKER_SPEED + 0.6)
-		var body_h := span_y * BODY_RATIO * stretch
 		var sway := sin(phase * 3.2) * size.x * 0.05
-		var base_y := size.y - PAD - lift
 		return {
-			"origin": Vector2(size.x * 0.5 + sway * 0.5, base_y - body_h),
-			"body_h": body_h,
+			"base": Vector2(size.x * 0.5 + sway * 0.5, size.y - PAD - lift),
+			"body_h": span_y * BODY_RATIO * stretch,
 			"sway": sway,
 		}
+
+
+	## One flame layer growing up from the wick.
+	func build_layer(base: Vector2, body_h: float, sway: float, height_scale: float, width_scale: float) -> PackedVector2Array:
+		var tip := Vector2(base.x, base.y - body_h * height_scale)
+		return build_flame(body_h * height_scale, sway, width_scale, tip)
 
 
 	## Teardrop silhouette: pointed tip on `origin`, flaring towards the base.
@@ -706,22 +711,23 @@ class SessionRowRunFx extends Control:
 
 
 	## A few sparks drifting up through the flame body.
-	func draw_embers(accent: Color, origin: Vector2, body_h: float) -> void:
+	func draw_embers(accent: Color, base: Vector2, body_h: float) -> void:
 		for index in range(EMBER_COUNT):
-			var ember := ember_state(index, origin, body_h)
+			var ember := ember_state(index, base, body_h)
 			var position: Vector2 = ember["position"]
-			draw_circle(position, ember["radius"], with_alpha(accent.lightened(0.25), ember["alpha"]))
+			draw_circle(position, ember["radius"], with_alpha(accent.lightened(0.35), ember["alpha"]))
 		pass
 
 
-	func ember_state(index: int, origin: Vector2, body_h: float) -> Dictionary:
+	## Sparks travel from the wick towards the tip and converge as they fade.
+	func ember_state(index: int, base: Vector2, body_h: float) -> Dictionary:
 		var cycle := fposmod(phase * 0.8 + float(index) * 0.33, 1.0)
-		var x := origin.x + sin(phase * 2.3 + float(index) * 2.1) * size.x * 0.18
-		var y := origin.y + body_h * (0.95 - cycle * 0.85)
+		var x := base.x + sin(phase * 2.3 + float(index) * 2.1) * size.x * 0.14 * (1.0 - cycle * 0.6)
+		var y := base.y - body_h * cycle * 0.95
 		return {
 			"position": Vector2(x, y),
-			"radius": maxf(0.6, 1.4 * (1.0 - cycle)),
-			"alpha": (1.0 - cycle) * 0.8,
+			"radius": maxf(0.6, 1.5 * (1.0 - cycle)),
+			"alpha": (1.0 - cycle) * 0.75,
 		}
 
 
