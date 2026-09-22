@@ -5,6 +5,9 @@ extends RefCounted
 
 const BUTTON_SIZE := 28
 const ICON_SIZE := 14
+const SUN_ICON_PATH := "res://agent/asset/image/icon/sun.svg"
+const MOON_ICON_PATH := "res://agent/asset/image/icon/moon.svg"
+const SVG_BASE_COLOR := "#8B949E"
 
 var button: Button
 
@@ -88,64 +91,28 @@ func update_icon(hovered: bool) -> void:
 			icon_color = AgentColors.toolbar_title
 		else:
 			icon_color = icon_color.lightened(0.12)
-	button.icon = make_icon(ICON_SIZE, icon_color, show_moon)
+	button.icon = make_icon(icon_color, show_moon)
 	pass
 
 
-func make_icon(size: int, color: Color, show_moon: bool) -> ImageTexture:
+func make_icon(color: Color, show_moon: bool) -> ImageTexture:
 	if show_moon:
-		return make_moon_icon(size, color)
-	return make_sun_icon(size, color)
+		return make_moon_icon(color)
+	return make_sun_icon(color)
 
 
-func make_sun_icon(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-	var cx := size / 2.0
-	var cy := size / 2.0
-	var core_radius := size * 0.16
-	for y in range(size):
-		for x in range(size):
-			var dx := x - cx
-			var dy := y - cy
-			var dist := sqrt(dx * dx + dy * dy)
-			if dist <= core_radius:
-				img.set_pixel(x, y, color)
-	for ray_index in range(8):
-		var angle := TAU * float(ray_index) / 8.0
-		var inner := core_radius + 1.5
-		var outer := size * 0.42
-		var ray_half := maxf(0.8, size * 0.045)
-		for step in range(int(outer - inner)):
-			var ray_radius := inner + step
-			var px := cx + cos(angle) * ray_radius
-			var py := cy + sin(angle) * ray_radius
-			var tangent_x := -sin(angle)
-			var tangent_y := cos(angle)
-			for offset in range(-int(ray_half), int(ray_half) + 1):
-				var draw_x := int(round(px + tangent_x * offset))
-				var draw_y := int(round(py + tangent_y * offset))
-				if draw_x >= 0 and draw_x < size and draw_y >= 0 and draw_y < size:
-					img.set_pixel(draw_x, draw_y, color)
-	return ImageTexture.create_from_image(img)
+func make_sun_icon(color: Color) -> ImageTexture:
+	return svg_to_texture(SUN_ICON_PATH, color)
 
 
-func make_moon_icon(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-	var cx := size * 0.46
-	var cy := size / 2.0
-	var outer_radius := size * 0.34
-	var cut_cx := size * 0.58
-	var cut_radius := size * 0.30
-	for y in range(size):
-		for x in range(size):
-			var dx := x - cx
-			var dy := y - cy
-			var in_outer := dx * dx + dy * dy <= outer_radius * outer_radius
-			var cut_dx := x - cut_cx
-			var cut_dy := y - cy
-			var in_cut := cut_dx * cut_dx + cut_dy * cut_dy <= cut_radius * cut_radius
-			if in_outer and not in_cut:
-				img.set_pixel(x, y, color)
-	return ImageTexture.create_from_image(img)
+func make_moon_icon(color: Color) -> ImageTexture:
+	return svg_to_texture(MOON_ICON_PATH, color)
+
+
+func svg_to_texture(path: String, color: Color) -> ImageTexture:
+	var svg := FileAccess.get_file_as_string(path)
+	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
+	var image := Image.new()
+	if image.load_svg_from_string(svg, 2.0) != OK:
+		return ImageTexture.new()
+	return ImageTexture.create_from_image(image)

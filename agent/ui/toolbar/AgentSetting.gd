@@ -5,6 +5,8 @@ extends RefCounted
 
 const DIALOG_WIDTH := 580
 const DIALOG_HEIGHT := 560
+const SETTINGS_ICON_PATH := "res://agent/asset/image/icon/settings.svg"
+const SVG_BASE_COLOR := "#8B949E"
 
 var button: Button
 var dialog: ConfirmationDialog
@@ -23,8 +25,10 @@ var help_labels: Array[Label] = []
 func setup(p_button: Button, dialog_parent: Node) -> void:
 	button = p_button
 	build_dialog(dialog_parent)
-	button.text = "AI"
+	button.text = ""
 	button.pressed.connect(on_button_pressed)
+	button.mouse_entered.connect(on_button_mouse_entered)
+	button.mouse_exited.connect(on_button_mouse_exited)
 	AgentEvents.events.theme_changed.connect(apply_theme)
 	AgentEvents.events.theme_color_changed.connect(apply_theme)
 	apply_theme()
@@ -166,8 +170,39 @@ func on_confirmed() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, "AI settings")
+	AgentToolbarButton.style(button, "AI settings", 14)
+	button.custom_minimum_size = Vector2(28, 28)
+	button.add_theme_constant_override("icon_max_width", 16)
+	button.add_theme_constant_override("icon_max_height", 16)
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	update_button_icon(button.is_hovered())
 	style_dialog()
+	pass
+
+
+func update_button_icon(hovered: bool) -> void:
+	var icon_color := AgentColors.toolbar_title if hovered else AgentColors.toolbar_muted
+	button.icon = make_settings_icon(icon_color)
+	pass
+
+
+func make_settings_icon(color: Color) -> Texture2D:
+	var svg := FileAccess.get_file_as_string(SETTINGS_ICON_PATH)
+	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
+	var image := Image.new()
+	var error := image.load_svg_from_string(svg, 2.0)
+	if error != OK:
+		return ImageTexture.new()
+	return ImageTexture.create_from_image(image)
+
+
+func on_button_mouse_entered() -> void:
+	update_button_icon(true)
+	pass
+
+
+func on_button_mouse_exited() -> void:
+	update_button_icon(false)
 	pass
 
 
