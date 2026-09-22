@@ -642,21 +642,27 @@ class SessionRowRunFx extends Control:
 	const PACKET_RADIUS := 0.6
 
 	var phase := 0.0
-	var running := false
 
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		visible = false
-		set_process(false)
 		pass
 
 
+	## The engine auto-enables `_process` for any script that defines it (after `_init`),
+	## so the real state has to be re-applied once the node is in the tree.
+	func _ready() -> void:
+		set_process(visible)
+		pass
+
+
+	## `visible` doubles as the state — repeated calls (refresh, title change, select) must
+	## not restart the wave, only an actual start does.
 	func set_running(value: bool) -> void:
-		if running == value:
+		if visible == value:
 			return
-		running = value
 		visible = value
 		set_process(value)
 		if value:
