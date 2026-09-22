@@ -35,6 +35,8 @@ func setup(
 	chat_bubble_flusher.setup()
 	SchedulerBus.schedule_at_fixed_rate(queue_scroll_to_bottom, 1000, "agent_chat_stick_to_bottom")
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
+	# The bar swallows wheel/drag events before the container sees them.
+	chat_scroll.get_v_scroll_bar().scrolling.connect(on_chat_scroll_bar_scrolling)
 	chat_scroll.get_window().window_input.connect(on_chat_window_input)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
@@ -423,6 +425,13 @@ func on_chat_scroll_gui_input(event: InputEvent) -> void:
 			stick_to_bottom = true
 	elif event is InputEventPanGesture:
 		stick_to_bottom = is_scrolled_to_bottom()
+	pass
+
+
+## Dragging the scrollbar grabber (or wheeling over the bar itself) reads history
+## instead of following the stream — follow resumes at the bottom edge.
+func on_chat_scroll_bar_scrolling() -> void:
+	stick_to_bottom = is_scrolled_to_bottom()
 	pass
 
 
