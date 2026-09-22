@@ -19,7 +19,7 @@ static func run(ai_client: OpenAiClient, session: AgentSession) -> void:
 		AgentEvents.events.message_complete.emit(session.id, completion.usage)
 
 		if AgentSessionManager.is_stop_requested(session.id):
-			AgentEvents.events.agent_end.emit(session.id, "Stop.")
+			AgentEvents.events.agent_end.emit(session.id, "Stop..")
 			return
 		if completion.has_error():
 			AgentEvents.events.agent_end.emit(session.id, completion.error)
