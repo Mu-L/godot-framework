@@ -166,14 +166,11 @@ static func add_session_index(session: AgentSession) -> void:
 
 
 static func remove_session_index(session_id: int) -> void:
-	for i in session_indexes.pinned_indexes.size():
-		if session_indexes.pinned_indexes[i].id == session_id:
-			session_indexes.pinned_indexes.remove_at(i)
-			return
-	for i in session_indexes.indexes.size():
-		if session_indexes.indexes[i].id == session_id:
-			session_indexes.indexes.remove_at(i)
-			return
+	for list: Array[AgentSessionIndexes.SessionIndex] in [session_indexes.pinned_indexes, session_indexes.indexes]:
+		for i in list.size():
+			if list[i].id == session_id:
+				list.remove_at(i)
+				return
 	pass
 
 

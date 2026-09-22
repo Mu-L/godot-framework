@@ -6,7 +6,6 @@ extends Control
 @onready var toolbar_title: Label = $Root/Toolbar/ToolbarRow/Title
 @onready var sidebar_panel: PanelContainer = $Root/Body/Sidebar
 @onready var chat_area_panel: Panel = $Root/Body/ChatArea
-@onready var session_list_root: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList
 @onready var pinned_header: Label = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedHeader
 @onready var pinned_list: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedList
 @onready var pinned_separator: HSeparator = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedSeparator
@@ -49,7 +48,6 @@ func _ready() -> void:
 	AgentColors.load_saved_theme()
 	toolbar.setup(toolbar_panel, toolbar_title, project_button)
 	session_sidebar.setup(
-		session_list_root,
 		pinned_header,
 		pinned_list,
 		pinned_separator,

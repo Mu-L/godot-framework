@@ -9,7 +9,6 @@ const DRAG_GHOST_ALPHA := 0.92
 ## starts / stops never changes the row width (and never re-ellipsizes the title).
 const ROW_ACTION_SIZE := Vector2(28, 28)
 
-var session_list_root: VBoxContainer
 var pinned_header: Label
 var pinned_list: VBoxContainer
 var pinned_separator: HSeparator
@@ -28,7 +27,6 @@ var hover_session_id: int = 0
 # ---------------------------------------------------------------------------
 
 func setup(
-	p_session_list_root: VBoxContainer,
 	p_pinned_header: Label,
 	p_pinned_list: VBoxContainer,
 	p_pinned_separator: HSeparator,
@@ -37,7 +35,6 @@ func setup(
 	p_new_session_button: Button,
 	p_sidebar_panel: PanelContainer
 ) -> void:
-	session_list_root = p_session_list_root
 	pinned_header = p_pinned_header
 	pinned_list = p_pinned_list
 	pinned_separator = p_pinned_separator
@@ -163,7 +160,7 @@ func refresh_item(session_id: int) -> void:
 		return
 	var select_button: Button = row_panel.get_meta("select_button")
 	if select_button != null:
-		select_button.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
+		select_button.text = AgentSessionManager.get_title(session_id)
 	var run_fx: SessionRowRunFx = row_panel.get_meta("run_fx")
 	var delete_button: Button = row_panel.get_meta("delete_button")
 	if run_fx != null and delete_button != null:
@@ -180,9 +177,8 @@ func apply_run_state(run_fx: SessionRowRunFx, delete_button: Button, running: bo
 
 
 func refresh_all_row_styles() -> void:
-	var active_id := AgentSessionManager.active_session_id
 	for session_id: int in session_rows:
-		style_session_row(session_id, session_id == active_id)
+		style_session_row(session_id)
 	pass
 
 
@@ -239,10 +235,9 @@ func on_session_delete_pressed(session_id: int) -> void:
 # ---------------------------------------------------------------------------
 
 func clear() -> void:
-	for child in pinned_list.get_children():
-		child.queue_free()
-	for child in normal_list.get_children():
-		child.queue_free()
+	for list: VBoxContainer in [pinned_list, normal_list]:
+		for child in list.get_children():
+			child.queue_free()
 	session_rows.clear()
 	pass
 
@@ -267,7 +262,7 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	row_panel.add_child(row)
 
 	var select_button := Button.new()
-	select_button.text = format_session_label(session_id, title)
+	select_button.text = title
 	select_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	select_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	select_button.focus_mode = Control.FOCUS_NONE
@@ -307,7 +302,7 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	row_panel.set_meta("pinned", pinned)
 	list_for_pinned(pinned).add_child(row_panel)
 	session_rows[session_id] = row_panel
-	style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
+	style_session_row(session_id)
 	pass
 
 
@@ -334,7 +329,7 @@ func bind_row_hover(control: Control, session_id: int) -> void:
 
 func on_session_row_mouse_entered(session_id: int) -> void:
 	hover_session_id = session_id
-	style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
+	style_session_row(session_id)
 	pass
 
 
@@ -344,7 +339,7 @@ func on_session_row_mouse_exited(session_id: int) -> void:
 		return
 	if hover_session_id == session_id:
 		hover_session_id = 0
-	style_session_row(session_id, session_id == AgentSessionManager.active_session_id)
+	style_session_row(session_id)
 	pass
 
 
@@ -364,7 +359,7 @@ func build_session_row_style(selected: bool, hovered: bool) -> StyleBoxFlat:
 	return style
 
 
-func style_session_row(session_id: int, selected: bool) -> void:
+func style_session_row(session_id: int) -> void:
 	var row_panel: PanelContainer = session_rows.get(session_id)
 	if row_panel == null:
 		return
@@ -372,6 +367,7 @@ func style_session_row(session_id: int, selected: bool) -> void:
 	if select_button == null:
 		return
 
+	var selected := session_id == AgentSessionManager.active_session_id
 	var hovered := hover_session_id == session_id
 	row_panel.add_theme_stylebox_override("panel", build_session_row_style(selected, hovered))
 
@@ -390,12 +386,6 @@ func style_session_row(session_id: int, selected: bool) -> void:
 	if fx != null:
 		fx.set_highlight(selected)
 	pass
-
-
-## Running state is not part of the label text; it is shown by the `SessionRowRunFx`
-## wave that takes the close button's slot.
-func format_session_label(_session_id: int, title: String) -> String:
-	return title
 
 
 # ---------------------------------------------------------------------------
@@ -430,7 +420,7 @@ func build_drag_ghost(session_id: int, row_panel: PanelContainer) -> Control:
 
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
+	label.text = AgentSessionManager.get_title(session_id)
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	copy_row_font(label, row_panel)
@@ -685,7 +675,9 @@ class SessionRowRunFx extends Control:
 		# Glow pass keeps the thin stroke readable on either theme.
 		draw_polyline(points, with_alpha(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
 		draw_polyline(points, accent, 0.8, true)
-		draw_packets(accent, points)
+		# Bright beads on the samples, giving the wave a sense of flow.
+		for index in range(0, points.size(), PACKET_STEP):
+			draw_circle(points[index], PACKET_RADIUS, with_alpha(accent.lightened(0.35), 0.55))
 		pass
 
 
@@ -699,13 +691,6 @@ class SessionRowRunFx extends Control:
 			points.append(Vector2(x, center_y + sin(x * WAVE_SCALE - phase) * amplitude))
 			x += SAMPLE_STEP
 		return points
-
-
-	## Bright beads on the samples, giving the wave a sense of flow.
-	func draw_packets(accent: Color, points: PackedVector2Array) -> void:
-		for index in range(0, points.size(), PACKET_STEP):
-			draw_circle(points[index], PACKET_RADIUS, with_alpha(accent.lightened(0.35), 0.55))
-		pass
 
 
 	func with_alpha(color: Color, alpha: float) -> Color:

@@ -52,10 +52,9 @@ static func load_index() -> AgentSessionIndexes:
 	if StringUtils.is_not_blank(text):
 		var session_indexes: AgentSessionIndexes = JsonUtils.json_to_object(text, AgentSessionIndexes)
 		if session_indexes != null:
-			for session_index: SessionIndex in session_indexes.pinned_indexes:
-				session_index.run = null
-			for session_index: SessionIndex in session_indexes.indexes:
-				session_index.run = null
+			for list: Array[SessionIndex] in [session_indexes.pinned_indexes, session_indexes.indexes]:
+				for session_index: SessionIndex in list:
+					session_index.run = null
 			return session_indexes
 	return AgentSessionIndexes.new()
 
