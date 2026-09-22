@@ -673,10 +673,69 @@ const BODY_LABEL_MIN_HEIGHT := 24
 const TABLE_V_SEPARATION := 0
 
 
+## RichTextLabel that also drops its highlight when a click lands outside it.
+##
+## `deselect_on_focus_loss_enabled` only fires when focus moves to another *focusable*
+## control, and a click on a bubble background never moves focus at all (chat lists and
+## their panels are not focusable), so the highlight outlived the click that was meant to
+## clear it. The label therefore watches presses itself: [method _input] runs before GUI
+## routing, so pressing outside clears the highlight before the click reaches whatever is
+## underneath. Watch starts on the press that selects and ends with the highlight, so
+## labels without one stay out of the input path.
+class SelectableRichTextLabel extends RichTextLabel:
+	var outside_press_watch: bool = false
+
+	func _init() -> void:
+		# selection_enabled already forces FOCUS_ALL; focus loss stays as the cheap path
+		# for clicks that do land on another focusable control.
+		selection_enabled = true
+		deselect_on_focus_loss_enabled = true
+		gui_input.connect(on_body_gui_input)
+		focus_exited.connect(stop_outside_press_watch)
+
+	## A script `_input` is auto-enabled on ready; only a highlight needs it here.
+	func _ready() -> void:
+		stop_outside_press_watch()
+		pass
+
+	## Left press inside — RichTextLabel starts (or clears) a highlight from here.
+	func on_body_gui_input(event: InputEvent) -> void:
+		if not event is InputEventMouseButton:
+			return
+		var mouse := event as InputEventMouseButton
+		if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
+			start_outside_press_watch()
+		pass
+
+	func start_outside_press_watch() -> void:
+		outside_press_watch = true
+		set_process_input(true)
+		pass
+
+	func stop_outside_press_watch() -> void:
+		outside_press_watch = false
+		set_process_input(false)
+		pass
+
+	## Right click opens the copy menu and the wheel only scrolls the transcript — both
+	## read the highlight, so a left press outside is the one that clears it.
+	func _input(event: InputEvent) -> void:
+		if not outside_press_watch:
+			return
+		if not event is InputEventMouseButton:
+			return
+		var mouse := event as InputEventMouseButton
+		if not mouse.pressed or mouse.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if get_global_rect().has_point(mouse.position):
+			return
+		stop_outside_press_watch()
+		deselect()
+		pass
+
+
 static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool, content_width: float = 0.0, code_block_bg: String = StringUtils.EMPTY) -> RichTextLabel:
-	var label := RichTextLabel.new()
-	label.selection_enabled = true
-	label.deselect_on_focus_loss_enabled = true
+	var label := SelectableRichTextLabel.new()
 	label.scroll_active = false
 	label.fit_content = true
 	label.clip_contents = false
@@ -701,6 +760,20 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	)
 	label.meta_clicked.connect(handle_meta_clicked)
 	set_rich_text_label_text(label, raw_text, markdown_enabled, content_width, code_block_bg)
+	return label
+
+
+## Bare selectable label for plain-text bodies (thinking / result previews) — no markdown
+## pass, same click-outside deselect as [method create_rich_text_label].
+static func create_plain_rich_text_label(text_color: Color) -> RichTextLabel:
+	var label := SelectableRichTextLabel.new()
+	label.scroll_active = false
+	label.fit_content = true
+	label.bbcode_enabled = false
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.add_theme_color_override("default_color", text_color)
+	label.add_theme_font_override("normal_font", Fonts.regular())
 	return label
 
 

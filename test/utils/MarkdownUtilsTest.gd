@@ -277,3 +277,43 @@ func pipe_without_separator_stays_plain_test() -> void:
 	assert("a | b" in bbcode)
 	pass
 
+
+## Bubble labels clear their highlight on a press outside them — a click on the
+## (non-focusable) chat background never moves focus, so the built-in focus-loss path
+## leaves the highlight behind.
+func click_outside_clears_selection_test() -> void:
+	var host := Control.new()
+	host.size = Vector2(400, 400)
+	gdf.gdf_node.add_child(host)
+
+	var label := MarkdownUtils.create_rich_text_label(Color.WHITE, "select me", true)
+	label.position = Vector2(10, 10)
+	label.size = Vector2(200, 60)
+	host.add_child(label)
+
+	var viewport := host.get_viewport()
+	await viewport.get_tree().process_frame
+	assert(not label.is_processing_input())
+
+	send_mouse_press(viewport, Vector2(20, 20))
+	label.select_all()
+	assert(label.get_selected_text() == "select me")
+	assert(label.is_processing_input())
+
+	send_mouse_press(viewport, Vector2(350, 350))
+	assert(label.get_selected_text() == StringUtils.EMPTY)
+	assert(not label.is_processing_input())
+
+	host.queue_free()
+	pass
+
+
+func send_mouse_press(viewport: Viewport, position: Vector2) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.position = position
+		event.global_position = position
+		viewport.push_input(event, true)
+	pass

@@ -42,7 +42,7 @@ static func append(
 
 	vbox.add_child(header)
 
-	var rich_text := create_rich_text(StringUtils.EMPTY)
+	var rich_text := MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
 	vbox.add_child(rich_text)
 
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
@@ -57,20 +57,6 @@ static func title_color_for(entry: ChatEntry) -> Color:
 		return AgentColors.chat_text_muted
 	var exit_code := int(StringUtils.substring_after(entry.title, "exit_code:"))
 	return AgentColors.chat_text_muted if exit_code == 0 else AgentColors.error
-
-
-static func create_rich_text(text: String) -> RichTextLabel:
-	var label := RichTextLabel.new()
-	label.selection_enabled = true
-	label.scroll_active = false
-	label.fit_content = true
-	label.bbcode_enabled = false
-	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_color_override("default_color", AgentColors.chat_text_muted)
-	label.add_theme_font_override("normal_font", Fonts.regular())
-	label.text = text
-	return label
 
 
 static func style_view_button(button: Button) -> void:
