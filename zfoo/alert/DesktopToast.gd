@@ -18,6 +18,8 @@ const MAX_BODY_LINES := 4
 const SCREEN_MARGIN := 24.0
 const STACK_GAP := 12.0
 const SHOW_SECONDS := 4.5
+## How long the app window stays above the others after the card is clicked.
+const TOPMOST_MILLIS := 900
 
 ## Live toasts, oldest first — the newest one hugs the screen corner.
 static var toasts: Array[DesktopToast] = []
@@ -82,6 +84,39 @@ static func corner_position(window_size: Vector2i) -> Vector2i:
 		usable.position.x + usable.size.x - window_size.x - margin,
 		usable.position.y + usable.size.y - window_size.y - margin,
 	)
+
+
+## Bring the app window back: restore it when minimized, raise it when it is behind, then focus it.
+static func activate_main_window() -> void:
+	var window_id := DisplayServer.MAIN_WINDOW_ID
+	var mode := DisplayServer.window_get_mode(window_id)
+	if mode != DisplayServer.WINDOW_MODE_WINDOWED:
+		# `ShowWindow()` behind a mode change is what restores and activates a hidden window; a plain
+		# `window_move_to_foreground()` is refused by Windows while another app owns the foreground.
+		# Godot drops the maximized flag while minimized, so the cached size decides that case.
+		var restored := mode
+		if mode == DisplayServer.WINDOW_MODE_MINIMIZED:
+			restored = DisplayServer.WINDOW_MODE_MAXIMIZED if covered_usable_screen(window_id) else DisplayServer.WINDOW_MODE_WINDOWED
+		DisplayServer.window_set_mode(restored, window_id)
+	# Raising to the top works even when the foreground change is denied; drop the flag right after
+	# so the app does not stay above every other window.
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, true, window_id)
+	DisplayServer.window_move_to_foreground(window_id)
+	SchedulerBus.schedule(drop_topmost.bind(window_id), TOPMOST_MILLIS)
+	pass
+
+
+static func drop_topmost(window_id: int) -> void:
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_ALWAYS_ON_TOP, false, window_id)
+	pass
+
+
+## True while the window covers the usable screen — either maximized or minimized from maximized,
+## Godot drops the maximized flag while a window is minimized, so its cached size is all that is left.
+static func covered_usable_screen(window_id: int) -> bool:
+	var window_size := Vector2(DisplayServer.window_get_size_with_decorations(window_id))
+	var usable := Vector2(DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(window_id)).size)
+	return window_size.x >= usable.x and window_size.y >= usable.y
 
 
 ## Stack live toasts from the screen corner upward.
@@ -201,7 +236,8 @@ func close_toast() -> void:
 
 
 func on_card_input(event: InputEvent) -> void:
-	# Click anywhere on the card to dismiss it early.
+	# Click anywhere on the card: open the app window and dismiss the toast early.
 	if event is InputEventMouseButton and event.pressed:
+		activate_main_window()
 		close_toast()
 	pass
