@@ -282,7 +282,7 @@ static func run_agent(session: AgentSession) -> void:
 	if session_index == null:
 		return
 	session_index.run = AgentSessionIndexes.RunState.new()
-	await AgentLoop.run(session)
+	await AgentLoop.run(ApiSetting.get_client(), session)
 	pass
 
 

@@ -3,15 +3,19 @@ extends Object
 
 const REQUEST_TIMEOUT_MILLIS := 5 * TimeUtils.MILLIS_PER_MINUTE
 
-## Local-dev only. Replace with a backend proxy before shipping.
-## Reads from env OPENAI_API_KEY by default; can still override at runtime.
-const API_KEY_ENV := "OPENAI_API_KEY"
-static var api_key: String = OS.get_environment(API_KEY_ENV)
-static var base_url: String = "https://api.deepseek.com/chat/completions"
-static var model: String = "deepseek-v4-flash"
+var api_key: String
+var base_url: String
+var model: String
 
 
-static func build_messages(prompt: String, system_prompt: String = "") -> Array[ChatMessage]:
+func _init(p_api_key: String, p_base_url: String, p_model: String) -> void:
+	api_key = p_api_key
+	base_url = p_base_url
+	model = p_model
+	pass
+
+
+func build_messages(prompt: String, system_prompt: String = "") -> Array[ChatMessage]:
 	var messages: Array[ChatMessage] = []
 	if StringUtils.is_not_blank(system_prompt):
 		messages.append(ChatMessage.new(ChatMessage.ROLE_SYSTEM, system_prompt))
@@ -19,16 +23,16 @@ static func build_messages(prompt: String, system_prompt: String = "") -> Array[
 	return messages
 
 
-static func build_headers(stream: bool = false) -> PackedStringArray:
+func build_headers(stream: bool = false) -> PackedStringArray:
 	var headers := PackedStringArray([StringUtils.format("Authorization: Bearer {}", api_key)])
 	if stream:
 		headers.append("Accept: text/event-stream")
 	return headers
 
 
-static func validate_messages(messages: Array[ChatMessage]) -> bool:
+func validate_messages(messages: Array[ChatMessage]) -> bool:
 	if StringUtils.is_blank(api_key):
-		Log.error("OpenAI api_key is empty, set env {}", API_KEY_ENV)
+		Log.error("OpenAI api_key is empty")
 		return false
 	if messages.is_empty():
 		Log.error("OpenAI messages is empty")
@@ -36,15 +40,15 @@ static func validate_messages(messages: Array[ChatMessage]) -> bool:
 	return true
 
 
-static func build_request_json(request: OpenAiRequest) -> String:
+func build_request_json(request: OpenAiRequest) -> String:
 	return request.to_json()
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-static func async_chat(prompt: String, system_prompt: String = "", proxy: String = "") -> String:
+func async_chat(prompt: String, system_prompt: String = "", proxy: String = "") -> String:
 	return await async_chat_messages(build_messages(prompt, system_prompt), proxy)
 
-static func async_chat_messages(messages: Array[ChatMessage], proxy: String = "") -> String:
+func async_chat_messages(messages: Array[ChatMessage], proxy: String = "") -> String:
 	if not validate_messages(messages):
 		return StringUtils.EMPTY
 	var request := OpenAiRequest.new(model, messages, false)
@@ -79,7 +83,7 @@ static func async_chat_messages(messages: Array[ChatMessage], proxy: String = ""
 
 ## Streaming chat completion with optional tools.
 ## on_delta(delta, stream_kind) — stream_kind is STREAM_KIND_CONTENT or STREAM_KIND_REASONING.
-static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Array[OpenAiToolDef] = [], proxy: String = "", on_delta: Callable = Callable()) -> OpenAiCompletion:
+func async_chat_messages_stream(messages: Array[ChatMessage], tools: Array[OpenAiToolDef] = [], proxy: String = "", on_delta: Callable = Callable()) -> OpenAiCompletion:
 	var result := OpenAiCompletion.new()
 	if not validate_messages(messages):
 		result.error = "invalid messages"
@@ -119,7 +123,7 @@ static func async_chat_messages_stream(messages: Array[ChatMessage], tools: Arra
 const STREAM_KIND_CONTENT := "content"
 const STREAM_KIND_REASONING := "reasoning"
 
-static func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) -> String:
+func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) -> String:
 	if buffer.is_empty():
 		return StringUtils.EMPTY
 	var lines: PackedStringArray = buffer.split(FileUtils.NEWLINE_LF, false)
@@ -147,7 +151,7 @@ static func consume_sse_buffer(buffer: String, on_delta: Callable = Callable()) 
 
 # ----------------------------------------------------------------------------------------------------------------------
 ## Parses a raw SSE body, skipping blank lines, non-`data:` lines and `[DONE]`.
-static func parse_stream_chunks(body: String) -> Array[OpenAiStreamChunk]:
+func parse_stream_chunks(body: String) -> Array[OpenAiStreamChunk]:
 	var chunks: Array[OpenAiStreamChunk] = []
 	if StringUtils.is_blank(body):
 		return chunks
@@ -165,7 +169,7 @@ static func parse_stream_chunks(body: String) -> Array[OpenAiStreamChunk]:
 
 
 ## Joins every content (or reasoning) delta of the parsed chunks in stream order.
-static func extract_stream_content(chunks: Array[OpenAiStreamChunk]) -> String:
+func extract_stream_content(chunks: Array[OpenAiStreamChunk]) -> String:
 	var build := StringBuilder.new()
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.choices.is_empty():
@@ -177,7 +181,7 @@ static func extract_stream_content(chunks: Array[OpenAiStreamChunk]) -> String:
 	return build.build_string()
 
 
-static func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -> String:
+func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -> String:
 	var build := StringBuilder.new()
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.choices.is_empty():
@@ -189,7 +193,7 @@ static func extract_stream_reasoning_content(chunks: Array[OpenAiStreamChunk]) -
 	return build.build_string()
 
 
-static func extract_stream_tool_calls(chunks: Array[OpenAiStreamChunk]) -> Array[OpenAiToolCall]:
+func extract_stream_tool_calls(chunks: Array[OpenAiStreamChunk]) -> Array[OpenAiToolCall]:
 	var merged_calls: Array[OpenAiToolCall] = []
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.choices.is_empty():
@@ -204,7 +208,7 @@ static func extract_stream_tool_calls(chunks: Array[OpenAiStreamChunk]) -> Array
 			tool_calls.append(call)
 	return tool_calls
 
-static func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
+func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
 	var finish_reason := StringUtils.EMPTY
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.choices.is_empty():
@@ -214,7 +218,7 @@ static func extract_finish_reason(chunks: Array[OpenAiStreamChunk]) -> String:
 	return finish_reason
 
 
-static func extract_stream_usage(chunks: Array[OpenAiStreamChunk]) -> OpenAiUsage:
+func extract_stream_usage(chunks: Array[OpenAiStreamChunk]) -> OpenAiUsage:
 	var usage := OpenAiUsage.new()
 	for chunk: OpenAiStreamChunk in chunks:
 		if chunk.usage.has_data():

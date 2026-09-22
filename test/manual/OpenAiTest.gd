@@ -14,7 +14,8 @@ func _ready() -> void:
 
 
 func on_chat_pressed() -> void:
-	var text := await OpenAiClient.async_chat(PROMPT)
+	var client := ApiSetting.get_client()
+	var text := await client.async_chat(PROMPT)
 	if StringUtils.is_blank(text):
 		Log.error("OpenAI returned empty text")
 		return
@@ -23,11 +24,12 @@ func on_chat_pressed() -> void:
 
 
 func on_chat_stream_pressed() -> void:
-	var completion := await OpenAiClient.async_chat_messages_stream(
-		OpenAiClient.build_messages(PROMPT),
+	var client := ApiSetting.get_client()
+	var completion := await client.async_chat_messages_stream(
+		client.build_messages(PROMPT),
 		[],
 			"",
-		func(delta: String) -> void:
+		func(delta: String, stream_kind: String) -> void:
 			Log.info("OpenAI delta:[{}]", delta)
 	)
 	if completion.has_error() or StringUtils.is_blank(completion.content):

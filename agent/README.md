@@ -35,7 +35,7 @@ Agent  →  session/AgentSession  →  loop/AgentLoop  →  zfoo/ai/OpenAiClient
 
 ## Run
 
-1. Set `OPENAI_API_KEY` (or configure `OpenAiClient.api_key` / `base_url` / `model` in code).
+1. Set `OPENAI_API_KEY`, or configure the API connection from the Agent toolbar.
 2. Open `agent/Agent.tscn` in Godot and press **F6** (Run Current Scene).
 
 Or set main scene temporarily:
@@ -65,6 +65,6 @@ run/main_scene="res://agent/Agent.tscn"
 ## Extend
 
 - Add tools: subclass `AgentTool`, register in `AgentToolRegistry._static_init()`.
-- Change model: `OpenAiClient.model` / `OpenAiClient.base_url`.
+- Change the default model or endpoint in `api/ApiSetting.gd`.
 - Customize prompt: edit `session/SystemPrompt.gd`.
 - Resolve workspace paths: `AgentWorkspace.resolve_path()`.

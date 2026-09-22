@@ -110,25 +110,26 @@ func refresh_ui() -> void:
 ## AI — OpenAI-compatible chat
 
 ```gdscript
-# Set OPENAI_API_KEY env, or override OpenAiClient.api_key / base_url / model
-var reply := await OpenAiClient.async_chat("hello", "you are a helpful assistant")
+var client := OpenAiClient.new(OS.get_environment("OPENAI_API_KEY"), "https://api.deepseek.com/chat/completions", "deepseek-v4-flash")
+var reply := await client.async_chat("hello", "you are a helpful assistant")
 
 # Streaming — on_delta called for each token fragment; read full text from completion.content
-var stream_completion := await OpenAiClient.async_chat_messages_stream(
-	OpenAiClient.build_messages("hello", "you are a helpful assistant"),
+var stream_completion := await client.async_chat_messages_stream(
+	client.build_messages("hello", "you are a helpful assistant"),
 	[],
-	func(delta: String): print(delta)
+	"",
+	func(delta: String, stream_kind: String): print(delta)
 )
 var streamed := stream_completion.content
 
 # Multi-turn
 var messages: Array[ChatMessage] = []
 messages.append(ChatMessage.new(ChatMessage.ROLE_USER, "hello"))
-var reply2 := await OpenAiClient.async_chat_messages(messages)
+var reply2 := await client.async_chat_messages(messages)
 
 # Tool-calling agent loop (see agent/)
 var tools: Array[OpenAiToolDef] = registry.get_schemas()
-var completion := await OpenAiClient.async_chat_messages_stream(messages, tools, func(delta: String): print(delta))
+var completion := await client.async_chat_messages_stream(messages, tools, "", func(delta: String, stream_kind: String): print(delta))
 ```
 
 ---

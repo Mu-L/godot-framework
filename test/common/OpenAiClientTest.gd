@@ -1,9 +1,12 @@
+var client := OpenAiClient.new("test-key", "https://api.example.com/v1/chat/completions", "test-model")
+
+
 func consume_sse_buffer_test() -> void:
 	var deltas: Array[String] = []
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	var remainder := OpenAiClient.consume_sse_buffer(
+	var remainder := client.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hel\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n",
 		on_delta
 	)
@@ -17,13 +20,13 @@ func consume_sse_buffer_partial_line_test() -> void:
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	var remainder := OpenAiClient.consume_sse_buffer(
+	var remainder := client.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}",
 		on_delta
 	)
 	assert(deltas.is_empty())
 	assert(remainder.begins_with("data:"))
-	var remainder2 := OpenAiClient.consume_sse_buffer(remainder + "\n", on_delta)
+	var remainder2 := client.consume_sse_buffer(remainder + "\n", on_delta)
 	assert(deltas == ["Hi"])
 	assert(remainder2 == StringUtils.EMPTY)
 	pass
@@ -34,7 +37,7 @@ func consume_sse_buffer_on_delta_test() -> void:
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append_if_not_empty(delta)
 		pass
-	OpenAiClient.consume_sse_buffer(
+	client.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"content\":\"Hel\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n",
 		on_delta
 	)
@@ -47,7 +50,7 @@ func consume_sse_buffer_reasoning_one_arg_on_delta_test() -> void:
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		deltas.append(delta)
 		pass
-	OpenAiClient.consume_sse_buffer(
+	client.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"think\"}}]}\n"
 		+ "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n",
 		on_delta
@@ -62,7 +65,7 @@ func consume_sse_buffer_reasoning_on_delta_test() -> void:
 	var on_delta := func(delta: String, stream_kind: String) -> void:
 		kinds.append(stream_kind)
 		pass
-	OpenAiClient.consume_sse_buffer(
+	client.consume_sse_buffer(
 		"data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"think\"}}]}\n"
 		+ "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n",
 		on_delta
@@ -75,7 +78,7 @@ func consume_sse_buffer_reasoning_on_delta_test() -> void:
 
 func extract_finish_reason_test() -> void:
 	var body := "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n\ndata: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n"
-	assert(OpenAiClient.extract_finish_reason(OpenAiClient.parse_stream_chunks(body)) == "stop")
+	assert(client.extract_finish_reason(client.parse_stream_chunks(body)) == "stop")
 	pass
 
 
@@ -88,7 +91,7 @@ func consume_sse_buffer_multichunk_test() -> void:
 	var append_chunk := func(chunk_text: String) -> void:
 		var buffer := pending_build.build_string() + chunk_text
 		pending_build.clear()
-		var remaining := OpenAiClient.consume_sse_buffer(buffer, on_delta)
+		var remaining := client.consume_sse_buffer(buffer, on_delta)
 		if StringUtils.is_not_empty(remaining):
 			pending_build.append_if_not_empty(remaining)
 		pass
@@ -103,7 +106,7 @@ func extract_stream_tool_calls_test() -> void:
 		"data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"\"}}]}}]}\n"
 		+ "data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"{\\\"path\\\":\\\"a.txt\\\"}\"}}]}}]}\n"
 	)
-	var tool_calls := OpenAiClient.extract_stream_tool_calls(OpenAiClient.parse_stream_chunks(body))
+	var tool_calls := client.extract_stream_tool_calls(client.parse_stream_chunks(body))
 	assert(tool_calls.size() == 1)
 	assert(tool_calls[0].id == "call_1")
 	assert(tool_calls[0].function.name == "read")
@@ -121,7 +124,7 @@ func build_request_json_test() -> void:
 	tool.function.description = "Read a file"
 	tool.function.parameters.string_prop("path", "File path", true)
 	request.tools.append(tool)
-	var json := OpenAiClient.build_request_json(request)
+	var json := client.build_request_json(request)
 	assert(json.contains("\"model\": \"test-model\""))
 	assert(json.contains("\"stream\": true"))
 	assert(json.contains("\"max_tokens\": 8192"))
@@ -136,7 +139,7 @@ func extract_stream_usage_test() -> void:
 		+ "data: {\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],"
 		+ "\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":5,\"total_tokens\":17}}\n"
 	)
-	var usage := OpenAiClient.extract_stream_usage(OpenAiClient.parse_stream_chunks(body))
+	var usage := client.extract_stream_usage(client.parse_stream_chunks(body))
 	assert(usage.total_tokens == 17)
 	assert(usage.prompt_tokens == 12)
 	assert(usage.completion_tokens == 5)
@@ -151,15 +154,15 @@ func collect_stream_text_test() -> void:
 		+ "data: {\"choices\":[{\"delta\":{\"content\":\"lo\"}}]}\n\n"
 		+ "data: [DONE]\n"
 	)
-	var chunks := OpenAiClient.parse_stream_chunks(body)
+	var chunks := client.parse_stream_chunks(body)
 	assert(chunks.size() == 4)
-	assert(OpenAiClient.extract_stream_content(chunks) == "Hello")
-	assert(OpenAiClient.extract_stream_reasoning_content(chunks) == "thinking")
+	assert(client.extract_stream_content(chunks) == "Hello")
+	assert(client.extract_stream_reasoning_content(chunks) == "thinking")
 	pass
 
 
 func parse_stream_chunks_skips_blank_body_test() -> void:
-	assert(OpenAiClient.parse_stream_chunks(StringUtils.EMPTY).is_empty())
+	assert(client.parse_stream_chunks(StringUtils.EMPTY).is_empty())
 	pass
 
 
@@ -167,7 +170,7 @@ func build_request_json_escapes_control_characters_test() -> void:
 	var messages: Array[ChatMessage] = []
 	messages.append(ChatMessage.tool_result("call_1", "ansi" + char(0x1B) + "[0m"))
 	var request := OpenAiRequest.new("test-model", messages, true)
-	var json := OpenAiClient.build_request_json(request)
+	var json := client.build_request_json(request)
 	assert(JSON.parse_string(json) != null)
 	assert(json.contains("\\u001b"))
 	assert(not json.contains(char(0x1B)))
@@ -205,7 +208,7 @@ func build_request_json_tool_calls_reasoning_test() -> void:
 	messages.append(ChatMessage.user("hi"))
 	messages.append(ChatMessage.assistant_tool_calls([tool_call], "", "thinking"))
 	messages.append(ChatMessage.tool_result("call_1", "ok"))
-	var json := OpenAiClient.build_request_json(OpenAiRequest.new("test-model", messages, true))
+	var json := client.build_request_json(OpenAiRequest.new("test-model", messages, true))
 	var parsed: Dictionary = JSON.parse_string(json)
 	var wire_messages: Array = parsed["messages"]
 	assert(wire_messages[1]["reasoning_content"] == "thinking")

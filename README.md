@@ -53,13 +53,13 @@ Batch asset tools in [`.agents/skills/`](.agents/skills/); scripts in [`.ai/`](.
 ## AI — OpenAI-compatible chat
 
 ```gdscript
-# Set OPENAI_API_KEY env, or override OpenAiClient.api_key / base_url / model
-var reply := await OpenAiClient.async_chat("hello", "you are a helpful assistant")
+var client := OpenAiClient.new(OS.get_environment("OPENAI_API_KEY"), "https://api.deepseek.com/chat/completions", "deepseek-v4-flash")
+var reply := await client.async_chat("hello", "you are a helpful assistant")
 
 # Multi-turn
 var messages: Array[ChatMessage] = []
 messages.append(ChatMessage.new(ChatMessage.ROLE_USER, "hello"))
-var reply2 := await OpenAiClient.async_chat_messages(messages)
+var reply2 := await client.async_chat_messages(messages)
 ```
 
 ---

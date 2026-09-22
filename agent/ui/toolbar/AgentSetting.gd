@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection settings.
 
 const DIALOG_WIDTH := 580
-const DIALOG_HEIGHT := 480
+const DIALOG_HEIGHT := 550
 
 var button: Button
 var dialog: ConfirmationDialog
@@ -12,6 +12,7 @@ var content_panel: PanelContainer
 var heading_label: Label
 var description_label: Label
 var api_url_edit: LineEdit
+var model_edit: LineEdit
 var api_token_edit: LineEdit
 var proxy_address_edit: LineEdit
 var token_visibility_button: Button
@@ -26,7 +27,6 @@ func setup(p_button: Button, dialog_parent: Node) -> void:
 	button.pressed.connect(on_button_pressed)
 	AgentEvents.events.theme_changed.connect(apply_theme)
 	AgentEvents.events.theme_color_changed.connect(apply_theme)
-	ApiSetting.apply_to_client()
 	apply_theme()
 	pass
 
@@ -77,16 +77,21 @@ func build_dialog(dialog_parent: Node) -> void:
 	var separator := HSeparator.new()
 	fields.add_child(separator)
 	api_url_edit = add_field(fields, "API endpoint", "https://api.example.com/v1/chat/completions", "Full chat-completions endpoint URL")
+	var connection_row := HBoxContainer.new()
+	connection_row.add_theme_constant_override("separation", 12)
+	fields.add_child(connection_row)
+	model_edit = add_field(connection_row, "Model", ApiSetting.DEFAULT_MODEL, "Model sent with each request")
+	proxy_address_edit = add_field(connection_row, "Proxy", "http://127.0.0.1:7890", "Optional HTTP/HTTPS proxy")
 	api_token_edit = add_token_field(fields)
 	api_token_edit.secret = true
 	api_token_edit.secret_character = "*"
-	proxy_address_edit = add_field(fields, "Proxy", "http://127.0.0.1:7890", "Optional HTTP/HTTPS proxy address")
 	pass
 
 
-func add_field(parent: VBoxContainer, label_text: String, placeholder: String, help_text: String) -> LineEdit:
+func add_field(parent: Container, label_text: String, placeholder: String, help_text: String) -> LineEdit:
 	var group := VBoxContainer.new()
 	group.add_theme_constant_override("separation", 7)
+	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(group)
 	var label := Label.new()
 	label.text = label_text
@@ -140,12 +145,14 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 
 func on_button_pressed() -> void:
 	api_url_edit.text = ApiSetting.get_api_url()
+	model_edit.text = ApiSetting.get_model()
 	api_token_edit.text = ApiSetting.get_api_token()
 	proxy_address_edit.text = ApiSetting.get_proxy_address()
 	api_token_edit.secret = true
 	token_visibility_button.text = "Show"
-	dialog.popup_centered(Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT))
-	dialog.size = Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
+	var dialog_size := Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
+	dialog.popup_centered(dialog_size)
+	dialog.size = dialog_size
 	api_url_edit.grab_focus()
 	pass
 
@@ -156,7 +163,7 @@ func on_dialog_focus_exited() -> void:
 
 
 func on_confirmed() -> void:
-	ApiSetting.save(api_url_edit.text, api_token_edit.text, proxy_address_edit.text)
+	ApiSetting.save(api_url_edit.text, api_token_edit.text, model_edit.text, proxy_address_edit.text)
 	Alert.alert("AI settings saved", Colors.success)
 	pass
 
@@ -190,7 +197,7 @@ func style_dialog() -> void:
 		label.add_theme_color_override("font_color", AgentColors.chat_text)
 	for help: Label in help_labels:
 		help.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	for edit: LineEdit in [api_url_edit, api_token_edit, proxy_address_edit]:
+	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		style_line_edit(edit)
 	style_secondary_button(token_visibility_button)
 	style_secondary_button(dialog.get_cancel_button())
