@@ -161,6 +161,9 @@ func refresh_item(session_id: int) -> void:
 	var select_button: Button = row_panel.get_meta("select_button")
 	if select_button != null:
 		select_button.text = format_session_label(session_id, AgentSessionManager.get_title(session_id))
+	var run_fx: SessionRowRunFx = row_panel.get_meta("run_fx")
+	if run_fx != null:
+		run_fx.set_running(AgentSessionManager.is_running(session_id))
 	pass
 
 
@@ -262,6 +265,10 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	select_button.pressed.connect(on_session_row_pressed.bind(session_id))
 	bind_row_hover(select_button, session_id)
 
+	# Animated flame stays visible even when a long title is ellipsized.
+	var run_fx := SessionRowRunFx.new()
+	run_fx.set_running(AgentSessionManager.is_running(session_id))
+
 	var delete_button := Button.new()
 	delete_button.text = "×"
 	delete_button.tooltip_text = "Delete chat"
@@ -277,9 +284,11 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	bind_row_drag(delete_button, session_id)
 
 	row.add_child(select_button)
+	row.add_child(run_fx)
 	row.add_child(delete_button)
 	row_panel.set_meta("select_button", select_button)
 	row_panel.set_meta("delete_button", delete_button)
+	row_panel.set_meta("run_fx", run_fx)
 	row_panel.set_meta("scifi_fx", fx)
 	row_panel.set_meta("pinned", pinned)
 	list_for_pinned(pinned).add_child(row_panel)
@@ -369,9 +378,9 @@ func style_session_row(session_id: int, selected: bool) -> void:
 	pass
 
 
-func format_session_label(session_id: int, title: String) -> String:
-	if AgentSessionManager.is_running(session_id):
-		return title + " ●"
+## Running state is no longer baked into the label text (ellipsis ate the marker);
+## it is shown by the `SessionRowRunFx` flame next to the close button.
+func format_session_label(_session_id: int, title: String) -> String:
 	return title
 
 
@@ -592,3 +601,129 @@ class SessionRowSciFiFx extends ColorRect:
 		fx_material.set_shader_parameter("accent_color", AgentColors.theme_accent_solid())
 		fx_material.set_shader_parameter("is_dark", 1.0 if ThemeColor.is_dark_theme() else 0.0)
 		pass
+
+
+# ---------------------------------------------------------------------------
+# Running flame (drawn, animated; color follows the theme accent)
+# ---------------------------------------------------------------------------
+
+## Small burning / hopping flame placed left of the close button while a session runs.
+## Drawn in code so it always reflects the live theme accent and never gets ellipsized.
+class SessionRowRunFx extends Control:
+	const MIN_SIZE := Vector2(14, 20)
+	## Vertical samples per side of the flame silhouette.
+	const SEGMENTS := 10
+	const EMBER_COUNT := 3
+	## Inner padding that keeps flicker + embers inside the control rect.
+	const PAD := 1.5
+	## Hop cycles per second and the matching flicker speed.
+	const HOP_SPEED := 5.4
+	const FLICKER_SPEED := 8.6
+	## Fraction of the usable height the flame body spans.
+	const BODY_RATIO := 0.78
+
+	var phase := 0.0
+
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		custom_minimum_size = MIN_SIZE
+		size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		visible = false
+		set_process(false)
+		pass
+
+
+	func set_running(running: bool) -> void:
+		visible = running
+		set_process(running)
+		queue_redraw()
+		pass
+
+
+	func _process(delta: float) -> void:
+		phase = fposmod(phase + delta, 64.0)
+		queue_redraw()
+		pass
+
+
+	func _draw() -> void:
+		var span_y := size.y - PAD * 2.0
+		if span_y <= 2.0 or size.x - PAD * 2.0 <= 2.0:
+			return
+		var accent := AgentColors.theme_accent_solid()
+		var dark := ThemeColor.is_dark_theme()
+		var core := accent.lightened(0.45) if dark else accent.lightened(0.18)
+		var glow_alpha := 0.30 if dark else 0.20
+
+		var pose := flame_pose()
+		var origin: Vector2 = pose["origin"]
+		var body_h: float = pose["body_h"]
+		var sway: float = pose["sway"]
+		draw_polygon(build_flame(body_h, sway, 1.0, origin), PackedColorArray([with_alpha(accent, glow_alpha)]))
+		draw_polygon(build_flame(body_h * 0.82, sway, 0.72, origin), PackedColorArray([accent]))
+		draw_polygon(build_flame(body_h * 0.50, sway, 0.38, origin), PackedColorArray([core]))
+		draw_embers(accent, origin, body_h)
+		pass
+
+
+	## Current hop / flicker / sway state of the flame; shared with the geometry builders.
+	## `origin` is the pointed tip of the flame, which grows down towards the wick.
+	func flame_pose() -> Dictionary:
+		var span_y := size.y - PAD * 2.0
+		# Hop: the whole flame jumps up, then settles back on the wick.
+		var lift := absf(sin(phase * HOP_SPEED)) * span_y * 0.10
+		# Flicker: the silhouette breathes faster than the hop, plus a gentle sway.
+		var stretch := 1.0 + 0.10 * sin(phase * FLICKER_SPEED + 0.6)
+		var body_h := span_y * BODY_RATIO * stretch
+		var sway := sin(phase * 3.2) * size.x * 0.05
+		var base_y := size.y - PAD - lift
+		return {
+			"origin": Vector2(size.x * 0.5 + sway * 0.5, base_y - body_h),
+			"body_h": body_h,
+			"sway": sway,
+		}
+
+
+	## Teardrop silhouette: pointed tip on `origin`, flaring towards the base.
+	func build_flame(body_h: float, sway: float, width_scale: float, origin: Vector2) -> PackedVector2Array:
+		var half := (size.x - PAD * 2.0) * 0.42 * width_scale
+		var points := PackedVector2Array()
+		points.append(origin)
+		for index in range(1, SEGMENTS + 1):
+			points.append(flame_edge(index, body_h, sway, origin, half, 1.0))
+		for index in range(SEGMENTS, 0, -1):
+			points.append(flame_edge(index, body_h, sway, origin, half, -1.0))
+		return points
+
+
+	func flame_edge(index: int, body_h: float, sway: float, origin: Vector2, half: float, side: float) -> Vector2:
+		var t := float(index) / float(SEGMENTS)
+		var profile := pow(t, 0.6) * (1.0 - 0.18 * t)
+		var wobble := sin(t * 3.6 - phase * 5.6) * half * 0.20 * t
+		var x := origin.x + side * (half * profile + wobble) + sway * t * 0.5
+		return Vector2(x, origin.y + body_h * t)
+
+
+	## A few sparks drifting up through the flame body.
+	func draw_embers(accent: Color, origin: Vector2, body_h: float) -> void:
+		for index in range(EMBER_COUNT):
+			var ember := ember_state(index, origin, body_h)
+			var position: Vector2 = ember["position"]
+			draw_circle(position, ember["radius"], with_alpha(accent.lightened(0.25), ember["alpha"]))
+		pass
+
+
+	func ember_state(index: int, origin: Vector2, body_h: float) -> Dictionary:
+		var cycle := fposmod(phase * 0.8 + float(index) * 0.33, 1.0)
+		var x := origin.x + sin(phase * 2.3 + float(index) * 2.1) * size.x * 0.18
+		var y := origin.y + body_h * (0.95 - cycle * 0.85)
+		return {
+			"position": Vector2(x, y),
+			"radius": maxf(0.6, 1.4 * (1.0 - cycle)),
+			"alpha": (1.0 - cycle) * 0.8,
+		}
+
+
+	func with_alpha(color: Color, alpha: float) -> Color:
+		return Color(color.r, color.g, color.b, alpha)
