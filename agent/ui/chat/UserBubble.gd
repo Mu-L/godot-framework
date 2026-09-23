@@ -73,8 +73,7 @@ static func append(
 	var rich_text := MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,
-		MarkdownToggle.markdown_enabled_for_entry(entry),
-		AgentColors.code_block_bg.to_html(false)
+		MarkdownToggle.markdown_enabled_for_entry(entry)
 	)
 	rich_text.visible = StringUtils.is_not_blank(entry.body)
 	vbox.add_child(rich_text)

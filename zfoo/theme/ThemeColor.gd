@@ -21,7 +21,7 @@ static func _static_init() -> void:
 static func load_theme() -> ThemeEnum:
 	var use_dark := Setting.get_bool(THEME_SETTING_KEY, true)
 	current_theme = ThemeEnum.DARK if use_dark else ThemeEnum.LIGHT
-	ThemeColorCard.refresh()
+	refresh_derived_colors()
 	return current_theme
 
 
@@ -29,8 +29,16 @@ static func set_theme(_theme: ThemeEnum) -> void:
 	current_theme = _theme
 	Setting.set_bool(THEME_SETTING_KEY, current_theme == ThemeEnum.DARK)
 	Setting.save()
-	ThemeColorCard.refresh()
+	refresh_derived_colors()
 	pass
+
+
+## Everything that paints itself from the accent: card surfaces and the markdown palette.
+static func refresh_derived_colors() -> void:
+	ThemeColorCard.refresh()
+	ThemeColorMarkdown.refresh()
+	pass
+
 
 static func is_dark_theme() -> bool:
 	return current_theme == ThemeColor.ThemeEnum.DARK
@@ -41,7 +49,7 @@ static func is_light_theme() -> bool:
 static func load_theme_color() -> Color:
 	var saved := Setting.get_string(THEME_COLOR_SETTING_KEY)
 	theme_color = DEFAULT_THEME_COLOR if saved.is_empty() else Color.from_string(saved, DEFAULT_THEME_COLOR)
-	ThemeColorCard.refresh()
+	refresh_derived_colors()
 	return theme_color
 
 
@@ -49,5 +57,5 @@ static func save_theme_color(color: Color) -> void:
 	theme_color = color
 	Setting.set_string(THEME_COLOR_SETTING_KEY, theme_color.to_html(true))
 	Setting.save()
-	ThemeColorCard.refresh()
+	refresh_derived_colors()
 	pass

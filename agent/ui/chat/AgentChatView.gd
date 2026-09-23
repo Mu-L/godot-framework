@@ -7,6 +7,8 @@ extends RefCounted
 const BUBBLE_BODY_MARGIN_H := 12
 const LIST_SEPARATION := 10
 const META_BUBBLE_RICH_TEXT := "bubble_rich_text"
+## The color picker emits on every drag step; the transcript re-renders once the accent settles.
+const THEME_COLOR_REBUILD_DELAY_MS := 250
 
 
 var chat_scroll: ScrollContainer
@@ -18,6 +20,7 @@ var chat_bubble_flusher: ChatBubbleFlusher = ChatBubbleFlusher.new()
 ## When true, new content keeps the transcript scrolled to the latest bubble.
 var stick_to_bottom: bool = true
 var scroll_to_bottom_queued: bool = false
+var theme_color_rebuild_scheduled: bool = false
 
 
 # ---------------------------------------------------------------------------
@@ -42,6 +45,7 @@ func setup(
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.theme_changed.connect(on_theme_changed)
+	AgentEvents.events.theme_color_changed.connect(on_theme_color_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
 	AgentEvents.events.session_removed.connect(on_session_removed)
 	AgentEvents.events.agent_start.connect(on_agent_start)
@@ -163,6 +167,22 @@ func on_markdown_changed(_enabled: bool) -> void:
 
 
 func on_theme_changed() -> void:
+	rebuild(AgentSessionManager.active_session_id)
+	pass
+
+
+## Markdown colors are derived from the accent, so a color pick has to re-render the
+## transcript — but only once: the picker emits on every drag step.
+func on_theme_color_changed() -> void:
+	if theme_color_rebuild_scheduled:
+		return
+	theme_color_rebuild_scheduled = true
+	SchedulerBus.schedule(on_theme_color_rebuild, THEME_COLOR_REBUILD_DELAY_MS)
+	pass
+
+
+func on_theme_color_rebuild() -> void:
+	theme_color_rebuild_scheduled = false
 	rebuild(AgentSessionManager.active_session_id)
 	pass
 
@@ -337,8 +357,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	var rich_text := MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,
-		MarkdownToggle.markdown_enabled_for_entry(entry),
-		AgentColors.code_block_bg.to_html(false)
+		MarkdownToggle.markdown_enabled_for_entry(entry)
 	)
 	rich_text.visible = StringUtils.is_not_blank(entry.body)
 	vbox.add_child(rich_text)

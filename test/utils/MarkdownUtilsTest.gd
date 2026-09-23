@@ -45,7 +45,9 @@ func horizontal_rule_test() -> void:
 	assert(MarkdownUtils.is_horizontal_rule_line("---"))
 	assert(MarkdownUtils.is_horizontal_rule_line("- - -"))
 	assert(not MarkdownUtils.is_horizontal_rule_line("-_*-"))
-	assert(MarkdownUtils.HORIZONTAL_RULE_LINE in MarkdownUtils.to_bbcode("---"))
+	var bbcode := MarkdownUtils.to_bbcode("---")
+	assert(ThemeColorMarkdown.horizontal_rule_line in bbcode)
+	assert("#" in ThemeColorMarkdown.horizontal_rule_line)
 	pass
 
 
@@ -85,10 +87,10 @@ func code_fence_blank_lines_test() -> void:
 	pass
 
 
-func code_block_bg_override_test() -> void:
-	var custom_bg := "#112233"
-	var bbcode := MarkdownUtils.to_bbcode("```\nx\n```", custom_bg)
-	assert(custom_bg in bbcode)
+## The fence fill follows the theme accent instead of a hex the caller passes in.
+func code_block_bg_themed_test() -> void:
+	var bbcode := MarkdownUtils.to_bbcode("```\nx\n```")
+	assert("bg=" + ThemeColorMarkdown.to_hex(ThemeColorMarkdown.code_block_bg) in bbcode)
 	pass
 
 
@@ -101,8 +103,10 @@ func code_fence_right_gutter_test() -> void:
 
 func inline_code_tinted_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("`x`")
-	var chip := "[bgcolor=%s][code]x[/code][/bgcolor]" % MarkdownUtils.INLINE_CODE_BG
-	assert(bbcode == MarkdownUtils.INLINE_CODE_MARGIN + chip + MarkdownUtils.INLINE_CODE_MARGIN)
+	assert(bbcode.begins_with(MarkdownUtils.INLINE_CODE_MARGIN))
+	assert(bbcode.ends_with(MarkdownUtils.INLINE_CODE_MARGIN))
+	assert("[bgcolor=" + ThemeColorMarkdown.to_hex(ThemeColorMarkdown.inline_code_bg) + "]" in bbcode)
+	assert("[code]x[/code]" in bbcode)
 	assert("[table=" not in bbcode)
 	pass
 
@@ -179,7 +183,7 @@ func url_with_parens_test() -> void:
 func link_label_blue_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("[hi](https://a.com)")
 	assert(
-			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownUtils.LINK_TEXT_COLOR
+			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % ThemeColorMarkdown.to_hex(ThemeColorMarkdown.link_color)
 	)
 	var bold_label := MarkdownUtils.inline_to_bbcode("[**hi**](https://a.com)")
 	assert("[b]hi[/b]" in bold_label)

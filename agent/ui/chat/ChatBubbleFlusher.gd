@@ -78,7 +78,6 @@ static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry) -> voi
 	MarkdownUtils.set_rich_text_label_text(
 			rich_text,
 			entry.body,
-			MarkdownToggle.markdown_enabled_for_entry(entry),
-			AgentColors.code_block_bg.to_html(false)
+			MarkdownToggle.markdown_enabled_for_entry(entry)
 	)
 	pass

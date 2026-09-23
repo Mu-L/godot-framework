@@ -7,7 +7,7 @@ extends Object
 ## ----------
 ## `#`–`###### Title`     → `[font_size=N]Title[/font_size]`
 ## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]` + right gutter
-## `` `code` ``           → `[bgcolor=…][code]code[/code][/bgcolor]` (gray inline chip)
+## `` `code` ``           → `[bgcolor=…][code]code[/code][/bgcolor]` (inline chip)
 ## `---` `***` `___`      → full-width `[hr]` line
 ## `> quote`              → `[indent][color]▎[/color] [color]quote[/color][/indent]`
 ## `-` `*` `+` item       → `• item`  (`- [ ]` / `- [x]` → ☐ / ☑)
@@ -17,10 +17,13 @@ extends Object
 ## `***both***`           → `[b][i]both[/i][/b]`
 ## `~~strike~~`           → `[s]strike[/s]`
 ## `<u>text</u>`          → `[u]text[/u]` (inline HTML, not CommonMark)
-## `[label](url)`         → `[url=url][color=…]label[/color][/url]` (label is blue)
+## `[label](url)`         → `[url=url][color=…]label[/color][/url]` (label in the accent)
 ## `![alt](url)`          → `[img]url[/img]`
 ## GFM `\| col \|` table  → `[table=N][cell border=…]…[/cell][/table]` (header row bold + bg)
 ## leftover `[` / `]`     → `[lb]` / `[rb]` (incl. literal `[b]`, `[url=…]`)
+##
+## No color lives here: every fill, border and accent mark comes from
+## `ThemeColorMarkdown`, which follows the theme accent and the dark/light theme.
 ##
 ## Block pass then inline pass. Block order is load-bearing: fences first so
 ## inner `---` / `#` stay literal; HR before lists so `---` is not `- --`.
@@ -41,13 +44,7 @@ const PROTECT_START := "\uE000"
 const PROTECT_END := "\uE001"
 const ESCAPE_SENTINEL := "\uE002"
 const NBSP := "\u00A0"
-# RichTextLabel `[cell]` has no border by default; these draw the grid on chat bubbles.
-const TABLE_CELL_BORDER := "#5a5e6a"
-const HORIZONTAL_RULE_LINE := "[hr width=100% height=1 color=" + TABLE_CELL_BORDER + "]"
-const TABLE_HEADER_BG := "#ffffff14"
 const TABLE_CELL_PADDING := "8,4,8,4"
-# Fenced code block: dark fill, no outer border.
-const CODE_BLOCK_BG := "#121418"
 const CODE_BLOCK_PADDING := "6,6,6,6"
 # RichTextLabel paints a `[cell]` background `padding + table_h_separation` wider than
 # the column it sits in (`RichTextLabel::_set_table_size`), so a one-column `expand=1`
@@ -55,21 +52,12 @@ const CODE_BLOCK_PADDING := "6,6,6,6"
 # margin while the left one stays visible. Padding here is left, top, right, bottom:
 # the gutter reserves that spill so the fill ends on the label box.
 const CODE_BLOCK_RIGHT_GUTTER := "0,0,16,0"
-const BLOCKQUOTE_BAR := "#59a5f2"
-# Inline `` `code` `` chip: one gray at low alpha reads as a faint tint on both palettes
-# (a solid fill would have to match each bubble's own background). Raise the alpha to
-# make the chip stronger, lower it to make it paler.
-const INLINE_CODE_BG := "#80808026"
 # Thin spaces either side of the chip, *outside* its box: the box reaches
 # [constant HIGHLIGHT_H_PADDING] past the glyphs, which eats the space markdown authors
 # type around the backticks, so the code ends up glued to the prose. This is what gives the
 # chip its air; the padding inside the box stays tight. Two of them — one thin space still
 # left the box close to the neighbouring words.
 const INLINE_CODE_MARGIN := "\u2009\u2009"
-# RichTextLabel has no link theme color (its `[url]` body inherits `default_color`),
-# so link labels carry the blue markdown readers expect.
-const LINK_TEXT_COLOR := "#59a5f2"
-const BLOCKQUOTE_TEXT := "#8c919e"
 # Dest allows one `(...)` nest (Wikipedia). Title is optional `"..."` / `'...'`.
 const LINK_DEST := "((?:<[^>]+>|[^()\\s]+|\\([^)]*\\))+)"
 const LINK_TITLE := "(?:\\s+(?:\"[^\"]*\"|'[^']*'))?"
@@ -98,12 +86,11 @@ static func compile_regex(pattern: String) -> RegEx:
 
 
 ## Converts Markdown to BBCode for RichTextLabel (`bbcode_enabled` must be on).
-## [param code_block_bg] optional hex for fenced ``` code blocks (theme-aware callers).
-static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPTY) -> String:
+## Colors come from `ThemeColorMarkdown`, so the result follows the current theme.
+static func to_bbcode(markdown: String) -> String:
 	if StringUtils.is_blank(markdown):
 		return StringUtils.EMPTY
 
-	var fence_bg := code_block_bg if StringUtils.is_not_empty(code_block_bg) else CODE_BLOCK_BG
 	var lines := normalize_newlines(markdown).split(FileUtils.NEWLINE_LF)
 	var out: PackedStringArray = []
 	var i := 0
@@ -121,12 +108,12 @@ static func to_bbcode(markdown: String, code_block_bg: String = StringUtils.EMPT
 				i += 1
 			if i < lines.size():
 				i += 1
-			out.append(format_code_fence_bbcode(FileUtils.NEWLINE_LF.join(code_lines), fence_bg))
+			out.append(format_code_fence_bbcode(FileUtils.NEWLINE_LF.join(code_lines)))
 			continue
 
 		# --- / *** / ___  →  [hr width=100% …]
 		if is_horizontal_rule_line(line):
-			out.append(HORIZONTAL_RULE_LINE)
+			out.append(ThemeColorMarkdown.horizontal_rule_line)
 			i += 1
 			continue
 
@@ -305,8 +292,8 @@ static func format_blockquote_bbcode(text: String) -> String:
 	var body := inline_to_bbcode(text)
 	return StringUtils.format(
 			"[indent][color={}]▎[/color] [color={}]{}[/color][/indent]",
-			BLOCKQUOTE_BAR,
-			BLOCKQUOTE_TEXT,
+			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.blockquote_bar_color),
+			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.blockquote_text_color),
 			body
 	)
 
@@ -387,18 +374,19 @@ static func format_table_bbcode(header: PackedStringArray, body_rows: Array[Pack
 
 static func format_table_cell(text: String, is_header: bool) -> String:
 	var content := inline_to_bbcode(text)
+	var border := ThemeColorMarkdown.to_hex(ThemeColorMarkdown.table_grid_color)
 	if is_header:
 		content = StringUtils.format("[b]{}[/b]", content)
 		return StringUtils.format(
 				"[cell border={} bg={} padding={}]{}[/cell]",
-				TABLE_CELL_BORDER,
-				TABLE_HEADER_BG,
+				border,
+				ThemeColorMarkdown.to_hex(ThemeColorMarkdown.table_header_bg),
 				TABLE_CELL_PADDING,
 				content
 		)
 	return StringUtils.format(
 			"[cell border={} padding={}]{}[/cell]",
-			TABLE_CELL_BORDER,
+			border,
 			TABLE_CELL_PADDING,
 			content
 	)
@@ -531,7 +519,12 @@ static func apply_inline(text: String, parts: Array[String]) -> String:
 				var url := escape_bbcode_literals(parse_link_destination(m.get_string(2)))
 				return protect(
 						parts,
-						StringUtils.format("[url={}][color={}]{}[/color][/url]", url, LINK_TEXT_COLOR, label)
+						StringUtils.format(
+								"[url={}][color={}]{}[/color][/url]",
+								url,
+								ThemeColorMarkdown.to_hex(ThemeColorMarkdown.link_color),
+								label
+						)
 				)
 	)
 	# `__init__` would otherwise become `[b]init[/b]` (and then `_init_` italic).
@@ -609,10 +602,10 @@ static func parse_link_destination(raw: String) -> String:
 ## Fenced block → one full-width `[cell]` with background only, wrapped in an outer cell
 ## that reserves the background spill ([constant CODE_BLOCK_RIGHT_GUTTER]) — the fill
 ## otherwise ends on the bubble's right edge instead of keeping the left margin's gap.
-static func format_code_fence_bbcode(code: String, bg: String = CODE_BLOCK_BG) -> String:
+static func format_code_fence_bbcode(code: String) -> String:
 	var block := StringUtils.format(
 			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}[/cell][/table]",
-			bg,
+			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.code_block_bg),
 			CODE_BLOCK_PADDING,
 			wrap_code(code)
 	)
@@ -629,11 +622,11 @@ static func format_code_fence_bbcode(code: String, bg: String = CODE_BLOCK_BG) -
 ## [constant HIGHLIGHT_H_PADDING] / [constant HIGHLIGHT_V_PADDING], which
 ## [method create_rich_text_label] installs on the label, and
 ## [constant INLINE_CODE_MARGIN] keeps it clear of the surrounding prose.
-static func add_code_background(code: String, bg: String = INLINE_CODE_BG) -> String:
+static func add_code_background(code: String) -> String:
 	return StringUtils.format(
 			"{}[bgcolor={}]{}[/bgcolor]{}",
 			INLINE_CODE_MARGIN,
-			bg,
+			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.inline_code_bg),
 			wrap_code(code),
 			INLINE_CODE_MARGIN
 	)
@@ -767,7 +760,7 @@ class SelectableRichTextLabel extends RichTextLabel:
 		pass
 
 
-static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool, code_block_bg: String = StringUtils.EMPTY) -> RichTextLabel:
+static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool) -> RichTextLabel:
 	var label := SelectableRichTextLabel.new()
 	label.scroll_active = false
 	label.fit_content = true
@@ -794,7 +787,7 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 				copy_to_clipboard(label.get_selected_text())
 	)
 	label.meta_clicked.connect(handle_meta_clicked)
-	set_rich_text_label_text(label, raw_text, markdown_enabled, code_block_bg)
+	set_rich_text_label_text(label, raw_text, markdown_enabled)
 	return label
 
 
@@ -820,9 +813,9 @@ static func copy_to_clipboard(text: String) -> void:
 	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).strip_edges())
 	pass
 
-static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool, code_block_bg: String = StringUtils.EMPTY) -> void:
+static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool) -> void:
 	if markdown_enabled:
-		var bbcode := to_bbcode(raw_text, code_block_bg)
+		var bbcode := to_bbcode(raw_text)
 		# Enabling bbcode re-parses existing text; raw markdown may contain literal
 		# `[cell]` / `[table]` (e.g. in backticks) and crash RichTextLabel.
 		if label.bbcode_enabled:

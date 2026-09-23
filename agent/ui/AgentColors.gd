@@ -36,7 +36,6 @@ static var success: Color
 static var error: Color
 static var system_title: Color
 static var thinking_title: Color
-static var code_block_bg: Color
 
 
 # ---------------------------------------------------------------------------
@@ -122,7 +121,6 @@ static func apply_dark_palette() -> void:
 	error = Color(0.85, 0.30, 0.30)
 	system_title = Color(0.55, 0.68, 0.88)
 	thinking_title = Color(0.72, 0.58, 0.88)
-	code_block_bg = Color(0.07, 0.08, 0.10)
 	pass
 
 
@@ -164,5 +162,4 @@ static func apply_light_palette() -> void:
 	error = Color(0.86, 0.15, 0.15)
 	system_title = Color(0.31, 0.27, 0.90)
 	thinking_title = Color(0.49, 0.23, 0.93)
-	code_block_bg = Color(0.94, 0.95, 0.96)
 	pass
