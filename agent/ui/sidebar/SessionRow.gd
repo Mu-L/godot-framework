@@ -18,8 +18,6 @@ const ACTION_SIZE := Vector2(28, 28)
 const DRAG_GHOST_ALPHA := 0.92
 
 var session_id: int = 0
-## Which section the row sits in; plain state, kept in sync by [SessionRowDrag].
-var pinned: bool = false
 var selected: bool = false
 var hovered: bool = false
 
@@ -31,9 +29,8 @@ var scifi_fx: SessionRowSciFiFx
 var rename_field: LineEdit
 
 
-func build(p_session_id: int, title: String, p_pinned: bool) -> void:
+func build(p_session_id: int, title: String) -> void:
 	session_id = p_session_id
-	pinned = p_pinned
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	mouse_default_cursor_shape = Control.CURSOR_MOVE
 	bind_hover(self)
@@ -57,7 +54,7 @@ func build(p_session_id: int, title: String, p_pinned: bool) -> void:
 	title_button.mouse_default_cursor_shape = Control.CURSOR_MOVE
 	# Cut at the row width, character by character, without an ellipsis.
 	title_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
-	title_button.pressed.connect(on_title_pressed)
+	title_button.pressed.connect(select_pressed.emit.bind(session_id))
 	bind_hover(title_button)
 
 	# The wave takes the close button's slot while this session runs.
@@ -70,7 +67,7 @@ func build(p_session_id: int, title: String, p_pinned: bool) -> void:
 	delete_button.custom_minimum_size = ACTION_SIZE
 	delete_button.focus_mode = Control.FOCUS_NONE
 	delete_button.flat = true
-	delete_button.pressed.connect(on_delete_pressed)
+	delete_button.pressed.connect(delete_pressed.emit.bind(session_id))
 	bind_hover(delete_button)
 
 	content.add_child(title_button)
@@ -190,9 +187,9 @@ func commit_rename() -> void:
 func cancel_rename() -> void:
 	if rename_field == null:
 		return
+	# The single field is boxed: the title button still holds the stored name, so closing is all
+	# that a discard needs.
 	close_rename_field()
-	# Nothing was stored, so the slot goes back to the title the manager still holds.
-	set_title(AgentSessionManager.get_title(session_id))
 	pass
 
 
@@ -273,17 +270,3 @@ func build_drag_preview() -> Control:
 	var grab := get_local_mouse_position()
 	ghost.position = -Vector2(clampf(grab.x, 0.0, row_size.x), clampf(grab.y, 0.0, row_size.y))
 	return preview
-
-
-# ---------------------------------------------------------------------------
-# Button handlers
-# ---------------------------------------------------------------------------
-
-func on_title_pressed() -> void:
-	select_pressed.emit(session_id)
-	pass
-
-
-func on_delete_pressed() -> void:
-	delete_pressed.emit(session_id)
-	pass

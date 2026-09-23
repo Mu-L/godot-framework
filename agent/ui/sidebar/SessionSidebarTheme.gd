@@ -128,8 +128,9 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	edit.add_theme_color_override("font_placeholder_color", AgentColors.sidebar_muted)
 	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
 	edit.add_theme_color_override("selection_color", AgentColors.theme_selection_bg())
-	edit.add_theme_stylebox_override("normal", rename_field())
-	edit.add_theme_stylebox_override("focus", rename_field())
+	var field_style := rename_field()
+	edit.add_theme_stylebox_override("normal", field_style)
+	edit.add_theme_stylebox_override("focus", field_style)
 	pass
 
 

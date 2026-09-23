@@ -3,6 +3,7 @@ extends Control
 ## Agent main app — multi-session chat UI.
 
 @onready var toolbar_panel: PanelContainer = $Root/Toolbar
+@onready var toolbar_logo: Label = $Root/Toolbar/ToolbarRow/Logo
 @onready var toolbar_title: Label = $Root/Toolbar/ToolbarRow/Title
 @onready var sidebar_panel: PanelContainer = $Root/Body/Sidebar
 @onready var chat_area_panel: Panel = $Root/Body/ChatArea
@@ -53,7 +54,7 @@ func _ready() -> void:
 	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
 	
-	toolbar.setup(toolbar_panel, toolbar_title, project_button)
+	toolbar.setup(toolbar_panel, toolbar_logo, toolbar_title, project_button)
 	notification.setup()
 	session_sidebar.setup(pinned_header,pinned_list,pinned_separator
 			,normal_header,normal_list,new_session_button,sidebar_panel)

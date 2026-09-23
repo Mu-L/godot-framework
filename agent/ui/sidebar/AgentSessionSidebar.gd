@@ -39,13 +39,13 @@ func setup(
 	normal_list = p_normal_list
 	new_session_button = p_new_session_button
 	sidebar_panel = p_sidebar_panel
-	drag.setup(session_rows, pinned_list, normal_list, sync_pinned_section_visibility)
+	drag.setup(session_rows, pinned_list, normal_list)
 
 	new_session_button.pressed.connect(on_new_session_pressed)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
 	AgentEvents.events.session_added.connect(on_session_added)
-	AgentEvents.events.session_removed.connect(on_session_removed)
+	AgentEvents.events.session_removed.connect(remove_row)
 	AgentEvents.events.session_selected.connect(select_item)
 	AgentEvents.events.session_title_changed.connect(on_session_refresh)
 	AgentEvents.events.agent_start.connect(on_session_refresh)
@@ -60,6 +60,11 @@ func setup(
 	drag.bind_list(normal_list, false)
 	drag.bind_list(normal_header, false)
 
+	# Rows are appended, moved between sections and freed from several places, so the separator and
+	# the unpin drop pad follow the lists themselves instead of every caller remembering to ask.
+	for list: VBoxContainer in [pinned_list, normal_list]:
+		list.child_entered_tree.connect(on_section_changed)
+		list.child_exiting_tree.connect(on_section_changed)
 	# Any click outside the open rename field closes it: row buttons never take the focus, so
 	# focus loss cannot do it. Same window-level hook the chat input uses for outside clicks.
 	sidebar_panel.get_window().window_input.connect(on_window_input)
@@ -106,7 +111,6 @@ func rebuild() -> void:
 		append_row(session_index.id, session_index.title, true)
 	for session_index: AgentSessionIndexes.SessionIndex in AgentSessionManager.session_indexes.indexes:
 		append_row(session_index.id, session_index.title, false)
-	sync_pinned_section_visibility()
 	select_item(AgentSessionManager.active_session_id)
 	pass
 
@@ -139,11 +143,19 @@ func set_row_selected(session_id: int, selected: bool) -> void:
 	pass
 
 
-func sync_pinned_section_visibility() -> void:
+## A row entered / left one of the lists — settle the sections once the tree has stopped moving.
+## [signal Node.child_exiting_tree] still counts the leaving row, and a section move fires both
+## signals in a row, so this has to wait for the end of the frame.
+func on_section_changed(_node: Node) -> void:
+	sync_sections.call_deferred()
+	pass
+
+
+func sync_sections() -> void:
 	var has_pinned := pinned_list.get_child_count() > 0
 	var has_normal := normal_list.get_child_count() > 0
 	pinned_separator.visible = has_pinned and has_normal
-	# Empty Chats list has no row hit target — keep a small drop pad when unpinning is possible.
+	# An empty Chats list has no row hit target — keep a small drop pad when unpinning is possible.
 	normal_list.custom_minimum_size = Vector2(0, 40) if has_pinned and not has_normal else Vector2.ZERO
 	pass
 
@@ -154,7 +166,7 @@ func sync_pinned_section_visibility() -> void:
 
 func append_row(session_id: int, title: String, pinned: bool) -> void:
 	var row := SessionRow.new()
-	row.build(session_id, title, pinned)
+	row.build(session_id, title)
 	row.select_pressed.connect(on_session_row_pressed)
 	row.delete_pressed.connect(on_session_delete_pressed)
 	drag.list_for_pinned(pinned).add_child(row)
@@ -189,12 +201,6 @@ func clear() -> void:
 func on_session_added(session_id: int, title: String) -> void:
 	append_row(session_id, title, false)
 	normal_list.move_child(session_rows[session_id], 0)
-	pass
-
-
-func on_session_removed(session_id: int) -> void:
-	remove_row(session_id)
-	sync_pinned_section_visibility()
 	pass
 
 

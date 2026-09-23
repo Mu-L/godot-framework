@@ -29,10 +29,16 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 16
 
+[node name="Logo" type="Label" parent="Root/Toolbar/ToolbarRow" unique_id=1903907347]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "GAI"
+vertical_alignment = 1
+
 [node name="Title" type="Label" parent="Root/Toolbar/ToolbarRow" unique_id=1903907348]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "gai Code Agent Workspace"
+text = "Code Agent Workspace"
 
 [node name="ProjectButton" type="Button" parent="Root/Toolbar/ToolbarRow" unique_id=1917564757]
 layout_mode = 2

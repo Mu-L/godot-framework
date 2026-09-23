@@ -9,25 +9,28 @@ extends RefCounted
 var session_rows: Dictionary[int, SessionRow] = {}
 var pinned_list: VBoxContainer
 var normal_list: VBoxContainer
-## Called after a row changed section, so the host can refresh the pinned separator / drop pad.
-var sections_changed := Callable()
 
 
 func setup(
 	p_session_rows: Dictionary[int, SessionRow],
 	p_pinned_list: VBoxContainer,
-	p_normal_list: VBoxContainer,
-	p_sections_changed: Callable
+	p_normal_list: VBoxContainer
 ) -> void:
 	session_rows = p_session_rows
 	pinned_list = p_pinned_list
 	normal_list = p_normal_list
-	sections_changed = p_sections_changed
 	pass
 
 
 func list_for_pinned(pinned: bool) -> VBoxContainer:
 	return pinned_list if pinned else normal_list
+
+
+## The drag payload is the session id of the dragged row; anything else is not ours.
+func row_of_drag_data(data: Variant) -> SessionRow:
+	if typeof(data) != TYPE_INT:
+		return null
+	return session_rows.get(data)
 
 
 ## Whole row (padding, title, close button) is a drag handle and a drop target.
@@ -57,34 +60,27 @@ func get_row_drag_data(_at_position: Vector2, row: SessionRow) -> Variant:
 
 ## Query only — the reorder is applied in [method drop_on_row] when the mouse is released.
 func can_drop_on_row(_at_position: Vector2, data: Variant, target: SessionRow) -> bool:
-	if typeof(data) != TYPE_INT or target == null:
-		return false
-	return session_rows.has(data) and session_rows.has(target.session_id)
+	return row_of_drag_data(data) != null and target != null
 
 
 func drop_on_row(_at_position: Vector2, data: Variant, target: SessionRow) -> bool:
-	if typeof(data) != TYPE_INT or target == null:
+	var from_row := row_of_drag_data(data)
+	if from_row == null or target == null:
 		return false
-	var from_row: SessionRow = session_rows.get(data)
-	if from_row == null:
-		return false
-	var to_pinned := target.pinned
+	# The section is read from the list a row sits in, never from a copy of that state.
+	var to_pinned := target.get_parent() == pinned_list
 	apply_row_move(from_row, list_for_pinned(to_pinned), target.get_index(), to_pinned)
 	return true
 
 
 ## Query only — the reorder is applied in [method drop_on_list] when the mouse is released.
 func can_drop_on_list(_at_position: Vector2, data: Variant, _pinned: bool) -> bool:
-	if typeof(data) != TYPE_INT:
-		return false
-	return session_rows.has(data)
+	return row_of_drag_data(data) != null
 
 
 ## Dropping on the list background appends the row to the end of that list.
 func drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> bool:
-	if typeof(data) != TYPE_INT:
-		return false
-	var from_row: SessionRow = session_rows.get(data)
+	var from_row := row_of_drag_data(data)
 	if from_row == null:
 		return false
 	var target_list := list_for_pinned(pinned)
@@ -101,11 +97,8 @@ func apply_row_move(from_row: SessionRow, target_list: VBoxContainer, to_index: 
 	var need_section_change := AgentSessionManager.is_pinned(session_id) != to_pinned
 	if from_row.get_parent() != target_list:
 		from_row.reparent(target_list)
-		from_row.pinned = to_pinned
-		if sections_changed.is_valid():
-			sections_changed.call()
 
-	to_index = clamp_move_index(target_list, to_index)
+	to_index = clampi(to_index, 0, maxi(0, target_list.get_child_count() - 1))
 	var from_index := from_row.get_index()
 	if not need_section_change and from_index == to_index:
 		return
@@ -118,8 +111,3 @@ func apply_row_move(from_row: SessionRow, target_list: VBoxContainer, to_index: 
 	elif from_index != to_index:
 		AgentSessionManager.move_index_in_list(session_id, from_row.get_index(), to_pinned)
 	pass
-
-
-func clamp_move_index(target_list: VBoxContainer, to_index: int) -> int:
-	var max_index := maxi(0, target_list.get_child_count() - 1)
-	return clampi(to_index, 0, max_index)
