@@ -23,9 +23,9 @@ var field_labels: Array[Label] = []
 var help_labels: Array[Label] = []
 
 
-func setup(p_button: Button, dialog_parent: Node) -> void:
+func setup(p_button: Button) -> void:
 	button = p_button
-	build_dialog(dialog_parent)
+	build_dialog()
 	button.text = ""
 	button.pressed.connect(on_button_pressed)
 	button.mouse_entered.connect(on_button_mouse_entered)
@@ -36,7 +36,7 @@ func setup(p_button: Button, dialog_parent: Node) -> void:
 	pass
 
 
-func build_dialog(dialog_parent: Node) -> void:
+func build_dialog() -> void:
 	dialog = ConfirmationDialog.new()
 	dialog.title = ""
 	dialog.ok_button_text = "Save"
@@ -48,7 +48,7 @@ func build_dialog(dialog_parent: Node) -> void:
 	dialog.exclusive = false
 	dialog.confirmed.connect(on_confirmed)
 	dialog.focus_exited.connect(on_dialog_focus_exited)
-	dialog_parent.add_child(dialog)
+	button.add_child(dialog)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 20)

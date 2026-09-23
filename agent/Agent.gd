@@ -66,7 +66,7 @@ func _ready() -> void:
 	chat_input.setup(input_bar, input_wrap, input_inner, input_field, send_button)
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
-	agent_setting.setup(agent_setting_button, self)
+	agent_setting.setup(agent_setting_button)
 	workspace_button.setup(project_button, workspace_dialog)
 	log_button_ctrl.setup(log_button)
 
