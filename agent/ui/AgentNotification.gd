@@ -32,22 +32,22 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 		var accent := AgentColors.error if entry.kind == ChatEntry.KIND_ERROR else AgentColors.success
 		DesktopToast.show_toast(entry.title, entry.body, accent)
 	if AgentSetting.get_notification_sound():
-		play_sound()
+		play_sound_notifications()
 	pass
 
 
 ## Play the configured folder as one continuous playlist, silenced after the configured seconds.
 ## A playlist that is still running keeps going and a paused one is resumed, so a second run does
 ## not restart the same beep — only a different folder starts a fresh playlist.
-func play_sound() -> void:
-	var clips := ResourceHelper.get_all_audio_files(AgentSetting.get_notification_sound_folder())
-	if clips.is_empty():
+func play_sound_notifications() -> void:
+	var audios := ResourceHelper.get_all_audio_files(AgentSetting.get_notification_sound_folder())
+	if audios.is_empty():
 		return
-	if has_playlist(clips):
+	if has_playlist(audios):
 		Audio.resume_musics(START_FADE_SECONDS)
 	else:
-		Audio.play_musics(clips, 1.0, START_FADE_SECONDS)
-	SchedulerBus.schedule(stop_sound, AgentSetting.get_notification_sound_seconds() * 1000)
+		Audio.play_musics(audios, 1.0, START_FADE_SECONDS)
+	SchedulerBus.schedule(stop_sound_notifications, AgentSetting.get_notification_sound_seconds() * 1000)
 	pass
 
 
@@ -62,6 +62,6 @@ func has_playlist(clips: Array[String]) -> bool:
 
 
 ## Fade the music out and pause it, so the next run picks the sound up where this one left it.
-func stop_sound() -> void:
+func stop_sound_notifications() -> void:
 	Audio.pause_musics(STOP_FADE_SECONDS)
 	pass
