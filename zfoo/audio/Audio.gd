@@ -178,11 +178,21 @@ static func stop_ambience_fade(duration: float = 1.0) -> void:
 static var musics: Array[String] = []
 static var musics_volume_linear: float = 1.0
 
-static func play_musics(paths: Array[String], volume_linear: float = 1.0) -> void:
+static func play_musics(paths: Array[String], volume_linear: float = 1.0, duration: float = 3.0) -> void:
 	musics = paths.duplicate()
 	musics_volume_linear = clampf(volume_linear, 0.0, 1.0)
-	play_music_next()
+	play_music_next(duration)
 	pass
+
+
+## True while the music playlist is audible.
+static func is_playing_music() -> bool:
+	return audio_map[AudioBusType.Music].playing
+
+
+## True while the music playlist is paused — [method resume_musics] carries on from there.
+static func is_music_paused() -> bool:
+	return audio_map[AudioBusType.Music].stream_paused
 
 static func play_music_next(duration: float = 3.0) -> void:
 	if musics.is_empty():
