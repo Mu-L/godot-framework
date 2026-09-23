@@ -50,7 +50,8 @@ var notification: AgentNotification = AgentNotification.new()
 
 func _ready() -> void:
 	AgentColors.load_saved_theme()
-	setup_chat_area()
+	gdf.events.theme_changed.connect(apply_theme)
+	apply_theme()
 	
 	toolbar.setup(toolbar_panel, toolbar_title, project_button)
 	notification.setup()
@@ -74,12 +75,6 @@ func _ready() -> void:
 	session_sidebar.reload_sessions()
 	pass
 
-
-## Chat region and outer shell background colors.
-func setup_chat_area() -> void:
-	gdf.events.theme_changed.connect(apply_theme)
-	apply_theme()
-	pass
 
 
 func apply_theme() -> void:
