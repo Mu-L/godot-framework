@@ -34,7 +34,6 @@ extends Control
 var toolbar: AgentToolbar = AgentToolbar.new()
 var workspace_button: WorkspaceButton = WorkspaceButton.new()
 var log_button_ctrl: LogButton = LogButton.new()
-var chat_area: ChatArea = ChatArea.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
 var theme_toggle: ThemeToggle = ThemeToggle.new()
 var theme_color_select_ctrl: ThemeColorSelect = ThemeColorSelect.new()
@@ -51,11 +50,12 @@ var notification: AgentNotification = AgentNotification.new()
 
 func _ready() -> void:
 	AgentColors.load_saved_theme()
+	setup_chat_area()
+	
 	toolbar.setup(toolbar_panel, toolbar_title, project_button)
 	notification.setup()
 	session_sidebar.setup(pinned_header,pinned_list,pinned_separator
 			,normal_header,normal_list,new_session_button,sidebar_panel)
-	chat_area.setup(chat_area_panel, self)
 	token_usage_display.setup(token_usage_wrap)
 	jarvis_toggle.setup(jarvis_toggle_button)
 	skill_toggle.setup(skill_toggle_button)
@@ -72,4 +72,26 @@ func _ready() -> void:
 
 	# session
 	session_sidebar.reload_sessions()
+	pass
+
+
+## Chat region and outer shell background colors.
+func setup_chat_area() -> void:
+	gdf.events.theme_changed.connect(apply_theme)
+	apply_theme()
+	pass
+
+
+func apply_theme() -> void:
+	var chat_style := StyleBoxFlat.new()
+	chat_style.bg_color = AgentColors.chat
+	chat_style.content_margin_left = 0
+	chat_style.content_margin_top = 0
+	chat_style.content_margin_right = 0
+	chat_style.content_margin_bottom = 0
+	chat_area_panel.add_theme_stylebox_override("panel", chat_style)
+	chat_area_panel.queue_redraw()
+	var shell_style := StyleBoxFlat.new()
+	shell_style.bg_color = AgentColors.chat
+	add_theme_stylebox_override("panel", shell_style)
 	pass
