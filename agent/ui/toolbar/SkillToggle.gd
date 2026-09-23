@@ -3,8 +3,6 @@ extends RefCounted
 
 ## Toolbar toggle for the skill index prompt (session append/remove).
 
-const SETTING_KEY := "agent_skill_in_prompt_enabled"
-
 var button: Button
 
 
@@ -18,7 +16,7 @@ func setup(p_button: Button) -> void:
 	pass
 
 static func on_session_added(session_id: int, _title: String) -> void:
-	if not Setting.get_bool(SETTING_KEY, true):
+	if not AgentSetting.get_skill_in_prompt_enabled():
 		return
 	append_skill_context(session_id)
 	pass
@@ -64,7 +62,7 @@ static func remove_skill_context(session_id: int) -> void:
 
 
 func refresh_toggle_button() -> void:
-	var enabled := Setting.get_bool(SETTING_KEY, true)
+	var enabled := AgentSetting.get_skill_in_prompt_enabled()
 	var tooltip := "Add skill index to this chat" if not enabled else "Remove skill index from this chat"
 	AgentToolbarButton.style(button, tooltip)
 	button.set_block_signals(true)
@@ -74,8 +72,7 @@ func refresh_toggle_button() -> void:
 
 
 func on_toggled(enabled: bool) -> void:
-	Setting.set_bool(SETTING_KEY, enabled)
-	Setting.save()
+	AgentSetting.set_skill_in_prompt_enabled(enabled)
 
 	refresh_toggle_button()
 	

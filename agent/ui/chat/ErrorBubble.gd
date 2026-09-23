@@ -33,7 +33,7 @@ static func append(
 	var rich_text := MarkdownUtils.create_rich_text_label(
 			AgentColors.error,
 			StringUtils.first_lines(entry.body, MAX_LINES),
-			MarkdownToggle.markdown_enabled
+			AgentSetting.get_markdown_enabled()
 	)
 	vbox.add_child(rich_text)
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
@@ -56,7 +56,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 	if entry == null:
 		return
 	var display := StringUtils.first_lines(entry.body, MAX_LINES)
-	MarkdownUtils.set_rich_text_label_text(rich_text, display, MarkdownToggle.markdown_enabled)
+	MarkdownUtils.set_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
 	pass
 
 

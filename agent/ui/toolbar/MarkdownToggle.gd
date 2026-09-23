@@ -3,24 +3,18 @@ extends RefCounted
 
 ## Toolbar toggle for chat bubble Markdown rendering.
 
-const SETTING_KEY := "agent_markdown_enabled"
-
-static var markdown_enabled: bool = true
-
-
 ## Respect toolbar setting; tool and user bubbles always stay plain text.
 ## A user prompt is echoed exactly as typed — never Markdown-rendered.
 static func markdown_enabled_for_entry(entry: ChatEntry) -> bool:
 	if entry.kind == ChatEntry.KIND_TOOL or entry.kind == ChatEntry.KIND_USER:
 		return false
-	return markdown_enabled
+	return AgentSetting.get_markdown_enabled()
 
 
 var button: Button
 
 
 func setup(p_button: Button) -> void:
-	markdown_enabled = Setting.get_bool(SETTING_KEY, true)
 	button = p_button
 	button.toggled.connect(on_toggled)
 	gdf.events.theme_changed.connect(apply_theme)
@@ -30,7 +24,7 @@ func setup(p_button: Button) -> void:
 
 
 func apply_theme() -> void:
-	markdown_enabled = Setting.get_bool(SETTING_KEY, true)
+	var markdown_enabled := AgentSetting.get_markdown_enabled()
 	AgentToolbarButton.style(
 			button,
 			"Show raw text" if markdown_enabled else "Render Markdown as BBCode"
@@ -42,9 +36,6 @@ func apply_theme() -> void:
 
 
 func on_toggled(enabled: bool) -> void:
-	markdown_enabled = enabled
-	Setting.set_bool(SETTING_KEY, enabled)
-	Setting.save()
+	AgentSetting.set_markdown_enabled(enabled)
 	apply_theme()
-	AgentEvents.events.markdown_changed.emit(enabled)
 	pass

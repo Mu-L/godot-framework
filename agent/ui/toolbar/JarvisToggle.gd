@@ -3,7 +3,6 @@ extends RefCounted
 
 ## Toolbar toggle for the Jarvis 3D orb overlay during agent runs.
 
-const SETTING_KEY := "agent_jarvis_orb_enabled"
 const BUTTON_SIZE := 28
 const CORNER_RADIUS := 14
 const ICON_DRAW_SIZE := 24
@@ -28,7 +27,7 @@ func setup(p_button: Button) -> void:
 
 
 func apply_theme() -> void:
-	var jarvis_orb_enabled := Setting.get_bool(SETTING_KEY, true)
+	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
 	var tooltip := (
 		"Hide run animation"
 		if jarvis_orb_enabled
@@ -74,7 +73,7 @@ func on_mouse_exited() -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var jarvis_orb_enabled := Setting.get_bool(SETTING_KEY, true)
+	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
 	var icon_color := AgentColors.toolbar_muted
 	if jarvis_orb_enabled:
 		var accent := AgentColors.theme_accent_solid()
@@ -134,8 +133,6 @@ func set_icon_pixel(img: Image, x: int, y: int, col: Color) -> void:
 
 
 func on_toggled(enabled: bool) -> void:
-	Setting.set_bool(SETTING_KEY, enabled)
-	Setting.save()
+	AgentSetting.set_jarvis_orb_enabled(enabled)
 	apply_theme()
-	AgentEvents.events.jarvis_orb_changed.emit(enabled)
 	pass

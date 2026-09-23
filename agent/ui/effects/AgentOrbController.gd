@@ -98,7 +98,7 @@ func on_agent_start(session_id: int) -> void:
 	running_session_id = session_id
 	if jarvis_orb != null:
 		jarvis_orb.reset_growth()
-	var jarvis_orb_enabled := Setting.get_bool(JarvisToggle.SETTING_KEY, true)
+	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
 	if not jarvis_orb_enabled:
 		set_orb_visible(false, false)
 		return
@@ -253,7 +253,7 @@ func stop_orb_tween() -> void:
 
 
 func set_orb_visible(show: bool, animated: bool) -> void:
-	var jarvis_orb_enabled := Setting.get_bool(JarvisToggle.SETTING_KEY, true)
+	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
 	if show and not jarvis_orb_enabled:
 		show = false
 	if not show:
@@ -323,7 +323,7 @@ func ensure_center_pivot() -> void:
 
 
 func _should_handle(session_id: int) -> bool:
-	var jarvis_orb_enabled := Setting.get_bool(JarvisToggle.SETTING_KEY, true)
+	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
 	if not jarvis_orb_enabled:
 		return false
 	if session_id != running_session_id:

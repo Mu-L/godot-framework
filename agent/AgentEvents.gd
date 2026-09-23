@@ -55,7 +55,9 @@ class Events:
 	signal chat_bubble_flushed
 	## A bubble handed its body back to the chat input (delete / revert) for re-editing.
 	signal chat_input_prefill(text: String)
+	## Markdown bubble rendering switched (see [method AgentSetting.set_markdown_enabled]).
 	signal markdown_changed(enabled: bool)
+	## Jarvis orb overlay switched on / off (see [method AgentSetting.set_jarvis_orb_enabled]).
 	signal jarvis_orb_changed(enabled: bool)
 	signal skill_context_changed(session_id: int)
 	## AGENTS.md project prompt added to / removed from a session (see AgentPromptToggle).
