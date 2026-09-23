@@ -34,7 +34,8 @@ static func set_theme(_theme: ThemeEnum) -> void:
 	pass
 
 
-## Everything that paints itself from the accent: card surfaces and the markdown palette.
+## Everything that paints itself from the accent: the card surfaces. The markdown palette
+## switches between its own constant dark/light sets.
 static func refresh_derived_colors() -> void:
 	ThemeColorCard.refresh()
 	ThemeColorMarkdown.refresh()

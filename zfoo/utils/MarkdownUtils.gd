@@ -17,13 +17,13 @@ extends Object
 ## `***both***`           → `[b][i]both[/i][/b]`
 ## `~~strike~~`           → `[s]strike[/s]`
 ## `<u>text</u>`          → `[u]text[/u]` (inline HTML, not CommonMark)
-## `[label](url)`         → `[url=url][color=…]label[/color][/url]` (label in the accent)
+## `[label](url)`         → `[url=url][color=…]label[/color][/url]` (label in the link color)
 ## `![alt](url)`          → `[img]url[/img]`
 ## GFM `\| col \|` table  → `[table=N][cell border=…]…[/cell][/table]` (header row bold + bg)
 ## leftover `[` / `]`     → `[lb]` / `[rb]` (incl. literal `[b]`, `[url=…]`)
 ##
-## No color lives here: every fill, border and accent mark comes from
-## `ThemeColorMarkdown`, which follows the theme accent and the dark/light theme.
+## No color lives here: every fill, border and mark comes from `ThemeColorMarkdown`, whose dark
+## and light sets are constants it switches between.
 ##
 ## Block pass then inline pass. Block order is load-bearing: fences first so
 ## inner `---` / `#` stay literal; HR before lists so `---` is not `- --`.
