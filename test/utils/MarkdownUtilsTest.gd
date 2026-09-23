@@ -99,11 +99,21 @@ func code_fence_right_gutter_test() -> void:
 	pass
 
 
-func inline_code_no_table_test() -> void:
+func inline_code_tinted_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("`x`")
-	assert("[code]" in bbcode)
+	var chip := "[bgcolor=%s][code]x[/code][/bgcolor]" % MarkdownUtils.INLINE_CODE_BG
+	assert(bbcode == MarkdownUtils.INLINE_CODE_MARGIN + chip + MarkdownUtils.INLINE_CODE_MARGIN)
 	assert("[table=" not in bbcode)
-	assert("[bgcolor=" not in bbcode)
+	pass
+
+
+## The engine's default 3px highlight padding paints the chip over the line above and
+## below it, so the box is pinned to the glyphs instead.
+func inline_code_box_padding_test() -> void:
+	var label := MarkdownUtils.create_rich_text_label(Color.WHITE, "`x`", true)
+	assert(label.get_theme_constant("text_highlight_v_padding") == MarkdownUtils.HIGHLIGHT_V_PADDING)
+	assert(label.get_theme_constant("text_highlight_h_padding") == MarkdownUtils.HIGHLIGHT_H_PADDING)
+	label.free()
 	pass
 
 

@@ -7,7 +7,7 @@ extends Object
 ## ----------
 ## `#`–`###### Title`     → `[font_size=N]Title[/font_size]`
 ## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]` + right gutter
-## `` `code` ``           → `[code]code[/code]`
+## `` `code` ``           → `[bgcolor=…][code]code[/code][/bgcolor]` (gray inline chip)
 ## `---` `***` `___`      → full-width `[hr]` line
 ## `> quote`              → `[indent][color]▎[/color] [color]quote[/color][/indent]`
 ## `-` `*` `+` item       → `• item`  (`- [ ]` / `- [x]` → ☐ / ☑)
@@ -56,6 +56,16 @@ const CODE_BLOCK_PADDING := "6,6,6,6"
 # the gutter reserves that spill so the fill ends on the label box.
 const CODE_BLOCK_RIGHT_GUTTER := "0,0,16,0"
 const BLOCKQUOTE_BAR := "#59a5f2"
+# Inline `` `code` `` chip: one gray at low alpha reads as a faint tint on both palettes
+# (a solid fill would have to match each bubble's own background). Raise the alpha to
+# make the chip stronger, lower it to make it paler.
+const INLINE_CODE_BG := "#80808026"
+# Thin spaces either side of the chip, *outside* its box: the box reaches
+# [constant HIGHLIGHT_H_PADDING] past the glyphs, which eats the space markdown authors
+# type around the backticks, so the code ends up glued to the prose. This is what gives the
+# chip its air; the padding inside the box stays tight. Two of them — one thin space still
+# left the box close to the neighbouring words.
+const INLINE_CODE_MARGIN := "\u2009\u2009"
 # RichTextLabel has no link theme color (its `[url]` body inherits `default_color`),
 # so link labels carry the blue markdown readers expect.
 const LINK_TEXT_COLOR := "#59a5f2"
@@ -65,7 +75,7 @@ const LINK_DEST := "((?:<[^>]+>|[^()\\s]+|\\([^)]*\\))+)"
 const LINK_TITLE := "(?:\\s+(?:\"[^\"]*\"|'[^']*'))?"
 
 # Flanking: marker must touch the word (`*em*`), so `3 * 4 * 5` stays plain.
-static var re_inline_code: RegEx = compile_regex("`([^`\\n]+)`") # `code` → [code]
+static var re_inline_code: RegEx = compile_regex("`([^`\\n]+)`") # `code` → [bgcolor][code]
 static var re_image: RegEx = compile_regex("!\\[([^\\]]*)\\]\\(" + LINK_DEST + LINK_TITLE + "\\)") # ![alt](url) → [img]
 static var re_link: RegEx = compile_regex("\\[([^\\]]+)\\]\\(" + LINK_DEST + LINK_TITLE + "\\)") # [label](url) → [url]
 static var re_dunder: RegEx = compile_regex("(?<![A-Za-z0-9])__[A-Za-z_][A-Za-z0-9_]*__(?![A-Za-z0-9])") # keep __init__
@@ -487,12 +497,12 @@ static func inline_body(text: String, parts: Array[String]) -> String:
 ## Recurse into link labels and emphasis so `**foo *bar* baz**` / `[**b**](url)` work.
 static func apply_inline(text: String, parts: Array[String]) -> String:
 	var s := text
-	# `code` → [code]code[/code]
+	# `code` → [bgcolor][code]code[/code][/bgcolor]
 	s = regex_sub(
 			s,
 			re_inline_code,
 			func(m: RegExMatch) -> String:
-				return protect(parts, wrap_code(m.get_string(1)))
+				return protect(parts, add_code_background(m.get_string(1)))
 	)
 	# <u>html</u> → [u]html[/u]  (CommonMark has no native underline)
 	s = regex_sub(
@@ -613,7 +623,23 @@ static func format_code_fence_bbcode(code: String, bg: String = CODE_BLOCK_BG) -
 	)
 
 
-## Inline `` `code` `` → mono font only (no table — would break the paragraph flow).
+## Inline `` `code` `` → mono `[code]` plus a `[bgcolor]` chip behind it. The fenced
+## block's `[table]` fill would break the paragraph flow, so the tint is the text
+## background effect instead; the box around it is sized by
+## [constant HIGHLIGHT_H_PADDING] / [constant HIGHLIGHT_V_PADDING], which
+## [method create_rich_text_label] installs on the label, and
+## [constant INLINE_CODE_MARGIN] keeps it clear of the surrounding prose.
+static func add_code_background(code: String, bg: String = INLINE_CODE_BG) -> String:
+	return StringUtils.format(
+			"{}[bgcolor={}]{}[/bgcolor]{}",
+			INLINE_CODE_MARGIN,
+			bg,
+			wrap_code(code),
+			INLINE_CODE_MARGIN
+	)
+
+
+## `[code]` only — mono font, no fill (see [method add_code_background] for the chip).
 static func wrap_code(code: String) -> String:
 	return StringUtils.format("[code]{}[/code]", escape_bbcode_literals(preserve_code_spaces(code)))
 
@@ -671,6 +697,13 @@ static func escape_bbcode_literals(text: String) -> String:
 
 const BODY_LABEL_MIN_HEIGHT := 24
 const TABLE_V_SEPARATION := 0
+# Inline chip box (`[bgcolor]`): RichTextLabel draws it `line_height + 2 * padding` tall
+# (`_draw_line`), so the engine default of 3 spills 3px over the line above and below and
+# paints on their text. 0 already fits the line box; the negative value hugs the glyphs so
+# the box reads as a chip instead of a full-height row. Padding is plain arithmetic in the
+# draw code, and a future clamp to 0 would only make the box line-height again.
+const HIGHLIGHT_H_PADDING := 3
+const HIGHLIGHT_V_PADDING := -3
 
 
 ## RichTextLabel that also drops its highlight when a click lands outside it.
@@ -748,6 +781,8 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	label.add_theme_font_override("bold_italics_font", Fonts.bold())
 	label.add_theme_font_override("mono_font", Fonts.regular())
 	label.add_theme_constant_override("table_v_separation", TABLE_V_SEPARATION)
+	label.add_theme_constant_override("text_highlight_h_padding", HIGHLIGHT_H_PADDING)
+	label.add_theme_constant_override("text_highlight_v_padding", HIGHLIGHT_V_PADDING)
 	label.custom_minimum_size = Vector2(0, BODY_LABEL_MIN_HEIGHT)
 	# RichTextLabel copies what it draws, so a selection carries the `[code]` NBSP
 	# padding and pastes as mojibake; copy the spaces the user meant instead.
