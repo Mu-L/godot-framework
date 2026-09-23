@@ -44,20 +44,15 @@ var markdown_toggle: MarkdownToggle = MarkdownToggle.new()
 var agent_setting: AgentSetting = AgentSetting.new()
 var session_sidebar: AgentSessionSidebar = AgentSessionSidebar.new()
 var chat_view: AgentChatView = AgentChatView.new()
+var notification: AgentNotification = AgentNotification.new()
 
 
 func _ready() -> void:
 	AgentColors.load_saved_theme()
 	toolbar.setup(toolbar_panel, toolbar_title, project_button)
-	session_sidebar.setup(
-		pinned_header,
-		pinned_list,
-		pinned_separator,
-		normal_header,
-		normal_list,
-		new_session_button,
-		sidebar_panel
-	)
+	notification.setup()
+	session_sidebar.setup(pinned_header,pinned_list,pinned_separator
+			,normal_header,normal_list,new_session_button,sidebar_panel)
 	chat_area.setup(chat_area_panel, self)
 	token_usage_display.setup(token_usage_wrap)
 	jarvis_toggle.setup(jarvis_toggle_button)
@@ -71,12 +66,11 @@ func _ready() -> void:
 	theme_toggle.setup(theme_toggle_button)
 	agent_setting.setup(agent_setting_button, self)
 	style_log_button()
-	log_button.pressed.connect(on_log_pressed)
 	gdf.events.theme_changed.connect(style_log_button)
 	gdf.events.theme_color_changed.connect(style_log_button)
-	# Deferred: AgentSessionManager appends the outcome chat entry in its own agent_end handler.
-	AgentEvents.events.agent_end.connect(on_agent_end, CONNECT_DEFERRED)
+	log_button.pressed.connect(on_log_pressed)
 
+	# session
 	AgentSessionManager.load_from_disk()
 	session_sidebar.rebuild()
 	refresh_workspace_button()
@@ -117,20 +111,4 @@ func style_log_button() -> void:
 
 func on_log_pressed() -> void:
 	LogWindow.show_log_window(128, 70, 80)
-	pass
-
-
-## Desktop toast when a run ends — visible outside the app window, bottom-right of the screen.
-func on_agent_end(session_id: int, error_message: String) -> void:
-	# A stop comes from the app window, so the user is already looking at it.
-	if error_message.begins_with("Stop"):
-		return
-	var session := AgentSessionStore.load_session(session_id)
-	if session == null or session.chat_entries.is_empty():
-		return
-	# The newest chat entry is the outcome: AgentSessionManager already appended the error
-	# bubble for a failed run, otherwise it is the agent reply.
-	var entry: ChatEntry = session.chat_entries[session.chat_entries.size() - 1]
-	var accent := AgentColors.error if entry.kind == ChatEntry.KIND_ERROR else AgentColors.success
-	DesktopToast.show_toast(entry.title, entry.body, accent)
 	pass
