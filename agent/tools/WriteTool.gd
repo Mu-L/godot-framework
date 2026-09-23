@@ -26,7 +26,8 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var content := str(args.get(ARG_CONTENT, ""))
 	var previous_content := FileUtils.read_file_to_string(path)
 	if not FileUtils.write_string_to_file(path, content):
-		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path))
+		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path)
+				, AgentToolResult.ui_file_details_message(path, "failed to write file"))
 	var message := StringUtils.format("wrote {} bytes to {}", content.length(), path)
 	return AgentToolResult.ok(message, AgentToolResult.ui_file_details(FileUtils.count_lines(content), FileUtils.count_lines(previous_content), path))
 # AgentTool-Interface-Implement-End
