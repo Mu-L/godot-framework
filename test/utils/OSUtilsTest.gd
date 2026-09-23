@@ -130,6 +130,28 @@ static func OSUtils_command_not_found_test() -> void:
 	pass
 
 
+static func OSUtils_timeout_test() -> void:
+	OSUtils.stop_all()
+	var start := Time.get_ticks_msec()
+	var result := await OSUtils.async_execute(sleep_argv(15), false, 500)
+	assert(result.exit_code == OSUtils.EXIT_CODE_TIMEOUT)
+	assert(result.output.build_string().contains("[timeout]"))
+	assert(Time.get_ticks_msec() - start < 10000)
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
+static func OSUtils_timeout_not_reached_test() -> void:
+	OSUtils.stop_all()
+	var result := await OSUtils.async_execute(echo_argv("OSUtilsTimeoutHello"), false, 10000)
+	assert(result.exit_code == 0)
+	var output := result.output.build_string()
+	assert(output.contains("OSUtilsTimeoutHello"))
+	assert(not output.contains("[timeout]"))
+	assert(OSUtils.process_pids.is_empty())
+	pass
+
+
 static func OSUtils_stop_all_empty_test() -> void:
 	OSUtils.stop_all()
 	assert(OSUtils.process_pids.is_empty())

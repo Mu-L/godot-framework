@@ -4,6 +4,11 @@ extends Object
 ## Subprocess execution. Sync `execute` uses OS.execute; async `async_execute`
 ## uses OS.execute_with_pipe on a worker thread and expects UTF-8 output.
 ## Output chunks append to ExecResult.output. Pass `log=false` to silence logs.
+## `async_execute` accepts `timeout_millis`, defaulting to one hour; a process that exceeds it is
+## killed, appends a `[timeout]` line to ExecResult.output and returns EXIT_CODE_TIMEOUT.
+
+const EXIT_CODE_NOT_STARTED: int = -1
+const EXIT_CODE_TIMEOUT: int = -2
 
 static var process_pids: RingIntList = RingIntList.new(32)
 
@@ -34,7 +39,7 @@ static func execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
 	return result
 
 
-static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResult:
+static func async_execute(argv: PackedStringArray, log: bool = true, timeout_millis: int = TimeUtils.MILLIS_PER_HOUR) -> ExecResult:
 	var result := ExecResult.new()
 	if argv.is_empty():
 		return result
@@ -43,7 +48,7 @@ static func async_execute(argv: PackedStringArray, log: bool = true) -> ExecResu
 		Log.info("async_execute command:{}", JSON.stringify(argv))
 
 	var thread := Thread.new()
-	thread.start(_run_process_async.bind(argv, result))
+	thread.start(_run_process_async.bind(argv, result, timeout_millis))
 	while thread.is_alive():
 		await Engine.get_main_loop().process_frame
 	thread.wait_to_finish()
@@ -68,10 +73,23 @@ static func stop_all() -> void:
 	pass
 
 
-static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> void:
+## Kills pid and waits briefly for it to exit; safe for a finished or unknown pid.
+## Only used from the worker thread, stop_last/stop_all stay non blocking.
+static func kill_process(pid: int) -> void:
+	if pid <= 0 or not OS.is_process_running(pid):
+		return
+	OS.kill(pid)
+	# Grace period so the pipe tail can still be read after the kill.
+	var deadline := Time.get_ticks_msec() + 1000
+	while OS.is_process_running(pid) and Time.get_ticks_msec() < deadline:
+		OS.delay_msec(16)
+	pass
+
+
+static func _run_process_async(argv: PackedStringArray, result: ExecResult, timeout_millis: int = TimeUtils.MILLIS_PER_HOUR) -> void:
 	var proc := OS.execute_with_pipe(argv[0], argv.slice(1), false)
 	if proc.is_empty():
-		result.exit_code = -1
+		result.exit_code = EXIT_CODE_NOT_STARTED
 		return
 
 	var pid: int = int(proc.get("pid", -1))
@@ -81,10 +99,16 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 	var stderr_pipe: FileAccess = proc.get("stderr")
 	var stdout_decoder := Utf8StreamDecoder.new()
 	var stderr_decoder := Utf8StreamDecoder.new()
+	var deadline := Time.get_ticks_msec() + timeout_millis
+	var timed_out := false
 
 	while pid > 0 and OS.is_process_running(pid):
 		drain_pipe(result, stdio, false, stdout_decoder)
 		drain_pipe(result, stderr_pipe, false, stderr_decoder)
+		if Time.get_ticks_msec() >= deadline:
+			timed_out = true
+			kill_process(pid)
+			break
 		OS.delay_msec(16)
 
 	drain_pipe(result, stdio, true, stdout_decoder)
@@ -92,7 +116,15 @@ static func _run_process_async(argv: PackedStringArray, result: ExecResult) -> v
 	close_pipe(stdio)
 	close_pipe(stderr_pipe)
 
-	result.exit_code = OS.get_process_exit_code(pid) if pid > 0 else -1
+	if timed_out:
+		# Marks the timeout inside the captured output, on its own line when there is output already.
+		var prefix := FileUtils.NEWLINE_LF if not result.output.is_empty() else StringUtils.EMPTY
+		append_output(result, prefix + StringUtils.format("[timeout] process killed after {} ms", timeout_millis))
+		result.exit_code = EXIT_CODE_TIMEOUT
+	elif pid > 0:
+		result.exit_code = OS.get_process_exit_code(pid)
+	else:
+		result.exit_code = EXIT_CODE_NOT_STARTED
 	if pid > 0:
 		process_pids.remove_value(pid)
 	pass
@@ -140,6 +172,9 @@ static func log_result(argv: PackedStringArray, result: ExecResult, log: bool) -
 	var output := result.output.build_string()
 	if not output.is_empty():
 		Log.info("process output:[{}]", output)
+	if result.exit_code == EXIT_CODE_TIMEOUT:
+		Log.error("process timed out command:{}", JSON.stringify(argv))
+		return
 	if result.exit_code == 0:
 		Log.info("process finished exit:[{}]", result.exit_code)
 		return
