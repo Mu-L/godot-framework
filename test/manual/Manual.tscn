@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://d2o42yoed6xfc"]
 
-[ext_resource type="Script" uid="uid://beqckyith2nk5" path="res://test/manual/AlertTest.gd" id="1_00byy"]
 [ext_resource type="Script" uid="uid://cmruqediscjxf" path="res://test/manual/SceneTest.gd" id="2_4dfa1"]
 [ext_resource type="Script" uid="uid://bosk23klfwanp" path="res://test/manual/AudioTest.gd" id="3_suq2o"]
 [ext_resource type="Script" uid="uid://dhwft2mh0eyu1" path="res://test/manual/HttpTest.gd" id="4_bs2af"]
@@ -8,9 +7,6 @@
 [ext_resource type="Script" path="res://test/manual/LogTest.gd" id="6_log"]
 
 [node name="Test" type="Node" unique_id=1622393824]
-
-[node name="AlertTest" type="Node" parent="." unique_id=1998129573]
-script = ExtResource("1_00byy")
 
 [node name="SceneTest" type="Node" parent="." unique_id=188899326]
 script = ExtResource("2_4dfa1")

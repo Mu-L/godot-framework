@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://c7fbk7test01"]
+
+[ext_resource type="Script" uid="uid://b02m060lqlkf5" path="res://zfoo/gdtest/UnitTest.gd" id="1_feedback"]
+
+[node name="FeedbackTest" type="Node"]
+script = ExtResource("1_feedback")
+enable_test_logging = true

@@ -1,0 +1,103 @@
+## Unit tests for [DesktopToast]. Loaded with the other scripts in this folder by [code]test/feedback/FeedbackTest.tscn[/code] ([UnitTest]).
+
+## [method DesktopToast.compute_ui_scale] maps main-window pixels to viewport units, clamped to 0.5–4.0.
+func DesktopToast_compute_ui_scale_test() -> void:
+	var scale := DesktopToast.compute_ui_scale()
+	assert(scale >= 0.5 and scale <= 4.0)
+	pass
+
+
+## [method DesktopToast.corner_position] pins the toast to the bottom-right of the usable screen area.
+func DesktopToast_corner_position_test() -> void:
+	var toast_size := Vector2i(roundi(DesktopToast.CARD_WIDTH), 120)
+	var corner := DesktopToast.corner_position(toast_size)
+	var screen := DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
+	var usable := DisplayServer.screen_get_usable_rect(screen)
+	var margin := roundi(DesktopToast.SCREEN_MARGIN * DesktopToast.ui_scale)
+	assert(corner.x == usable.position.x + usable.size.x - toast_size.x - margin)
+	assert(corner.y == usable.position.y + usable.size.y - toast_size.y - margin)
+	pass
+
+
+## [method DesktopToast.build_card] lays out the accent stripe, heading and wrapped body at the app UI scale.
+func DesktopToast_build_card_test() -> void:
+	DesktopToast.ui_scale = 1.0
+	var toast := DesktopToast.new()
+	toast.heading = "feedback toast"
+	toast.message = "feedback toast body"
+	toast.accent = Colors.success
+	toast.build_card()
+	assert(toast.card != null)
+	assert(toast.size.x == roundi(DesktopToast.CARD_WIDTH))
+	assert(toast.position == DesktopToast.corner_position(toast.size))
+	var column := toast.card.get_child(0) as VBoxContainer
+	var title_label := column.get_child(0) as Label
+	assert(title_label.text == "feedback toast")
+	assert(title_label.get_theme_font_size("font_size") == DesktopToast.TITLE_FONT_SIZE)
+	assert(toast.body_label != null)
+	assert(toast.body_label.text == "feedback toast body")
+	assert(toast.body_label.max_lines_visible == DesktopToast.MAX_BODY_LINES)
+	var style := toast.card.get_theme_stylebox("panel") as StyleBoxFlat
+	assert(style.border_color == Colors.success)
+	assert(style.border_width_left == DesktopToast.ACCENT_WIDTH)
+	assert(style.bg_color == ThemeColorCard.background_color)
+	toast.free()
+	pass
+
+
+## A toast without a body skips the body label, so the card only holds the heading.
+func DesktopToast_empty_body_test() -> void:
+	DesktopToast.ui_scale = 1.0
+	var toast := DesktopToast.new()
+	toast.heading = "feedback toast"
+	toast.message = "   "
+	toast.build_card()
+	assert(toast.body_label == null)
+	assert((toast.card.get_child(0) as VBoxContainer).get_child_count() == 1)
+	toast.free()
+	pass
+
+
+## [method DesktopToast.relayout] stacks live toasts upward from the screen corner, newest last.
+func DesktopToast_relayout_test() -> void:
+	DesktopToast.ui_scale = 1.0
+	var live := DesktopToast.toasts.duplicate()
+	DesktopToast.toasts.clear()
+	var older := DesktopToast.new()
+	older.size = Vector2i(400, 100)
+	var newer := DesktopToast.new()
+	newer.size = Vector2i(400, 100)
+	DesktopToast.toasts.append_array([older, newer])
+	DesktopToast.relayout()
+	assert(newer.position.y == DesktopToast.corner_position(newer.size).y)
+	assert(older.position.y == newer.position.y - newer.size.y - roundi(DesktopToast.STACK_GAP))
+	older.free()
+	newer.free()
+	# Other scenes may still own live toasts; leave the stack as it was.
+	DesktopToast.toasts.clear()
+	DesktopToast.toasts.append_array(live)
+	pass
+
+
+## [method DesktopToast.show_toast] mounts the toast window, [method DesktopToast.close_toast] retires it.
+func DesktopToast_show_toast_test() -> void:
+	var before := DesktopToast.toasts.size()
+	DesktopToast.show_toast("feedback toast", "run finished", Colors.success)
+	assert(DesktopToast.toasts.size() == before + 1)
+	var toast: DesktopToast = DesktopToast.toasts[before]
+	assert(toast.heading == "feedback toast")
+	assert(toast.message == "run finished")
+	assert(toast.accent == Colors.success)
+	assert(toast.is_inside_tree())
+	assert(toast.size.x == roundi(DesktopToast.CARD_WIDTH * DesktopToast.ui_scale))
+	# Hold the toast on screen so a run with a display shows the card before it is dismissed.
+	await ThreadUtils.async_sleep(1500)
+	if is_instance_valid(toast):
+		toast.close_toast()
+		assert(toast.is_queued_for_deletion())
+		# Closing twice is a no-op, so the second auto-dismiss timer cannot double-free the toast.
+		toast.close_toast()
+	assert(DesktopToast.toasts.size() == before)
+	await gdf.gdf_node.get_tree().process_frame
+	assert(!is_instance_valid(toast))
+	pass
