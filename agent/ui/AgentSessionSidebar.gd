@@ -20,6 +20,8 @@ var sidebar_panel: PanelContainer
 var session_rows: Dictionary[int, PanelContainer] = {}
 ## 0 = no row hovered; it is never a real session id.
 var hover_session_id: int = 0
+## Session whose row shows the inline rename field; 0 = none. Only one row edits at a time.
+var editing_session_id: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +60,11 @@ func setup(
 	bind_list_drop(pinned_header, true)
 	bind_list_drop(normal_list, false)
 	bind_list_drop(normal_header, false)
+	# Dismisses an open rename field on clicks that never move the focus (see the class).
+	var click_watcher := RenameClickWatcher.new()
+	click_watcher.name = "RenameClickWatcher"
+	click_watcher.sidebar = self
+	sidebar_panel.add_child(click_watcher)
 	apply_theme()
 	pass
 
@@ -167,7 +174,8 @@ func refresh_item(session_id: int) -> void:
 	if row_panel == null:
 		return
 	var select_button: Button = row_panel.get_meta("select_button")
-	if select_button != null:
+	# A live rename owns the title until it is committed; the run state still refreshes.
+	if select_button != null and session_id != editing_session_id:
 		select_button.text = AgentSessionManager.get_title(session_id)
 	var run_fx: SessionRowRunFx = row_panel.get_meta("run_fx")
 	var delete_button: Button = row_panel.get_meta("delete_button")
@@ -193,6 +201,9 @@ func refresh_all_row_styles() -> void:
 ## Only the row that lost the selection and the one that gained it need a restyle —
 ## the rest are already styled when they are built.
 func select_item(session_id: int, previous_session_id: int = 0) -> void:
+	# Covers selection changes that no click triggered (e.g. the fallback after a delete).
+	if editing_session_id != 0 and editing_session_id != session_id:
+		commit_rename()
 	refresh_item(session_id)
 	style_session_row(previous_session_id)
 	style_session_row(session_id)
@@ -232,6 +243,10 @@ func on_new_session_pressed() -> void:
 
 
 func on_session_row_pressed(session_id: int) -> void:
+	# Clicking the chat that is already open starts renaming it instead of re-opening it.
+	if AgentSessionManager.is_active(session_id):
+		begin_rename(session_id)
+		return
 	AgentSessionManager.select_session(session_id)
 	pass
 
@@ -250,6 +265,7 @@ func clear() -> void:
 		for child in list.get_children():
 			child.queue_free()
 	session_rows.clear()
+	editing_session_id = 0
 	pass
 
 
@@ -323,6 +339,9 @@ func remove_row(session_id: int) -> void:
 		return
 	if hover_session_id == session_id:
 		hover_session_id = 0
+	if editing_session_id == session_id:
+		# The rename field is freed together with the row it lives in.
+		editing_session_id = 0
 	row_panel.queue_free()
 	session_rows.erase(session_id)
 	pass
@@ -396,7 +415,175 @@ func style_session_row(session_id: int) -> void:
 	var fx: SessionRowSciFiFx = row_panel.get_meta("scifi_fx")
 	if fx != null:
 		fx.set_highlight(selected)
+	# Re-apply the field's theme overrides while a rename is open.
+	var edit := rename_edit_of(row_panel)
+	if edit != null:
+		style_rename_edit(edit, session_id)
 	pass
+
+
+# ---------------------------------------------------------------------------
+# Inline rename — click the open chat again to edit its title where the title sits
+# ---------------------------------------------------------------------------
+
+## Closes an open rename field when the click landed outside it. Needed because row buttons are
+## [constant Control.FOCUS_NONE] — a click on another row never blurs the field, so focus loss
+## alone cannot dismiss it. The position comes straight from the input event, so it is in the
+## same space as [method Control.get_global_rect].
+func close_rename_if_clicked_outside(click_position: Vector2) -> void:
+	var edit := rename_edit_of(session_rows.get(editing_session_id))
+	if edit == null or edit.get_global_rect().has_point(click_position):
+		return
+	commit_rename()
+	pass
+
+
+## Swaps the row's title button for a LineEdit in the same slot, so the row neither grows nor
+## jumps. Enter / focus loss commit, Esc discards, a blank title keeps the previous name.
+func begin_rename(session_id: int) -> void:
+	if editing_session_id == session_id:
+		return
+	commit_rename()
+	var row_panel: PanelContainer = session_rows.get(session_id)
+	if row_panel == null:
+		return
+	var select_button: Button = row_panel.get_meta("select_button")
+	var edit := LineEdit.new()
+	edit.text = AgentSessionManager.get_title(session_id)
+	edit.placeholder_text = "Chat title"
+	edit.max_length = AgentSessionManager.MAX_TITLE_LENGTH
+	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if select_button.size.y > 0.0:
+		edit.custom_minimum_size.y = select_button.size.y
+	edit.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	edit.select_all_on_focus = true
+	edit.drag_and_drop_selection_enabled = false
+	edit.mouse_default_cursor_shape = Control.CURSOR_IBEAM
+	edit.text_submitted.connect(on_rename_submitted.bind(session_id))
+	edit.focus_exited.connect(on_rename_focus_exited.bind(session_id))
+	edit.gui_input.connect(on_rename_gui_input.bind(session_id))
+	style_rename_edit(edit, session_id)
+
+	select_button.visible = false
+	select_button.get_parent().add_child(edit)
+	edit.get_parent().move_child(edit, select_button.get_index())
+	row_panel.set_meta("rename_edit", edit)
+	editing_session_id = session_id
+	# Deferred: the click that opened the field is still being handled here.
+	edit.call_deferred("grab_focus")
+	pass
+
+
+## Stores the typed title and puts the row back to its normal state. Idempotent, so the
+## commit handlers can all call it.
+func commit_rename() -> void:
+	var session_id := editing_session_id
+	if session_id == 0:
+		return
+	var edit := rename_edit_of(session_rows.get(session_id))
+	var title := StringUtils.EMPTY if edit == null else edit.text
+	end_rename()
+	# A blank title is rejected by the manager, so the row falls back to its previous name.
+	AgentSessionManager.set_title(session_id, title)
+	pass
+
+
+func cancel_rename() -> void:
+	var session_id := editing_session_id
+	if session_id == 0:
+		return
+	end_rename()
+	refresh_item(session_id)
+	pass
+
+
+## Drops the edit field (and the id guard first, so the focus loss it causes cannot recurse).
+func end_rename() -> void:
+	var row_panel: PanelContainer = session_rows.get(editing_session_id)
+	editing_session_id = 0
+	if row_panel == null:
+		return
+	var edit := rename_edit_of(row_panel)
+	if edit != null:
+		row_panel.remove_meta("rename_edit")
+		# Hidden right away: the slot is handed back to the title button before the free lands.
+		edit.visible = false
+		edit.queue_free()
+	var select_button: Button = row_panel.get_meta("select_button")
+	if select_button != null:
+		select_button.visible = true
+	pass
+
+
+## The field only exists in the row's meta while it is open, so absence means "not editing".
+func rename_edit_of(row_panel: PanelContainer) -> LineEdit:
+	if row_panel == null or not row_panel.has_meta("rename_edit"):
+		return null
+	return row_panel.get_meta("rename_edit")
+
+
+func on_rename_submitted(_text: String, session_id: int) -> void:
+	if editing_session_id != session_id:
+		return
+	commit_rename()
+	pass
+
+
+## Clicking anywhere else (another row, the chat input, …) keeps what was typed.
+func on_rename_focus_exited(session_id: int) -> void:
+	if editing_session_id != session_id:
+		return
+	commit_rename()
+	pass
+
+
+## Esc discards the edit; swallowing the event also stops the chat input's Esc handling.
+func on_rename_gui_input(event: InputEvent, session_id: int) -> void:
+	if editing_session_id != session_id or not event.is_action_pressed("ui_cancel"):
+		return
+	var edit: LineEdit = rename_edit_of(session_rows[editing_session_id])
+	cancel_rename()
+	if edit != null:
+		edit.accept_event()
+	pass
+
+
+func style_rename_edit(edit: LineEdit, session_id: int) -> void:
+	var row_panel: PanelContainer = session_rows.get(session_id)
+	var select_button: Button = null if row_panel == null else row_panel.get_meta("select_button")
+	if select_button != null:
+		copy_title_font(edit, select_button)
+	edit.add_theme_color_override("font_color", AgentColors.sidebar_text)
+	edit.add_theme_color_override("font_placeholder_color", AgentColors.sidebar_muted)
+	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
+	edit.add_theme_color_override("selection_color", AgentColors.theme_selection_bg())
+	edit.add_theme_stylebox_override("normal", build_rename_edit_style())
+	edit.add_theme_stylebox_override("focus", build_rename_edit_style())
+	pass
+
+
+func build_rename_edit_style() -> StyleBoxFlat:
+	var accent := AgentColors.theme_accent_solid()
+	var style := StyleBoxFlat.new()
+	style.bg_color = AgentColors.chat_input
+	style.border_color = Color(accent.r, accent.g, accent.b, 0.75 if ThemeColor.is_dark_theme() else 0.55)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(5)
+	style.content_margin_left = 5
+	style.content_margin_right = 5
+	return style
+
+
+## Watches the whole viewport so any click outside the open rename field closes it — row buttons,
+## toolbar buttons and empty areas included, since none of them take the focus away.
+class RenameClickWatcher extends Node:
+	var sidebar: AgentSessionSidebar
+
+
+	func _input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.pressed:
+			sidebar.close_rename_if_clicked_outside(event.position)
+		pass
 
 
 # ---------------------------------------------------------------------------
@@ -405,7 +592,8 @@ func style_session_row(session_id: int) -> void:
 
 func get_row_drag_data(_at_position: Vector2, session_id: int) -> Variant:
 	var row_panel: PanelContainer = session_rows.get(session_id)
-	if row_panel == null:
+	# While the row is being renamed the drag must not steal the click and move it away.
+	if row_panel == null or session_id == editing_session_id:
 		return null
 	row_panel.set_drag_preview(build_drag_ghost(session_id, row_panel))
 	return session_id
@@ -452,9 +640,15 @@ func copy_row_font(label: Label, row_panel: PanelContainer) -> void:
 	var source: Button = row_panel.get_meta("select_button")
 	if source == null:
 		return
-	label.add_theme_font_override("font", source.get_theme_font("font"))
-	label.add_theme_font_size_override("font_size", source.get_theme_font_size("font_size"))
+	copy_title_font(label, source)
 	label.add_theme_color_override("font_color", AgentColors.sidebar_text)
+	pass
+
+
+## The rename field takes over the title's slot, so it mirrors the title's resolved font.
+func copy_title_font(target: Control, source: Button) -> void:
+	target.add_theme_font_override("font", source.get_theme_font("font"))
+	target.add_theme_font_size_override("font_size", source.get_theme_font_size("font_size"))
 	pass
 
 

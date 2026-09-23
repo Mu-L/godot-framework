@@ -3,6 +3,11 @@ extends RefCounted
 
 ## Manages multiple agent sessions and the active selection.
 
+## Sidebar titles are trimmed to this many characters before they land in the session index.
+const MAX_TITLE_LENGTH := 64
+## Untouched chat title; the first prompt replaces it (see [method async_send]).
+const DEFAULT_TITLE := "New Chat"
+
 static var session_indexes := AgentSessionIndexes.new()
 ## Selected session. 0 only before [method load_from_disk]; from then on this is always a live session id.
 static var active_session_id: int = 0
@@ -160,7 +165,7 @@ static func get_title(session_id: int) -> String:
 static func add_session_index(session: AgentSession) -> void:
 	var session_index := AgentSessionIndexes.SessionIndex.new()
 	session_index.id = session.id
-	session_index.title = "New Chat"
+	session_index.title = DEFAULT_TITLE
 	session_indexes.indexes.insert(0, session_index)
 	pass
 
@@ -221,18 +226,17 @@ static func has_chat_history(session_id: int) -> bool:
 # Title
 # ---------------------------------------------------------------------------
 
-## First user prompt becomes the sidebar title; later turns leave it unchanged.
-## Capped to 64 characters (no ellipsis suffix) so a long prompt does not bloat the
-## session index; the sidebar shows as much of the title as fits the row width.
-static func set_title_from_prompt(session_id: int, prompt: String) -> void:
-	if has_chat_history(session_id):
-		return
+## Writes the sidebar title and persists it via [signal AgentEvents.events.session_title_changed].
+## Trimmed to one line and capped to [constant MAX_TITLE_LENGTH] (no ellipsis suffix) so a long
+## title does not bloat the session index; the sidebar shows as much as fits the row width.
+## Blank titles and unknown sessions are ignored, so a row keeps its previous name.
+static func set_title(session_id: int, title: String) -> void:
 	var session_index := get_session_index(session_id)
-	if session_index == null:
+	if session_index == null or StringUtils.is_blank(title):
 		return
-	var title := prompt.strip_edges().replace(FileUtils.NEWLINE_LF, " ").left(64)
-	session_index.title = title
-	AgentEvents.events.session_title_changed.emit(session_id, title)
+	var one_line := title.strip_edges().replace(FileUtils.NEWLINE_LF, " ").replace(FileUtils.NEWLINE_CR, "")
+	session_index.title = one_line.left(MAX_TITLE_LENGTH)
+	AgentEvents.events.session_title_changed.emit(session_id, session_index.title)
 	pass
 
 
@@ -253,7 +257,10 @@ static func async_send(session_id: int, user_text: String) -> void:
 	if session == null:
 		return
 	var trimmed := user_text.strip_edges()
-	set_title_from_prompt(session_id, trimmed)
+	# The first prompt names the chat; later turns find a title that is no longer the default —
+	# and a name picked in the sidebar survives for the same reason.
+	if get_title(session_id) == DEFAULT_TITLE:
+		set_title(session_id, trimmed)
 	session.messages.append(ChatMessage.user(trimmed))
 	# Snapshot before the agent can touch the workspace. The bubble decides at build time whether to
 	# offer Revert, so the commit id must be known before the entry is created.
