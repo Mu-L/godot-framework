@@ -9,11 +9,19 @@ extends RefCounted
 ## Fade of the notification sound when it starts and when its configured duration elapses.
 const START_FADE_SECONDS := 0.3
 const STOP_FADE_SECONDS := 0.5
+## The playlist is polled once per second instead of one delayed stop per run — see
+## [method check_sound_notifications].
+const CHECK_TIMER_NAME := "agent_notification_sound"
+
+## Seconds of playback the queued runs still owe the playlist, summed over every run that asked
+## for a sound. See [method play_sound_notifications].
+var remaining_seconds := 0.0
 
 
 func setup() -> void:
 	# Deferred: AgentSessionManager appends the outcome chat entry in its own agent_end handler.
 	AgentEvents.events.agent_end.connect(on_agent_end, CONNECT_DEFERRED)
+	SchedulerBus.schedule_at_fixed_rate(check_sound_notifications, TimeUtils.MILLIS_PER_SECOND, CHECK_TIMER_NAME)
 	pass
 
 
@@ -36,9 +44,9 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 	pass
 
 
-## Play the configured folder as one continuous playlist, silenced after the configured seconds.
-## A playlist that is still running keeps going and a paused one is resumed, so a second run does
-## not restart the same beep — only a different folder starts a fresh playlist.
+## Play the configured folder as one continuous playlist, silenced once every run that asked for a
+## sound got its seconds. A playlist that is still running keeps going and a paused one is resumed,
+## so a second run does not restart the same beep — only a different folder starts a fresh playlist.
 func play_sound_notifications() -> void:
 	var audios := ResourceHelper.get_all_audio_files(AgentSetting.get_notification_sound_folder())
 	if audios.is_empty():
@@ -47,7 +55,20 @@ func play_sound_notifications() -> void:
 		Audio.resume_musics(START_FADE_SECONDS)
 	else:
 		Audio.play_musics(audios, 1.0, START_FADE_SECONDS)
-	SchedulerBus.schedule(stop_sound_notifications, AgentSetting.get_notification_sound_seconds() * 1000)
+	# The countdown is shared: a run landing while the sound still plays adds its seconds to the
+	# remaining ones, so the clip an earlier run asked for is never cut short by a later run.
+	remaining_seconds = maxf(remaining_seconds, 0.0) + AgentSetting.get_notification_sound_seconds()
+	pass
+
+
+## Once-per-second tick of the shared countdown above — the playlist is only ever stopped by the
+## last run that added seconds, and the timer stays idle the rest of the time.
+func check_sound_notifications() -> void:
+	if remaining_seconds <= 0:
+		return
+	remaining_seconds -= 1
+	if remaining_seconds <= 0:
+		stop_sound_notifications()
 	pass
 
 
