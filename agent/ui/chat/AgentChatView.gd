@@ -495,6 +495,9 @@ func queue_scroll_to_bottom() -> void:
 	pass
 
 
+## The list lives inside ChatMargin, so the last bubble counts as "visible" while the
+## bar still owes the bottom margin — ensure_control_visible() stops one margin short.
+## Drive the bar to its own bottom edge so the transcript ends flush with the view.
 func flush_scroll_to_bottom() -> void:
 	scroll_to_bottom_queued = false
 	if not stick_to_bottom:
@@ -502,10 +505,12 @@ func flush_scroll_to_bottom() -> void:
 	var active_chat_list := get_active_chat_list()
 	if active_chat_list == null or not active_chat_list.visible:
 		return
-	var count := active_chat_list.get_child_count()
-	if count == 0:
+	if active_chat_list.get_child_count() == 0:
 		return
-	chat_scroll.ensure_control_visible(active_chat_list.get_child(count - 1))
+	var vbar := chat_scroll.get_v_scroll_bar()
+	if vbar == null:
+		return
+	vbar.value = vbar.max_value - vbar.page
 	pass
 
 
