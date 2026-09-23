@@ -1,0 +1,128 @@
+class_name SessionRowDrag
+extends RefCounted
+
+## Row drag & drop — reorder inside a list, move between the pinned and normal sections.
+##
+## The host hands in its row map and the two lists. Rows are added to / erased from that same
+## dictionary (never reassigned), so this controller always sees the live set.
+
+var session_rows: Dictionary[int, SessionRow] = {}
+var pinned_list: VBoxContainer
+var normal_list: VBoxContainer
+## Called after a row changed section, so the host can refresh the pinned separator / drop pad.
+var sections_changed := Callable()
+
+
+func setup(
+	p_session_rows: Dictionary[int, SessionRow],
+	p_pinned_list: VBoxContainer,
+	p_normal_list: VBoxContainer,
+	p_sections_changed: Callable
+) -> void:
+	session_rows = p_session_rows
+	pinned_list = p_pinned_list
+	normal_list = p_normal_list
+	sections_changed = p_sections_changed
+	pass
+
+
+func list_for_pinned(pinned: bool) -> VBoxContainer:
+	return pinned_list if pinned else normal_list
+
+
+## Whole row (padding, title, close button) is a drag handle and a drop target.
+func bind_row(row: SessionRow) -> void:
+	row.bind_drag_forwarding(
+		func(_at_position: Vector2) -> Variant: return get_row_drag_data(row),
+		func(_at_position: Vector2, data: Variant) -> bool: return can_drop_on_row(data, row),
+		func(_at_position: Vector2, data: Variant) -> bool: return drop_on_row(data, row)
+	)
+	pass
+
+
+## A list and its header accept drops too — dropping on the background appends to that list.
+func bind_list(host: Control, pinned: bool) -> void:
+	host.set_drag_forwarding(
+		func(_at_position: Vector2) -> Variant: return null,
+		func(_at_position: Vector2, data: Variant) -> bool: return can_drop_on_list(data),
+		func(_at_position: Vector2, data: Variant) -> bool: return drop_on_list(data, pinned)
+	)
+	pass
+
+
+func get_row_drag_data(row: SessionRow) -> Variant:
+	# While the row is being renamed the drag must not steal the click and move it away.
+	if row == null or row.is_renaming():
+		return null
+	row.set_drag_preview(row.build_drag_preview())
+	return row.session_id
+
+
+## Query only — the reorder is applied in [method drop_on_row] when the mouse is released.
+func can_drop_on_row(data: Variant, target: SessionRow) -> bool:
+	if typeof(data) != TYPE_INT or target == null:
+		return false
+	return session_rows.has(data) and session_rows.has(target.session_id)
+
+
+func drop_on_row(data: Variant, target: SessionRow) -> bool:
+	if typeof(data) != TYPE_INT or target == null:
+		return false
+	var from_row: SessionRow = session_rows.get(data)
+	if from_row == null:
+		return false
+	var to_pinned := target.pinned
+	apply_row_move(from_row, list_for_pinned(to_pinned), target.get_index(), to_pinned)
+	return true
+
+
+## Query only — the reorder is applied in [method drop_on_list] when the mouse is released.
+func can_drop_on_list(data: Variant) -> bool:
+	if typeof(data) != TYPE_INT:
+		return false
+	return session_rows.has(data)
+
+
+## Dropping on the list background appends the row to the end of that list.
+func drop_on_list(data: Variant, pinned: bool) -> bool:
+	if typeof(data) != TYPE_INT:
+		return false
+	var from_row: SessionRow = session_rows.get(data)
+	if from_row == null:
+		return false
+	var target_list := list_for_pinned(pinned)
+	var to_index := target_list.get_child_count()
+	if from_row.get_parent() == target_list and to_index > 0:
+		to_index -= 1
+	apply_row_move(from_row, target_list, to_index, pinned)
+	return true
+
+
+## Moves the node and mirrors the move into the session index (order and pinned section).
+func apply_row_move(from_row: SessionRow, target_list: VBoxContainer, to_index: int, to_pinned: bool) -> void:
+	var session_id := from_row.session_id
+	var need_section_change := AgentSessionManager.is_pinned(session_id) != to_pinned
+	if from_row.get_parent() != target_list:
+		from_row.reparent(target_list)
+		from_row.pinned = to_pinned
+		if sections_changed.is_valid():
+			sections_changed.call()
+
+	to_index = clamp_move_index(from_row, target_list, to_index)
+	var from_index := from_row.get_index()
+	if not need_section_change and from_index == to_index:
+		return
+
+	if from_index != to_index:
+		target_list.move_child(from_row, to_index)
+
+	if need_section_change:
+		AgentSessionManager.transfer_session_index(session_id, to_pinned, from_row.get_index())
+	elif from_index != to_index:
+		AgentSessionManager.move_index_in_list(session_id, from_row.get_index(), to_pinned)
+	pass
+
+
+func clamp_move_index(from_row: SessionRow, target_list: VBoxContainer, to_index: int) -> int:
+	var max_index := maxi(0, target_list.get_child_count() - 1)
+	return clampi(to_index, 0, max_index)

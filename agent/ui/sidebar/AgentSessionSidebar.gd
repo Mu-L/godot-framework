@@ -1,0 +1,291 @@
+class_name AgentSessionSidebar
+extends RefCounted
+
+## Left sidebar — pinned + normal session lists with select / delete / drag reorder.
+##
+## Wiring only: rows are [SessionRow] nodes, styling is [SessionSidebarTheme] and drag & drop is
+## [SessionRowDrag]. The outside-click handling of an open rename rides on the window input hook
+## (see [method on_window_input]).
+
+var pinned_header: Label
+var pinned_list: VBoxContainer
+var pinned_separator: HSeparator
+var normal_header: Label
+var normal_list: VBoxContainer
+var new_session_button: Button
+var sidebar_panel: PanelContainer
+
+var session_rows: Dictionary[int, SessionRow] = {}
+var drag := SessionRowDrag.new()
+## 0 = no row is being renamed; it is never a real session id.
+var editing_session_id: int = 0
+
+
+# ---------------------------------------------------------------------------
+# Setup & theme
+# ---------------------------------------------------------------------------
+
+func setup(
+	p_pinned_header: Label,
+	p_pinned_list: VBoxContainer,
+	p_pinned_separator: HSeparator,
+	p_normal_header: Label,
+	p_normal_list: VBoxContainer,
+	p_new_session_button: Button,
+	p_sidebar_panel: PanelContainer
+) -> void:
+	pinned_header = p_pinned_header
+	pinned_list = p_pinned_list
+	pinned_separator = p_pinned_separator
+	normal_header = p_normal_header
+	normal_list = p_normal_list
+	new_session_button = p_new_session_button
+	sidebar_panel = p_sidebar_panel
+	drag.setup(session_rows, pinned_list, normal_list, sync_pinned_section_visibility)
+
+	new_session_button.pressed.connect(on_new_session_pressed)
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
+	AgentEvents.events.session_added.connect(on_session_added)
+	AgentEvents.events.session_removed.connect(on_session_removed)
+	AgentEvents.events.session_selected.connect(select_item)
+	AgentEvents.events.session_title_changed.connect(on_session_refresh)
+	AgentEvents.events.agent_start.connect(on_session_refresh)
+	AgentEvents.events.session_stop.connect(on_session_refresh)
+	AgentEvents.events.workspace_changed.connect(on_workspace_changed)
+
+	# Lists and headers are drop targets — the padding between rows has to accept a drop too.
+	pinned_header.mouse_filter = Control.MOUSE_FILTER_PASS
+	normal_header.mouse_filter = Control.MOUSE_FILTER_PASS
+	drag.bind_list(pinned_list, true)
+	drag.bind_list(pinned_header, true)
+	drag.bind_list(normal_list, false)
+	drag.bind_list(normal_header, false)
+
+	# Any click outside the open rename field closes it: row buttons never take the focus, so
+	# focus loss cannot do it. Same window-level hook the chat input uses for outside clicks.
+	sidebar_panel.get_window().window_input.connect(on_window_input)
+
+	apply_theme()
+	pass
+
+
+func on_session_refresh(session_id: int, _arg: Variant = null) -> void:
+	refresh_item(session_id)
+	pass
+
+
+func on_workspace_changed(_path: String) -> void:
+	reload_sessions()
+	pass
+
+
+func apply_theme() -> void:
+	sidebar_panel.add_theme_stylebox_override("panel", SessionSidebarTheme.sidebar_panel())
+	pinned_header.add_theme_color_override("font_color", AgentColors.sidebar_muted)
+	normal_header.add_theme_color_override("font_color", AgentColors.sidebar_muted)
+	pinned_separator.add_theme_stylebox_override("separator", SessionSidebarTheme.pinned_separator())
+	SessionSidebarTheme.apply_new_session_button(new_session_button)
+	refresh_all_row_styles()
+	pass
+
+
+func refresh_all_row_styles() -> void:
+	for row: SessionRow in session_rows.values():
+		row.apply_style()
+	pass
+
+
+# ---------------------------------------------------------------------------
+# List rebuild & refresh
+# ---------------------------------------------------------------------------
+
+## Sessions are stored under the workspace root, so switching workspace swaps the whole set.
+func reload_sessions() -> void:
+	AgentSessionManager.load_from_disk()
+	rebuild()
+	pass
+
+
+func rebuild() -> void:
+	clear()
+	for session_index: AgentSessionIndexes.SessionIndex in AgentSessionManager.session_indexes.pinned_indexes:
+		append_row(session_index.id, session_index.title, true)
+	for session_index: AgentSessionIndexes.SessionIndex in AgentSessionManager.session_indexes.indexes:
+		append_row(session_index.id, session_index.title, false)
+	sync_pinned_section_visibility()
+	select_item(AgentSessionManager.active_session_id)
+	pass
+
+
+func refresh_item(session_id: int) -> void:
+	var row: SessionRow = session_rows.get(session_id)
+	if row == null:
+		return
+	# A live rename owns the title until it is committed; the run state still refreshes.
+	row.set_title(AgentSessionManager.get_title(session_id))
+	row.set_running(AgentSessionManager.is_running(session_id))
+	pass
+
+
+## Only the row that lost the selection and the one that gained it need a restyle —
+## the rest are already styled when they are built.
+func select_item(session_id: int, previous_session_id: int = 0) -> void:
+	# Covers selection changes that no click triggered (e.g. the fallback after a delete).
+	if editing_session_id != 0 and editing_session_id != session_id:
+		commit_rename()
+	refresh_item(session_id)
+	set_row_selected(previous_session_id, false)
+	set_row_selected(session_id, true)
+	pass
+
+
+func set_row_selected(session_id: int, selected: bool) -> void:
+	var row: SessionRow = session_rows.get(session_id)
+	if row != null:
+		row.set_selected(selected)
+	pass
+
+
+func sync_pinned_section_visibility() -> void:
+	var has_pinned := pinned_list.get_child_count() > 0
+	var has_normal := normal_list.get_child_count() > 0
+	pinned_separator.visible = has_pinned and has_normal
+	pinned_list.custom_minimum_size = Vector2.ZERO
+	# Empty Chats list has no row hit target — keep a small drop pad when unpinning is possible.
+	normal_list.custom_minimum_size = Vector2(0, 40) if has_pinned and not has_normal else Vector2.ZERO
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Rows — build, refresh, remove
+# ---------------------------------------------------------------------------
+
+func append_row(session_id: int, title: String, pinned: bool) -> void:
+	var row := SessionRow.new()
+	row.build(session_id, title, pinned)
+	row.select_pressed.connect(on_session_row_pressed)
+	row.delete_pressed.connect(on_session_delete_pressed)
+	row.rename_started.connect(on_row_rename_started)
+	row.rename_finished.connect(on_row_rename_finished)
+	drag.list_for_pinned(pinned).add_child(row)
+	# Registered before the refresh: refresh looks rows up by session id.
+	session_rows[session_id] = row
+	drag.bind_row(row)
+	refresh_item(session_id)
+	pass
+
+
+func remove_row(session_id: int) -> void:
+	var row: SessionRow = session_rows.get(session_id)
+	if row == null:
+		return
+	if editing_session_id == session_id:
+		# The rename field is freed together with the row it lives in.
+		editing_session_id = 0
+	row.queue_free()
+	session_rows.erase(session_id)
+	pass
+
+
+func clear() -> void:
+	for list: VBoxContainer in [pinned_list, normal_list]:
+		for child in list.get_children():
+			child.queue_free()
+	session_rows.clear()
+	editing_session_id = 0
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Event handlers
+# ---------------------------------------------------------------------------
+
+func on_session_added(session_id: int, title: String) -> void:
+	append_row(session_id, title, false)
+	normal_list.move_child(session_rows[session_id], 0)
+	pass
+
+
+func on_session_removed(session_id: int) -> void:
+	remove_row(session_id)
+	sync_pinned_section_visibility()
+	pass
+
+
+func on_new_session_pressed() -> void:
+	var session := AgentSessionManager.create_session()
+	AgentSessionManager.select_session(session.id)
+	pass
+
+
+func on_session_row_pressed(session_id: int) -> void:
+	# Clicking the chat that is already open starts renaming it instead of re-opening it.
+	if AgentSessionManager.is_active(session_id):
+		begin_rename(session_id)
+		return
+	AgentSessionManager.select_session(session_id)
+	pass
+
+
+func on_session_delete_pressed(session_id: int) -> void:
+	AgentSessionManager.delete_session(session_id)
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Inline rename — click the open chat again to edit its title where the title sits
+# ---------------------------------------------------------------------------
+
+func begin_rename(session_id: int) -> void:
+	if editing_session_id == session_id:
+		return
+	commit_rename()
+	var row: SessionRow = session_rows.get(session_id)
+	if row == null:
+		return
+	row.open_rename()
+	pass
+
+
+## Stores a pending edit / puts the row back to its normal state. No-op when nothing is open.
+func commit_rename() -> void:
+	var row: SessionRow = session_rows.get(editing_session_id)
+	if row != null:
+		row.commit_rename()
+	pass
+
+
+func cancel_rename() -> void:
+	var row: SessionRow = session_rows.get(editing_session_id)
+	if row != null:
+		row.cancel_rename()
+	pass
+
+
+## A click that never moved the focus (row buttons, toolbars, empty areas) still has to close the
+## field. Window input coordinates do not share the canvas transform of
+## [method Control.get_global_rect] while the viewport is stretched, so the position is read
+## through the row — the same trick as [method AgentChatInput.on_global_input].
+func on_window_input(event: InputEvent) -> void:
+	if editing_session_id == 0 or not event is InputEventMouseButton:
+		return
+	if not (event as InputEventMouseButton).pressed:
+		return
+	var row: SessionRow = session_rows.get(editing_session_id)
+	if row != null:
+		row.commit_rename_if_clicked_outside(row.get_global_mouse_position())
+	pass
+
+
+func on_row_rename_started(session_id: int) -> void:
+	editing_session_id = session_id
+	pass
+
+
+## Both commit and cancel land here: the title is re-read from the manager either way.
+func on_row_rename_finished(session_id: int) -> void:
+	if editing_session_id == session_id:
+		editing_session_id = 0
+	refresh_item(session_id)
+	pass
