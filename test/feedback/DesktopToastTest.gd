@@ -101,3 +101,17 @@ func DesktopToast_show_toast_test() -> void:
 	await gdf.gdf_node.get_tree().process_frame
 	assert(!is_instance_valid(toast))
 	pass
+
+
+## The toast must stay out of the native popup list: a display-server popup redirects every key event
+## to itself and swallows clicks landing on the app window, so the app looks frozen while it lives.
+func DesktopToast_no_popup_window_test() -> void:
+	DesktopToast.show_toast("feedback toast", "run finished", Colors.success)
+	var toast: DesktopToast = DesktopToast.toasts.back()
+	await ThreadUtils.async_sleep(100)
+	assert(!toast.popup_window)
+	# `unfocusable` alone keeps it off the taskbar / alt-tab list and out of the way of clicks.
+	assert(toast.unfocusable)
+	assert(DisplayServer.window_get_active_popup() != toast.get_window_id())
+	toast.close_toast()
+	pass

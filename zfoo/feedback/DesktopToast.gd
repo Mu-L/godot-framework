@@ -4,6 +4,7 @@ extends Window
 ## Desktop toast — a native, borderless, always-on-top OS window pinned to the bottom-right of
 ## the screen, so a message stays readable while the app window is behind other apps.
 ## `force_native` makes it a real system window without turning the app's dialogs into ones.
+## It never activates and never joins Godot's popup list, so the app window keeps its input.
 ##
 ## Example: `DesktopToast.show_toast("Run finished", summary, Colors.success)`
 ## The card follows the app accent through `ThemeColorCard`; the accent color is passed per toast.
@@ -42,9 +43,13 @@ func _init() -> void:
 	borderless = true
 	unresizable = true
 	always_on_top = true
-	# Never steal focus, and stay out of the taskbar / alt-tab list.
+	# Never steal focus, and stay out of the taskbar / alt-tab list: `unfocusable` alone is enough,
+	# Windows gives a `WS_EX_NOACTIVATE` window neither a taskbar button nor an alt-tab entry.
 	unfocusable = true
-	popup_window = true
+	# Deliberately not `popup_window`: Godot would add the toast to the DisplayServer popup list,
+	# which redirects every key event to it and swallows each click landing outside the card — the
+	# app window would look frozen for as long as the toast lives. It is a plain window instead:
+	# click the card to dismiss it early, or let the auto-dismiss timer retire it.
 	# Square card: Windows 11 would otherwise round (and clip) the window corners.
 	sharp_corners = true
 	pass
