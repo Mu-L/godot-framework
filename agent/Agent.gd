@@ -72,8 +72,8 @@ func _ready() -> void:
 	agent_setting.setup(agent_setting_button, self)
 	style_log_button()
 	log_button.pressed.connect(on_log_pressed)
-	AgentEvents.events.theme_changed.connect(style_log_button)
-	AgentEvents.events.theme_color_changed.connect(style_log_button)
+	gdf.events.theme_changed.connect(style_log_button)
+	gdf.events.theme_color_changed.connect(style_log_button)
 	# Deferred: AgentSessionManager appends the outcome chat entry in its own agent_end handler.
 	AgentEvents.events.agent_end.connect(on_agent_end, CONNECT_DEFERRED)
 

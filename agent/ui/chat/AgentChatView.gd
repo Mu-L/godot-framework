@@ -41,11 +41,11 @@ func setup(
 	# The bar swallows wheel/drag events before the container sees them.
 	chat_scroll.get_v_scroll_bar().scrolling.connect(on_chat_scroll_bar_scrolling)
 	chat_scroll.get_window().window_input.connect(on_chat_window_input)
+	gdf.events.theme_changed.connect(on_theme_changed)
+	gdf.events.theme_color_changed.connect(on_theme_color_changed)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
-	AgentEvents.events.theme_changed.connect(on_theme_changed)
-	AgentEvents.events.theme_color_changed.connect(on_theme_color_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
 	AgentEvents.events.session_removed.connect(on_session_removed)
 	AgentEvents.events.agent_start.connect(on_agent_start)

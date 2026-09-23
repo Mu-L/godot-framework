@@ -33,7 +33,7 @@ func _ready() -> void:
 	setup_demo_session()
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
-	AgentEvents.events.theme_changed.connect(apply_scene_theme)
+	gdf.events.theme_changed.connect(apply_scene_theme)
 	apply_scene_theme()
 	play_button.pressed.connect(on_play_demo_pressed)
 	stop_button.pressed.connect(on_stop_pressed)

@@ -71,10 +71,10 @@ func _ready() -> void:
 	var vp := get_viewport()
 	if vp != null and not vp.size_changed.is_connected(sync_filament_viewport_uniform):
 		vp.size_changed.connect(sync_filament_viewport_uniform)
-	if not AgentEvents.events.theme_color_changed.is_connected(sync_filament_theme):
-		AgentEvents.events.theme_color_changed.connect(sync_filament_theme)
-	if not AgentEvents.events.theme_changed.is_connected(sync_filament_theme):
-		AgentEvents.events.theme_changed.connect(sync_filament_theme)
+	if not gdf.events.theme_color_changed.is_connected(sync_filament_theme):
+		gdf.events.theme_color_changed.connect(sync_filament_theme)
+	if not gdf.events.theme_changed.is_connected(sync_filament_theme):
+		gdf.events.theme_changed.connect(sync_filament_theme)
 	pass
 
 

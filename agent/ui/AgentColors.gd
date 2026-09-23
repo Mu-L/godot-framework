@@ -56,8 +56,7 @@ static func load_saved_theme() -> void:
 
 
 static func set_theme_color(new_color: Color) -> void:
-	ThemeColor.save_theme_color(new_color)
-	AgentEvents.events.theme_color_changed.emit()
+	ThemeColor.set_theme_color(new_color)
 	pass
 
 
@@ -74,12 +73,11 @@ static func theme_selection_bg() -> Color:
 
 static func toggle_theme() -> void:
 	var _theme := ThemeColor.ThemeEnum.LIGHT if ThemeColor.is_dark_theme() else ThemeColor.ThemeEnum.DARK
-	ThemeColor.set_theme(_theme)
-	if ThemeColor.is_dark_theme():
+	if _theme == ThemeColor.ThemeEnum.DARK:
 		apply_dark_palette()
 	else:
 		apply_light_palette()
-	AgentEvents.events.theme_changed.emit()
+	ThemeColor.set_theme(_theme)
 	pass
 
 

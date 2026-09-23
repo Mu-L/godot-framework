@@ -74,5 +74,9 @@ class Events:
 	signal log_error
 	## Emitted by a finished integration test scene so IntegrationTest can run the next one.
 	signal test_passed
+
+	## Theme ui
+	signal theme_changed
+	signal theme_color_changed
 	pass
 ####################################################################################################

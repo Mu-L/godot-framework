@@ -30,6 +30,7 @@ static func set_theme(_theme: ThemeEnum) -> void:
 	Setting.set_bool(THEME_SETTING_KEY, current_theme == ThemeEnum.DARK)
 	Setting.save()
 	refresh_derived_colors()
+	gdf.events.theme_changed.emit()
 	pass
 
 
@@ -53,9 +54,10 @@ static func load_theme_color() -> Color:
 	return theme_color
 
 
-static func save_theme_color(color: Color) -> void:
+static func set_theme_color(color: Color) -> void:
 	theme_color = color
 	Setting.set_string(THEME_COLOR_SETTING_KEY, theme_color.to_html(true))
 	Setting.save()
 	refresh_derived_colors()
+	gdf.events.theme_color_changed.emit()
 	pass

@@ -43,14 +43,14 @@ func setup(
 	new_session_button = p_new_session_button
 	sidebar_panel = p_sidebar_panel
 	new_session_button.pressed.connect(on_new_session_pressed)
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
 	AgentEvents.events.session_added.connect(on_session_added)
 	AgentEvents.events.session_removed.connect(on_session_removed)
 	AgentEvents.events.session_selected.connect(select_item)
 	AgentEvents.events.session_title_changed.connect(on_session_refresh)
 	AgentEvents.events.agent_start.connect(on_session_refresh)
 	AgentEvents.events.session_stop.connect(on_session_refresh)
-	AgentEvents.events.theme_changed.connect(apply_theme)
-	AgentEvents.events.theme_color_changed.connect(apply_theme)
 	pinned_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	normal_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	bind_list_drop(pinned_list, true)

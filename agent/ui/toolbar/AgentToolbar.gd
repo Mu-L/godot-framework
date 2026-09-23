@@ -19,7 +19,7 @@ func setup(
 	project_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	project_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	project_button.tooltip_text = "Click to choose workspace folder"
-	AgentEvents.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

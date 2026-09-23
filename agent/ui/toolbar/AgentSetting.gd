@@ -30,8 +30,8 @@ func setup(p_button: Button, dialog_parent: Node) -> void:
 	button.pressed.connect(on_button_pressed)
 	button.mouse_entered.connect(on_button_mouse_entered)
 	button.mouse_exited.connect(on_button_mouse_exited)
-	AgentEvents.events.theme_changed.connect(apply_theme)
-	AgentEvents.events.theme_color_changed.connect(apply_theme)
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

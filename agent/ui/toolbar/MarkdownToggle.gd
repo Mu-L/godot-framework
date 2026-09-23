@@ -23,8 +23,8 @@ func setup(p_button: Button) -> void:
 	markdown_enabled = Setting.get_bool(SETTING_KEY, true)
 	button = p_button
 	button.toggled.connect(on_toggled)
-	AgentEvents.events.theme_changed.connect(apply_theme)
-	AgentEvents.events.theme_color_changed.connect(apply_theme)
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

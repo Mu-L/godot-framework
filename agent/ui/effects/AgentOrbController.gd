@@ -78,6 +78,7 @@ func build_scene() -> void:
 
 
 func connect_events() -> void:
+	gdf.events.theme_changed.connect(on_theme_changed)
 	AgentEvents.events.agent_start.connect(on_agent_start)
 	AgentEvents.events.agent_end.connect(on_agent_end)
 	AgentEvents.events.session_stop.connect(on_session_stop)
@@ -89,7 +90,6 @@ func connect_events() -> void:
 	AgentEvents.events.tool_execution_start.connect(on_tool_execution_start)
 	AgentEvents.events.tool_execution_end.connect(on_tool_execution_end)
 	AgentEvents.events.chat_entry_add.connect(on_chat_entry_add)
-	AgentEvents.events.theme_changed.connect(on_theme_changed)
 	AgentEvents.events.jarvis_orb_changed.connect(on_jarvis_orb_changed)
 	pass
 

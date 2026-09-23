@@ -11,8 +11,8 @@ var button: Button
 func setup(p_button: Button) -> void:
 	button = p_button
 	button.toggled.connect(on_toggled)
-	AgentEvents.events.theme_changed.connect(refresh_toggle_button)
-	AgentEvents.events.theme_color_changed.connect(refresh_toggle_button)
+	gdf.events.theme_changed.connect(refresh_toggle_button)
+	gdf.events.theme_color_changed.connect(refresh_toggle_button)
 	AgentEvents.events.session_added.connect(on_session_added)
 	refresh_toggle_button()
 	pass

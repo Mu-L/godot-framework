@@ -25,8 +25,8 @@ func setup(p_wrap: PanelContainer) -> void:
 	wrap = p_wrap
 	label = wrap.get_child(0) as Label
 	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
-	AgentEvents.events.theme_changed.connect(apply_theme)
-	AgentEvents.events.theme_color_changed.connect(apply_theme)
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
 	AgentEvents.events.session_selected.connect(refresh)
 	AgentEvents.events.message_complete.connect(on_message_complete)
 	apply_theme()

@@ -10,7 +10,7 @@ var shell: Control
 func setup(p_chat_area: Panel, p_shell: Control) -> void:
 	chat_area = p_chat_area
 	shell = p_shell
-	AgentEvents.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

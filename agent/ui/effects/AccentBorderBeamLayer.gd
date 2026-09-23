@@ -19,8 +19,8 @@ func _ready() -> void:
 	clip_contents = false
 	color = Color(1.0, 1.0, 1.0, 0.0)
 	ensure_material()
-	AgentEvents.events.theme_color_changed.connect(sync_shader_uniforms)
-	AgentEvents.events.theme_changed.connect(sync_shader_uniforms)
+	gdf.events.theme_changed.connect(sync_shader_uniforms)
+	gdf.events.theme_color_changed.connect(sync_shader_uniforms)
 	if not resized.is_connected(sync_shader_uniforms):
 		resized.connect(sync_shader_uniforms)
 	sync_shader_uniforms()
