@@ -28,8 +28,9 @@ static var ui_scale := 1.0
 
 var card: PanelContainer
 var body_label: Label
-var heading := ""
-var message := ""
+## Card title and body text; `*_text` because [member Window.title] is already taken by the native [Window] base.
+var title_text := ""
+var body_text := ""
 var accent: Color = Colors.info
 var closing := false
 
@@ -55,8 +56,8 @@ static func show_toast(title: String, body: String, color: Color) -> void:
 		return
 	ui_scale = compute_ui_scale()
 	var toast := DesktopToast.new()
-	toast.heading = title
-	toast.message = body.strip_edges()
+	toast.title_text = title
+	toast.body_text = body.strip_edges()
 	toast.accent = color
 	toasts.append(toast)
 	gdf.gdf_node.add_child(toast)
@@ -173,8 +174,8 @@ func build_card() -> void:
 	var gap := TITLE_BODY_GAP * unit
 	# First guess from font metrics; `fit_window_size` corrects it once the labels wrapped.
 	var body_height := 0.0
-	if StringUtils.is_not_blank(message):
-		body_height = body_font.get_multiline_string_size(message, HORIZONTAL_ALIGNMENT_LEFT, text_width, body_size, MAX_BODY_LINES).y
+	if StringUtils.is_not_blank(body_text):
+		body_height = body_font.get_multiline_string_size(body_text, HORIZONTAL_ALIGNMENT_LEFT, text_width, body_size, MAX_BODY_LINES).y
 	var card_height := pad * 2.0 + title_font.get_height(title_size) + (gap + body_height if body_height > 0.0 else 0.0)
 	size = Vector2i(roundi(card_width), roundi(card_height))
 	# Place it while it is still invisible, so the window never flashes at the tree origin.
@@ -191,7 +192,7 @@ func build_card() -> void:
 	card.add_child(column)
 
 	var title_label := Label.new()
-	title_label.text = heading
+	title_label.text = title_text
 	title_label.add_theme_font_override("font", title_font)
 	title_label.add_theme_font_size_override("font_size", title_size)
 	title_label.add_theme_color_override("font_color", ThemeColorCard.title_color)
@@ -200,7 +201,7 @@ func build_card() -> void:
 
 	if body_height > 0.0:
 		body_label = Label.new()
-		body_label.text = message
+		body_label.text = body_text
 		body_label.add_theme_font_override("font", body_font)
 		body_label.add_theme_font_size_override("font_size", body_size)
 		body_label.add_theme_color_override("font_color", ThemeColorCard.body_color)

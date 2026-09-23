@@ -19,12 +19,12 @@ func DesktopToast_corner_position_test() -> void:
 	pass
 
 
-## [method DesktopToast.build_card] lays out the accent stripe, heading and wrapped body at the app UI scale.
+## [method DesktopToast.build_card] lays out the accent stripe, title and wrapped body at the app UI scale.
 func DesktopToast_build_card_test() -> void:
 	DesktopToast.ui_scale = 1.0
 	var toast := DesktopToast.new()
-	toast.heading = "feedback toast"
-	toast.message = "feedback toast body"
+	toast.title_text = "feedback toast"
+	toast.body_text = "feedback toast body"
 	toast.accent = Colors.success
 	toast.build_card()
 	assert(toast.card != null)
@@ -45,12 +45,12 @@ func DesktopToast_build_card_test() -> void:
 	pass
 
 
-## A toast without a body skips the body label, so the card only holds the heading.
+## A toast without a body skips the body label, so the card only holds the title.
 func DesktopToast_empty_body_test() -> void:
 	DesktopToast.ui_scale = 1.0
 	var toast := DesktopToast.new()
-	toast.heading = "feedback toast"
-	toast.message = "   "
+	toast.title_text = "feedback toast"
+	toast.body_text = "   "
 	toast.build_card()
 	assert(toast.body_label == null)
 	assert((toast.card.get_child(0) as VBoxContainer).get_child_count() == 1)
@@ -85,8 +85,8 @@ func DesktopToast_show_toast_test() -> void:
 	DesktopToast.show_toast("feedback toast", "run finished", Colors.success)
 	assert(DesktopToast.toasts.size() == before + 1)
 	var toast: DesktopToast = DesktopToast.toasts[before]
-	assert(toast.heading == "feedback toast")
-	assert(toast.message == "run finished")
+	assert(toast.title_text == "feedback toast")
+	assert(toast.body_text == "run finished")
 	assert(toast.accent == Colors.success)
 	assert(toast.is_inside_tree())
 	assert(toast.size.x == roundi(DesktopToast.CARD_WIDTH * DesktopToast.ui_scale))
