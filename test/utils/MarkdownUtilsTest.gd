@@ -46,8 +46,8 @@ func horizontal_rule_test() -> void:
 	assert(MarkdownUtils.is_horizontal_rule_line("- - -"))
 	assert(not MarkdownUtils.is_horizontal_rule_line("-_*-"))
 	var bbcode := MarkdownUtils.to_bbcode("---")
-	assert(ThemeColorMarkdown.horizontal_rule_line in bbcode)
-	assert("#" in ThemeColorMarkdown.horizontal_rule_line)
+	assert(MarkdownUtils.format_horizontal_rule_line() in bbcode)
+	assert("#" in MarkdownUtils.format_horizontal_rule_line())
 	pass
 
 
@@ -90,7 +90,7 @@ func code_fence_blank_lines_test() -> void:
 ## The fence fill follows the theme accent instead of a hex the caller passes in.
 func code_block_bg_themed_test() -> void:
 	var bbcode := MarkdownUtils.to_bbcode("```\nx\n```")
-	assert("bg=" + ThemeColorMarkdown.to_hex(ThemeColorMarkdown.code_block_bg) in bbcode)
+	assert("bg=" + MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.code_block_bg) in bbcode)
 	pass
 
 
@@ -105,7 +105,7 @@ func inline_code_tinted_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("`x`")
 	assert(bbcode.begins_with(MarkdownUtils.INLINE_CODE_MARGIN))
 	assert(bbcode.ends_with(MarkdownUtils.INLINE_CODE_MARGIN))
-	assert("[bgcolor=" + ThemeColorMarkdown.to_hex(ThemeColorMarkdown.inline_code_bg) + "]" in bbcode)
+	assert("[bgcolor=" + MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.inline_code_bg) + "]" in bbcode)
 	assert("[code]x[/code]" in bbcode)
 	assert("[table=" not in bbcode)
 	pass
@@ -183,7 +183,7 @@ func url_with_parens_test() -> void:
 func link_label_blue_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("[hi](https://a.com)")
 	assert(
-			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % ThemeColorMarkdown.to_hex(ThemeColorMarkdown.link_color)
+			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.link_color)
 	)
 	var bold_label := MarkdownUtils.inline_to_bbcode("[**hi**](https://a.com)")
 	assert("[b]hi[/b]" in bold_label)

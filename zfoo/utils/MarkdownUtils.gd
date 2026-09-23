@@ -113,7 +113,7 @@ static func to_bbcode(markdown: String) -> String:
 
 		# --- / *** / ___  →  [hr width=100% …]
 		if is_horizontal_rule_line(line):
-			out.append(ThemeColorMarkdown.horizontal_rule_line)
+			out.append(format_horizontal_rule_line())
 			i += 1
 			continue
 
@@ -269,6 +269,11 @@ static func is_horizontal_rule_line(line: String) -> bool:
 	return marker_count >= 3
 
 
+## `---` → full-width rule in the table grid color, so rules and table lines match.
+static func format_horizontal_rule_line() -> String:
+	return StringUtils.format("[hr width=100% height=1 color={}]", to_bbcode_color(ThemeColorMarkdown.table_grid_color))
+
+
 ## `>` after 0–3 spaces. Nested `>>` is left as leftover `>` in the quote body.
 static func is_blockquote_line(line: String) -> bool:
 	var leading := count_leading_spaces(line)
@@ -292,8 +297,8 @@ static func format_blockquote_bbcode(text: String) -> String:
 	var body := inline_to_bbcode(text)
 	return StringUtils.format(
 			"[indent][color={}]▎[/color] [color={}]{}[/color][/indent]",
-			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.blockquote_bar_color),
-			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.blockquote_text_color),
+			to_bbcode_color(ThemeColorMarkdown.blockquote_bar_color),
+			to_bbcode_color(ThemeColorMarkdown.blockquote_text_color),
 			body
 	)
 
@@ -374,13 +379,13 @@ static func format_table_bbcode(header: PackedStringArray, body_rows: Array[Pack
 
 static func format_table_cell(text: String, is_header: bool) -> String:
 	var content := inline_to_bbcode(text)
-	var border := ThemeColorMarkdown.to_hex(ThemeColorMarkdown.table_grid_color)
+	var border := to_bbcode_color(ThemeColorMarkdown.table_grid_color)
 	if is_header:
 		content = StringUtils.format("[b]{}[/b]", content)
 		return StringUtils.format(
 				"[cell border={} bg={} padding={}]{}[/cell]",
 				border,
-				ThemeColorMarkdown.to_hex(ThemeColorMarkdown.table_header_bg),
+				to_bbcode_color(ThemeColorMarkdown.table_header_bg),
 				TABLE_CELL_PADDING,
 				content
 		)
@@ -522,7 +527,7 @@ static func apply_inline(text: String, parts: Array[String]) -> String:
 						StringUtils.format(
 								"[url={}][color={}]{}[/color][/url]",
 								url,
-								ThemeColorMarkdown.to_hex(ThemeColorMarkdown.link_color),
+								to_bbcode_color(ThemeColorMarkdown.link_color),
 								label
 						)
 				)
@@ -605,7 +610,7 @@ static func parse_link_destination(raw: String) -> String:
 static func format_code_fence_bbcode(code: String) -> String:
 	var block := StringUtils.format(
 			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}[/cell][/table]",
-			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.code_block_bg),
+			to_bbcode_color(ThemeColorMarkdown.code_block_bg),
 			CODE_BLOCK_PADDING,
 			wrap_code(code)
 	)
@@ -626,7 +631,7 @@ static func add_code_background(code: String) -> String:
 	return StringUtils.format(
 			"{}[bgcolor={}]{}[/bgcolor]{}",
 			INLINE_CODE_MARGIN,
-			ThemeColorMarkdown.to_hex(ThemeColorMarkdown.inline_code_bg),
+			to_bbcode_color(ThemeColorMarkdown.inline_code_bg),
 			wrap_code(code),
 			INLINE_CODE_MARGIN
 	)
@@ -674,6 +679,13 @@ static func regex_sub(text: String, regex: RegEx, replacer: Callable) -> String:
 		pos = m.get_end()
 	chunks.append(text.substr(pos))
 	return "".join(chunks)
+
+
+## `#rrggbbaa` for a `[color]` / `[bgcolor]` / `[cell border]` argument. BBCode only takes
+## strings, and the palette is read at conversion time, so the tags carry the value instead
+## of a cached hex.
+static func to_bbcode_color(color: Color) -> String:
+	return "#" + color.to_html(true)
 
 
 ## `[` → `[lb]`, `]` → `[rb]`. Must go through [constant ESCAPE_SENTINEL]:
