@@ -41,7 +41,7 @@ static func refresh() -> void:
 static func apply_dark_palette() -> void:
 	code_block_bg = derive(0.30, 0.06)
 	table_grid_color = derive(0.25, 0.42)
-	inline_code_bg = derive(0.35, 0.62, 0.18)
+	inline_code_bg = derive(0.35, 0.52, 0.12)
 	table_header_bg = Color(1.0, 1.0, 1.0, 0.08)
 	link_color = derive(1.0, 0.90)
 	blockquote_bar_color = link_color
@@ -61,7 +61,7 @@ static func apply_dark_palette() -> void:
 static func apply_light_palette() -> void:
 	code_block_bg = derive(0.10, 0.96)
 	table_grid_color = derive(0.10, 0.78)
-	inline_code_bg = derive(0.15, 0.30, 0.16)
+	inline_code_bg = derive(0.15, 0.30, 0.08)
 	table_header_bg = Color(0.0, 0.0, 0.0, 0.05)
 	link_color = derive(1.0, 0.52)
 	blockquote_bar_color = link_color
