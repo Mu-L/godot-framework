@@ -48,3 +48,21 @@ static func load_external_audio(extension: String, path: String) -> AudioStream:
 		"ogg":
 			return AudioStreamOggVorbis.load_from_file(path)
 	return null
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+## Absolute paths of the files in `folder` whose extension is one of `extensions` — empty when the
+## folder is missing. The paths are sorted, so a random pick stays stable across runs, and lower /
+## upper case extensions both count.
+static func get_all_files_of_extensions(folder: String, extensions: PackedStringArray) -> Array[String]:
+	var files: Array[String] = []
+	for file_path in FileUtils.get_all_files_in_folder(folder, true):
+		if extensions.has(file_path.get_extension().to_lower()):
+			files.append(file_path)
+	files.sort()
+	return files
+
+
+## Audio files in `folder`, see [method list_files_of_extensions].
+static func get_all_audio_files(folder: String) -> Array[String]:
+	return get_all_files_of_extensions(folder, AUDIO_EXTENSIONS)

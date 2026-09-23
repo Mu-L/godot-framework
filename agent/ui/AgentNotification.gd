@@ -40,7 +40,7 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 ## A playlist that is still running keeps going and a paused one is resumed, so a second run does
 ## not restart the same beep — only a different folder starts a fresh playlist.
 func play_sound() -> void:
-	var clips := list_clips(AgentSetting.get_notification_sound_folder())
+	var clips := ResourceHelper.get_all_audio_files(AgentSetting.get_notification_sound_folder())
 	if clips.is_empty():
 		return
 	if has_playlist(clips):
@@ -65,14 +65,3 @@ func has_playlist(clips: Array[String]) -> bool:
 func stop_sound() -> void:
 	Audio.pause_musics(STOP_FADE_SECONDS)
 	pass
-
-
-## Audio files in `folder` — empty when the folder is missing. The paths are sorted, so the random
-## pick stays stable across runs, and lower / upper case extensions both count.
-static func list_clips(folder: String) -> Array[String]:
-	var clips: Array[String] = []
-	for file_path in FileUtils.get_all_files_in_folder(folder):
-		if ResourceHelper.AUDIO_EXTENSIONS.has(file_path.get_extension().to_lower()):
-			clips.append(file_path)
-	clips.sort()
-	return clips
