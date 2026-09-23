@@ -4,8 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection and notification settings.
 ## There is no Save button: every field writes straight to [Setting] once editing finishes.
 
-const DIALOG_WIDTH := 580
-const DIALOG_HEIGHT := 830
+const DIALOG_SIZE := Vector2i(580, 830)
 const FOLDER_DIALOG_SIZE := Vector2i(900, 600)
 const SETTINGS_ICON_PATH := "res://agent/asset/image/icon/settings.svg"
 const SVG_BASE_COLOR := "#8B949E"
@@ -54,8 +53,8 @@ func build_dialog() -> void:
 	dialog = ConfirmationDialog.new()
 	dialog.title = ""
 	dialog.borderless = true
-	dialog.min_size = Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
-	dialog.max_size = Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
+	dialog.min_size = DIALOG_SIZE
+	dialog.max_size = DIALOG_SIZE
 	dialog.unresizable = true
 	dialog.exclusive = false
 	dialog.focus_exited.connect(on_dialog_focus_exited)
@@ -106,8 +105,6 @@ func build_dialog() -> void:
 	api_url_edit = add_field(fields, "API endpoint", "https://api.example.com/v1/chat/completions", "Full chat-completions endpoint URL")
 	model_edit = add_field(fields, "Model", ApiSetting.DEFAULT_MODEL, "Model sent with each request")
 	api_token_edit = add_token_field(fields)
-	api_token_edit.secret = true
-	api_token_edit.secret_character = "*"
 	proxy_address_edit = add_field(fields, "Proxy", "http://127.0.0.1:10809", "Optional HTTP/HTTPS proxy")
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		bind_auto_save(edit, save_api_settings)
@@ -148,7 +145,7 @@ func add_notify_fields(parent: VBoxContainer) -> void:
 ## Sound length, saved on every step.
 func add_sound_seconds_group(parent: HBoxContainer) -> HBoxContainer:
 	var group := make_option_row(parent, LABEL_GAP)
-	group.add_child(make_option_label("Sound Duration"))
+	group.add_child(make_label("Sound Duration"))
 	sound_seconds_spin = SpinBox.new()
 	sound_seconds_spin.min_value = AgentSetting.MIN_SOUND_SECONDS
 	sound_seconds_spin.max_value = AgentSetting.MAX_SOUND_SECONDS
@@ -182,13 +179,45 @@ func build_folder_dialog() -> void:
 	pass
 
 
-func make_option_label(label_text: String) -> Label:
+## Caption label — centered so it lines up with the control on the row next to it.
+func make_label(label_text: String) -> Label:
 	var label := Label.new()
 	label.text = label_text
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 13)
 	field_labels.append(label)
 	return label
+
+
+## Box of a stacked field — caption first, then whatever the caller adds (control, help line) —
+## with the tighter inner gap.
+func make_field_group(parent: Container, label_text: String) -> VBoxContainer:
+	var group := VBoxContainer.new()
+	group.add_theme_constant_override("separation", 7)
+	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(group)
+	group.add_child(make_label(label_text))
+	return group
+
+
+## Grey help line closing a field group.
+func add_help_label(parent: Container, help_text: String) -> void:
+	var help := Label.new()
+	help.text = help_text
+	help.add_theme_font_size_override("font_size", 11)
+	help_labels.append(help)
+	parent.add_child(help)
+	pass
+
+
+## Input field with the shared look: 38px tall, clear button, filling the row.
+func make_line_edit(placeholder: String) -> LineEdit:
+	var edit := LineEdit.new()
+	edit.custom_minimum_size = Vector2(0, 38)
+	edit.placeholder_text = placeholder
+	edit.clear_button_enabled = true
+	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return edit
 
 
 ## Persist a line edit as soon as the user leaves it or presses Enter.
@@ -199,14 +228,7 @@ func bind_auto_save(edit: LineEdit, saver: Callable) -> void:
 
 
 func add_provider_field(parent: VBoxContainer) -> OptionButton:
-	var group := VBoxContainer.new()
-	group.add_theme_constant_override("separation", 7)
-	parent.add_child(group)
-	var label := Label.new()
-	label.text = "Provider"
-	label.add_theme_font_size_override("font_size", 13)
-	field_labels.append(label)
-	group.add_child(label)
+	var group := make_field_group(parent, "Provider")
 	var select := OptionButton.new()
 	select.custom_minimum_size = Vector2(0, 38)
 	select.add_item(ApiSupport.CUSTOM_PROVIDER)
@@ -215,54 +237,26 @@ func add_provider_field(parent: VBoxContainer) -> OptionButton:
 	select.item_selected.connect(on_provider_selected)
 	select.get_popup().popup_hide.connect(on_provider_popup_hide)
 	group.add_child(select)
-	var help := Label.new()
-	help.text = "Selecting a provider fills the endpoint and recommended model"
-	help.add_theme_font_size_override("font_size", 11)
-	help_labels.append(help)
-	group.add_child(help)
+	add_help_label(group, "Selecting a provider fills the endpoint and recommended model")
 	return select
 
 
 func add_field(parent: Container, label_text: String, placeholder: String, help_text: String) -> LineEdit:
-	var group := VBoxContainer.new()
-	group.add_theme_constant_override("separation", 7)
-	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(group)
-	var label := Label.new()
-	label.text = label_text
-	label.add_theme_font_size_override("font_size", 13)
-	field_labels.append(label)
-	group.add_child(label)
-	var edit := LineEdit.new()
-	edit.custom_minimum_size = Vector2(0, 38)
-	edit.placeholder_text = placeholder
-	edit.clear_button_enabled = true
+	var group := make_field_group(parent, label_text)
+	var edit := make_line_edit(placeholder)
 	group.add_child(edit)
-	var help := Label.new()
-	help.text = help_text
-	help.add_theme_font_size_override("font_size", 11)
-	help_labels.append(help)
-	group.add_child(help)
+	add_help_label(group, help_text)
 	return edit
 
 
 func add_token_field(parent: VBoxContainer) -> LineEdit:
-	var group := VBoxContainer.new()
-	group.add_theme_constant_override("separation", 7)
-	parent.add_child(group)
-	var label := Label.new()
-	label.text = "API token"
-	label.add_theme_font_size_override("font_size", 13)
-	field_labels.append(label)
-	group.add_child(label)
+	var group := make_field_group(parent, "API token")
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	group.add_child(row)
-	var edit := LineEdit.new()
-	edit.custom_minimum_size = Vector2(0, 38)
-	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	edit.placeholder_text = "sk-..."
-	edit.clear_button_enabled = true
+	var edit := make_line_edit("sk-...")
+	edit.secret = true
+	edit.secret_character = "*"
 	row.add_child(edit)
 	token_visibility_button = Button.new()
 	token_visibility_button.custom_minimum_size = Vector2(64, 38)
@@ -270,11 +264,7 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 	token_visibility_button.focus_mode = Control.FOCUS_NONE
 	token_visibility_button.pressed.connect(on_token_visibility_pressed)
 	row.add_child(token_visibility_button)
-	var help := Label.new()
-	help.text = "Stored locally in user://setting.config"
-	help.add_theme_font_size_override("font_size", 11)
-	help_labels.append(help)
-	group.add_child(help)
+	add_help_label(group, "Stored locally in user://setting.config")
 	return edit
 
 
@@ -338,21 +328,24 @@ func on_button_pressed() -> void:
 	proxy_address_edit.text = ApiSetting.get_proxy_address()
 	api_token_edit.secret = true
 	token_visibility_button.text = "Show"
-	toast_toggle_button.set_block_signals(true)
-	toast_toggle_button.button_pressed = AgentSetting.get_notification_window()
-	toast_toggle_button.set_block_signals(false)
-	sound_toggle_button.set_block_signals(true)
-	sound_toggle_button.button_pressed = AgentSetting.get_notification_sound()
-	sound_toggle_button.set_block_signals(false)
+	refresh_check_button(toast_toggle_button, AgentSetting.get_notification_window())
+	refresh_check_button(sound_toggle_button, AgentSetting.get_notification_sound())
 	update_sound_options_visible(sound_toggle_button.button_pressed)
 	sound_seconds_spin.set_value_no_signal(AgentSetting.get_notification_sound_seconds())
 	sound_folder_edit.text = AgentSetting.get_notification_sound_folder()
 	folder_field_typing = false
-	var dialog_size := Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
-	dialog.popup_centered(dialog_size)
-	dialog.size = dialog_size
+	dialog.popup_centered(DIALOG_SIZE)
+	dialog.size = DIALOG_SIZE
 	# Deferred: the hidden OK button grabs focus while the dialog pops up.
 	provider_select.grab_focus.call_deferred()
+	pass
+
+
+## Writes a persisted toggle back into its button without firing `toggled`.
+func refresh_check_button(check: CheckButton, enabled: bool) -> void:
+	check.set_block_signals(true)
+	check.button_pressed = enabled
+	check.set_block_signals(false)
 	pass
 
 
@@ -532,13 +525,7 @@ func style_option_button(select: OptionButton) -> void:
 	select.add_theme_color_override("font_color", AgentColors.chat_text)
 	select.add_theme_color_override("font_hover_color", AgentColors.chat_text)
 	select.add_theme_color_override("font_pressed_color", AgentColors.chat_text)
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = AgentColors.chat_input
-	normal.border_color = AgentColors.chat_input_border
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(7)
-	normal.content_margin_left = 12
-	normal.content_margin_right = 12
+	var normal := make_input_style()
 	var hover := normal.duplicate() as StyleBoxFlat
 	hover.border_color = AgentColors.theme_accent_solid()
 	select.add_theme_stylebox_override("normal", normal)
@@ -576,10 +563,8 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	hover_style.content_margin_right = 8
 	popup.add_theme_stylebox_override("hover", hover_style)
 	var empty_icon := ImageTexture.new()
-	popup.add_theme_icon_override("radio_checked", empty_icon)
-	popup.add_theme_icon_override("radio_unchecked", empty_icon)
-	popup.add_theme_icon_override("checked", empty_icon)
-	popup.add_theme_icon_override("unchecked", empty_icon)
+	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
+		popup.add_theme_icon_override(state, empty_icon)
 	pass
 
 
@@ -637,11 +622,8 @@ func style_spin_box(spin: SpinBox) -> void:
 
 func style_secondary_button(target: Button) -> void:
 	target.add_theme_color_override("font_color", AgentColors.chat_text)
-	var normal := StyleBoxFlat.new()
+	var normal := make_input_style()
 	normal.bg_color = AgentColors.toolbar_button
-	normal.border_color = AgentColors.chat_input_border
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(7)
 	normal.content_margin_left = 14
 	normal.content_margin_right = 14
 	var hover := normal.duplicate() as StyleBoxFlat

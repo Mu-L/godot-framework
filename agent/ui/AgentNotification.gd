@@ -27,7 +27,7 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 		return
 	# The newest chat entry is the outcome: AgentSessionManager already appended the error
 	# bubble for a failed run, otherwise it is the agent reply.
-	var entry: ChatEntry = session.chat_entries[session.chat_entries.size() - 1]
+	var entry: ChatEntry = session.chat_entries.back()
 	if AgentSetting.get_notification_window():
 		var accent := AgentColors.error if entry.kind == ChatEntry.KIND_ERROR else AgentColors.success
 		DesktopToast.show_toast(entry.title, entry.body, accent)
