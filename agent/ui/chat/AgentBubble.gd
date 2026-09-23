@@ -69,18 +69,23 @@ static func style_copy_button(button: Button, bubble_bg: Color) -> void:
 	pass
 
 
+## Header actions (Copy / Delete / Revert) are tinted with the user accent, so picking a new
+## theme color re-renders them with the transcript (see AgentChatView.on_theme_color_changed).
 static func style_header_button(button: Button, bubble_bg: Color, tooltip: String, min_width: float) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.tooltip_text = tooltip
 	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", 10)
-	button.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	button.add_theme_color_override("font_hover_color", AgentColors.chat_text.lightened(0.08))
-	button.add_theme_color_override("font_pressed_color", AgentColors.chat_text_muted.darkened(0.08))
+
+	var accent := AgentColors.theme_accent_solid()
+	var is_dark := ThemeColor.is_dark_theme()
+	button.add_theme_color_override("font_color", accent)
+	button.add_theme_color_override("font_hover_color", accent.lightened(0.12))
+	button.add_theme_color_override("font_pressed_color", accent.darkened(0.10))
 
 	var normal := StyleBoxFlat.new()
-	normal.bg_color = bubble_bg.lightened(0.08)
-	normal.border_color = AgentColors.chat_text_muted.darkened(0.35)
+	normal.bg_color = bubble_bg.lightened(0.08) if is_dark else bubble_bg.darkened(0.04)
+	normal.border_color = Color(accent.r, accent.g, accent.b, 0.45)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(4)
 	normal.content_margin_left = 6
@@ -89,11 +94,16 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	normal.content_margin_bottom = 0
 
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = bubble_bg.lightened(0.16)
-	hover.border_color = AgentColors.chat_text_muted
+	hover.bg_color = AgentColors.theme_selection_bg()
+	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
 
 	var pressed := hover.duplicate() as StyleBoxFlat
-	pressed.bg_color = bubble_bg.darkened(0.06)
+	pressed.bg_color = AgentColors.theme_selection_bg()
+	if is_dark:
+		pressed.bg_color = pressed.bg_color.lightened(0.06)
+	else:
+		pressed.bg_color = pressed.bg_color.darkened(0.04)
+	pressed.border_color = accent
 
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
