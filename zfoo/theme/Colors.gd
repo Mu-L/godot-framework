@@ -1,4 +1,5 @@
 class_name Colors
+extends Object
 
 static var error: Color = Color("#B00020")
 static var info: Color = Color("#2196F3")

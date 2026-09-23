@@ -1,5 +1,5 @@
 class_name ThemeColorCard
-extends RefCounted
+extends Object
 
 ## Card palette derived from `ThemeColor.theme_color`, so floating cards (`DesktopToast`, dialogs)
 ## pick up the accent the user chose while title/body contrast stays stable in either theme.

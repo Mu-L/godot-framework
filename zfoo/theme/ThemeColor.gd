@@ -1,5 +1,5 @@
 class_name ThemeColor
-extends RefCounted
+extends Object
 
 const THEME_SETTING_KEY := "theme"
 const THEME_COLOR_SETTING_KEY := "theme_color"
