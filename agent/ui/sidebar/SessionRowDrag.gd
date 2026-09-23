@@ -31,12 +31,9 @@ func list_for_pinned(pinned: bool) -> VBoxContainer:
 
 
 ## Whole row (padding, title, close button) is a drag handle and a drop target.
+## Bound arguments come last, so these three keep the engine's callback shape.
 func bind_row(row: SessionRow) -> void:
-	row.bind_drag_forwarding(
-		func(_at_position: Vector2) -> Variant: return get_row_drag_data(row),
-		func(_at_position: Vector2, data: Variant) -> bool: return can_drop_on_row(data, row),
-		func(_at_position: Vector2, data: Variant) -> bool: return drop_on_row(data, row)
-	)
+	row.bind_drag_forwarding(get_row_drag_data.bind(row), can_drop_on_row.bind(row), drop_on_row.bind(row))
 	pass
 
 
@@ -44,13 +41,13 @@ func bind_row(row: SessionRow) -> void:
 func bind_list(host: Control, pinned: bool) -> void:
 	host.set_drag_forwarding(
 		func(_at_position: Vector2) -> Variant: return null,
-		func(_at_position: Vector2, data: Variant) -> bool: return can_drop_on_list(data),
-		func(_at_position: Vector2, data: Variant) -> bool: return drop_on_list(data, pinned)
+		can_drop_on_list.bind(pinned),
+		drop_on_list.bind(pinned)
 	)
 	pass
 
 
-func get_row_drag_data(row: SessionRow) -> Variant:
+func get_row_drag_data(_at_position: Vector2, row: SessionRow) -> Variant:
 	# While the row is being renamed the drag must not steal the click and move it away.
 	if row == null or row.is_renaming():
 		return null
@@ -59,13 +56,13 @@ func get_row_drag_data(row: SessionRow) -> Variant:
 
 
 ## Query only — the reorder is applied in [method drop_on_row] when the mouse is released.
-func can_drop_on_row(data: Variant, target: SessionRow) -> bool:
+func can_drop_on_row(_at_position: Vector2, data: Variant, target: SessionRow) -> bool:
 	if typeof(data) != TYPE_INT or target == null:
 		return false
 	return session_rows.has(data) and session_rows.has(target.session_id)
 
 
-func drop_on_row(data: Variant, target: SessionRow) -> bool:
+func drop_on_row(_at_position: Vector2, data: Variant, target: SessionRow) -> bool:
 	if typeof(data) != TYPE_INT or target == null:
 		return false
 	var from_row: SessionRow = session_rows.get(data)
@@ -77,14 +74,14 @@ func drop_on_row(data: Variant, target: SessionRow) -> bool:
 
 
 ## Query only — the reorder is applied in [method drop_on_list] when the mouse is released.
-func can_drop_on_list(data: Variant) -> bool:
+func can_drop_on_list(_at_position: Vector2, data: Variant, _pinned: bool) -> bool:
 	if typeof(data) != TYPE_INT:
 		return false
 	return session_rows.has(data)
 
 
 ## Dropping on the list background appends the row to the end of that list.
-func drop_on_list(data: Variant, pinned: bool) -> bool:
+func drop_on_list(_at_position: Vector2, data: Variant, pinned: bool) -> bool:
 	if typeof(data) != TYPE_INT:
 		return false
 	var from_row: SessionRow = session_rows.get(data)
@@ -108,7 +105,7 @@ func apply_row_move(from_row: SessionRow, target_list: VBoxContainer, to_index: 
 		if sections_changed.is_valid():
 			sections_changed.call()
 
-	to_index = clamp_move_index(from_row, target_list, to_index)
+	to_index = clamp_move_index(target_list, to_index)
 	var from_index := from_row.get_index()
 	if not need_section_change and from_index == to_index:
 		return
@@ -123,6 +120,6 @@ func apply_row_move(from_row: SessionRow, target_list: VBoxContainer, to_index: 
 	pass
 
 
-func clamp_move_index(from_row: SessionRow, target_list: VBoxContainer, to_index: int) -> int:
+func clamp_move_index(target_list: VBoxContainer, to_index: int) -> int:
 	var max_index := maxi(0, target_list.get_child_count() - 1)
 	return clampi(to_index, 0, max_index)

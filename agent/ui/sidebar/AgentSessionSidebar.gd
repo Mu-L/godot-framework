@@ -17,8 +17,6 @@ var sidebar_panel: PanelContainer
 
 var session_rows: Dictionary[int, SessionRow] = {}
 var drag := SessionRowDrag.new()
-## 0 = no row is being renamed; it is never a real session id.
-var editing_session_id: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -86,11 +84,6 @@ func apply_theme() -> void:
 	normal_header.add_theme_color_override("font_color", AgentColors.sidebar_muted)
 	pinned_separator.add_theme_stylebox_override("separator", SessionSidebarTheme.pinned_separator())
 	SessionSidebarTheme.apply_new_session_button(new_session_button)
-	refresh_all_row_styles()
-	pass
-
-
-func refresh_all_row_styles() -> void:
 	for row: SessionRow in session_rows.values():
 		row.apply_style()
 	pass
@@ -132,8 +125,7 @@ func refresh_item(session_id: int) -> void:
 ## the rest are already styled when they are built.
 func select_item(session_id: int, previous_session_id: int = 0) -> void:
 	# Covers selection changes that no click triggered (e.g. the fallback after a delete).
-	if editing_session_id != 0 and editing_session_id != session_id:
-		commit_rename()
+	commit_open_rename()
 	refresh_item(session_id)
 	set_row_selected(previous_session_id, false)
 	set_row_selected(session_id, true)
@@ -151,7 +143,6 @@ func sync_pinned_section_visibility() -> void:
 	var has_pinned := pinned_list.get_child_count() > 0
 	var has_normal := normal_list.get_child_count() > 0
 	pinned_separator.visible = has_pinned and has_normal
-	pinned_list.custom_minimum_size = Vector2.ZERO
 	# Empty Chats list has no row hit target — keep a small drop pad when unpinning is possible.
 	normal_list.custom_minimum_size = Vector2(0, 40) if has_pinned and not has_normal else Vector2.ZERO
 	pass
@@ -166,8 +157,6 @@ func append_row(session_id: int, title: String, pinned: bool) -> void:
 	row.build(session_id, title, pinned)
 	row.select_pressed.connect(on_session_row_pressed)
 	row.delete_pressed.connect(on_session_delete_pressed)
-	row.rename_started.connect(on_row_rename_started)
-	row.rename_finished.connect(on_row_rename_finished)
 	drag.list_for_pinned(pinned).add_child(row)
 	# Registered before the refresh: refresh looks rows up by session id.
 	session_rows[session_id] = row
@@ -180,9 +169,6 @@ func remove_row(session_id: int) -> void:
 	var row: SessionRow = session_rows.get(session_id)
 	if row == null:
 		return
-	if editing_session_id == session_id:
-		# The rename field is freed together with the row it lives in.
-		editing_session_id = 0
 	row.queue_free()
 	session_rows.erase(session_id)
 	pass
@@ -193,7 +179,6 @@ func clear() -> void:
 		for child in list.get_children():
 			child.queue_free()
 	session_rows.clear()
-	editing_session_id = 0
 	pass
 
 
@@ -237,55 +222,32 @@ func on_session_delete_pressed(session_id: int) -> void:
 # Inline rename — click the open chat again to edit its title where the title sits
 # ---------------------------------------------------------------------------
 
+## The field lives in the row, so "is anything being renamed" is asked, never mirrored here.
 func begin_rename(session_id: int) -> void:
-	if editing_session_id == session_id:
-		return
-	commit_rename()
 	var row: SessionRow = session_rows.get(session_id)
-	if row == null:
+	if row == null or row.is_renaming():
 		return
+	commit_open_rename()
 	row.open_rename()
 	pass
 
 
-## Stores a pending edit / puts the row back to its normal state. No-op when nothing is open.
-func commit_rename() -> void:
-	var row: SessionRow = session_rows.get(editing_session_id)
-	if row != null:
+## Commits the open rename, if any. Rows are few and [method SessionRow.commit_rename] no-ops on
+## rows that are not editing, so sweeping them beats tracking which one is open.
+func commit_open_rename() -> void:
+	for row: SessionRow in session_rows.values():
 		row.commit_rename()
-	pass
-
-
-func cancel_rename() -> void:
-	var row: SessionRow = session_rows.get(editing_session_id)
-	if row != null:
-		row.cancel_rename()
 	pass
 
 
 ## A click that never moved the focus (row buttons, toolbars, empty areas) still has to close the
 ## field. Window input coordinates do not share the canvas transform of
-## [method Control.get_global_rect] while the viewport is stretched, so the position is read
-## through the row — the same trick as [method AgentChatInput.on_global_input].
+## [method Control.get_global_rect] while the viewport is stretched, so the mouse is read through
+## a control — the same trick as [method AgentChatInput.on_global_input].
 func on_window_input(event: InputEvent) -> void:
-	if editing_session_id == 0 or not event is InputEventMouseButton:
+	if not event is InputEventMouseButton or not (event as InputEventMouseButton).pressed:
 		return
-	if not (event as InputEventMouseButton).pressed:
-		return
-	var row: SessionRow = session_rows.get(editing_session_id)
-	if row != null:
-		row.commit_rename_if_clicked_outside(row.get_global_mouse_position())
-	pass
-
-
-func on_row_rename_started(session_id: int) -> void:
-	editing_session_id = session_id
-	pass
-
-
-## Both commit and cancel land here: the title is re-read from the manager either way.
-func on_row_rename_finished(session_id: int) -> void:
-	if editing_session_id == session_id:
-		editing_session_id = 0
-	refresh_item(session_id)
+	var click_position := sidebar_panel.get_global_mouse_position()
+	for row: SessionRow in session_rows.values():
+		row.commit_rename_if_clicked_outside(click_position)
 	pass

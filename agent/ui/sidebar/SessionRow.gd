@@ -5,13 +5,11 @@ extends PanelContainer
 ##
 ## The row renders what it is told — [AgentSessionSidebar] feeds it titles, selection and run
 ## state — and reports clicks back through signals, so nothing else needs to know how a row is
-## built. Committing a rename is the row's own action (it owns the field) and goes straight to
-## [AgentSessionManager].
+## built. The rename field is row-local state: opening, committing and discarding all happen here,
+## and the host only has to ask [method is_renaming].
 
 signal select_pressed(session_id: int)
 signal delete_pressed(session_id: int)
-signal rename_started(session_id: int)
-signal rename_finished(session_id: int)
 
 ## Close button and the running wave share this slot, so swapping them while a run
 ## starts / stops never changes the row width (and never re-ellipsizes the title).
@@ -20,6 +18,7 @@ const ACTION_SIZE := Vector2(28, 28)
 const DRAG_GHOST_ALPHA := 0.92
 
 var session_id: int = 0
+## Which section the row sits in; plain state, kept in sync by [SessionRowDrag].
 var pinned: bool = false
 var selected: bool = false
 var hovered: bool = false
@@ -160,8 +159,8 @@ func open_rename() -> void:
 	field.select_all_on_focus = true
 	field.drag_and_drop_selection_enabled = false
 	field.mouse_default_cursor_shape = Control.CURSOR_IBEAM
-	field.text_submitted.connect(on_rename_submitted)
-	field.focus_exited.connect(on_rename_focus_exited)
+	field.text_submitted.connect(func(_text: String) -> void: commit_rename())
+	field.focus_exited.connect(commit_rename)
 	field.gui_input.connect(on_rename_gui_input)
 	SessionSidebarTheme.apply_rename_field(field, title_button)
 
@@ -170,14 +169,14 @@ func open_rename() -> void:
 	content.add_child(field)
 	content.move_child(field, title_button.get_index())
 	rename_field = field
-	rename_started.emit(session_id)
 	# Deferred: the click that opened the field is still being handled here.
 	field.call_deferred("grab_focus")
 	pass
 
 
-## Stores the typed title and puts the row back to its normal state. Idempotent, so every
-## commit path can call it.
+## Stores the typed title and puts the row back to its normal state. Wired to Enter, to focus loss
+## (clicking another row, the chat input, …) and to the host's outside-click hook, so it has to be
+## idempotent.
 func commit_rename() -> void:
 	if rename_field == null:
 		return
@@ -185,7 +184,6 @@ func commit_rename() -> void:
 	close_rename_field()
 	# A blank title is rejected by the manager, so the row falls back to its previous name.
 	AgentSessionManager.set_title(session_id, title)
-	rename_finished.emit(session_id)
 	pass
 
 
@@ -193,7 +191,8 @@ func cancel_rename() -> void:
 	if rename_field == null:
 		return
 	close_rename_field()
-	rename_finished.emit(session_id)
+	# Nothing was stored, so the slot goes back to the title the manager still holds.
+	set_title(AgentSessionManager.get_title(session_id))
 	pass
 
 
@@ -209,18 +208,6 @@ func commit_rename_if_clicked_outside(click_position: Vector2) -> void:
 	pass
 
 
-func on_rename_submitted(_text: String) -> void:
-	commit_rename()
-	pass
-
-
-## Clicking anywhere else (another row, the chat input, …) keeps what was typed.
-func on_rename_focus_exited() -> void:
-	commit_rename()
-	pass
-
-
-## Esc discards the edit; swallowing the event also stops the chat input's Esc handling.
 func on_rename_gui_input(event: InputEvent) -> void:
 	if rename_field == null or not event.is_action_pressed("ui_cancel"):
 		return
