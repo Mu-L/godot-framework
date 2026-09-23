@@ -1,4 +1,4 @@
-class_name AgentSetting
+class_name AgentSettingDialog
 extends RefCounted
 
 ## Toolbar UI for editing the persisted API connection and notification settings.
@@ -121,11 +121,11 @@ func build_dialog() -> void:
 ## Notification options, one row each, every row hugging the left edge: the toast toggle, the
 ## sound toggle with its duration, then the clip folder. Duration and folder hide with the sound.
 func add_notify_fields(parent: VBoxContainer) -> void:
-	toast_toggle_button = add_check_button(make_option_row(parent, LABEL_GAP), "Agent end Notification Window", AgentNotifySetting.is_toast_enabled())
+	toast_toggle_button = add_check_button(make_option_row(parent, LABEL_GAP), "Agent end Notification Window", AgentSetting.get_notification_window())
 	toast_toggle_button.toggled.connect(on_toast_toggled)
 
 	var sound_row := make_option_row(parent, TOGGLE_GAP)
-	sound_toggle_button = add_check_button(sound_row, "Notification Sound", AgentNotifySetting.is_sound_enabled())
+	sound_toggle_button = add_check_button(sound_row, "Notification Sound", AgentSetting.get_notification_sound())
 	sound_toggle_button.toggled.connect(on_sound_toggled)
 	sound_seconds_group = add_sound_seconds_group(sound_row)
 
@@ -133,15 +133,15 @@ func add_notify_fields(parent: VBoxContainer) -> void:
 	sound_folder_edit = LineEdit.new()
 	sound_folder_edit.custom_minimum_size = Vector2(0, 34)
 	sound_folder_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sound_folder_edit.placeholder_text = AgentNotifySetting.DEFAULT_SOUND_FOLDER
-	sound_folder_edit.text = AgentNotifySetting.get_sound_folder()
+	sound_folder_edit.placeholder_text = AgentSetting.DEFAULT_SOUND_FOLDER
+	sound_folder_edit.text = AgentSetting.get_notification_sound_folder()
 	sound_folder_edit.tooltip_text = "Select a folder with musics to play notification sound when agent end."
 	sound_folder_edit.gui_input.connect(on_sound_folder_input)
 	sound_folder_edit.text_changed.connect(on_sound_folder_text_changed)
 	sound_folder_row.add_child(sound_folder_edit)
 	bind_auto_save(sound_folder_edit, save_sound_folder)
 
-	update_sound_options_visible(AgentNotifySetting.is_sound_enabled())
+	update_sound_options_visible(AgentSetting.get_notification_sound())
 	pass
 
 
@@ -150,12 +150,12 @@ func add_sound_seconds_group(parent: HBoxContainer) -> HBoxContainer:
 	var group := make_option_row(parent, LABEL_GAP)
 	group.add_child(make_option_label("Sound Duration"))
 	sound_seconds_spin = SpinBox.new()
-	sound_seconds_spin.min_value = AgentNotifySetting.MIN_SOUND_SECONDS
-	sound_seconds_spin.max_value = AgentNotifySetting.MAX_SOUND_SECONDS
+	sound_seconds_spin.min_value = AgentSetting.MIN_SOUND_SECONDS
+	sound_seconds_spin.max_value = AgentSetting.MAX_SOUND_SECONDS
 	sound_seconds_spin.step = 1
 	sound_seconds_spin.suffix = " s"
 	sound_seconds_spin.custom_minimum_size = Vector2(104, 34)
-	sound_seconds_spin.value = AgentNotifySetting.get_sound_seconds()
+	sound_seconds_spin.value = AgentSetting.get_notification_sound_seconds()
 	sound_seconds_spin.value_changed.connect(on_sound_seconds_changed)
 	group.add_child(sound_seconds_spin)
 	return group
@@ -339,14 +339,14 @@ func on_button_pressed() -> void:
 	api_token_edit.secret = true
 	token_visibility_button.text = "Show"
 	toast_toggle_button.set_block_signals(true)
-	toast_toggle_button.button_pressed = AgentNotifySetting.is_toast_enabled()
+	toast_toggle_button.button_pressed = AgentSetting.get_notification_window()
 	toast_toggle_button.set_block_signals(false)
 	sound_toggle_button.set_block_signals(true)
-	sound_toggle_button.button_pressed = AgentNotifySetting.is_sound_enabled()
+	sound_toggle_button.button_pressed = AgentSetting.get_notification_sound()
 	sound_toggle_button.set_block_signals(false)
 	update_sound_options_visible(sound_toggle_button.button_pressed)
-	sound_seconds_spin.set_value_no_signal(AgentNotifySetting.get_sound_seconds())
-	sound_folder_edit.text = AgentNotifySetting.get_sound_folder()
+	sound_seconds_spin.set_value_no_signal(AgentSetting.get_notification_sound_seconds())
+	sound_folder_edit.text = AgentSetting.get_notification_sound_folder()
 	folder_field_typing = false
 	var dialog_size := Vector2i(DIALOG_WIDTH, DIALOG_HEIGHT)
 	dialog.popup_centered(dialog_size)
@@ -369,18 +369,18 @@ func on_provider_selected(selected_index: int) -> void:
 
 
 func on_toast_toggled(enabled: bool) -> void:
-	AgentNotifySetting.set_toast_enabled(enabled)
+	AgentSetting.set_notification_window(enabled)
 	pass
 
 
 func on_sound_toggled(enabled: bool) -> void:
-	AgentNotifySetting.set_sound_enabled(enabled)
+	AgentSetting.set_notification_sound(enabled)
 	update_sound_options_visible(enabled)
 	pass
 
 
 func on_sound_seconds_changed(seconds: float) -> void:
-	AgentNotifySetting.set_sound_seconds(roundi(seconds))
+	AgentSetting.set_notification_sound_seconds(roundi(seconds))
 	pass
 
 
@@ -404,7 +404,7 @@ func on_sound_folder_text_changed(_text: String) -> void:
 func open_sound_folder_dialog() -> void:
 	if sound_folder_dialog.visible:
 		return
-	var folder := AgentNotifySetting.get_sound_folder()
+	var folder := AgentSetting.get_notification_sound_folder()
 	if not folder.begins_with("res://") and not folder.begins_with("user://") and DirAccess.dir_exists_absolute(folder):
 		sound_folder_dialog.current_dir = folder
 	sound_folder_dialog.popup_centered(FOLDER_DIALOG_SIZE)
@@ -424,7 +424,7 @@ func save_api_settings() -> void:
 
 
 func save_sound_folder() -> void:
-	AgentNotifySetting.set_sound_folder(sound_folder_edit.text)
+	AgentSetting.set_notification_sound_folder(sound_folder_edit.text)
 	pass
 
 

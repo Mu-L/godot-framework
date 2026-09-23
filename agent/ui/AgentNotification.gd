@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Desktop notifications for agent runs — a toast pops up bottom-right of the screen when a run
 ## ends while the app window is in the background, plus an optional sound clip. Both are toggled
-## in [AgentSetting] and persisted through [AgentNotifySetting].
+## in [AgentSettingDialog] and persisted through [AgentNotifySetting].
 
 
 ## Fade of the notification sound when it starts and when its configured duration elapses.
@@ -28,10 +28,10 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 	# The newest chat entry is the outcome: AgentSessionManager already appended the error
 	# bubble for a failed run, otherwise it is the agent reply.
 	var entry: ChatEntry = session.chat_entries[session.chat_entries.size() - 1]
-	if AgentNotifySetting.is_toast_enabled():
+	if AgentSetting.get_notification_window():
 		var accent := AgentColors.error if entry.kind == ChatEntry.KIND_ERROR else AgentColors.success
 		DesktopToast.show_toast(entry.title, entry.body, accent)
-	if AgentNotifySetting.is_sound_enabled():
+	if AgentSetting.get_notification_sound():
 		play_sound()
 	pass
 
@@ -40,14 +40,14 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 ## A playlist that is still running keeps going and a paused one is resumed, so a second run does
 ## not restart the same beep — only a different folder starts a fresh playlist.
 func play_sound() -> void:
-	var clips := list_clips(AgentNotifySetting.get_sound_folder())
+	var clips := list_clips(AgentSetting.get_notification_sound_folder())
 	if clips.is_empty():
 		return
 	if has_playlist(clips):
 		Audio.resume_musics(START_FADE_SECONDS)
 	else:
 		Audio.play_musics(clips, 1.0, START_FADE_SECONDS)
-	SchedulerBus.schedule(stop_sound, AgentNotifySetting.get_sound_seconds() * 1000)
+	SchedulerBus.schedule(stop_sound, AgentSetting.get_notification_sound_seconds() * 1000)
 	pass
 
 
