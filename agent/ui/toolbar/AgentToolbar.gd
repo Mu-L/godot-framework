@@ -1,7 +1,7 @@
 class_name AgentToolbar
 extends RefCounted
 
-## Top toolbar — panel chrome, title, and workspace path button.
+## Top toolbar — panel chrome, title, and workspace path button theme.
 
 var toolbar_panel: PanelContainer
 var title_label: Label
@@ -16,9 +16,6 @@ func setup(
 	toolbar_panel = p_toolbar_panel
 	title_label = p_title_label
 	project_button = p_project_button
-	project_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	project_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	project_button.tooltip_text = "Click to choose workspace folder"
 	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
 	pass

@@ -42,6 +42,11 @@ class Events:
 	signal session_resume(session_id: int)
 	signal session_stop(session_id: int)
 
+	# Workspace
+	## Workspace root switched (see [method AgentWorkspace.set_root]) — sessions and file
+	## paths now resolve under the new root, so listeners reload their state.
+	signal workspace_changed(path: String)
+
 	# UI configuration
 	signal chat_entry_add(session_id: int, entry: ChatEntry)
 	signal chat_entry_update(session_id: int, entry: ChatEntry, stream_kind: String)

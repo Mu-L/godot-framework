@@ -32,6 +32,8 @@ extends Control
 @onready var workspace_dialog: FileDialog = $WorkspaceDialog
 
 var toolbar: AgentToolbar = AgentToolbar.new()
+var workspace_button: WorkspaceButton = WorkspaceButton.new()
+var log_button_ctrl: LogButton = LogButton.new()
 var chat_area: ChatArea = ChatArea.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
 var theme_toggle: ThemeToggle = ThemeToggle.new()
@@ -65,50 +67,9 @@ func _ready() -> void:
 	theme_color_select_ctrl.setup(theme_color_select)
 	theme_toggle.setup(theme_toggle_button)
 	agent_setting.setup(agent_setting_button, self)
-	style_log_button()
-	gdf.events.theme_changed.connect(style_log_button)
-	gdf.events.theme_color_changed.connect(style_log_button)
-	log_button.pressed.connect(on_log_pressed)
+	workspace_button.setup(project_button, workspace_dialog)
+	log_button_ctrl.setup(log_button)
 
 	# session
-	AgentSessionManager.load_from_disk()
-	session_sidebar.rebuild()
-	refresh_workspace_button()
-	project_button.pressed.connect(on_project_button_pressed)
-	workspace_dialog.dir_selected.connect(on_workspace_selected)
-	pass
-
-
-func refresh_workspace_button() -> void:
-	var workspace_root := AgentWorkspace.get_root()
-	project_button.text = workspace_root
-	if DirAccess.dir_exists_absolute(workspace_root):
-		workspace_dialog.current_dir = workspace_root
-	pass
-
-
-func on_project_button_pressed() -> void:
-	var workspace_root := AgentWorkspace.get_root()
-	if DirAccess.dir_exists_absolute(workspace_root):
-		workspace_dialog.current_dir = workspace_root
-	workspace_dialog.popup_centered()
-	pass
-
-
-func on_workspace_selected(path: String) -> void:
-	if not AgentWorkspace.set_root(path):
-		return
-	AgentSessionManager.load_from_disk()
-	session_sidebar.rebuild()
-	refresh_workspace_button()
-	pass
-
-
-func style_log_button() -> void:
-	AgentToolbarButton.style(log_button, "View system log")
-	pass
-
-
-func on_log_pressed() -> void:
-	LogWindow.show_log_window(128, 70, 80)
+	session_sidebar.reload_sessions()
 	pass

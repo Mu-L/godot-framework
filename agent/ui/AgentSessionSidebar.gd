@@ -51,6 +51,7 @@ func setup(
 	AgentEvents.events.session_title_changed.connect(on_session_refresh)
 	AgentEvents.events.agent_start.connect(on_session_refresh)
 	AgentEvents.events.session_stop.connect(on_session_refresh)
+	AgentEvents.events.workspace_changed.connect(on_workspace_changed)
 	pinned_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	normal_header.mouse_filter = Control.MOUSE_FILTER_PASS
 	bind_list_drop(pinned_list, true)
@@ -63,6 +64,11 @@ func setup(
 
 func on_session_refresh(session_id: int, _arg: Variant = null) -> void:
 	refresh_item(session_id)
+	pass
+
+
+func on_workspace_changed(_path: String) -> void:
+	reload_sessions()
 	pass
 
 
@@ -137,6 +143,13 @@ func build_sidebar_style() -> StyleBoxFlat:
 # ---------------------------------------------------------------------------
 # List rebuild & refresh
 # ---------------------------------------------------------------------------
+
+## Sessions are stored under the workspace root, so switching workspace swaps the whole set.
+func reload_sessions() -> void:
+	AgentSessionManager.load_from_disk()
+	rebuild()
+	pass
+
 
 func rebuild() -> void:
 	clear()

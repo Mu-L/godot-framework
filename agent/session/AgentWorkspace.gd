@@ -13,6 +13,9 @@ static func get_root() -> String:
 	return FileUtils.get_project_root_path()
 
 
+## Applies [param path] as workspace root; announces the switch on
+## [signal AgentEvents.events.workspace_changed] so listeners can reload. Returns false for
+## a missing / empty folder.
 static func set_root(path: String) -> bool:
 	var normalized := path.strip_edges()
 	if normalized.is_empty() or not DirAccess.dir_exists_absolute(normalized):
@@ -22,6 +25,7 @@ static func set_root(path: String) -> bool:
 	Setting.set_string(SETTING_KEY, normalized)
 	Setting.save()
 	GlobTool._static_init()
+	AgentEvents.events.workspace_changed.emit(normalized)
 	return true
 
 
