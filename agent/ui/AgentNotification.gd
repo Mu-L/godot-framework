@@ -9,9 +9,6 @@ extends RefCounted
 ## Fade of the notification sound when it starts and when its configured duration elapses.
 const START_FADE_SECONDS := 0.3
 const STOP_FADE_SECONDS := 0.5
-## The playlist is polled once per second instead of one delayed stop per run — see
-## [method check_sound_notifications].
-const CHECK_TIMER_NAME := "agent_notification_sound"
 
 ## Seconds of playback the queued runs still owe the playlist, summed over every run that asked
 ## for a sound. See [method play_sound_notifications].
@@ -21,7 +18,9 @@ var remaining_seconds := 0.0
 func setup() -> void:
 	# Deferred: AgentSessionManager appends the outcome chat entry in its own agent_end handler.
 	AgentEvents.events.agent_end.connect(on_agent_end, CONNECT_DEFERRED)
-	SchedulerBus.schedule_at_fixed_rate(check_sound_notifications, TimeUtils.MILLIS_PER_SECOND, CHECK_TIMER_NAME)
+	# The playlist is polled once per second instead of one delayed stop per run — see
+	# [method check_sound_notifications].
+	SchedulerBus.schedule_at_fixed_rate(check_sound_notifications, TimeUtils.MILLIS_PER_SECOND, "agent_notification_sound")
 	pass
 
 
