@@ -72,8 +72,11 @@ static func open_file(path: String) -> int:
 	return OS.shell_open(folder_path)
 
 # Append content to the file.
-static func write_string_to_file(filePath: String, content: String) -> bool:
-	var file := FileAccess.open(filePath, FileAccess.WRITE)
+static func write_string_to_file(path: String, content: String) -> bool:
+	var dir := path.get_base_dir()
+	if not DirAccess.dir_exists_absolute(dir):
+		DirAccess.make_dir_recursive_absolute(dir)
+	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(content)

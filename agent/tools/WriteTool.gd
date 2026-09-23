@@ -25,9 +25,6 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 		return AgentToolResult.error("error: path is required", AgentToolResult.ui_file_details_message("", "path is required"))
 	var content := str(args.get(ARG_CONTENT, ""))
 	var previous_content := FileUtils.read_file_to_string(path)
-	var dir := path.get_base_dir()
-	if not DirAccess.dir_exists_absolute(dir):
-		DirAccess.make_dir_recursive_absolute(dir)
 	if not FileUtils.write_string_to_file(path, content):
 		return AgentToolResult.error(StringUtils.format("error: failed to write file: {}", path))
 	var message := StringUtils.format("wrote {} bytes to {}", content.length(), path)
