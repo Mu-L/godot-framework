@@ -33,7 +33,6 @@ var body_label: Label
 var title_text := ""
 var body_text := ""
 var accent: Color = Colors.info
-var closing := false
 
 
 func _init() -> void:
@@ -125,12 +124,13 @@ static func covered_usable_screen(window_id: int) -> bool:
 	return window_size.x >= usable.x and window_size.y >= usable.y
 
 
-## Stack live toasts from the screen corner upward.
+## Stack live toasts from the screen corner upward. Dismissed toasts leave [member toasts] first, so
+## only a node freed behind our back can still show up here.
 static func relayout() -> void:
 	var lift := 0
 	for i in range(toasts.size() - 1, -1, -1):
 		var toast := toasts[i]
-		if not is_instance_valid(toast) or toast.closing:
+		if not is_instance_valid(toast):
 			continue
 		var corner := corner_position(toast.size)
 		toast.position = Vector2i(corner.x, corner.y - lift)
@@ -232,9 +232,8 @@ func make_card_style(pad: float, unit: float) -> StyleBoxFlat:
 
 
 func close_toast() -> void:
-	if closing:
-		return
-	closing = true
+	# Safe to run twice: erasing an absent element and queueing an already queued node are both no-ops,
+	# so the card click and the auto-dismiss timer can race without a guard flag.
 	toasts.erase(self)
 	queue_free()
 	DesktopToast.relayout()
