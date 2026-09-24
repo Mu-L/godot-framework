@@ -70,11 +70,12 @@ static func create_translation(locale: String, messages: Dictionary[String, Stri
 
 
 static func parse_json_file(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		Log.error("translation json does not exist:[{}]", path)
+	var content := FileUtils.read_file_to_string(path)
+	if content.is_empty():
+		Log.error("translation json is missing or empty:[{}]", path)
 		return {}
 	var json := JSON.new()
-	var error := json.parse(FileAccess.get_file_as_string(path))
+	var error := json.parse(content)
 	if error != OK:
 		Log.error("translation json parse failed path:[{}] line:[{}] error:[{}]", path, json.get_error_line(), json.get_error_message())
 		return {}
