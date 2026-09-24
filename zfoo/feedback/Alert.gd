@@ -40,7 +40,7 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_theme_stylebox_override("panel", make_card_style(stripe_color))
 	card.label = Label.new()
-	card.label.text = i18n_text
+	card.label.text = TranslationServer.translate(i18n_text)
 	card.label.vertical_alignment = VerticalAlignment.VERTICAL_ALIGNMENT_CENTER
 	card.label.add_theme_font_override("font", make_font())
 	card.label.add_theme_font_size_override("font_size", TextStyle.body_large_size)
@@ -152,9 +152,10 @@ static func relayout() -> void:
 ####################################################################################################
 # Alert
 
-## Show a snackbar for [constant default_wait_time] ms. Example: `Alert.alert("Saved", Colors.success)`
-static func alert(txt: String, color: Color) -> void:
-	var card: Alert = create_alert(txt, color)
+## Show a snackbar for [constant default_wait_time] ms. [param i18n_text] may be a translation key;
+## text without a registered translation is displayed unchanged.
+static func alert(i18n_text: String, color: Color) -> void:
+	var card: Alert = create_alert(i18n_text, color)
 	# Hidden before the first frame: without a slot yet, an opaque card would flash at the tree origin.
 	card.modulate.a = 0.0
 	gdf.gdf_layer.add_child(card)

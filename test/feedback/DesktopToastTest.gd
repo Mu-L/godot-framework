@@ -58,6 +58,20 @@ func DesktopToast_empty_body_test() -> void:
 	pass
 
 
+## Toast title and body are translated before the native window is mounted.
+func DesktopToast_i18n_text_test() -> void:
+	var translation := feedback_test_translation("feedback.toast.title", "Translated toast")
+	translation.add_message("feedback.toast.body", "Translated body")
+	var before := DesktopToast.toasts.size()
+	DesktopToast.show_toast("feedback.toast.title", "feedback.toast.body", Colors.success)
+	var toast := DesktopToast.toasts[before]
+	assert(toast.title_text == "Translated toast")
+	assert(toast.body_text == "Translated body")
+	toast.close_toast()
+	TranslationServer.remove_translation(translation)
+	pass
+
+
 ## [method DesktopToast.relayout] stacks live toasts upward from the screen corner, newest last.
 func DesktopToast_relayout_test() -> void:
 	DesktopToast.ui_scale = 1.0
@@ -115,3 +129,11 @@ func DesktopToast_no_popup_window_test() -> void:
 	assert(DisplayServer.window_get_active_popup() != toast.get_window_id())
 	toast.close_toast()
 	pass
+
+
+func feedback_test_translation(key: String, value: String) -> Translation:
+	var translation := Translation.new()
+	translation.locale = TranslationServer.get_locale()
+	translation.add_message(key, value)
+	TranslationServer.add_translation(translation)
+	return translation

@@ -37,6 +37,21 @@ func PopupWindow_clamp_percent_test() -> void:
 	pass
 
 
+## Popup title and body are translated at the display boundary.
+func PopupWindow_i18n_text_test() -> void:
+	close_open_windows()
+	var translation := feedback_test_translation("feedback.popup.title", "Translated popup")
+	translation.add_message("feedback.popup.body", "Translated popup body")
+	PopupWindow.show_window("feedback.popup.title", "feedback.popup.body", 40, 40)
+	var window := open_windows()[0]
+	assert(window.title == "Translated popup")
+	assert(window.text_edit.text == "Translated popup body")
+	window.on_close_requested()
+	await gdf.gdf_node.get_tree().process_frame
+	TranslationServer.remove_translation(translation)
+	pass
+
+
 ## [method PopupWindow.set_body] replaces the text and scrolls the read-only view to the last line.
 func PopupWindow_set_body_test() -> void:
 	var window := PopupWindow.new()
@@ -185,3 +200,11 @@ func close_window(window: PopupWindow) -> void:
 		window.on_close_requested()
 	await gdf.gdf_node.get_tree().process_frame
 	pass
+
+
+func feedback_test_translation(key: String, value: String) -> Translation:
+	var translation := Translation.new()
+	translation.locale = TranslationServer.get_locale()
+	translation.add_message(key, value)
+	TranslationServer.add_translation(translation)
+	return translation

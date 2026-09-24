@@ -23,6 +23,16 @@ func Alert_create_card_test() -> void:
 	pass
 
 
+## Display text is resolved through [TranslationServer]; unknown text remains unchanged.
+func Alert_i18n_text_test() -> void:
+	var translation := feedback_test_translation("feedback.alert", "Translated alert")
+	var card := Alert.create_alert("feedback.alert", Colors.success)
+	assert(card.label.text == "Translated alert")
+	card.free()
+	TranslationServer.remove_translation(translation)
+	pass
+
+
 ## [method Alert.resize_to_text] hugs short text and caps long text at [constant Alert.text_max_width].
 func Alert_single_line_test() -> void:
 	var card := Alert.create_alert("feedback", Colors.info)
@@ -143,3 +153,11 @@ func live_alerts() -> Array[Alert]:
 func top_alert() -> Alert:
 	var cards := live_alerts()
 	return null if cards.is_empty() else cards[cards.size() - 1]
+
+
+func feedback_test_translation(key: String, value: String) -> Translation:
+	var translation := Translation.new()
+	translation.locale = TranslationServer.get_locale()
+	translation.add_message(key, value)
+	TranslationServer.add_translation(translation)
+	return translation

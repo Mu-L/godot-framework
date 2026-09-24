@@ -48,14 +48,15 @@ func _init() -> void:
 	pass
 
 
-## Pop a toast in the bottom-right corner of the screen.
-static func show_toast(title: String, body: String, color: Color) -> void:
+## Pop a toast in the bottom-right corner of the screen. [param i18n_title] and [param i18n_body]
+## may be translation keys; text without a registered translation is displayed unchanged.
+static func show_toast(i18n_title: String, i18n_body: String, color: Color) -> void:
 	if gdf.gdf_node == null or not gdf.gdf_node.is_inside_tree():
 		return
 	ui_scale = compute_ui_scale()
 	var toast: DesktopToast = DesktopToast.new()
-	toast.title_text = title
-	toast.body_text = body.strip_edges()
+	toast.title_text = str(TranslationServer.translate(i18n_title))
+	toast.body_text = str(TranslationServer.translate(i18n_body)).strip_edges()
 	toast.accent = color
 	toasts.append(toast)
 	gdf.gdf_node.add_child(toast)
