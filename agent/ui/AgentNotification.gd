@@ -50,6 +50,7 @@ func play_sound_notifications() -> void:
 	var audios := ResourceHelper.get_all_audio_files(AgentSetting.get_notification_sound_folder())
 	if audios.is_empty():
 		return
+	audios.shuffle()
 	if has_playlist(audios):
 		Audio.resume_musics(START_FADE_SECONDS)
 	else:
@@ -77,7 +78,6 @@ func has_playlist(clips: Array[String]) -> bool:
 	if not Audio.is_playing_music() and not Audio.is_music_paused():
 		return false
 	var loaded := Audio.musics.duplicate()
-	loaded.shuffle()
 	return loaded == clips
 
 
