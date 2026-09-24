@@ -6,8 +6,8 @@ const PALETTE_LABEL_MAX: int = 30
 const LOCALE_ZH := "zh_CN"
 const LOCALE_EN := "en_US"
 const LOCALE_PATHS: Array[String] = [
-	"res://gui/locale/en-US.json",
-	"res://gui/locale/zh-CN.json",
+	"res://agent/config/en-US.json",
+	"res://agent/config/zh-CN.json",
 ]
 
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
@@ -32,7 +32,7 @@ var running_pipeline: bool = false
 
 
 func _ready() -> void:
-	if not TranslationJson.register_json_files(LOCALE_PATHS):
+	if not TranslationHelper.register_json_files(LOCALE_PATHS):
 		return
 	TranslationServer.set_locale(LOCALE_EN)
 	configure_sidebar_layout()

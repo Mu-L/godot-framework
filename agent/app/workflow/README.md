@@ -85,7 +85,7 @@ Port types: `audio`, `image`, `video`, `text`, `folder`. Connections require mat
 |------|------|
 | `gui/locale/zh-CN.json` | Simplified Chinese (default) |
 | `gui/locale/en-US.json` | English |
-| `zfoo/translation/TranslationJson.gd` | Register JSON strings with Godot `TranslationServer` |
+| `zfoo/translation/TranslationHelper.gd` | Register JSON strings with Godot `TranslationServer` |
 
 String keys:
 

@@ -2,13 +2,19 @@
 
 const LOCALE_EN := "en_US"
 const LOCALE_PATHS: Array[String] = [
-	"res://gui/locale/en-US.json",
-	"res://gui/locale/zh-CN.json",
+	"res://agent/config/en-US.json",
+	"res://agent/config/zh-CN.json",
 ]
 
 
+func ensure_translations() -> void:
+	if not TranslationServer.has_translation_for_locale(LOCALE_EN, true):
+		assert(TranslationHelper.register_json_files(LOCALE_PATHS))
+	pass
+
+
 func graph_nodes_locale_test() -> void:
-	assert(TranslationJson.register_json_files(LOCALE_PATHS))
+	ensure_translations()
 	TranslationServer.set_locale(LOCALE_EN)
 	assert(GraphNodesConfig.get_def("input-audio").display_label() == TranslationServer.translate("node.input-audio"))
 	assert(GraphNodesConfig.category_label(GraphNodesConfig.SOURCE_CATEGORY) == TranslationServer.translate("category.source"))
@@ -16,7 +22,7 @@ func graph_nodes_locale_test() -> void:
 
 
 func translation_server_locale_test() -> void:
-	assert(TranslationJson.register_json_files(LOCALE_PATHS))
+	ensure_translations()
 	TranslationServer.set_locale(LOCALE_EN)
 	assert(TranslationServer.translate("workflow.window_title") == TranslationServer.translate("workflow window_title"))
 	pass

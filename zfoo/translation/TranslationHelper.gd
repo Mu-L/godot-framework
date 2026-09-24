@@ -1,4 +1,4 @@
-class_name TranslationJson
+class_name TranslationHelper
 extends Object
 
 class LocaleData:
@@ -12,13 +12,27 @@ class LocaleData:
 		space_messages = locale_space_messages
 		pass
 
-
-static var translations: Array[Translation] = []
-
-
 ## Loads nested JSON locale files, validates that every locale has the same leaf keys,
 ## and registers both dot-joined and space-joined message IDs with TranslationServer.
+##
+## Supported JSON format (all leaf values must be strings):
+## [codeblock]
+## {
+##   "locale": "en-US",
+##   "workflow": {
+##     "window_title": "Skills Workflow — {}",
+##     "toolbar": {
+##       "save": "Save"
+##     }
+##   }
+## }
+## [/codeblock]
+## This registers both `workflow.window_title` and `workflow window_title`,
+## as well as `workflow.toolbar.save` and `workflow toolbar save`.
 static func register_json_files(paths: Array[String]) -> bool:
+	var registered := TranslationServer.get_translations()
+	if not registered.is_empty():
+		return false
 	if paths.is_empty():
 		Log.error("translation json paths are empty")
 		return false
@@ -28,7 +42,7 @@ static func register_json_files(paths: Array[String]) -> bool:
 		var document := parse_json_file(path)
 		if document.is_empty():
 			return false
-		var locale := str(document.get("locale", ""))
+		var locale := TranslationServer.standardize_locale(str(document.get("locale", "")))
 		if locale.is_empty():
 			Log.error("translation locale is missing path:[{}]", path)
 			return false
@@ -41,16 +55,9 @@ static func register_json_files(paths: Array[String]) -> bool:
 	if not validate_keys(locales):
 		return false
 
-	var new_translations: Array[Translation] = []
 	for locale_data in locales:
-		new_translations.append(create_translation(locale_data.locale, locale_data.dot_messages))
-		new_translations.append(create_translation(locale_data.locale, locale_data.space_messages))
-
-	for translation in translations:
-		TranslationServer.remove_translation(translation)
-	translations = new_translations
-	for translation in translations:
-		TranslationServer.add_translation(translation)
+		TranslationServer.add_translation(create_translation(locale_data.locale, locale_data.dot_messages))
+		TranslationServer.add_translation(create_translation(locale_data.locale, locale_data.space_messages))
 	return true
 
 
