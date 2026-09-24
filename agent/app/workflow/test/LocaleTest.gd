@@ -1,7 +1,7 @@
 ## Locale label tests for GraphNodesConfig node definitions.
 
-const LOCALE_EN := "en_US"
-const LOCALE_PATH_EN := "res://agent/config/en-US.json"
+const LOCALE_EN := "en"
+const LOCALE_PATH_EN := "res://agent/config/locale/en.json"
 
 
 func ensure_translations() -> void:

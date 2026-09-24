@@ -3,10 +3,6 @@ extends Control
 const SIDEBAR_WIDTH: int = 300
 const PALETTE_TREE_WIDTH: int = 276
 const PALETTE_LABEL_MAX: int = 30
-const LOCALE_ZH := "zh_CN"
-const LOCALE_EN := "en_US"
-const LOCALE_PATH_EN := "res://agent/config/en-US.json"
-const LOCALE_PATH_ZH := "res://agent/config/zh-CN.json"
 
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
@@ -30,7 +26,7 @@ var running_pipeline: bool = false
 
 
 func _ready() -> void:
-	I18n.set_locale(LOCALE_PATH_EN)
+	I18nHelper.init_i18n()
 	configure_sidebar_layout()
 	apply_ui_locale()
 	set_workflow_name(WorkflowManager.workflow_name)
@@ -113,7 +109,7 @@ func apply_ui_locale() -> void:
 
 
 func refresh_locale_button() -> void:
-	if TranslationServer.get_locale() == LOCALE_ZH:
+	if I18n.get_locale() == "zh":
 		locale_button.text = tr("workflow.locale_switch.to_en")
 	else:
 		locale_button.text = tr("workflow.locale_switch.to_zh")
@@ -121,8 +117,8 @@ func refresh_locale_button() -> void:
 
 
 func apply_locale_change() -> void:
-	var path := LOCALE_PATH_EN if TranslationServer.get_locale() == LOCALE_ZH else LOCALE_PATH_ZH
-	I18n.set_locale(path)
+	var locale := "en" if I18n.get_locale() == "zh" else "zh"
+	I18n.set_locale(I18nHelper.LOCALE_PATHS[locale])
 	apply_ui_locale()
 	build_palette_tree()
 	set_workflow_name(WorkflowManager.workflow_name)

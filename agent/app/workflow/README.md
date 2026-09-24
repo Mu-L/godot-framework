@@ -44,8 +44,9 @@ gui/
 │   ├── SkillCommandBuilder.gd
 │   └── ...
 ├── locale/
-│   ├── zh-CN.json           # Default UI strings
-│   └── en-US.json
+│   └── locale/
+│       ├── zh.json          # Default UI strings
+│       └── en.json
 └── test/
 ```
 
@@ -83,8 +84,8 @@ Port types: `audio`, `image`, `video`, `text`, `folder`. Connections require mat
 
 | File | Role |
 |------|------|
-| `gui/locale/zh-CN.json` | Simplified Chinese (default) |
-| `gui/locale/en-US.json` | English |
+| `config/locale/zh.json` | Simplified Chinese (default) |
+| `config/locale/en.json` | English |
 | `zfoo/translation/I18n.gd` | Register JSON strings with Godot `TranslationServer` |
 
 String keys:
@@ -97,7 +98,7 @@ String keys:
 Switch language (refreshes toolbar, sidebar, and canvas nodes):
 
 - Language button left of **Log** (`EN` on Chinese UI, `中文` on English UI)
-- Or call `TranslationServer.set_locale("en-US")` and rerun the UI refresh logic
+- Or call `TranslationServer.set_locale("en")` and rerun the UI refresh logic
 
 ## Pipeline notes
 
