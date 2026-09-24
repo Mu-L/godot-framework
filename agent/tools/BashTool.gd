@@ -19,10 +19,12 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 
 
 func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
-	var argv := build_argv_from_args(args)
-	if argv.is_empty():
+	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
+	if command.is_empty():
 		return AgentToolResult.error("error: command is required")
-	var exec_result := await OSUtils.async_execute(argv, false, TimeUtils.MILLIS_PER_SECOND * 30)
+	var timeout := TimeUtils.MILLIS_PER_MINUTE * 3 if command.contains("timeout") else TimeUtils.MILLIS_PER_SECOND * 30
+	var argv := build_argv_from_command(command)
+	var exec_result := await OSUtils.async_execute(argv, false, timeout)
 	var exit_code := StringUtils.format("exit_code: {}", exec_result.exit_code)
 	var exec_output := exec_result.output.build_string()
 	
@@ -35,10 +37,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	return AgentToolResult.new(text, is_error,  AgentToolResult.ui_details(exit_code, exec_output))
 # AgentTool-Interface-Implement-End
 
-func build_argv_from_args(args: Dictionary[String, Variant]) -> PackedStringArray:
-	var command := str(args.get(ARG_COMMAND, "")).strip_edges()
-	if command.is_empty():
-		return PackedStringArray()
+func build_argv_from_command(command: String) -> PackedStringArray:
 	var bash := "/bin/bash"
 	if OSUtils.is_windows():
 		bash = GitUtils.find_windows_git_bash()
