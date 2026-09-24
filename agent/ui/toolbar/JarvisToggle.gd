@@ -8,8 +8,10 @@ const CORNER_RADIUS: int = 14
 const ICON_DRAW_SIZE: int = 24
 const ICON_DISPLAY_SIZE: int = 24
 const RING_COUNT: int = 3
-## Integer pixel radii on ICON_DRAW_SIZE canvas (Bresenham outline).
-const RING_RADII: Array[int] = [2, 7, 11]
+## Radii on the ICON_DRAW_SIZE canvas. An even-sized canvas has its centre on a half pixel
+## ((size - 1) / 2), so the radii stay half integers: an integer radius would push the rings
+## one texel to the bottom right of the canvas and off centre inside the round button.
+const RING_RADII: Array[float] = [2.5, 7.5, 11.5]
 
 var button: Button
 
@@ -89,46 +91,23 @@ func update_icon(hovered: bool) -> void:
 func make_concentric_rings_icon(size: int, color: Color) -> ImageTexture:
 	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var center: Vector2i = Vector2i(size / 2, size / 2)
+	var center: float = (size - 1) / 2.0
 	for ring_index in range(RING_COUNT):
 		draw_circle_outline(img, center, RING_RADII[ring_index], color)
 	return ImageTexture.create_from_image(img)
 
 
-func draw_circle_outline(img: Image, center: Vector2i, radius: int, col: Color) -> void:
-	if radius <= 0:
+## 1 px ring: keep every texel whose centre falls inside the radius band. Drawing from the
+## texel centre keeps the outline symmetric for both even and odd canvas sizes.
+func draw_circle_outline(img: Image, center: float, radius: float, col: Color) -> void:
+	if radius <= 0.0:
 		return
-	var x: int = 0
-	var y: int = radius
-	var decision: int = 3 - 2 * radius
-	plot_circle_octants(img, center, x, y, col)
-	while x <= y:
-		if decision < 0:
-			decision += 4 * x + 6
-		else:
-			decision += 4 * (x - y) + 10
-			y -= 1
-		x += 1
-		plot_circle_octants(img, center, x, y, col)
-	pass
-
-
-func plot_circle_octants(img: Image, center: Vector2i, x: int, y: int, col: Color) -> void:
-	set_icon_pixel(img, center.x + x, center.y + y, col)
-	set_icon_pixel(img, center.x - x, center.y + y, col)
-	set_icon_pixel(img, center.x + x, center.y - y, col)
-	set_icon_pixel(img, center.x - x, center.y - y, col)
-	set_icon_pixel(img, center.x + y, center.y + x, col)
-	set_icon_pixel(img, center.x - y, center.y + x, col)
-	set_icon_pixel(img, center.x + y, center.y - x, col)
-	set_icon_pixel(img, center.x - y, center.y - x, col)
-	pass
-
-
-func set_icon_pixel(img: Image, x: int, y: int, col: Color) -> void:
-	if x < 0 or y < 0 or x >= img.get_width() or y >= img.get_height():
-		return
-	img.set_pixel(x, y, col)
+	for y in range(img.get_height()):
+		for x in range(img.get_width()):
+			var dx: float = x - center
+			var dy: float = y - center
+			if absf(sqrt(dx * dx + dy * dy) - radius) <= 0.5:
+				img.set_pixel(x, y, col)
 	pass
 
 
