@@ -78,36 +78,12 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 
 	var accent: Color = AgentColors.theme_accent_solid()
-	var is_dark: bool = ThemeColor.is_dark_theme()
-	button.add_theme_color_override("font_color", accent)
-	button.add_theme_color_override("font_hover_color", accent.lightened(0.12))
-	button.add_theme_color_override("font_pressed_color", accent.darkened(0.10))
+	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.12), ButtonStyle.press_color(accent, 0.10))
 
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = bubble_bg.lightened(0.08) if is_dark else bubble_bg.darkened(0.04)
-	normal.border_color = Color(accent.r, accent.g, accent.b, 0.45)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = Margin.ma_2
-	normal.content_margin_right = Margin.ma_2
-	normal.content_margin_top = Margin.ma_0
-	normal.content_margin_bottom = Margin.ma_0
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.theme_selection_bg()
-	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
-
-	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
-	pressed.bg_color = AgentColors.theme_selection_bg()
-	if is_dark:
-		pressed.bg_color = pressed.bg_color.lightened(0.06)
-	else:
-		pressed.bg_color = pressed.bg_color.darkened(0.04)
+	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(accent, 0.45), 1)
+	var hover := BoxStyle.with_bg(normal, AgentColors.theme_selection_bg())
+	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(AgentColors.theme_selection_bg(), 0.06))
 	pressed.border_color = accent
-
-	button.add_theme_stylebox_override("normal", normal)
-	button.add_theme_stylebox_override("hover", hover)
-	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_stylebox_override("focus", hover.duplicate())
-	button.add_theme_stylebox_override("disabled", normal.duplicate())
+	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

@@ -19,14 +19,8 @@ static func create_alert_label(i18n_text: String, color: Color) -> Label:
 	alertLabel.text = i18n_text
 	alertLabel.add_theme_font_size_override("font_size", default_font_size)
 	
-	var styleBox: StyleBoxFlat = StyleBoxFlat.new()
-	styleBox.bg_color = color
-	styleBox.set_corner_radius_all(default_corner_radius)
 	# Padding keeps text off the rounded edges.
-	styleBox.content_margin_top = Margin.ma_2
-	styleBox.content_margin_bottom = Margin.ma_2
-	styleBox.content_margin_left = Margin.ma_4
-	styleBox.content_margin_right = Margin.ma_4
+	var styleBox := BoxStyle.make(color, default_corner_radius, Margin.ma_4, Margin.ma_2)
 	alertLabel.add_theme_stylebox_override("normal", styleBox)
 	alertLabel.z_index = 1024
 	

@@ -654,11 +654,7 @@ func style_wrap() -> void:
 
 
 func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
-	var wrap_style: StyleBoxFlat = StyleBoxFlat.new()
-	wrap_style.bg_color = AgentColors.chat_input
-	wrap_style.set_border_width_all(0)
-	var radius: int = 16 if is_expanded else int(COLLAPSED_SIZE / 2)
-	wrap_style.set_corner_radius_all(radius)
+	var wrap_style := BoxStyle.make(AgentColors.chat_input, 16 if is_expanded else int(COLLAPSED_SIZE / 2), Margin.ma_1, Margin.ma_1)
 	if ThemeColor.is_dark_theme():
 		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
 		wrap_style.shadow_size = 16 if is_expanded else 10
@@ -667,21 +663,12 @@ func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
 		wrap_style.shadow_color = Color(0, 0, 0, 0.08)
 		wrap_style.shadow_size = 12 if is_expanded else 8
 		wrap_style.shadow_offset = Vector2(0, 4 if is_expanded else 2)
-	wrap_style.content_margin_left = Margin.ma_1
-	wrap_style.content_margin_right = Margin.ma_1
-	wrap_style.content_margin_top = Margin.ma_1
-	wrap_style.content_margin_bottom = Margin.ma_1
 	return wrap_style
 
 
 func build_field_style() -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.set_border_width_all(0)
-	style.content_margin_left = Margin.ma_3
+	var style := BoxStyle.make(Color.TRANSPARENT, 0, Margin.ma_3, Margin.ma_3)
 	style.content_margin_right = Margin.ma_13
-	style.content_margin_top = Margin.ma_3
-	style.content_margin_bottom = Margin.ma_3
 	return style
 
 
@@ -730,27 +717,12 @@ func apply_send_button_style(base_color: Color) -> void:
 	# Radius = half the diameter, and small content margins so the stylebox minimum size
 	# (margin + 16px icon + margin) stays below SEND_BUTTON_SIZE, keeping the box a real square.
 	var radius: int = int(SEND_BUTTON_SIZE * 0.5)
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = base_color
-	normal.set_corner_radius_all(radius)
-	normal.content_margin_left = Margin.ma_1
-	normal.content_margin_right = Margin.ma_1
-	normal.content_margin_top = Margin.ma_1
-	normal.content_margin_bottom = Margin.ma_1
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = base_color.lightened(0.10)
-
-	var pressed: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = base_color.darkened(0.08)
-
-	var disabled: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	disabled.bg_color = base_color.darkened(0.25)
-
-	send_button.add_theme_stylebox_override("normal", normal)
-	send_button.add_theme_stylebox_override("hover", hover)
-	send_button.add_theme_stylebox_override("pressed", pressed)
-	send_button.add_theme_stylebox_override("disabled", disabled)
+	# Solid fill: hover / pressed / disabled read as plain shading, so they never flip with the theme.
+	var normal := BoxStyle.make(base_color, radius, Margin.ma_1, Margin.ma_1)
+	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.10))
+	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
+	var disabled := BoxStyle.with_bg(normal, base_color.darkened(0.25))
+	ButtonStyle.apply_states(send_button, normal, hover, pressed, disabled)
 	send_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pass
 

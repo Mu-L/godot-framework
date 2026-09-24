@@ -288,18 +288,10 @@ func style_check_button(check: CheckButton) -> void:
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
-	var empty: StyleBoxEmpty = StyleBoxEmpty.new()
-	empty.content_margin_left = Margin.ma_0
-	empty.content_margin_right = Margin.ma_2
-	empty.content_margin_top = Margin.ma_1
-	empty.content_margin_bottom = Margin.ma_1
-	var hover: StyleBoxFlat = StyleBoxFlat.new()
-	hover.bg_color = AgentColors.sidebar_row_hover
-	hover.set_corner_radius_all(6)
-	hover.content_margin_left = Margin.ma_0
-	hover.content_margin_right = Margin.ma_2
-	hover.content_margin_top = Margin.ma_1
-	hover.content_margin_bottom = Margin.ma_1
+	var empty := StyleBoxEmpty.new()
+	BoxStyle.pad(empty, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
+	var hover := BoxStyle.make(AgentColors.sidebar_row_hover, 6)
+	BoxStyle.pad(hover, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
 	check.add_theme_stylebox_override("normal", empty)
 	check.add_theme_stylebox_override("disabled", empty.duplicate())
 	check.add_theme_stylebox_override("focus", empty.duplicate())
@@ -490,9 +482,7 @@ func on_button_mouse_exited() -> void:
 func style_dialog() -> void:
 	if dialog == null:
 		return
-	var dialog_style: StyleBoxFlat = StyleBoxFlat.new()
-	dialog_style.bg_color = AgentColors.panel
-	dialog_style.set_corner_radius_all(0)
+	var dialog_style := BoxStyle.make(AgentColors.panel)
 	dialog_style.expand_margin_right = Margin.ma_1
 	dialog_style.expand_margin_bottom = Margin.ma_1
 	dialog_style.content_margin_bottom = Margin.ma_4
@@ -543,22 +533,8 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_constant_override("v_separation", Margin.ma_2)
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
-	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
-	panel_style.bg_color = AgentColors.panel
-	panel_style.border_color = AgentColors.chat_input_border
-	panel_style.set_border_width_all(1)
-	panel_style.set_corner_radius_all(7)
-	panel_style.content_margin_left = Margin.ma_1
-	panel_style.content_margin_right = Margin.ma_1
-	panel_style.content_margin_top = Margin.ma_1
-	panel_style.content_margin_bottom = Margin.ma_1
-	popup.add_theme_stylebox_override("panel", panel_style)
-	var hover_style: StyleBoxFlat = StyleBoxFlat.new()
-	hover_style.bg_color = AgentColors.theme_selection_bg()
-	hover_style.set_corner_radius_all(5)
-	hover_style.content_margin_left = Margin.ma_2
-	hover_style.content_margin_right = Margin.ma_2
-	popup.add_theme_stylebox_override("hover", hover_style)
+	popup.add_theme_stylebox_override("panel", BoxStyle.make(AgentColors.panel, 7, Margin.ma_1, Margin.ma_1, AgentColors.chat_input_border, 1))
+	popup.add_theme_stylebox_override("hover", BoxStyle.make(AgentColors.theme_selection_bg(), 5, Margin.ma_2, 0))
 	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
 		popup.add_theme_icon_override(state, empty_icon)
@@ -581,14 +557,7 @@ func style_line_edit(edit: LineEdit) -> void:
 
 ## Field look shared by the line edits and the spin box buttons.
 func make_input_style() -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = AgentColors.chat_input
-	style.border_color = AgentColors.chat_input_border
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(7)
-	style.content_margin_left = Margin.ma_3
-	style.content_margin_right = Margin.ma_3
-	return style
+	return BoxStyle.make(AgentColors.chat_input, 7, Margin.ma_3, Margin.ma_0, AgentColors.chat_input_border, 1)
 
 
 ## Spin box: accent arrows on the shared field background.

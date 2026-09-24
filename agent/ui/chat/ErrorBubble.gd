@@ -80,30 +80,12 @@ static func on_resume_pressed(session_id: int) -> void:
 
 static func style_resume_button(button: Button) -> void:
 	button.custom_minimum_size = Vector2(88, 30)
-	button.add_theme_color_override("font_color", Color.WHITE)
-	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_color_override("font_pressed_color", Color.WHITE)
-	button.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.55))
+	ButtonStyle.apply_font_colors(button, Color.WHITE, Color.WHITE, Color.WHITE, ButtonStyle.with_alpha(Color.WHITE, 0.55))
 
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = AgentColors.accent
-	normal.set_corner_radius_all(6)
-	normal.content_margin_left = Margin.ma_3
-	normal.content_margin_right = Margin.ma_3
-	normal.content_margin_top = Margin.ma_2
-	normal.content_margin_bottom = Margin.ma_2
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.accent.lightened(0.10)
-
-	var pressed: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = AgentColors.accent.darkened(0.08)
-
-	var disabled: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	disabled.bg_color = AgentColors.accent.darkened(0.25)
-
-	button.add_theme_stylebox_override("normal", normal)
-	button.add_theme_stylebox_override("hover", hover)
-	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_stylebox_override("disabled", disabled)
+	# Solid fill: pressed / disabled read as plain shading, so they never flip with the theme.
+	var normal := BoxStyle.make(AgentColors.accent, 6, Margin.ma_3, Margin.ma_2)
+	var hover := BoxStyle.with_bg(normal, AgentColors.accent.lightened(0.10))
+	var pressed := BoxStyle.with_bg(normal, AgentColors.accent.darkened(0.08))
+	var disabled := BoxStyle.with_bg(normal, AgentColors.accent.darkened(0.25))
+	ButtonStyle.apply_states(button, normal, hover, pressed, disabled)
 	pass

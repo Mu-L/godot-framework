@@ -57,30 +57,12 @@ static func style_view_button(button: Button) -> void:
 	button.tooltip_text = "View full thinking"
 	button.custom_minimum_size = Vector2(22, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
-	button.add_theme_color_override("font_color", AgentColors.thinking_title)
-	button.add_theme_color_override("font_hover_color", AgentColors.thinking_title.lightened(0.12))
-	button.add_theme_color_override("font_pressed_color", AgentColors.thinking_title.darkened(0.08))
+	ButtonStyle.apply_font_colors(button, AgentColors.thinking_title, ButtonStyle.hover_color(AgentColors.thinking_title, 0.12), ButtonStyle.press_color(AgentColors.thinking_title, 0.08))
 
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = AgentColors.thinking_bubble.lightened(0.08)
-	normal.border_color = AgentColors.thinking_title.darkened(0.35)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(4)
-	normal.content_margin_left = Margin.ma_1
-	normal.content_margin_right = Margin.ma_1
-	normal.content_margin_top = Margin.ma_0
-	normal.content_margin_bottom = Margin.ma_0
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.thinking_bubble.lightened(0.16)
+	var border := ButtonStyle.muted(AgentColors.thinking_title)
+	var normal := BoxStyle.make(ButtonStyle.hover_color(AgentColors.thinking_bubble, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
+	var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(AgentColors.thinking_bubble, 0.16))
 	hover.border_color = AgentColors.thinking_title
-
-	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
-	pressed.bg_color = AgentColors.thinking_bubble.darkened(0.06)
-
-	button.add_theme_stylebox_override("normal", normal)
-	button.add_theme_stylebox_override("hover", hover)
-	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_stylebox_override("focus", hover.duplicate())
-	button.add_theme_stylebox_override("disabled", normal.duplicate())
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.press_color(AgentColors.thinking_bubble, 0.06))
+	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

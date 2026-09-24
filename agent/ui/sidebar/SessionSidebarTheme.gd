@@ -14,8 +14,7 @@ const RENAME_CORNER_RADIUS: int = 5
 
 ## Sidebar background plus the hairline against the chat area.
 static func sidebar_panel() -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = AgentColors.sidebar
+	var style := BoxStyle.make(AgentColors.sidebar)
 	style.border_color = AgentColors.sidebar_border
 	style.set_border_width(SIDE_RIGHT, 1)
 	return style
@@ -24,7 +23,7 @@ static func sidebar_panel() -> StyleBoxFlat:
 static func pinned_separator() -> StyleBoxLine:
 	var accent: Color = AgentColors.theme_accent_solid()
 	var line: StyleBoxLine = StyleBoxLine.new()
-	line.color = Color(accent.r, accent.g, accent.b, 0.42 if ThemeColor.is_dark_theme() else 0.32)
+	line.color = ButtonStyle.with_alpha(accent, 0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
 	line.grow_end = 2
 	line.thickness = 1
@@ -36,38 +35,15 @@ static func apply_new_session_button(button: Button) -> void:
 	var accent: Color = AgentColors.theme_accent_solid()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_color_override("font_color", accent)
-	button.add_theme_color_override("font_hover_color", accent.lightened(0.08))
-	button.add_theme_color_override("font_pressed_color", accent.darkened(0.06))
-	button.add_theme_color_override("font_disabled_color", AgentColors.sidebar_muted)
+	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.08), ButtonStyle.press_color(accent, 0.06), AgentColors.sidebar_muted)
 
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = Color(0, 0, 0, 0)
-	normal.border_color = Color(accent.r, accent.g, accent.b, 0.55 if ThemeColor.is_dark_theme() else 0.45)
-	normal.set_border_width_all(1)
-	normal.set_corner_radius_all(ROW_CORNER_RADIUS)
-	normal.content_margin_left = Margin.ma_3
-	normal.content_margin_right = Margin.ma_3
-	normal.content_margin_top = Margin.ma_2
-	normal.content_margin_bottom = Margin.ma_2
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.theme_selection_bg()
-	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
-
-	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
-	if ThemeColor.current_theme == ThemeColor.ThemeEnum.DARK:
-		pressed.bg_color = pressed.bg_color.lightened(0.06)
-	else:
-		pressed.bg_color = pressed.bg_color.darkened(0.04)
+	var border := ButtonStyle.with_alpha(accent, 0.55 if ThemeColor.is_dark_theme() else 0.45)
+	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
+	var hover := BoxStyle.with_bg(normal, AgentColors.theme_selection_bg())
+	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(AgentColors.theme_selection_bg(), 0.06))
 	pressed.border_color = accent
-
-	button.add_theme_stylebox_override("normal", normal)
-	button.add_theme_stylebox_override("hover", hover)
-	button.add_theme_stylebox_override("pressed", pressed)
-	button.add_theme_stylebox_override("hover_pressed", pressed.duplicate())
-	button.add_theme_stylebox_override("focus", hover.duplicate())
-	button.add_theme_stylebox_override("disabled", normal.duplicate())
+	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
 
 
@@ -77,18 +53,12 @@ static func apply_new_session_button(button: Button) -> void:
 
 ## Row background — selected beats hovered, transparent otherwise.
 static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.set_corner_radius_all(ROW_CORNER_RADIUS)
-	style.content_margin_left = Margin.ma_3
-	style.content_margin_right = Margin.ma_1
-	style.content_margin_top = Margin.ma_1
-	style.content_margin_bottom = Margin.ma_1
+	var style := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS)
+	BoxStyle.pad(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	if selected:
 		style.bg_color = AgentColors.theme_selection_bg()
 	elif hovered:
 		style.bg_color = AgentColors.sidebar_row_hover
-	else:
-		style.bg_color = Color(0, 0, 0, 0)
 	return style
 
 
@@ -109,7 +79,7 @@ static func drag_ghost() -> StyleBoxFlat:
 	var accent: Color = AgentColors.theme_accent_solid()
 	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = AgentColors.theme_selection_bg()
-	style.border_color = Color(accent.r, accent.g, accent.b, 0.9 if ThemeColor.is_dark_theme() else 0.75)
+	style.border_color = ButtonStyle.with_alpha(accent, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
 	style.shadow_size = 6
@@ -136,14 +106,8 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 
 static func rename_field() -> StyleBoxFlat:
 	var accent: Color = AgentColors.theme_accent_solid()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = AgentColors.chat_input
-	style.border_color = Color(accent.r, accent.g, accent.b, 0.75 if ThemeColor.is_dark_theme() else 0.55)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(RENAME_CORNER_RADIUS)
-	style.content_margin_left = Margin.ma_1
-	style.content_margin_right = Margin.ma_1
-	return style
+	var border := ButtonStyle.with_alpha(accent, 0.75 if ThemeColor.is_dark_theme() else 0.55)
+	return BoxStyle.make(AgentColors.chat_input, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 
 
 ## Mirrors a resolved font onto another control (rename field, drag ghost).

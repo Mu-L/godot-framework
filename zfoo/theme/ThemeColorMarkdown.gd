@@ -9,14 +9,22 @@ extends Object
 ## one into a BBCode argument at conversion time.
 ## `ThemeColor` calls `refresh()` whenever the dark/light theme changes.
 
-## The dark set doubles as the fallback until `refresh()` runs for the first time (see `ThemeColor`).
-static var code_block_bg: Color = Color(0.07, 0.08, 0.10)
-static var table_grid_color: Color = Color(0.35, 0.36, 0.41)
-static var table_header_bg: Color = Color(1.0, 1.0, 1.0, 0.08)
-static var inline_code_bg: Color = Color(0.45, 0.47, 0.52, 0.18)
-static var link_color: Color = Color(0.35, 0.65, 0.95)
-static var blockquote_bar_color: Color = Color(0.35, 0.65, 0.95)
-static var blockquote_text_color: Color = Color(0.55, 0.57, 0.62)
+## The dark set doubles as the fallback until `refresh()` runs for the first time (see `ThemeColor`),
+## so it is defined once here: the constants are the fallback initializers *and* the dark palette.
+const DARK_CODE_BLOCK_BG := Color(0.07, 0.08, 0.10)
+const DARK_TABLE_GRID := Color(0.35, 0.36, 0.41)
+const DARK_TABLE_HEADER_BG := Color(1.0, 1.0, 1.0, 0.08)
+const DARK_INLINE_CODE_BG := Color(0.45, 0.47, 0.52, 0.18)
+const DARK_LINK := Color(0.35, 0.65, 0.95)
+const DARK_BLOCKQUOTE_TEXT := Color(0.55, 0.57, 0.62)
+
+static var code_block_bg: Color = DARK_CODE_BLOCK_BG
+static var table_grid_color: Color = DARK_TABLE_GRID
+static var table_header_bg: Color = DARK_TABLE_HEADER_BG
+static var inline_code_bg: Color = DARK_INLINE_CODE_BG
+static var link_color: Color = DARK_LINK
+static var blockquote_bar_color: Color = DARK_LINK
+static var blockquote_text_color: Color = DARK_BLOCKQUOTE_TEXT
 
 
 ## Assignment only — pick the set for the current dark/light theme, no accent maths.
@@ -37,13 +45,13 @@ static func refresh() -> void:
 ## link 5.9:1 on the assistant bubble, quote body 4.8:1, i.e. dimmer than the bubble text
 ## (0.90, 0.91, 0.93) without reading as disabled.
 static func apply_dark_palette() -> void:
-	code_block_bg = Color(0.07, 0.08, 0.10)
-	table_grid_color = Color(0.35, 0.36, 0.41)
-	table_header_bg = Color(1.0, 1.0, 1.0, 0.08)
-	inline_code_bg = Color(0.45, 0.47, 0.52, 0.18)
-	link_color = Color(0.35, 0.65, 0.95)
+	code_block_bg = DARK_CODE_BLOCK_BG
+	table_grid_color = DARK_TABLE_GRID
+	table_header_bg = DARK_TABLE_HEADER_BG
+	inline_code_bg = DARK_INLINE_CODE_BG
+	link_color = DARK_LINK
 	blockquote_bar_color = link_color
-	blockquote_text_color = Color(0.55, 0.57, 0.62)
+	blockquote_text_color = DARK_BLOCKQUOTE_TEXT
 	pass
 
 
