@@ -32,7 +32,7 @@ func setup(p_button: Button) -> void:
 # ---------------------------------------------------------------------------
 
 func apply_theme() -> void:
-	var tooltip: String = "Switch to light theme" if ThemeColor.is_dark_theme() else "Switch to dark theme"
+	var tooltip: String = I18nHelper.translate("agent.toolbar.light_theme") if ThemeColor.is_dark_theme() else I18nHelper.translate("agent.toolbar.dark_theme")
 	AgentToolbarButton.style(button, tooltip, BUTTON_SIZE / 2)
 	apply_equal_icon_margins(Margin.ma_1)
 	button.text = ""

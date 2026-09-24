@@ -63,7 +63,7 @@ static func remove_agent_context(session_id: int) -> void:
 
 func refresh_toggle_button() -> void:
 	var enabled := AgentSetting.get_agent_prompt_in_prompt_enabled()
-	var tooltip := "Add AGENTS.md to this chat" if not enabled else "Remove AGENTS.md from this chat"
+	var tooltip := I18nHelper.translate("agent.toolbar.add_agents") if not enabled else I18nHelper.translate("agent.toolbar.remove_agents")
 	AgentToolbarButton.style(button, tooltip)
 	button.set_block_signals(true)
 	button.button_pressed = enabled

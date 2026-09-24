@@ -14,7 +14,7 @@ func setup(p_button: Button, p_dialog: FileDialog) -> void:
 	dialog = p_dialog
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.tooltip_text = "Click to choose workspace folder"
+	button.tooltip_text = I18nHelper.translate("agent.workspace.choose")
 	button.pressed.connect(on_button_pressed)
 	dialog.dir_selected.connect(on_dir_selected)
 	refresh()

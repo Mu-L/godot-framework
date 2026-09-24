@@ -50,6 +50,7 @@ var notification: AgentNotification = AgentNotification.new()
 
 
 func _ready() -> void:
+	I18nHelper.init_i18n()
 	AgentColors.load_saved_theme()
 	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
@@ -71,9 +72,21 @@ func _ready() -> void:
 	agent_setting_dialog.setup(agent_setting_button)
 	workspace_button.setup(project_button, workspace_dialog)
 	log_button_ctrl.setup(log_button)
+	apply_locale()
 
 	# session
 	session_sidebar.reload_sessions()
+	pass
+
+
+func apply_locale() -> void:
+	toolbar_title.text = tr("agent.toolbar.title")
+	new_session_button.text = tr("agent.sidebar.new_chat")
+	pinned_header.text = tr("agent.sidebar.pinned")
+	normal_header.text = tr("agent.sidebar.chats")
+	input_field.placeholder_text = tr("agent.input.placeholder")
+	workspace_dialog.title = tr("agent.workspace.dialog_title")
+	workspace_dialog.ok_button_text = tr("agent.common.select")
 	pass
 
 

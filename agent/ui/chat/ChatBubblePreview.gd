@@ -38,7 +38,7 @@ static func apply(rich_text: RichTextLabel, body: String) -> void:
 	var extra_lines := extra_line_count(body)
 	line_label.visible = extra_lines > 0
 	if extra_lines > 0:
-		line_label.text = StringUtils.format("+{} line{}", extra_lines, "" if extra_lines == 1 else "s")
+		line_label.text = StringUtils.format(I18nHelper.translate("agent.chat.more_lines"), extra_lines)
 	rich_text.text = text
 	rich_text.visible = StringUtils.is_not_blank(body)
 	if rich_text.has_meta(META_FIXED_HEIGHT_AT_LIMIT):

@@ -19,7 +19,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var title_label: Label = Label.new()
-	title_label.text = entry.title
+	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
 	title_label.add_theme_color_override("font_color", AgentColors.file_tool_title)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
@@ -37,7 +37,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
 	rich_text.meta_clicked.connect(open_file)
-	rich_text.tooltip_text = "Open file"
+	rich_text.tooltip_text = I18nHelper.translate("agent.chat.open_file")
 	vbox.add_child(rich_text)
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
 

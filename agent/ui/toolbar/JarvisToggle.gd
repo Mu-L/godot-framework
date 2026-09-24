@@ -31,9 +31,9 @@ func setup(p_button: Button) -> void:
 func apply_theme() -> void:
 	var jarvis_orb_enabled: bool = AgentSetting.get_jarvis_orb_enabled()
 	var tooltip: String = (
-		"Hide run animation"
+		I18nHelper.translate("agent.toolbar.hide_animation")
 		if jarvis_orb_enabled
-		else "Show run animation while agent works"
+		else I18nHelper.translate("agent.toolbar.show_animation")
 	)
 	AgentToolbarButton.style(button, tooltip, CORNER_RADIUS)
 	apply_equal_icon_margins(Margin.ma_1)

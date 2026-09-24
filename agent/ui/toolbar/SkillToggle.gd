@@ -63,7 +63,7 @@ static func remove_skill_context(session_id: int) -> void:
 
 func refresh_toggle_button() -> void:
 	var enabled := AgentSetting.get_skill_in_prompt_enabled()
-	var tooltip := "Add skill index to this chat" if not enabled else "Remove skill index from this chat"
+	var tooltip := I18nHelper.translate("agent.toolbar.add_skills") if not enabled else I18nHelper.translate("agent.toolbar.remove_skills")
 	AgentToolbarButton.style(button, tooltip)
 	button.set_block_signals(true)
 	button.button_pressed = enabled

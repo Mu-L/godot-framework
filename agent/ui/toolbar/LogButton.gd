@@ -21,7 +21,8 @@ func setup(p_button: Button) -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, "View system log")
+	AgentToolbarButton.style(button, I18nHelper.translate("agent.toolbar.view_log"))
+	button.text = I18nHelper.translate("agent.toolbar.log")
 	pass
 
 

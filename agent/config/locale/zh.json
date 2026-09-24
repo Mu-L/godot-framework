@@ -1,5 +1,98 @@
 {
   "locale": "zh",
+  "agent": {
+    "common": {
+      "select": "选择",
+      "show": "显示",
+      "hide": "隐藏"
+    },
+    "toolbar": {
+      "title": "代码智能体工作区",
+      "log": "日志",
+      "view_log": "查看系统日志",
+      "theme_color": "主题颜色",
+      "light_theme": "切换到浅色主题",
+      "dark_theme": "切换到深色主题",
+      "raw_text": "显示原始文本",
+      "markdown": "将 Markdown 渲染为 BBCode",
+      "add_skills": "将技能索引加入当前对话",
+      "remove_skills": "从当前对话移除技能索引",
+      "add_agents": "将 AGENTS.md 加入当前对话",
+      "remove_agents": "从当前对话移除 AGENTS.md",
+      "hide_animation": "隐藏运行动画",
+      "show_animation": "智能体工作时显示运行动画"
+    },
+    "sidebar": {
+      "new_chat": "+ 新建对话",
+      "pinned": "已固定",
+      "chats": "对话",
+      "delete_chat": "删除对话",
+      "chat_title": "对话标题"
+    },
+    "workspace": {
+      "choose": "点击选择工作区文件夹",
+      "dialog_title": "打开文件夹"
+    },
+    "input": {
+      "placeholder": "让 gai Code Agent 读取、编辑文件或运行命令…（Enter 发送，Shift+Enter 换行）",
+      "click_to_ask": "点击询问 gai Code Agent…",
+      "stop": "停止",
+      "send": "发送（Enter）"
+    },
+    "tokens": {
+      "label": "{} 个令牌",
+      "tooltip": "上下文：{}（{}%）· 回复：{} · 总计：{}（上次请求）"
+    },
+    "chat": {
+      "copy": "复制",
+      "copy_message": "复制消息",
+      "revert": "还原",
+      "delete": "删除",
+      "resume": "继续",
+      "full_view": "完整视图",
+      "revert_help": "从此处删除、还原工作区，并将消息放回输入框",
+      "delete_help": "从此处删除、保留工作区，并将消息放回输入框",
+      "moved_to_input": "消息已移回输入框",
+      "view_thinking": "查看完整思考过程",
+      "view_result": "查看完整结果",
+      "open_file": "打开文件",
+      "collapse": "收起",
+      "show_first_lines": "显示前 8 行",
+      "expand_lines": "展开（另有 {} 行）",
+      "show_context": "显示完整上下文",
+      "more_lines": "另有 {} 行",
+      "title": {
+        "system": "系统",
+        "skill": "技能",
+        "agent_prompt": "AGENTS.md",
+        "user": "你",
+        "agent": "智能体",
+        "thinking": "思考",
+        "result": "结果",
+        "error": "错误"
+      }
+    },
+    "settings": {
+      "heading": "AI 连接",
+      "description": "配置 OpenAI 兼容服务和运行完成通知。",
+      "api_endpoint": "API 地址",
+      "api_endpoint_help": "完整的聊天补全接口地址",
+      "model": "模型",
+      "model_help": "每次请求使用的模型",
+      "proxy": "代理",
+      "proxy_help": "可选的 HTTP/HTTPS 代理",
+      "notification_window": "智能体完成时弹窗通知",
+      "notification_sound": "通知声音",
+      "sound_folder_help": "选择包含通知声音的文件夹。",
+      "sound_duration": "声音时长",
+      "sound_folder_title": "选择通知声音文件夹",
+      "provider": "服务商",
+      "provider_help": "选择服务商后自动填写接口地址和推荐模型",
+      "api_token": "API 令牌",
+      "token_help": "保存在本地 user://setting.config",
+      "tooltip": "AI 设置"
+    }
+  },
   "workflow": {
     "window_title": "Skills Workflow — {}",
     "untitled": "未命名",

@@ -24,7 +24,7 @@ static func append(
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var title_label: Label = Label.new()
-	title_label.text = entry.title
+	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
 	title_label.add_theme_color_override("font_color", AgentColors.thinking_title)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
@@ -54,7 +54,7 @@ static func append(
 
 
 static func style_view_button(button: Button) -> void:
-	button.tooltip_text = "View full thinking"
+	button.tooltip_text = I18nHelper.translate("agent.chat.view_thinking")
 	button.custom_minimum_size = Vector2(22, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	ButtonStyle.apply_font_colors(button, AgentColors.thinking_title, ButtonStyle.hover_color(AgentColors.thinking_title, 0.12), ButtonStyle.press_color(AgentColors.thinking_title, 0.08))
