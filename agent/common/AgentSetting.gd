@@ -83,7 +83,7 @@ const NOTIFICATION_SOUND_SECONDS_KEY := "agent_notification_sound_seconds"
 const NOTIFICATION_SOUND_FOLDER_KEY := "agent_notification_sound_folder"
 
 const DEFAULT_SOUND_FOLDER := "res://test/asset/"
-const DEFAULT_SOUND_SECONDS := 23
+const DEFAULT_SOUND_SECONDS := 15
 const MIN_SOUND_SECONDS := 1
 const MAX_SOUND_SECONDS := 120
 
