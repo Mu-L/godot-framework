@@ -22,7 +22,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var argv := build_argv_from_args(args)
 	if argv.is_empty():
 		return AgentToolResult.error("error: command is required")
-	var exec_result := await OSUtils.async_execute(argv, false)
+	var exec_result := await OSUtils.async_execute(argv, false, TimeUtils.MILLIS_PER_SECOND * 30)
 	var exit_code := StringUtils.format("exit_code: {}", exec_result.exit_code)
 	var exec_output := exec_result.output.build_string()
 	

@@ -59,31 +59,43 @@ static func async_execute(argv: PackedStringArray, log: bool = true, timeout_mil
 # ----------------------------------------------------------------------------------------------------------------------
 # Process lifecycle and async worker
 static func stop_last() -> void:
-	var pid := process_pids.latest()
-	if pid > 0 and OS.is_process_running(pid):
-		OS.kill(pid)
+	kill_pid(process_pids.latest())
 	pass
 
 
 static func stop_all() -> void:
 	for pid in process_pids.to_array():
-		if pid > 0 and OS.is_process_running(pid):
-			OS.kill(pid)
+		kill_pid(pid)
 	process_pids.clear()
 	pass
 
 
+## Sends the kill signal to pid without waiting; a finished or unknown pid is a no-op.
+## Returns the OS.kill error code, which is logged when the kill fails.
+static func kill_pid(pid: int) -> int:
+	if pid <= 0 or not OS.is_process_running(pid):
+		return OK
+	var err := OS.kill(pid)
+	if err != OK:
+		Log.error("kill process failed pid:[{}] err:[{}]", pid, err)
+	return err
+
+
 ## Kills pid and waits briefly for it to exit; safe for a finished or unknown pid.
 ## Only used from the worker thread, stop_last/stop_all stay non blocking.
-static func kill_process(pid: int) -> void:
-	if pid <= 0 or not OS.is_process_running(pid):
-		return
-	OS.kill(pid)
+## Returns the OS.kill error code, or FAILED when the process survives the grace period.
+static func kill_process(pid: int) -> int:
+	var err := kill_pid(pid)
+	if err != OK:
+		return err
 	# Grace period so the pipe tail can still be read after the kill.
 	var deadline := Time.get_ticks_msec() + 1000
 	while OS.is_process_running(pid) and Time.get_ticks_msec() < deadline:
 		OS.delay_msec(16)
-	pass
+	if OS.is_process_running(pid):
+		Log.error("kill process failed pid:[{}] err:[{}]", pid, FAILED)
+		return FAILED
+	return OK
 
 
 static func _run_process_async(argv: PackedStringArray, result: ExecResult, timeout_millis: int = TimeUtils.MILLIS_PER_HOUR) -> void:

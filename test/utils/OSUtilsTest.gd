@@ -196,6 +196,28 @@ static func OSUtils_stop_all_test() -> void:
 	pass
 
 
+static func OSUtils_kill_pid_no_process_test() -> void:
+	OSUtils.stop_all()
+	# An unknown pid is a no-op, so the OS.kill error code path is not reached.
+	assert(OSUtils.kill_pid(-1) == OK)
+	assert(OSUtils.kill_pid(0) == OK)
+	assert(OSUtils.kill_process(0) == OK)
+	pass
+
+
+static func OSUtils_kill_pid_running_test() -> void:
+	OSUtils.stop_all()
+	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
+	await ThreadUtils.async_sleep(800)
+	var pid := OSUtils.process_pids.latest()
+	assert(pid > 0)
+	assert(OSUtils.kill_process(pid) == OK)
+	await ThreadUtils.async_sleep(500)
+	assert(not OS.is_process_running(pid))
+	OSUtils.stop_all()
+	pass
+
+
 static func utf8_fixture_command() -> String:
 	if OSUtils.is_windows():
 		return "type test\\asset\\Utf8OutputFixture.txt"
