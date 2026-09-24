@@ -34,10 +34,10 @@ func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
 		slot_index,
 		true,
 		port.port_type,
-		WorkflowColors.port_color(port.port_type),
+		port_color(port.port_type),
 		false,
 		0,
-		WorkflowColors.port_slot_idle,
+		ThemeColorCard.title_color,
 	)
 	return slot_index
 
@@ -54,10 +54,10 @@ func add_output_port_row(port: PortDef) -> int:
 		slot_index,
 		false,
 		0,
-		WorkflowColors.port_slot_idle,
+		ThemeColorCard.title_color,
 		true,
 		port.port_type,
-		WorkflowColors.port_color(port.port_type),
+		port_color(port.port_type),
 	)
 	return slot_index
 
@@ -74,7 +74,7 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 	var hint: Label = Label.new()
 	hint.text = tr("workflow.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hint.modulate = WorkflowColors.hint
+	hint.modulate = ThemeColorCard.body_color
 	row.add_child(hint)
 
 	return row
@@ -110,6 +110,22 @@ func configure_slot(
 ) -> void:
 	set_slot(slot_index, left_enabled, left_type, left_color, right_enabled, right_type, right_color)
 	pass
+
+
+func port_color(port_type: int) -> Color:
+	match port_type:
+		PortDef.TYPE_AUDIO:
+			return ThemeColorFile.audio_color
+		PortDef.TYPE_IMAGE:
+			return ThemeColorFile.image_color
+		PortDef.TYPE_VIDEO:
+			return ThemeColorFile.video_color
+		PortDef.TYPE_TEXT:
+			return ThemeColorFile.text_color
+		PortDef.TYPE_FOLDER:
+			return ThemeColorFile.folder_color
+		_:
+			return ThemeColorCard.body_color
 
 
 func get_manual_input(port_id: String) -> String:
@@ -196,14 +212,14 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 
 func set_highlight(running: bool) -> void:
 	var panel: StyleBoxFlat = StyleBoxFlat.new()
-	panel.bg_color = WorkflowColors.node_running_bg if running else WorkflowColors.node_bg
-	panel.border_color = WorkflowColors.success if running else WorkflowColors.node_border
+	panel.bg_color = ThemeColorCard.background_color.lerp(Colors.success, 0.12) if running else ThemeColorCard.background_color
+	panel.border_color = Colors.success if running else ThemeColorMarkdown.table_grid_color
 	panel.set_border_width_all(3 if running else 2)
 	panel.set_corner_radius_all(6)
 	panel.set_content_margin_all(Margin.ma_2)
 	add_theme_stylebox_override("panel", panel)
 	add_theme_color_override(
 		"title_color",
-		WorkflowColors.success.lightened(0.35) if running else WorkflowColors.node_title,
+		Colors.success.lightened(0.35) if running else ThemeColorCard.title_color,
 	)
 	pass

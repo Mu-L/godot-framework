@@ -62,10 +62,10 @@ func refresh_output_slot(type_name: String) -> void:
 		slot_index,
 		false,
 		0,
-		WorkflowColors.port_slot_idle,
+		ThemeColorCard.title_color,
 		true,
 		out_type,
-		WorkflowColors.port_color(out_type),
+		port_color(out_type),
 	)
 	pass
 

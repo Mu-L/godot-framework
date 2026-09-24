@@ -39,10 +39,10 @@ func add_input_port_row(port: PortDef, allow_manual: bool = true) -> int:
 		slot_index,
 		true,
 		port.port_type,
-		WorkflowColors.port_color(port.port_type),
+		port_color(port.port_type),
 		false,
 		0,
-		WorkflowColors.port_slot_idle,
+		ThemeColorCard.title_color,
 	)
 	return slot_index
 

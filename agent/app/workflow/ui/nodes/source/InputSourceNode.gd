@@ -15,9 +15,9 @@ func build_node() -> void:
 		0,
 		false,
 		0,
-		WorkflowColors.port_slot_idle,
+		ThemeColorCard.title_color,
 		true,
 		port.port_type,
-		WorkflowColors.port_color(port.port_type),
+		port_color(port.port_type),
 	)
 	pass

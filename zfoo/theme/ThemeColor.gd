@@ -39,6 +39,7 @@ static func set_theme(_theme: ThemeEnum) -> void:
 static func refresh_derived_colors() -> void:
 	ThemeColorCard.refresh()
 	ThemeColorMarkdown.refresh()
+	ThemeColorFile.refresh()
 	pass
 
 
