@@ -11,7 +11,6 @@ extends Window
 ## with the stripe on the leading edge; the accent color is passed per toast.
 
 const CARD_WIDTH: float = 380.0
-const BODY_FONT_SIZE: int = TextStyle.body_medium_size
 const MAX_BODY_LINES: int = 4
 const SHOW_SECONDS: float = 4.5
 ## How long the app window stays above the others after the card is clicked.
@@ -170,7 +169,7 @@ func build_card() -> void:
 	var title_font: Font = Fonts.semibold()
 	var body_font: Font = Fonts.regular()
 	var title_size: int = roundi(TextStyle.title_medium_size * unit)
-	var body_size: int = roundi(BODY_FONT_SIZE * unit)
+	var body_size: int = roundi(TextStyle.body_medium_size * unit)
 	var gap: float = Margin.ma_2 * unit
 	# First guess from font metrics; `fit_window_size` corrects it once the labels wrapped.
 	var body_height: float = 0.0
@@ -182,7 +181,8 @@ func build_card() -> void:
 	position = corner_position(size)
 
 	card = PanelContainer.new()
-	card.add_theme_stylebox_override("panel", make_card_style(pad, unit))
+	# The card with one accent stripe down the leading edge, everything scaled by the app UI scale.
+	card.add_theme_stylebox_override("panel", CardStyle.make(accent, 0, pad, pad, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * unit)))
 	card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	card.gui_input.connect(on_card_input)
 	add_child(card)
@@ -211,11 +211,6 @@ func build_card() -> void:
 		body_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		column.add_child(body_label)
 	pass
-
-
-## The card with one accent stripe down the leading edge, everything scaled by the app UI scale.
-func make_card_style(pad: float, unit: float) -> StyleBoxFlat:
-	return CardStyle.make(accent, 0, pad, pad, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * unit))
 
 
 func close_toast() -> void:

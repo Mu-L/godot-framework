@@ -106,13 +106,16 @@ func CardStyle_card_components_test() -> void:
 	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(snackbar.shadow_size == Alert.shadow_size)
 
+	DesktopToast.ui_scale = 1.0
 	var toast: DesktopToast = DesktopToast.new()
 	toast.accent = Colors.success
-	var toast_card := toast.make_card_style(Margin.ma_5, 1.0)
+	toast.build_card()
+	var toast_card: StyleBoxFlat = toast.card.get_theme_stylebox("panel") as StyleBoxFlat
 	assert(toast_card.bg_color == snackbar.bg_color)
 	assert(toast_card.border_color == snackbar.border_color)
 	assert(toast_card.border_width_left == snackbar.border_width_left)
 	assert(toast_card.border_width_right == 0)
+	assert(toast_card.get_margin(SIDE_RIGHT) == Margin.ma_5)
 	toast.free()
 	pass
 
