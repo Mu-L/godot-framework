@@ -1,7 +1,7 @@
 class_name GraphNodesConfig
 extends RefCounted
 
-const GRAPH_NODES := "res://gui/config/graph_nodes.json"
+const GRAPH_NODES := "res://agent/app/workflow/graph/graph_nodes.json"
 
 const SOURCE_DEFS := "sources"
 const CONTROL_DEFS := "controls"
