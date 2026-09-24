@@ -5,6 +5,9 @@ extends RefCounted
 ## collapse/expand, styling, and send button.
 
 const COLLAPSED_SIZE: float = 52.0
+## Diameter of the round send button. Collapsed offsets are half of it, so the circle lands dead
+## center of the wrap; the stylebox corner radius is half of it too, which is what makes it round.
+const SEND_BUTTON_SIZE: float = 36.0
 ## Expanded panel height when empty or one line (wrap grows upward from bottom).
 const EXPANDED_HEIGHT_MIN: float = 88.0
 ## Cap auto-grow so long paste does not cover most of the chat area.
@@ -546,18 +549,23 @@ func layout_bar() -> void:
 
 func layout_send_button(is_expanded: bool) -> void:
 	send_button.visible = true
+	# Control grows towards GROW_DIRECTION_BEGIN when a stylebox/content margin pushes the minimum
+	# size past the offsets above, which silently shifts the circle. Grow both ways instead.
+	send_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	send_button.grow_vertical = Control.GROW_DIRECTION_BOTH
+	var half: float = SEND_BUTTON_SIZE * 0.5
 	if is_expanded:
 		send_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		send_button.offset_left = -44
-		send_button.offset_top = -44
-		send_button.offset_right = -8
-		send_button.offset_bottom = -8
+		send_button.offset_left = -SEND_BUTTON_SIZE - Margin.ma_2
+		send_button.offset_top = -SEND_BUTTON_SIZE - Margin.ma_2
+		send_button.offset_right = -Margin.ma_2
+		send_button.offset_bottom = -Margin.ma_2
 	else:
 		send_button.set_anchors_preset(Control.PRESET_CENTER)
-		send_button.offset_left = -18
-		send_button.offset_top = -18
-		send_button.offset_right = 18
-		send_button.offset_bottom = 18
+		send_button.offset_left = -half
+		send_button.offset_top = -half
+		send_button.offset_right = half
+		send_button.offset_bottom = half
 	send_button.z_index = 2
 	pass
 
@@ -719,14 +727,16 @@ func set_send_button_appearance(running: bool) -> void:
 
 
 func apply_send_button_style(base_color: Color) -> void:
-	var radius: int = 18
+	# Radius = half the diameter, and small content margins so the stylebox minimum size
+	# (margin + 16px icon + margin) stays below SEND_BUTTON_SIZE, keeping the box a real square.
+	var radius: int = int(SEND_BUTTON_SIZE * 0.5)
 	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = base_color
 	normal.set_corner_radius_all(radius)
-	normal.content_margin_left = Margin.ma_3
-	normal.content_margin_right = Margin.ma_3
-	normal.content_margin_top = Margin.ma_3
-	normal.content_margin_bottom = Margin.ma_3
+	normal.content_margin_left = Margin.ma_1
+	normal.content_margin_right = Margin.ma_1
+	normal.content_margin_top = Margin.ma_1
+	normal.content_margin_bottom = Margin.ma_1
 
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = base_color.lightened(0.10)
