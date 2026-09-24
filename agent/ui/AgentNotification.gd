@@ -77,7 +77,7 @@ func has_playlist(clips: Array[String]) -> bool:
 	if not Audio.is_playing_music() and not Audio.is_music_paused():
 		return false
 	var loaded := Audio.musics.duplicate()
-	loaded.sort()
+	loaded.shuffle()
 	return loaded == clips
 
 
