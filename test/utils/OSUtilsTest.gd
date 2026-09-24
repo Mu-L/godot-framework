@@ -196,16 +196,16 @@ static func OSUtils_stop_all_test() -> void:
 	pass
 
 
-static func OSUtils_kill_pid_no_process_test() -> void:
+static func OSUtils_kill_process_no_process_test() -> void:
 	OSUtils.stop_all()
 	# An unknown pid is a no-op, so the OS.kill error code path is not reached.
-	assert(OSUtils.kill_pid(-1) == OK)
-	assert(OSUtils.kill_pid(0) == OK)
+	assert(OSUtils.kill_process(-1, 0) == OK)
+	assert(OSUtils.kill_process(0, 0) == OK)
 	assert(OSUtils.kill_process(0) == OK)
 	pass
 
 
-static func OSUtils_kill_pid_running_test() -> void:
+static func OSUtils_kill_process_running_test() -> void:
 	OSUtils.stop_all()
 	gdf.callable_deferred(func() -> void: await OSUtils.async_execute(sleep_argv(15), false))
 	await ThreadUtils.async_sleep(800)
