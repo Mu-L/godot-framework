@@ -26,7 +26,7 @@ static func append(
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", AgentColors.thinking_title)
-	title_label.add_theme_font_size_override("font_size", 12)
+	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 
 	var view_button: Button = Button.new()
@@ -37,7 +37,7 @@ static func append(
 
 	var line_label: Label = Label.new()
 	line_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	line_label.add_theme_font_size_override("font_size", 11)
+	line_label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	header.add_child(line_label)
 
 	vbox.add_child(header)
@@ -56,7 +56,7 @@ static func append(
 static func style_view_button(button: Button) -> void:
 	button.tooltip_text = "View full thinking"
 	button.custom_minimum_size = Vector2(22, 18)
-	button.add_theme_font_size_override("font_size", 10)
+	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	button.add_theme_color_override("font_color", AgentColors.thinking_title)
 	button.add_theme_color_override("font_hover_color", AgentColors.thinking_title.lightened(0.12))
 	button.add_theme_color_override("font_pressed_color", AgentColors.thinking_title.darkened(0.08))

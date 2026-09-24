@@ -45,7 +45,7 @@ static func append(
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	title_label.add_theme_font_size_override("font_size", 12)
+	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 
 	var expand_button: Button = Button.new()
@@ -118,7 +118,7 @@ static func find_wrapper(rich_text: RichTextLabel) -> PanelContainer:
 static func style_expand_button(button: Button) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(0, 18)
-	button.add_theme_font_size_override("font_size", 11)
+	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	button.add_theme_color_override("font_color", AgentColors.accent)
 	button.add_theme_color_override("font_hover_color", AgentColors.accent.lightened(0.12))
 	button.add_theme_color_override("font_pressed_color", AgentColors.accent.darkened(0.08))

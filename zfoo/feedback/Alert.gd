@@ -2,7 +2,7 @@
 class_name Alert
 extends Label
 
-const default_font_size: int = 32
+const default_font_size: int = TextStyle.headline_large_size
 const default_corner_radius: int = 12
 const default_speed: float = 50
 const default_wait_time: int = 2700

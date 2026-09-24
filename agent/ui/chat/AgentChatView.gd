@@ -349,7 +349,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
-	title_label.add_theme_font_size_override("font_size", 12)
+	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	vbox.add_child(title_label)
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(

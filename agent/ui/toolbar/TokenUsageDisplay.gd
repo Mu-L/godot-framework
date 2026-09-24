@@ -73,7 +73,7 @@ func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 func apply_theme() -> void:
 	if label == null:
 		return
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	refresh()
 	pass
 

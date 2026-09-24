@@ -89,12 +89,12 @@ func build_dialog() -> void:
 	scroll.add_child(fields)
 	heading_label = Label.new()
 	heading_label.text = "AI connection"
-	heading_label.add_theme_font_size_override("font_size", 20)
+	heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
 	fields.add_child(heading_label)
 	description_label = Label.new()
 	description_label.text = "Configure the OpenAI-compatible service and the run notifications."
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description_label.add_theme_font_size_override("font_size", 12)
+	description_label.add_theme_font_size_override("font_size", TextStyle.body_small_size)
 	fields.add_child(description_label)
 	var separator: HSeparator = HSeparator.new()
 	fields.add_child(separator)
@@ -181,7 +181,7 @@ func make_label(label_text: String) -> Label:
 	var label: Label = Label.new()
 	label.text = label_text
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_font_size_override("font_size", TextStyle.label_large_size)
 	field_labels.append(label)
 	return label
 
@@ -201,7 +201,7 @@ func make_field_group(parent: Container, label_text: String) -> VBoxContainer:
 func add_help_label(parent: Container, help_text: String) -> void:
 	var help: Label = Label.new()
 	help.text = help_text
-	help.add_theme_font_size_override("font_size", 11)
+	help.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	help_labels.append(help)
 	parent.add_child(help)
 	pass
@@ -271,7 +271,7 @@ func add_check_button(parent: Container, label_text: String, enabled: bool) -> C
 	check.text = label_text
 	check.button_pressed = enabled
 	check.focus_mode = Control.FOCUS_NONE
-	check.add_theme_font_size_override("font_size", 13)
+	check.add_theme_font_size_override("font_size", TextStyle.label_large_size)
 	parent.add_child(check)
 	return check
 
@@ -539,7 +539,7 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_color_override("font_accelerator_color", AgentColors.chat_text_muted)
 	popup.add_theme_color_override("font_disabled_color", AgentColors.chat_text_muted)
 	popup.add_theme_color_override("font_separator_color", AgentColors.chat_text_muted)
-	popup.add_theme_font_size_override("font_size", 14)
+	popup.add_theme_font_size_override("font_size", TextStyle.label_large_size)
 	popup.add_theme_constant_override("v_separation", Margin.ma_2)
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)

@@ -11,8 +11,8 @@ extends Window
 
 const CARD_WIDTH: float = 380.0
 const ACCENT_WIDTH: int = 3
-const TITLE_FONT_SIZE: int = 15
-const BODY_FONT_SIZE: int = 13
+const TITLE_FONT_SIZE: int = TextStyle.title_medium_size
+const BODY_FONT_SIZE: int = TextStyle.body_medium_size
 const MAX_BODY_LINES: int = 4
 const SHOW_SECONDS: float = 4.5
 ## How long the app window stays above the others after the card is clicked.

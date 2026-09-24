@@ -21,7 +21,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", AgentColors.file_tool_title)
-	title_label.add_theme_font_size_override("font_size", 12)
+	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 
 	var file_lines_added: int = int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_ADDED, "0"))
@@ -66,5 +66,5 @@ static func create_file_detail_label(text: String, color: Color) -> Label:
 	var label: Label = Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)
-	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	return label

@@ -26,7 +26,7 @@ static func append(
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color_for(entry))
-	title_label.add_theme_font_size_override("font_size", 12)
+	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 
 	var view_button: Button = Button.new()
@@ -37,7 +37,7 @@ static func append(
 
 	var line_label: Label = Label.new()
 	line_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	line_label.add_theme_font_size_override("font_size", 11)
+	line_label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	header.add_child(line_label)
 
 	vbox.add_child(header)
@@ -62,7 +62,7 @@ static func title_color_for(entry: ChatEntry) -> Color:
 static func style_view_button(button: Button) -> void:
 	button.tooltip_text = "View full result"
 	button.custom_minimum_size = Vector2(22, 18)
-	button.add_theme_font_size_override("font_size", 10)
+	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	button.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	button.add_theme_color_override("font_hover_color", AgentColors.chat_text.lightened(0.08))
 	button.add_theme_color_override("font_pressed_color", AgentColors.chat_text_muted.darkened(0.08))

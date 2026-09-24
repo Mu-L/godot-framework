@@ -8,7 +8,7 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 	button.tooltip_text = tooltip
 	button.custom_minimum_size = Vector2(28, 28)
 	button.flat = false
-	button.add_theme_font_size_override("font_size", 11)
+	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	button.add_theme_color_override("font_color", AgentColors.toolbar_muted)
 	button.add_theme_color_override("font_hover_color", AgentColors.toolbar_title)
 	button.add_theme_color_override("font_pressed_color", AgentColors.theme_accent_solid())
