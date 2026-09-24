@@ -121,6 +121,20 @@ func inline_code_box_padding_test() -> void:
 	pass
 
 
+## A highlight over a bubble follows the theme color ([ThemeColorCard]) instead of the
+## engine's default tint, and both label kinds share it.
+func selection_theme_test() -> void:
+	var labels: Array[RichTextLabel] = [
+		MarkdownUtils.create_rich_text_label(Color.WHITE, "select me", true),
+		MarkdownUtils.create_plain_rich_text_label(Color.WHITE),
+	]
+	for label: RichTextLabel in labels:
+		assert(label.get_theme_color("selection_color") == ThemeColorCard.selection_color)
+		assert(label.get_theme_color("font_selected_color") == ThemeColorCard.title_color)
+		label.free()
+	pass
+
+
 func html_underline_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("<u>图生图</u>, plain")
 	assert(bbcode == "[u]图生图[/u], plain")

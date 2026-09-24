@@ -780,6 +780,15 @@ class SelectableRichTextLabel extends RichTextLabel:
 		pass
 
 
+## Highlight colors of a selectable body: the card palette's accent-tinted selection plus its
+## primary text for the highlighted glyphs. Both come from [ThemeColorCard], so a bubble keeps
+## readable contrast in either theme and re-tints when the user picks another accent color.
+static func apply_selection_theme(label: RichTextLabel) -> void:
+	label.add_theme_color_override("selection_color", ThemeColorCard.selection_color)
+	label.add_theme_color_override("font_selected_color", ThemeColorCard.title_color)
+	pass
+
+
 static func create_rich_text_label(text_color: Color, raw_text: String, markdown_enabled: bool) -> RichTextLabel:
 	var label := SelectableRichTextLabel.new()
 	label.scroll_active = false
@@ -788,6 +797,7 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_color_override("default_color", text_color)
+	apply_selection_theme(label)
 	label.add_theme_font_override("normal_font", Fonts.regular())
 	label.add_theme_font_override("bold_font", Fonts.bold())
 	label.add_theme_font_override("italics_font", Fonts.semibold())
@@ -821,6 +831,7 @@ static func create_plain_rich_text_label(text_color: Color) -> RichTextLabel:
 	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.add_theme_color_override("default_color", text_color)
+	apply_selection_theme(label)
 	label.add_theme_font_override("normal_font", Fonts.regular())
 	return label
 
