@@ -103,7 +103,9 @@ static func _static_init() -> void:
 
 
 static func category_label(category_id: String) -> String:
-	return GuiLocale.category_label(category_id)
+	var key := "category." + category_id
+	var translated := TranslationServer.translate(key)
+	return category_id if translated == key else translated
 
 static func get_def(def_id: String) -> GraphNodeDef:
 	return defs_by_id.get(def_id, null)

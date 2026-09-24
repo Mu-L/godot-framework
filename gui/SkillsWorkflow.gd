@@ -3,6 +3,12 @@ extends Control
 const SIDEBAR_WIDTH: int = 300
 const PALETTE_TREE_WIDTH: int = 276
 const PALETTE_LABEL_MAX: int = 30
+const LOCALE_ZH := "zh_CN"
+const LOCALE_EN := "en_US"
+const LOCALE_PATHS: Array[String] = [
+	"res://gui/locale/en-US.json",
+	"res://gui/locale/zh-CN.json",
+]
 
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
@@ -26,6 +32,9 @@ var running_pipeline: bool = false
 
 
 func _ready() -> void:
+	if not TranslationJson.register_json_files(LOCALE_PATHS):
+		return
+	TranslationServer.set_locale(LOCALE_EN)
 	configure_sidebar_layout()
 	apply_ui_locale()
 	set_workflow_name(WorkflowManager.workflow_name)
@@ -80,43 +89,43 @@ func set_palette_item_text(item: TreeItem, label: String) -> void:
 
 
 func apply_ui_locale() -> void:
-	new_button.text = GuiLocale.text("ui.toolbar.new")
-	load_button.text = GuiLocale.text("ui.toolbar.load")
-	save_button.text = GuiLocale.text("ui.toolbar.save")
-	delete_button.text = GuiLocale.text("ui.toolbar.delete")
-	log_button.text = GuiLocale.text("ui.toolbar.log")
+	new_button.text = tr("ui.toolbar.new")
+	load_button.text = tr("ui.toolbar.load")
+	save_button.text = tr("ui.toolbar.save")
+	delete_button.text = tr("ui.toolbar.delete")
+	log_button.text = tr("ui.toolbar.log")
 	if running_pipeline:
-		run_button.text = GuiLocale.text("ui.toolbar.stop")
+		run_button.text = tr("ui.toolbar.stop")
 	else:
-		run_button.text = GuiLocale.text("ui.toolbar.run")
-	palette_title.text = GuiLocale.text("ui.palette.title")
-	palette_hint.text = GuiLocale.text("ui.palette.hint")
+		run_button.text = tr("ui.toolbar.run")
+	palette_title.text = tr("ui.palette.title")
+	palette_hint.text = tr("ui.palette.hint")
 	palette_hint.add_theme_color_override("font_color", WorkflowColors.hint)
-	save_dialog.title = GuiLocale.text("ui.dialog.save_title")
-	save_dialog.ok_button_text = GuiLocale.text("ui.toolbar.save")
+	save_dialog.title = tr("ui.dialog.save_title")
+	save_dialog.ok_button_text = tr("ui.toolbar.save")
 	save_dialog.filters = PackedStringArray([
-		"*.workflow.json ; " + GuiLocale.text("ui.dialog.workflow_filter"),
-		"* ; " + GuiLocale.text("ui.dialog.all_files"),
+		"*.workflow.json ; " + tr("ui.dialog.workflow_filter"),
+		"* ; " + tr("ui.dialog.all_files"),
 	])
-	load_dialog.title = GuiLocale.text("ui.dialog.load_title")
-	load_dialog.ok_button_text = GuiLocale.text("ui.toolbar.load")
+	load_dialog.title = tr("ui.dialog.load_title")
+	load_dialog.ok_button_text = tr("ui.toolbar.load")
 	load_dialog.filters = PackedStringArray([
-		"*.workflow.json ; " + GuiLocale.text("ui.dialog.workflow_filter"),
+		"*.workflow.json ; " + tr("ui.dialog.workflow_filter"),
 	])
 	refresh_locale_button()
 	pass
 
 
 func refresh_locale_button() -> void:
-	if GuiLocale.current_locale == GuiLocale.LOCALE_ZH:
-		locale_button.text = GuiLocale.text("ui.locale_switch.to_en")
+	if TranslationServer.get_locale() == LOCALE_ZH:
+		locale_button.text = tr("ui.locale_switch.to_en")
 	else:
-		locale_button.text = GuiLocale.text("ui.locale_switch.to_zh")
+		locale_button.text = tr("ui.locale_switch.to_zh")
 	pass
 
 
 func apply_locale_change() -> void:
-	GuiLocale.load_locale(GuiLocale.LOCALE_EN if GuiLocale.current_locale == GuiLocale.LOCALE_ZH else GuiLocale.LOCALE_ZH)
+	TranslationServer.set_locale(LOCALE_EN if TranslationServer.get_locale() == LOCALE_ZH else LOCALE_ZH)
 	apply_ui_locale()
 	build_palette_tree()
 	set_workflow_name(WorkflowManager.workflow_name)
@@ -152,7 +161,7 @@ func build_palette_tree() -> void:
 			skill_item.set_selectable(0, true)
 
 	var workflows_item: TreeItem = palette_tree.create_item(root)
-	set_palette_item_text(workflows_item, GuiLocale.text("ui.palette.my_workflows"))
+	set_palette_item_text(workflows_item, tr("ui.palette.my_workflows"))
 	workflows_item.set_collapsed(false)
 	workflows_item.set_selectable(0, true)
 
@@ -247,9 +256,9 @@ func set_workflow_name(name: String) -> void:
 	WorkflowManager.workflow_name = name.strip_edges()
 	var display_name: String = WorkflowManager.workflow_name
 	if display_name == "Untitled":
-		display_name = GuiLocale.text("ui.untitled")
+		display_name = tr("ui.untitled")
 	workflow_name_label.text = display_name
-	get_window().title = GuiLocale.text("ui.window_title", display_name)
+	get_window().title = tr("ui.window_title").format([display_name], StringUtils.EMPTY_JSON)
 	pass
 
 
@@ -291,7 +300,7 @@ func on_step_finished(node_id: String, exit_code: int, output_path: String) -> v
 func on_pipeline_stopped() -> void:
 	running_pipeline = false
 	set_run_button_running(false)
-	var message: String = GuiLocale.text("pipeline.stopped")
+	var message := tr("pipeline.stopped")
 	Log.info(message)
 	Alert.alert(message, WorkflowColors.warning)
 	pass
@@ -314,11 +323,11 @@ func set_run_button_running(running: bool) -> void:
 	if running:
 		apply_run_button_style(WorkflowColors.error)
 		run_button.icon = make_stop_icon(14, WorkflowColors.button_text)
-		run_button.text = GuiLocale.text("ui.toolbar.stop")
+		run_button.text = tr("ui.toolbar.stop")
 	else:
 		apply_run_button_style(WorkflowColors.success)
 		run_button.icon = make_play_icon(14, WorkflowColors.button_text)
-		run_button.text = GuiLocale.text("ui.toolbar.run")
+		run_button.text = tr("ui.toolbar.run")
 	pass
 
 
@@ -328,7 +337,7 @@ func style_run_button() -> void:
 	run_button.add_theme_color_override("font_hover_color", WorkflowColors.button_text)
 	run_button.add_theme_color_override("font_pressed_color", WorkflowColors.button_text)
 	run_button.icon = make_play_icon(14, WorkflowColors.button_text)
-	run_button.text = GuiLocale.text("ui.toolbar.run")
+	run_button.text = tr("ui.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", 14)
 	run_button.add_theme_constant_override("icon_max_height", 14)
 	run_button.add_theme_constant_override("h_separation", Margin.ma_2)

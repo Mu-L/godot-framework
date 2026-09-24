@@ -22,7 +22,17 @@ var type: String = TYPE_NAME_STRING
 
 
 func display_label(catalog_id: String) -> String:
-	return GuiLocale.node_port_label(catalog_id, id, type)
+	var node_port_key := "node_port." + catalog_id + "." + id
+	var translated := TranslationServer.translate(node_port_key)
+	if translated != node_port_key:
+		return translated
+	var port_key := "port." + id
+	translated = TranslationServer.translate(port_key)
+	if translated != port_key:
+		return translated
+	var type_key := "port_type." + type
+	translated = TranslationServer.translate(type_key)
+	return type if translated == type_key else translated
 
 
 var port_type: int:

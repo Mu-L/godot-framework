@@ -45,8 +45,7 @@ gui/
 │   └── ...
 ├── locale/
 │   ├── zh-CN.json           # Default UI strings
-│   ├── en-US.json
-│   └── GuiLocale.gd
+│   └── en-US.json
 └── test/
 ```
 
@@ -86,7 +85,7 @@ Port types: `audio`, `image`, `video`, `text`, `folder`. Connections require mat
 |------|------|
 | `gui/locale/zh-CN.json` | Simplified Chinese (default) |
 | `gui/locale/en-US.json` | English |
-| `gui/locale/GuiLocale.gd` | Load locale, `text()` lookup, `set_locale()` |
+| `zfoo/translation/TranslationJson.gd` | Register JSON strings with Godot `TranslationServer` |
 
 String keys:
 
@@ -98,7 +97,7 @@ String keys:
 Switch language (refreshes toolbar, sidebar, and canvas nodes):
 
 - Language button left of **Log** (`EN` on Chinese UI, `中文` on English UI)
-- Or call `GuiLocale.set_locale("en-US")` and rerun the UI refresh logic
+- Or call `TranslationServer.set_locale("en-US")` and rerun the UI refresh logic
 
 ## Pipeline notes
 

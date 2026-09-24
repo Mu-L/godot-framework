@@ -11,7 +11,7 @@ func build_node() -> void:
 	if not node_def.inputs.is_empty():
 		add_input_port_row(node_def.inputs[0], false)
 
-	add_child(create_text_row(GraphNodesConfig.CONTROL_FIELD_GLOB, GuiLocale.text("ui.batch.glob"), "*.*"))
+	add_child(create_text_row(GraphNodesConfig.CONTROL_FIELD_GLOB, tr("ui.batch.glob"), "*.*"))
 
 	var type_row := create_item_type_row()
 	add_child(type_row)
@@ -29,19 +29,19 @@ func create_item_type_row() -> HBoxContainer:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var label := Label.new()
-	label.text = GuiLocale.text("ui.batch.output_type")
+	label.text = tr("ui.batch.output_type")
 	label.custom_minimum_size.x = 80
 	row.add_child(label)
 
 	item_type_option = OptionButton.new()
 	item_type_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	item_type_option.add_item(GuiLocale.port_type_label(PortDef.TYPE_NAME_AUDIO), 0)
+	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_AUDIO), 0)
 	item_type_option.set_item_metadata(0, PortDef.TYPE_NAME_AUDIO)
-	item_type_option.add_item(GuiLocale.port_type_label(PortDef.TYPE_NAME_IMAGE), 1)
+	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_IMAGE), 1)
 	item_type_option.set_item_metadata(1, PortDef.TYPE_NAME_IMAGE)
-	item_type_option.add_item(GuiLocale.port_type_label(PortDef.TYPE_NAME_VIDEO), 2)
+	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_VIDEO), 2)
 	item_type_option.set_item_metadata(2, PortDef.TYPE_NAME_VIDEO)
-	item_type_option.add_item(GuiLocale.port_type_label(PortDef.TYPE_NAME_TEXT), 3)
+	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_TEXT), 3)
 	item_type_option.set_item_metadata(3, PortDef.TYPE_NAME_TEXT)
 	item_type_option.item_selected.connect(on_batch_item_type_selected)
 	row.add_child(item_type_option)

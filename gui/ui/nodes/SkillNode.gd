@@ -45,7 +45,7 @@ func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
 func add_output_port_row(port: PortDef) -> int:
 	var slot_index: int = get_child_count()
 	var row: Label = Label.new()
-	row.text = GuiLocale.text("ui.node.output_arrow", port.display_label(node_def.catalog_id()))
+	row.text = tr("ui.node.output_arrow").format([port.display_label(node_def.catalog_id())], StringUtils.EMPTY_JSON)
 	row.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(row)
 
@@ -72,7 +72,7 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 	row.add_child(label)
 
 	var hint: Label = Label.new()
-	hint.text = GuiLocale.text("ui.node.connect_upstream")
+	hint.text = tr("ui.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.modulate = WorkflowColors.hint
 	row.add_child(hint)

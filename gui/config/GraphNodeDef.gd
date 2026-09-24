@@ -10,7 +10,10 @@ func catalog_id() -> String:
 
 
 func display_label() -> String:
-	return GuiLocale.node_label(catalog_id())
+	var id := catalog_id()
+	var key := "node." + id
+	var translated := TranslationServer.translate(key)
+	return id if translated == key else translated
 
 
 func is_source() -> bool:

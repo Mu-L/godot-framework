@@ -59,7 +59,12 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	var field := LineEdit.new()
 	field.custom_minimum_size.x = 260
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	field.placeholder_text = GuiLocale.text("ui.node.path_placeholder", GuiLocale.port_type_label(PortDef.type_to_string(port_type)))
+	var type_name := PortDef.type_to_string(port_type)
+	var type_key := "port_type." + type_name
+	var translated_type := tr(type_key)
+	if translated_type == type_key:
+		translated_type = type_name
+	field.placeholder_text = tr("ui.node.path_placeholder").format([translated_type], StringUtils.EMPTY_JSON)
 	row.add_child(field)
 	input_fields[port_id] = field
 
