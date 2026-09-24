@@ -9,7 +9,7 @@ const LOCALE_PATHS: Array[String] = [
 
 func ensure_translations() -> void:
 	if not TranslationServer.has_translation_for_locale(LOCALE_EN, true):
-		assert(TranslationHelper.register_json_files(LOCALE_PATHS))
+		assert(I18n.register_json_files(LOCALE_PATHS))
 	pass
 
 

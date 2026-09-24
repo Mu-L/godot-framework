@@ -32,7 +32,7 @@ var running_pipeline: bool = false
 
 
 func _ready() -> void:
-	if not TranslationHelper.register_json_files(LOCALE_PATHS):
+	if not I18n.register_json_files(LOCALE_PATHS):
 		return
 	TranslationServer.set_locale(LOCALE_EN)
 	configure_sidebar_layout()
