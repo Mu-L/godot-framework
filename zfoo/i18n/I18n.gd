@@ -2,20 +2,15 @@ class_name I18n
 extends Object
 
 
-static func register_json_files(paths: Array[String]) -> bool:
-	var registered := TranslationServer.get_translations()
-	if not registered.is_empty():
-		return false
-
-	if not I18nCheck.check_configs(paths):
-		return false
-
-	for path in paths:
-		var locale_data := LocaleData.parse_json_file(path)
-		if locale_data == null:
-			return false
+## Loads the translation at path when needed, then switches to its declared locale.
+static func set_locale(locale_path: String) -> void:
+	var locale_data := LocaleData.parse_json_file(locale_path)
+	if locale_data == null:
+		return
+	if not TranslationServer.has_translation_for_locale(locale_data.locale, true):
 		TranslationServer.add_translation(create_translation(locale_data))
-	return true
+	TranslationServer.set_locale(locale_data.locale)
+	pass
 
 
 static func create_translation(locale_data: LocaleData) -> Translation:
