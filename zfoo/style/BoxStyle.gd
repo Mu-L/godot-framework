@@ -10,8 +10,8 @@ extends Object
 ##
 ## Typical use:
 ## [codeblock]
-## var normal := BoxStyle.make(AgentColors.panel, 6, Margin.ma_2, Margin.ma_1, AgentColors.chat_input_border, 1)
-## var hover := BoxStyle.with_bg(normal, AgentColors.sidebar_row_hover)
+## var normal := BoxStyle.make(ThemeColorCard.background_color, 6, Margin.ma_2, Margin.ma_1, ThemeColorCard.accent_color, 1)
+## var hover := BoxStyle.with_bg(normal, ThemeColorCard.inset_color)
 ## [/codeblock]
 
 

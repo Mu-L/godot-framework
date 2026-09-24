@@ -15,9 +15,9 @@ extends Object
 ##
 ## Typical use:
 ## [codeblock]
-## var normal := BoxStyle.make(AgentColors.toolbar_button, 6, Margin.ma_2, Margin.ma_1, AgentColors.toolbar_border, 1)
-## var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(AgentColors.toolbar_button, 0.08))
-## var pressed := BoxStyle.with_bg(hover, AgentColors.theme_selection_bg())
+## var normal := BoxStyle.make(ThemeColorCard.background_color, 6, Margin.ma_2, Margin.ma_1, ThemeColorCard.accent_color, 1)
+## var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(ThemeColorCard.background_color, 0.08))
+## var pressed := BoxStyle.with_bg(hover, ThemeColorCard.inset_color)
 ## ButtonStyle.apply_states(button, normal, hover, pressed)
 ## [/codeblock]
 
