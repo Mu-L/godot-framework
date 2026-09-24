@@ -111,6 +111,13 @@ func apply_style() -> void:
 	pass
 
 
+func apply_locale() -> void:
+	delete_button.tooltip_text = I18n.t("agent.sidebar.delete_chat")
+	if rename_field != null:
+		rename_field.placeholder_text = I18n.t("agent.sidebar.chat_title")
+	pass
+
+
 func bind_hover(control: Control) -> void:
 	control.mouse_entered.connect(on_mouse_entered)
 	control.mouse_exited.connect(on_mouse_exited)

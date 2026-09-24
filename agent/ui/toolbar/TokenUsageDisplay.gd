@@ -27,6 +27,7 @@ func setup(p_wrap: PanelContainer) -> void:
 	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
+	gdf.events.locale_changed.connect(apply_theme)
 	AgentEvents.events.session_selected.connect(refresh)
 	AgentEvents.events.message_complete.connect(on_message_complete)
 	label.text = StringUtils.format(I18n.t("agent.tokens.label"), "0")

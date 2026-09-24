@@ -41,6 +41,7 @@ func setup(
 	chat_scroll.get_window().window_input.connect(on_chat_window_input)
 	gdf.events.theme_changed.connect(on_theme_changed)
 	gdf.events.theme_color_changed.connect(on_theme_color_changed)
+	gdf.events.locale_changed.connect(on_locale_changed)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
@@ -165,6 +166,11 @@ func on_markdown_changed(_enabled: bool) -> void:
 
 
 func on_theme_changed() -> void:
+	rebuild(AgentSessionManager.active_session_id)
+	pass
+
+
+func on_locale_changed() -> void:
 	rebuild(AgentSessionManager.active_session_id)
 	pass
 

@@ -12,6 +12,8 @@ const SVG_BASE_COLOR: String = "#8B949E"
 var button: Button
 var dialog: ConfirmationDialog
 var content_panel: PanelContainer
+var appearance_heading_label: Label
+var language_select: OptionButton
 var heading_label: Label
 var description_label: Label
 var provider_select: OptionButton
@@ -42,6 +44,7 @@ func setup(p_button: Button) -> void:
 	button.mouse_exited.connect(on_button_mouse_exited)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
+	gdf.events.locale_changed.connect(apply_locale)
 	apply_theme()
 	pass
 
@@ -87,6 +90,12 @@ func build_dialog() -> void:
 	fields.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fields.add_theme_constant_override("separation", Margin.ma_3)
 	scroll.add_child(fields)
+	appearance_heading_label = Label.new()
+	appearance_heading_label.text = I18n.t("agent.settings.appearance")
+	appearance_heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
+	fields.add_child(appearance_heading_label)
+	add_language_field(fields)
+	fields.add_child(HSeparator.new())
 	heading_label = Label.new()
 	heading_label.text = I18n.t("agent.settings.heading")
 	heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
@@ -109,6 +118,39 @@ func build_dialog() -> void:
 	add_notify_fields(fields)
 	fields.add_child(HSeparator.new())
 	build_folder_dialog()
+	pass
+
+
+func add_language_field(parent: VBoxContainer) -> void:
+	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.language"))
+	language_select = OptionButton.new()
+	language_select.custom_minimum_size = Vector2(0, 38)
+	for locale: String in I18nHelper.LOCALE_PATHS:
+		var config: I18nHelper.LocaleConfig = I18nHelper.LOCALE_PATHS[locale]
+		language_select.add_item(config.language)
+		language_select.set_item_metadata(language_select.item_count - 1, locale)
+	language_select.item_selected.connect(on_language_selected)
+	language_select.get_popup().popup_hide.connect(on_provider_popup_hide)
+	group.add_child(language_select)
+	select_current_language()
+	pass
+
+
+func select_current_language() -> void:
+	var current_locale := I18n.get_locale()
+	for index in range(language_select.item_count):
+		if str(language_select.get_item_metadata(index)) == current_locale:
+			language_select.select(index)
+			return
+	pass
+
+
+func on_language_selected(index: int) -> void:
+	var locale := str(language_select.get_item_metadata(index))
+	if locale == I18n.get_locale() or not I18nHelper.LOCALE_PATHS.has(locale):
+		return
+	var config: I18nHelper.LocaleConfig = I18nHelper.LOCALE_PATHS[locale]
+	I18n.set_locale(config.locale_path)
 	pass
 
 
@@ -228,7 +270,7 @@ func add_provider_field(parent: VBoxContainer) -> OptionButton:
 	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.provider"))
 	var select: OptionButton = OptionButton.new()
 	select.custom_minimum_size = Vector2(0, 38)
-	select.add_item(ApiSupport.CUSTOM_PROVIDER)
+	select.add_item(I18n.t("agent.settings.custom_provider"))
 	for provider: ApiProvider in ApiSupport.PROVIDERS:
 		select.add_item(provider.name)
 	select.item_selected.connect(on_provider_selected)
@@ -310,6 +352,7 @@ func update_sound_options_visible(enabled: bool) -> void:
 
 
 func on_button_pressed() -> void:
+	select_current_language()
 	api_url_edit.text = ApiSetting.get_api_url()
 	model_edit.text = ApiSetting.get_model()
 	provider_select.select(0)
@@ -435,10 +478,38 @@ func on_provider_popup_hide() -> void:
 
 
 func check_dialog_focus() -> void:
-	if not dialog.visible or provider_select.get_popup().visible or sound_folder_dialog.visible:
+	if not dialog.visible or provider_select.get_popup().visible or language_select.get_popup().visible or sound_folder_dialog.visible:
 		return
 	if not dialog.has_focus():
 		dialog.hide()
+	pass
+
+
+func apply_locale() -> void:
+	appearance_heading_label.text = I18n.t("agent.settings.appearance")
+	heading_label.text = I18n.t("agent.settings.heading")
+	description_label.text = I18n.t("agent.settings.description")
+	field_labels[0].text = I18n.t("agent.settings.language")
+	field_labels[1].text = I18n.t("agent.settings.provider")
+	field_labels[2].text = I18n.t("agent.settings.api_endpoint")
+	field_labels[3].text = I18n.t("agent.settings.model")
+	field_labels[4].text = I18n.t("agent.settings.api_token")
+	field_labels[5].text = I18n.t("agent.settings.proxy")
+	field_labels[6].text = I18n.t("agent.settings.sound_duration")
+	help_labels[0].text = I18n.t("agent.settings.provider_help")
+	help_labels[1].text = I18n.t("agent.settings.api_endpoint_help")
+	help_labels[2].text = I18n.t("agent.settings.model_help")
+	help_labels[3].text = I18n.t("agent.settings.token_help")
+	help_labels[4].text = I18n.t("agent.settings.proxy_help")
+	provider_select.set_item_text(0, I18n.t("agent.settings.custom_provider"))
+	toast_toggle_button.text = I18n.t("agent.settings.notification_window")
+	sound_toggle_button.text = I18n.t("agent.settings.notification_sound")
+	sound_folder_edit.tooltip_text = I18n.t("agent.settings.sound_folder_help")
+	sound_folder_dialog.title = I18n.t("agent.settings.sound_folder_title")
+	sound_folder_dialog.ok_button_text = I18n.t("agent.common.select")
+	token_visibility_button.text = I18n.t("agent.common.show") if api_token_edit.secret else I18n.t("agent.common.hide")
+	select_current_language()
+	apply_theme()
 	pass
 
 
@@ -492,6 +563,7 @@ func style_dialog() -> void:
 	dialog.add_theme_constant_override("resize_margin", Margin.ma_0)
 	dialog.add_theme_constant_override("buttons_separation", Margin.ma_0)
 	content_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	appearance_heading_label.add_theme_color_override("font_color", AgentColors.chat_text)
 	heading_label.add_theme_color_override("font_color", AgentColors.chat_text)
 	description_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	for label: Label in field_labels:
@@ -501,6 +573,7 @@ func style_dialog() -> void:
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit, sound_folder_edit]:
 		style_line_edit(edit)
 	style_option_button(provider_select)
+	style_option_button(language_select)
 	style_spin_box(sound_seconds_spin)
 	style_secondary_button(token_visibility_button)
 	style_check_button(toast_toggle_button)

@@ -73,6 +73,9 @@
       }
     },
     "settings": {
+      "appearance": "外观",
+      "language": "语言",
+      "custom_provider": "自定义",
       "heading": "AI 连接",
       "description": "配置 OpenAI 兼容服务和运行完成通知。",
       "api_endpoint": "API 地址",

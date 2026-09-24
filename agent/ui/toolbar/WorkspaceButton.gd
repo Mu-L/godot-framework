@@ -17,7 +17,15 @@ func setup(p_button: Button, p_dialog: FileDialog) -> void:
 	button.tooltip_text = I18n.t("agent.workspace.choose")
 	button.pressed.connect(on_button_pressed)
 	dialog.dir_selected.connect(on_dir_selected)
+	gdf.events.locale_changed.connect(apply_locale)
 	refresh()
+	pass
+
+
+func apply_locale() -> void:
+	button.tooltip_text = I18n.t("agent.workspace.choose")
+	dialog.title = I18n.t("agent.workspace.dialog_title")
+	dialog.ok_button_text = I18n.t("agent.common.select")
 	pass
 
 

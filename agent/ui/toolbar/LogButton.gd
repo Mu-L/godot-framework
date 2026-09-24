@@ -16,6 +16,7 @@ func setup(p_button: Button) -> void:
 	button.pressed.connect(on_pressed)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
+	gdf.events.locale_changed.connect(apply_theme)
 	apply_theme()
 	pass
 

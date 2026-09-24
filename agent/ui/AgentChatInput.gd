@@ -70,6 +70,7 @@ func setup(
 	input_bar.get_window().window_input.connect(on_global_input)
 	gdf.events.theme_changed.connect(on_ui_theme_changed)
 	gdf.events.theme_color_changed.connect(on_ui_theme_changed)
+	gdf.events.locale_changed.connect(on_ui_theme_changed)
 	AgentEvents.events.session_selected.connect(on_session_selected)
 	AgentEvents.events.chat_input_prefill.connect(on_chat_input_prefill)
 	setup_border_beam()

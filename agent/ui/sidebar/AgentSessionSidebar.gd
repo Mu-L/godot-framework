@@ -44,6 +44,7 @@ func setup(
 	new_session_button.pressed.connect(on_new_session_pressed)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
+	gdf.events.locale_changed.connect(apply_locale)
 	AgentEvents.events.session_added.connect(on_session_added)
 	AgentEvents.events.session_removed.connect(remove_row)
 	AgentEvents.events.session_selected.connect(select_item)
@@ -91,6 +92,15 @@ func apply_theme() -> void:
 	SessionSidebarTheme.apply_new_session_button(new_session_button)
 	for row: SessionRow in session_rows.values():
 		row.apply_style()
+	pass
+
+
+func apply_locale() -> void:
+	pinned_header.text = I18n.t("agent.sidebar.pinned")
+	normal_header.text = I18n.t("agent.sidebar.chats")
+	new_session_button.text = I18n.t("agent.sidebar.new_chat")
+	for row: SessionRow in session_rows.values():
+		row.apply_locale()
 	pass
 
 

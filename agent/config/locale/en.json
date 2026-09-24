@@ -73,6 +73,9 @@
       }
     },
     "settings": {
+      "appearance": "Appearance",
+      "language": "Language",
+      "custom_provider": "Custom",
       "heading": "AI connection",
       "description": "Configure the OpenAI-compatible service and run notifications.",
       "api_endpoint": "API endpoint",

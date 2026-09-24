@@ -24,6 +24,7 @@ func setup(p_button: Button) -> void:
 	button.mouse_exited.connect(on_mouse_exited)
 	gdf.events.theme_changed.connect(on_ui_theme_changed)
 	gdf.events.theme_color_changed.connect(on_ui_theme_changed)
+	gdf.events.locale_changed.connect(apply_theme)
 	on_ui_theme_changed()
 	pass
 
