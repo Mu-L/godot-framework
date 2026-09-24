@@ -33,13 +33,13 @@ func DesktopToast_build_card_test() -> void:
 	var column: VBoxContainer = toast.card.get_child(0) as VBoxContainer
 	var title_label: Label = column.get_child(0) as Label
 	assert(title_label.text == "feedback toast")
-	assert(title_label.get_theme_font_size("font_size") == DesktopToast.TITLE_FONT_SIZE)
+	assert(title_label.get_theme_font_size("font_size") == TextStyle.title_medium_size)
 	assert(toast.body_label != null)
 	assert(toast.body_label.text == "feedback toast body")
 	assert(toast.body_label.max_lines_visible == DesktopToast.MAX_BODY_LINES)
 	var style: StyleBoxFlat = toast.card.get_theme_stylebox("panel") as StyleBoxFlat
 	assert(style.border_color == Colors.success)
-	assert(style.border_width_left == DesktopToast.ACCENT_WIDTH)
+	assert(style.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(style.bg_color == ThemeColorCard.background_color)
 	toast.free()
 	pass

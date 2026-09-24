@@ -7,11 +7,10 @@ extends Window
 ## It never activates and never joins Godot's popup list, so the app window keeps its input.
 ##
 ## Example: `DesktopToast.show_toast("Run finished", summary, Colors.success)`
-## The card follows the app accent through `ThemeColorCard`; the accent color is passed per toast.
+## The card is [CardStyle] on the [ThemeColorCard] surface — the same card the snackbar paints, only
+## with the stripe on the leading edge; the accent color is passed per toast.
 
 const CARD_WIDTH: float = 380.0
-const ACCENT_WIDTH: int = 3
-const TITLE_FONT_SIZE: int = TextStyle.title_medium_size
 const BODY_FONT_SIZE: int = TextStyle.body_medium_size
 const MAX_BODY_LINES: int = 4
 const SHOW_SECONDS: float = 4.5
@@ -170,7 +169,7 @@ func build_card() -> void:
 	var text_width: float = card_width - pad * 2.0
 	var title_font: Font = Fonts.semibold()
 	var body_font: Font = Fonts.regular()
-	var title_size: int = roundi(TITLE_FONT_SIZE * unit)
+	var title_size: int = roundi(TextStyle.title_medium_size * unit)
 	var body_size: int = roundi(BODY_FONT_SIZE * unit)
 	var gap: float = Margin.ma_2 * unit
 	# First guess from font metrics; `fit_window_size` corrects it once the labels wrapped.
@@ -214,17 +213,9 @@ func build_card() -> void:
 	pass
 
 
-## Flat rectangle: card background plus an accent stripe down the left edge.
+## The card with one accent stripe down the leading edge, everything scaled by the app UI scale.
 func make_card_style(pad: float, unit: float) -> StyleBoxFlat:
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = ThemeColorCard.background_color
-	style.border_color = accent
-	style.border_width_left = roundi(ACCENT_WIDTH * unit)
-	style.content_margin_left = pad
-	style.content_margin_right = pad
-	style.content_margin_top = pad
-	style.content_margin_bottom = pad
-	return style
+	return CardStyle.make(accent, 0, pad, pad, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * unit))
 
 
 func close_toast() -> void:

@@ -1,6 +1,7 @@
 ## Material snackbar on `gdf_layer`: an accent-tinted card (near-black with near-white text in the dark
-## theme) and the semantic color as a stripe down both edges. The surface comes from [ThemeColorCard],
-## so a snackbar follows the app accent and matches [DesktopToast].
+## theme) and the semantic color as a stripe down both edges. Surface and geometry come from
+## [ThemeColorCard] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
+## accent and matches the desktop toast.
 ## It drops in at the top center — one short fall from the top edge of the screen down to
 ## [constant Margin.ma_6] — holds, then fades out; live cards stack downward, the newest one hugging
 ## the top edge.
@@ -9,9 +10,6 @@
 class_name Alert
 extends PanelContainer
 
-const default_corner_radius: int = 6
-## Semantic color stripe down the left and right edges — the accent bar [DesktopToast] carries too.
-const stripe_width: int = 3
 ## Entry drop and re-stacking shift — both are short moves, fading in on the way down.
 const move_seconds: float = 0.18
 ## Plain fade-out that ends the toast.
@@ -19,8 +17,12 @@ const exit_seconds: float = 0.22
 const default_wait_time: int = 2700
 ## A snackbar stays on one line: text wider than this is trimmed with an ellipsis instead of wrapped.
 const text_max_width: float = 720.0
+## Drop shadow. The alpha has to follow the theme: one value either vanishes over the light card or
+## smudges over the dark one.
+const shadow_alpha_dark: float = 0.35
+const shadow_alpha_light: float = 0.18
 const shadow_size: int = 4
-const shadow_color: Color = Color(0.0, 0.0, 0.0, 0.35)
+const shadow_offset: Vector2 = Vector2(0.0, 2.0)
 
 ## Live cards, oldest first — [method relayout] stacks them from the top edge downward.
 static var alerts: Array[Alert] = []
@@ -50,15 +52,12 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 	return card
 
 
-## Dark surface in the app accent, with the semantic color as a stripe on each side.
+## Dark surface in the app accent, with the semantic color as a stripe on each side and the card shadow.
 static func make_card_style(stripe_color: Color) -> StyleBoxFlat:
-	var style := BoxStyle.make(ThemeColorCard.background_color, default_corner_radius, Margin.ma_4, Margin.ma_3, stripe_color, stripe_width)
-	# [method BoxStyle.make] borders all four sides; a snackbar only wants the two side bars.
-	style.border_width_top = 0
-	style.border_width_bottom = 0
-	style.shadow_color = shadow_color
+	var style := CardStyle.make(stripe_color, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
+	style.shadow_color = Color(0.0, 0.0, 0.0, shadow_alpha_dark if ThemeColor.is_dark_theme() else shadow_alpha_light)
 	style.shadow_size = shadow_size
-	style.shadow_offset = Vector2(0.0, 2.0)
+	style.shadow_offset = shadow_offset
 	return style
 
 

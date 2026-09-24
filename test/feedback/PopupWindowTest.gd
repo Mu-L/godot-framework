@@ -107,11 +107,11 @@ func PopupWindow_theme_test() -> void:
 	gdf.gdf_node.add_child(window)
 	var border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
 	assert(border.bg_color == ThemeColorCard.background_color)
-	assert(border.corner_radius_top_left == PopupWindow.FRAME_RADIUS)
+	assert(border.corner_radius_top_left == CardStyle.CORNER_RADIUS)
 	assert(border.get_minimum_size().y == window.get_theme_stylebox("embedded_unfocused_border").get_minimum_size().y)
 	assert(window.get_theme_color("title_color") == ThemeColorCard.title_color)
 	assert(window.get_theme_font("title_font") == Fonts.semibold())
-	assert(window.get_theme_font_size("title_font_size") == PopupWindow.TITLE_FONT_SIZE)
+	assert(window.get_theme_font_size("title_font_size") == TextStyle.title_medium_size)
 	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ThemeColorCard.background_color)
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ThemeColorCard.inset_color)
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).content_margin_left == Margin.ma_4)

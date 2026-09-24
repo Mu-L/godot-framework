@@ -1,4 +1,4 @@
-## Unit tests for [BoxStyle], [ButtonStyle] and the builders that go through them.
+## Unit tests for [BoxStyle], [ButtonStyle], [CardStyle] and the builders that go through them.
 
 const GRAY := Color(0.5, 0.5, 0.5)
 
@@ -55,6 +55,65 @@ func BoxStyle_pad_test() -> void:
 	var empty := StyleBoxEmpty.new()
 	BoxStyle.pad(empty, Margin.ma_1, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	assert(empty.get_margin(SIDE_LEFT) == Margin.ma_1)
+	pass
+
+
+## Accent-striped cards: the snackbar frames its text with a stripe on both edges, the desktop toast
+## only marks the leading one.
+func CardStyle_make_test() -> void:
+	var snackbar := CardStyle.make(Colors.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
+	assert(snackbar.bg_color == ThemeColorCard.background_color)
+	assert(snackbar.border_color == Colors.success)
+	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
+	assert(snackbar.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)
+	assert(snackbar.border_width_top == 0 and snackbar.border_width_bottom == 0)
+	assert(snackbar.corner_radius_top_left == CardStyle.CORNER_RADIUS)
+	assert(snackbar.get_margin(SIDE_LEFT) == Margin.ma_4 and snackbar.get_margin(SIDE_TOP) == Margin.ma_3)
+
+	# Leading-edge stripe, square corners and a padding scaled by the app UI scale: the desktop toast card.
+	var toast := CardStyle.make(Colors.error, 0, 10.0, 10.0, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * 2.0))
+	assert(toast.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH * 2)
+	assert(toast.border_width_right == 0)
+	assert(toast.corner_radius_top_left == 0)
+	assert(toast.get_margin(SIDE_RIGHT) == 10.0)
+	pass
+
+
+## The snackbar shadow is the one card value that cannot be a plain token: the same alpha over a dark
+## surface and over a light one reads as either nothing or a smudge.
+func Alert_card_shadow_test() -> void:
+	var original: ThemeColor.ThemeEnum = ThemeColor.current_theme
+
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
+	var dark := Alert.make_card_style(Colors.info)
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
+	var light := Alert.make_card_style(Colors.info)
+	assert(is_equal_approx(dark.shadow_color.a, Alert.shadow_alpha_dark))
+	assert(is_equal_approx(light.shadow_color.a, Alert.shadow_alpha_light))
+	assert(dark.shadow_color.a > light.shadow_color.a)
+	assert(light.shadow_size == Alert.shadow_size)
+	assert(light.shadow_offset == Alert.shadow_offset)
+
+	ThemeColor.current_theme = original
+	pass
+
+
+## The card surfaces come from one place, so [Alert] and [DesktopToast] differ in where the stripe sits,
+## not in surface, stripe width or radius.
+func CardStyle_card_components_test() -> void:
+	var snackbar := Alert.make_card_style(Colors.success)
+	assert(snackbar.corner_radius_top_left == CardStyle.CORNER_RADIUS)
+	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
+	assert(snackbar.shadow_size == Alert.shadow_size)
+
+	var toast: DesktopToast = DesktopToast.new()
+	toast.accent = Colors.success
+	var toast_card := toast.make_card_style(Margin.ma_5, 1.0)
+	assert(toast_card.bg_color == snackbar.bg_color)
+	assert(toast_card.border_color == snackbar.border_color)
+	assert(toast_card.border_width_left == snackbar.border_width_left)
+	assert(toast_card.border_width_right == 0)
+	toast.free()
 	pass
 
 
