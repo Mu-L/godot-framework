@@ -3,12 +3,12 @@ extends RefCounted
 
 ## Circular toolbar button with an SVG paintbrush icon and ColorPicker popup.
 
-const BUTTON_SIZE := 28
-const ICON_SIZE := 14
-const BRUSH_ICON_PATH := "res://agent/asset/image/icon/brush.svg"
-const SVG_HANDLE_COLOR := "#8B949E"
-const SVG_ACCENT_COLOR := "#2DD4BF"
-const SVG_FERRULE_COLOR := "#A3AAB4"
+const BUTTON_SIZE: int = 28
+const ICON_SIZE: int = 14
+const BRUSH_ICON_PATH: String = "res://agent/asset/image/icon/brush.svg"
+const SVG_HANDLE_COLOR: String = "#8B949E"
+const SVG_ACCENT_COLOR: String = "#2DD4BF"
+const SVG_FERRULE_COLOR: String = "#A3AAB4"
 
 var button: Button
 var popup: PopupPanel
@@ -50,7 +50,7 @@ func build_popup() -> void:
 
 func apply_theme() -> void:
 	AgentToolbarButton.style(button, "Theme color", BUTTON_SIZE / 2)
-	apply_equal_icon_margins(2)
+	apply_equal_icon_margins(Margin.ma_1)
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -64,7 +64,7 @@ func apply_theme() -> void:
 
 func apply_equal_icon_margins(margin: int) -> void:
 	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
+		var box: StyleBoxFlat = button.get_theme_stylebox(state_name) as StyleBoxFlat
 		if box == null:
 			continue
 		box.content_margin_left = margin
@@ -75,8 +75,8 @@ func apply_equal_icon_margins(margin: int) -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var accent := AgentColors.theme_accent_solid()
-	var handle := AgentColors.toolbar_muted
+	var accent: Color = AgentColors.theme_accent_solid()
+	var handle: Color = AgentColors.toolbar_muted
 	if hovered:
 		accent = accent.lightened(0.10)
 		handle = AgentColors.toolbar_title
@@ -85,11 +85,11 @@ func update_icon(hovered: bool) -> void:
 
 
 func make_brush_icon(accent: Color, handle: Color) -> ImageTexture:
-	var svg := FileAccess.get_file_as_string(BRUSH_ICON_PATH)
+	var svg: String = FileAccess.get_file_as_string(BRUSH_ICON_PATH)
 	svg = svg.replace(SVG_HANDLE_COLOR, "#" + handle.to_html(false))
 	svg = svg.replace(SVG_ACCENT_COLOR, "#" + accent.to_html(false))
 	svg = svg.replace(SVG_FERRULE_COLOR, "#" + handle.lightened(0.14).to_html(false))
-	var image := Image.new()
+	var image: Image = Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
 		return ImageTexture.new()
 	return ImageTexture.create_from_image(image)
@@ -97,7 +97,7 @@ func make_brush_icon(accent: Color, handle: Color) -> ImageTexture:
 
 func on_pressed() -> void:
 	color_picker.color = ThemeColor.theme_color
-	var anchor := button.global_position + Vector2(0.0, button.size.y + 6.0)
+	var anchor: Vector2 = button.global_position + Vector2(0.0, button.size.y + 6.0)
 	popup.position = Vector2i(int(anchor.x - 140.0), int(anchor.y))
 	popup.popup()
 	pass

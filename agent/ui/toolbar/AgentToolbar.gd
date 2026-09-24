@@ -3,8 +3,8 @@ extends RefCounted
 
 ## Top toolbar — panel chrome, GAI logo, title, and workspace path button theme.
 
-const LOGO_FONT_SIZE := 18
-const LOGO_GLYPH_SPACING := 2
+const LOGO_FONT_SIZE: int = 18
+const LOGO_GLYPH_SPACING: int = 2
 
 var toolbar_panel: PanelContainer
 var logo_label: Label
@@ -40,8 +40,8 @@ func apply_theme() -> void:
 
 ## GAI wordmark on the far left of the toolbar row.
 func apply_logo_theme() -> void:
-	var accent := AgentColors.theme_accent_solid()
-	var logo_font := FontVariation.new()
+	var accent: Color = AgentColors.theme_accent_solid()
+	var logo_font: FontVariation = FontVariation.new()
 	logo_font.base_font = Fonts.bold()
 	logo_font.spacing_glyph = LOGO_GLYPH_SPACING
 	logo_label.text = "GAI"
@@ -53,10 +53,10 @@ func apply_logo_theme() -> void:
 
 
 func build_toolbar_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = AgentColors.toolbar
 	style.border_color = AgentColors.toolbar_border
-	style.content_margin_left = 12
+	style.content_margin_left = Margin.ma_3
 	style.set_border_width(SIDE_BOTTOM, 1)
 	if ThemeColor.is_light_theme():
 		style.set_border_width(SIDE_TOP, 1)

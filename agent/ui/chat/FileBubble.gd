@@ -5,27 +5,27 @@ extends Object
 
 
 static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: StyleBoxFlat) -> RichTextLabel:
-	var wrapper := PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", panel_style)
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	wrapper.add_child(vbox)
 
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 6)
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", Margin.ma_2)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", AgentColors.file_tool_title)
 	title_label.add_theme_font_size_override("font_size", 12)
 	header.add_child(title_label)
 
-	var file_lines_added := int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_ADDED, "0"))
-	var file_lines_removed := int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_REMOVED, "0"))
+	var file_lines_added: int = int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_ADDED, "0"))
+	var file_lines_removed: int = int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_REMOVED, "0"))
 	var file_message: String = entry.details.get(AgentToolResult.DETAIL_FILE_MESSAGE, "")
 	if file_lines_added > 0:
 		header.add_child(create_file_detail_label(StringUtils.format("+{}", file_lines_added), AgentColors.success))
@@ -35,7 +35,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 		header.add_child(create_file_detail_label(file_message, AgentColors.error))
 	vbox.add_child(header)
 
-	var rich_text := MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
+	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
 	rich_text.meta_clicked.connect(open_file)
 	rich_text.tooltip_text = "Open file"
 	vbox.add_child(rich_text)
@@ -56,14 +56,14 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 
 
 static func open_file(meta: Variant) -> void:
-	var path := str(meta)
+	var path: String = str(meta)
 	if FileUtils.open_file(path) != OK:
 		Alert.alert(StringUtils.format("File not found: {}", path), Colors.error)
 	pass
 
 
 static func create_file_detail_label(text: String, color: Color) -> Label:
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_font_size_override("font_size", 11)

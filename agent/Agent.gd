@@ -79,15 +79,15 @@ func _ready() -> void:
 
 
 func apply_theme() -> void:
-	var chat_style := StyleBoxFlat.new()
+	var chat_style: StyleBoxFlat = StyleBoxFlat.new()
 	chat_style.bg_color = AgentColors.chat
-	chat_style.content_margin_left = 0
-	chat_style.content_margin_top = 0
-	chat_style.content_margin_right = 0
-	chat_style.content_margin_bottom = 0
+	chat_style.content_margin_left = Margin.ma_0
+	chat_style.content_margin_top = Margin.ma_0
+	chat_style.content_margin_right = Margin.ma_0
+	chat_style.content_margin_bottom = Margin.ma_0
 	chat_area_panel.add_theme_stylebox_override("panel", chat_style)
 	chat_area_panel.queue_redraw()
-	var shell_style := StyleBoxFlat.new()
+	var shell_style: StyleBoxFlat = StyleBoxFlat.new()
 	shell_style.bg_color = AgentColors.chat
 	add_theme_stylebox_override("panel", shell_style)
 	pass

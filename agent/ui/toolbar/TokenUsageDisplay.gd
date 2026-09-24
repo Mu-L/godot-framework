@@ -12,10 +12,10 @@ extends RefCounted
 ## ```
 
 ## Reference context window for badge color / percentage. Update when switching to a model with a different limit (e.g. GPT-4o 128k vs DeepSeek V4 1M).
-const MAX_CONTEXT_TOKENS := 1_000_000
-const THRESHOLD_WARN := 0.50
-const THRESHOLD_CAUTION := 0.75
-const THRESHOLD_CRITICAL := 0.90
+const MAX_CONTEXT_TOKENS: int = 1_000_000
+const THRESHOLD_WARN: float = 0.50
+const THRESHOLD_CAUTION: float = 0.75
+const THRESHOLD_CRITICAL: float = 0.90
 
 var wrap: PanelContainer
 var label: Label
@@ -42,12 +42,12 @@ func on_message_complete(session_id: int, _usage: OpenAiUsage) -> void:
 func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 	if label == null or wrap == null:
 		return
-	var session := AgentSessionStore.load_session(AgentSessionManager.active_session_id)
+	var session: AgentSession = AgentSessionStore.load_session(AgentSessionManager.active_session_id)
 	if session == null:
 		return
-	var usage := session.usage
-	var n := usage.prompt_tokens
-	var ratio := token_ratio(n)
+	var usage: OpenAiUsage = session.usage
+	var n: int = usage.prompt_tokens
+	var ratio: float = token_ratio(n)
 	label.text = StringUtils.format("{} tokens", format_count(n))
 	wrap.tooltip_text = StringUtils.format(
 		"Context: {} ({}%) · Completion: {} · Total: {} (last request)",
@@ -57,15 +57,15 @@ func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 		usage.total_tokens
 	)
 	label.add_theme_color_override("font_color", text_color_for_tokens(n))
-	var panel := StyleBoxFlat.new()
+	var panel: StyleBoxFlat = StyleBoxFlat.new()
 	panel.bg_color = AgentColors.theme_selection_bg()
 	panel.border_color = AgentColors.toolbar_border
 	panel.set_border_width_all(1)
 	panel.set_corner_radius_all(6)
-	panel.content_margin_left = 8
-	panel.content_margin_right = 8
-	panel.content_margin_top = 4
-	panel.content_margin_bottom = 4
+	panel.content_margin_left = Margin.ma_2
+	panel.content_margin_right = Margin.ma_2
+	panel.content_margin_top = Margin.ma_1
+	panel.content_margin_bottom = Margin.ma_1
 	wrap.add_theme_stylebox_override("panel", panel)
 	pass
 
@@ -94,7 +94,7 @@ static func token_ratio(n: int) -> float:
 
 
 static func text_color_for_tokens(n: int) -> Color:
-	var ratio := token_ratio(n)
+	var ratio: float = token_ratio(n)
 	if ratio >= THRESHOLD_CRITICAL:
 		return AgentColors.error
 	if ratio >= THRESHOLD_CAUTION:

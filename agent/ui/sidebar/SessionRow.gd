@@ -13,9 +13,9 @@ signal delete_pressed(session_id: int)
 
 ## Close button and the running wave share this slot, so swapping them while a run
 ## starts / stops never changes the row width (and never re-ellipsizes the title).
-const ACTION_SIZE := Vector2(28, 28)
+const ACTION_SIZE: Vector2 = Vector2(28, 28)
 ## Alpha of the floating row copy that follows the cursor while dragging.
-const DRAG_GHOST_ALPHA := 0.92
+const DRAG_GHOST_ALPHA: float = 0.92
 
 var session_id: int = 0
 var selected: bool = false
@@ -40,9 +40,9 @@ func build(p_session_id: int, title: String) -> void:
 	add_child(scifi_fx)
 
 	# Inner box is transparent to the mouse, so the panel stays one big drag handle.
-	var content := HBoxContainer.new()
+	var content: HBoxContainer = HBoxContainer.new()
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_theme_constant_override("separation", 4)
+	content.add_theme_constant_override("separation", Margin.ma_1)
 	add_child(content)
 
 	title_button = Button.new()
@@ -145,7 +145,7 @@ func is_renaming() -> bool:
 func open_rename() -> void:
 	if rename_field != null:
 		return
-	var field := LineEdit.new()
+	var field: LineEdit = LineEdit.new()
 	field.text = title_button.text
 	field.placeholder_text = "Chat title"
 	field.max_length = AgentSessionManager.MAX_TITLE_LENGTH
@@ -162,7 +162,7 @@ func open_rename() -> void:
 	SessionSidebarTheme.apply_rename_field(field, title_button)
 
 	title_button.visible = false
-	var content := title_button.get_parent()
+	var content: Node = title_button.get_parent()
 	content.add_child(field)
 	content.move_child(field, title_button.get_index())
 	rename_field = field
@@ -177,7 +177,7 @@ func open_rename() -> void:
 func commit_rename() -> void:
 	if rename_field == null:
 		return
-	var title := rename_field.text
+	var title: String = rename_field.text
 	close_rename_field()
 	# A blank title is rejected by the manager, so the row falls back to its previous name.
 	AgentSessionManager.set_title(session_id, title)
@@ -208,7 +208,7 @@ func commit_rename_if_clicked_outside(click_position: Vector2) -> void:
 func on_rename_gui_input(event: InputEvent) -> void:
 	if rename_field == null or not event.is_action_pressed("ui_cancel"):
 		return
-	var field := rename_field
+	var field: LineEdit = rename_field
 	cancel_rename()
 	field.accept_event()
 	pass
@@ -216,7 +216,7 @@ func on_rename_gui_input(event: InputEvent) -> void:
 
 ## Drops the field first, so the focus loss it causes cannot re-enter the handlers above.
 func close_rename_field() -> void:
-	var field := rename_field
+	var field: LineEdit = rename_field
 	rename_field = null
 	if field == null:
 		return
@@ -240,23 +240,23 @@ func bind_drag_forwarding(get_data: Callable, can_drop: Callable, drop: Callable
 
 ## Floating copy of the row that follows the cursor until the mouse is released.
 func build_drag_preview() -> Control:
-	var row_size := size
+	var row_size: Vector2 = size
 	if row_size.x < 1.0 or row_size.y < 1.0:
 		row_size = get_combined_minimum_size()
 
-	var preview := Control.new()
+	var preview: Control = Control.new()
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview.custom_minimum_size = row_size
 	preview.size = row_size
 	preview.modulate.a = DRAG_GHOST_ALPHA
 
-	var ghost := PanelContainer.new()
+	var ghost: PanelContainer = PanelContainer.new()
 	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ghost.size = row_size
 	ghost.add_theme_stylebox_override("panel", SessionSidebarTheme.drag_ghost())
 	preview.add_child(ghost)
 
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.text = title_button.text
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_CHAR
@@ -267,6 +267,6 @@ func build_drag_preview() -> Control:
 
 	# The engine moves `preview` to the cursor, so offset the ghost by the grab point — the cursor
 	# can already sit a few pixels outside the row once the drag starts.
-	var grab := get_local_mouse_position()
+	var grab: Vector2 = get_local_mouse_position()
 	ghost.position = -Vector2(clampf(grab.x, 0.0, row_size.x), clampf(grab.y, 0.0, row_size.y))
 	return preview

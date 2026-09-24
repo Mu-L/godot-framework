@@ -1,8 +1,8 @@
 extends Control
 
-const SIDEBAR_WIDTH := 300
-const PALETTE_TREE_WIDTH := 276
-const PALETTE_LABEL_MAX := 30
+const SIDEBAR_WIDTH: int = 300
+const PALETTE_TREE_WIDTH: int = 276
+const PALETTE_LABEL_MAX: int = 30
 
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
@@ -133,32 +133,32 @@ func build_palette_tree() -> void:
 	palette_tree.clear()
 	palette_tree.hide_root = true
 	palette_tree.column_titles_visible = false
-	var root := palette_tree.create_item()
+	var root: TreeItem = palette_tree.create_item()
 
 	for category_id in GraphNodesConfig.CATEGORY_IDS:
-		var skills := GraphNodesConfig.list_skills_in_category(category_id)
+		var skills: Array[GraphNodeDef] = GraphNodesConfig.list_skills_in_category(category_id)
 		if skills.is_empty():
 			continue
 
-		var category_item := palette_tree.create_item(root)
+		var category_item: TreeItem = palette_tree.create_item(root)
 		set_palette_item_text(category_item, GraphNodesConfig.category_label(category_id))
 		category_item.set_collapsed(true)
 		category_item.set_selectable(0, true)
 
 		for skill in skills:
-			var skill_item := palette_tree.create_item(category_item)
+			var skill_item: TreeItem = palette_tree.create_item(category_item)
 			set_palette_item_text(skill_item, skill.display_label())
 			skill_item.set_metadata(0, {"kind": "skill", "id": skill.catalog_id()})
 			skill_item.set_selectable(0, true)
 
-	var workflows_item := palette_tree.create_item(root)
+	var workflows_item: TreeItem = palette_tree.create_item(root)
 	set_palette_item_text(workflows_item, GuiLocale.text("ui.palette.my_workflows"))
 	workflows_item.set_collapsed(false)
 	workflows_item.set_selectable(0, true)
 
 	for workflow_path in WorkflowManager.list_saved_workflows():
-		var workflow_item := palette_tree.create_item(workflows_item)
-		var label := WorkflowManager.workflow_name_from_path(workflow_path)
+		var workflow_item: TreeItem = palette_tree.create_item(workflows_item)
+		var label: String = WorkflowManager.workflow_name_from_path(workflow_path)
 		set_palette_item_text(workflow_item, label)
 		workflow_item.set_metadata(0, {"kind": "workflow", "path": workflow_path})
 		workflow_item.set_selectable(0, true)
@@ -186,7 +186,7 @@ func on_palette_item_activated() -> void:
 	if kind == "workflow":
 		open_workflow_at_path(str(meta.get("path", "")))
 	elif kind == "skill":
-		var spawn_pos := Vector2(120 + graph_edit.node_seq * 24, 120 + graph_edit.node_seq * 18)
+		var spawn_pos: Vector2 = Vector2(120 + graph_edit.node_seq * 24, 120 + graph_edit.node_seq * 18)
 		graph_edit.add_skill_node(str(meta.get("id", "")), spawn_pos)
 	pass
 
@@ -218,7 +218,7 @@ func on_load_pressed() -> void:
 
 
 func on_save_file_selected(path: String) -> void:
-	var doc := graph_edit.build_document(WorkflowManager.workflow_name_from_path(path))
+	var doc: WorkflowDocument = graph_edit.build_document(WorkflowManager.workflow_name_from_path(path))
 	WorkflowManager.save(path, doc)
 	set_workflow_name(WorkflowManager.workflow_name)
 	build_palette_tree()
@@ -233,7 +233,7 @@ func on_load_file_selected(path: String) -> void:
 func open_workflow_at_path(path: String) -> void:
 	if path.is_empty():
 		return
-	var doc := WorkflowManager.load(path)
+	var doc: WorkflowDocument = WorkflowManager.load(path)
 	if doc == null:
 		return
 	graph_edit.load_document(doc)
@@ -245,7 +245,7 @@ func set_workflow_name(name: String) -> void:
 	if StringUtils.is_blank(name):
 		return
 	WorkflowManager.workflow_name = name.strip_edges()
-	var display_name := WorkflowManager.workflow_name
+	var display_name: String = WorkflowManager.workflow_name
 	if display_name == "Untitled":
 		display_name = GuiLocale.text("ui.untitled")
 	workflow_name_label.text = display_name
@@ -269,7 +269,7 @@ func on_run_pressed() -> void:
 		return
 	running_pipeline = true
 	set_run_button_running(true)
-	var doc := graph_edit.build_document(WorkflowManager.workflow_name)
+	var doc: WorkflowDocument = graph_edit.build_document(WorkflowManager.workflow_name)
 	Log.info("--- Starting workflow ---")
 	await pipeline_runner.run(doc)
 	pass
@@ -291,7 +291,7 @@ func on_step_finished(node_id: String, exit_code: int, output_path: String) -> v
 func on_pipeline_stopped() -> void:
 	running_pipeline = false
 	set_run_button_running(false)
-	var message := GuiLocale.text("pipeline.stopped")
+	var message: String = GuiLocale.text("pipeline.stopped")
 	Log.info(message)
 	Alert.alert(message, WorkflowColors.warning)
 	pass
@@ -331,23 +331,23 @@ func style_run_button() -> void:
 	run_button.text = GuiLocale.text("ui.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", 14)
 	run_button.add_theme_constant_override("icon_max_height", 14)
-	run_button.add_theme_constant_override("h_separation", 6)
+	run_button.add_theme_constant_override("h_separation", Margin.ma_2)
 	pass
 
 
 func apply_run_button_style(base_color: Color) -> void:
-	var normal := StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = base_color
 	normal.set_corner_radius_all(4)
-	normal.content_margin_top = 4
-	normal.content_margin_bottom = 4
-	normal.content_margin_left = 12
-	normal.content_margin_right = 14
+	normal.content_margin_top = Margin.ma_1
+	normal.content_margin_bottom = Margin.ma_1
+	normal.content_margin_left = Margin.ma_3
+	normal.content_margin_right = Margin.ma_4
 
-	var hover := normal.duplicate() as StyleBoxFlat
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = base_color.lightened(0.12)
 
-	var pressed := normal.duplicate() as StyleBoxFlat
+	var pressed: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	pressed.bg_color = base_color.darkened(0.08)
 
 	run_button.add_theme_stylebox_override("normal", normal)
@@ -357,13 +357,13 @@ func apply_run_button_style(base_color: Color) -> void:
 
 
 func make_play_icon(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var left := int(size * 0.25)
-	var right := int(size * 0.92)
-	var top := int(size * 0.18)
-	var bottom := int(size * 0.82)
-	var mid_y := (top + bottom) / 2
+	var left: int = int(size * 0.25)
+	var right: int = int(size * 0.92)
+	var top: int = int(size * 0.18)
+	var bottom: int = int(size * 0.82)
+	var mid_y: int = (top + bottom) / 2
 	for y in range(top, bottom + 1):
 		var x_max: int
 		if y <= mid_y:
@@ -376,9 +376,9 @@ func make_play_icon(size: int, color: Color) -> ImageTexture:
 
 
 func make_stop_icon(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var margin := int(size * 0.22)
+	var margin: int = int(size * 0.22)
 	for y in range(margin, size - margin):
 		for x in range(margin, size - margin):
 			img.set_pixel(x, y, color)

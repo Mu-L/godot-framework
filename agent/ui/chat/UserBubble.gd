@@ -7,9 +7,9 @@ extends Object
 ## the entry has one). Both hand the message body back to the chat input for re-editing.
 ## The body is shown as plain text — what the user typed is never Markdown-rendered.
 
-const BeamLayer := preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
-const BUBBLE_CORNER_RADIUS := 8.0
-const BEAM_STRENGTH := 1.0
+const BeamLayer: GDScript = preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
+const BUBBLE_CORNER_RADIUS: float = 8.0
+const BEAM_STRENGTH: float = 1.0
 
 
 static func append(
@@ -20,47 +20,47 @@ static func append(
 	text_color: Color,
 	title_color: Color = AgentColors.chat_text_muted
 ) -> RichTextLabel:
-	var host := Control.new()
+	var host: Control = Control.new()
 	host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	host.clip_contents = false
 
-	var panel := PanelContainer.new()
+	var panel: PanelContainer = PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	panel.set_offsets_preset(Control.PRESET_FULL_RECT)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", panel_style)
 	host.add_child(panel)
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	panel.add_child(vbox)
 
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 6)
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", Margin.ma_2)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", 12)
 	header.add_child(title_label)
 
-	var spacer := Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(spacer)
 
 	# Revert is only offered when this turn has a workspace snapshot (older chats have none).
 	if StringUtils.is_not_blank(entry.checkpoint):
-		var revert_button := Button.new()
+		var revert_button: Button = Button.new()
 		revert_button.name = "RevertButton"
 		revert_button.text = "Revert"
 		AgentBubble.style_header_button(revert_button, panel_style.bg_color, "Delete from here and restore the workspace (message goes back to the input box)", 58.0)
 		revert_button.pressed.connect(on_revert_pressed.bind(session_id, entry))
 		header.add_child(revert_button)
 
-	var delete_from_here_button := Button.new()
+	var delete_from_here_button: Button = Button.new()
 	delete_from_here_button.name = "DeleteFromHereButton"
 	delete_from_here_button.text = "Delete"
 	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, "Delete from here (message goes back to the input box, workspace is kept)", 52.0)
@@ -70,7 +70,7 @@ static func append(
 	vbox.add_child(header)
 
 	# MarkdownToggle forces plain text for user entries, so the prompt shows verbatim.
-	var rich_text := MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry)
@@ -115,8 +115,8 @@ static func sync_layout(host: Control, panel: PanelContainer, beam: AccentBorder
 	if not is_instance_valid(host) or not is_instance_valid(panel) or not is_instance_valid(beam):
 		return
 	host.custom_minimum_size = panel.get_combined_minimum_size()
-	var pad := AccentBorderBeamLayer.BEAM_OUTSET
-	var panel_size := panel.size
+	var pad: int = Margin.ma_1
+	var panel_size: Vector2 = panel.size
 	if panel_size.x < 1.0 or panel_size.y < 1.0:
 		panel_size = panel.get_combined_minimum_size()
 	beam.layout_mode = 0

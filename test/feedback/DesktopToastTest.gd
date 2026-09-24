@@ -2,18 +2,18 @@
 
 ## [method DesktopToast.compute_ui_scale] maps main-window pixels to viewport units, clamped to 0.5–4.0.
 func DesktopToast_compute_ui_scale_test() -> void:
-	var scale := DesktopToast.compute_ui_scale()
+	var scale: float = DesktopToast.compute_ui_scale()
 	assert(scale >= 0.5 and scale <= 4.0)
 	pass
 
 
 ## [method DesktopToast.corner_position] pins the toast to the bottom-right of the usable screen area.
 func DesktopToast_corner_position_test() -> void:
-	var toast_size := Vector2i(roundi(DesktopToast.CARD_WIDTH), 120)
-	var corner := DesktopToast.corner_position(toast_size)
-	var screen := DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
-	var usable := DisplayServer.screen_get_usable_rect(screen)
-	var margin := roundi(DesktopToast.SCREEN_MARGIN * DesktopToast.ui_scale)
+	var toast_size: Vector2i = Vector2i(roundi(DesktopToast.CARD_WIDTH), 120)
+	var corner: Vector2i = DesktopToast.corner_position(toast_size)
+	var screen: int = DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
+	var usable: Rect2i = DisplayServer.screen_get_usable_rect(screen)
+	var margin: int = roundi(Margin.ma_6 * DesktopToast.ui_scale)
 	assert(corner.x == usable.position.x + usable.size.x - toast_size.x - margin)
 	assert(corner.y == usable.position.y + usable.size.y - toast_size.y - margin)
 	pass
@@ -22,7 +22,7 @@ func DesktopToast_corner_position_test() -> void:
 ## [method DesktopToast.build_card] lays out the accent stripe, title and wrapped body at the app UI scale.
 func DesktopToast_build_card_test() -> void:
 	DesktopToast.ui_scale = 1.0
-	var toast := DesktopToast.new()
+	var toast: DesktopToast = DesktopToast.new()
 	toast.title_text = "feedback toast"
 	toast.body_text = "feedback toast body"
 	toast.accent = Colors.success
@@ -30,14 +30,14 @@ func DesktopToast_build_card_test() -> void:
 	assert(toast.card != null)
 	assert(toast.size.x == roundi(DesktopToast.CARD_WIDTH))
 	assert(toast.position == DesktopToast.corner_position(toast.size))
-	var column := toast.card.get_child(0) as VBoxContainer
-	var title_label := column.get_child(0) as Label
+	var column: VBoxContainer = toast.card.get_child(0) as VBoxContainer
+	var title_label: Label = column.get_child(0) as Label
 	assert(title_label.text == "feedback toast")
 	assert(title_label.get_theme_font_size("font_size") == DesktopToast.TITLE_FONT_SIZE)
 	assert(toast.body_label != null)
 	assert(toast.body_label.text == "feedback toast body")
 	assert(toast.body_label.max_lines_visible == DesktopToast.MAX_BODY_LINES)
-	var style := toast.card.get_theme_stylebox("panel") as StyleBoxFlat
+	var style: StyleBoxFlat = toast.card.get_theme_stylebox("panel") as StyleBoxFlat
 	assert(style.border_color == Colors.success)
 	assert(style.border_width_left == DesktopToast.ACCENT_WIDTH)
 	assert(style.bg_color == ThemeColorCard.background_color)
@@ -48,7 +48,7 @@ func DesktopToast_build_card_test() -> void:
 ## A toast without a body skips the body label, so the card only holds the title.
 func DesktopToast_empty_body_test() -> void:
 	DesktopToast.ui_scale = 1.0
-	var toast := DesktopToast.new()
+	var toast: DesktopToast = DesktopToast.new()
 	toast.title_text = "feedback toast"
 	toast.body_text = "   "
 	toast.build_card()
@@ -61,16 +61,16 @@ func DesktopToast_empty_body_test() -> void:
 ## [method DesktopToast.relayout] stacks live toasts upward from the screen corner, newest last.
 func DesktopToast_relayout_test() -> void:
 	DesktopToast.ui_scale = 1.0
-	var live := DesktopToast.toasts.duplicate()
+	var live: Array = DesktopToast.toasts.duplicate()
 	DesktopToast.toasts.clear()
-	var older := DesktopToast.new()
+	var older: DesktopToast = DesktopToast.new()
 	older.size = Vector2i(400, 100)
-	var newer := DesktopToast.new()
+	var newer: DesktopToast = DesktopToast.new()
 	newer.size = Vector2i(400, 100)
 	DesktopToast.toasts.append_array([older, newer])
 	DesktopToast.relayout()
 	assert(newer.position.y == DesktopToast.corner_position(newer.size).y)
-	assert(older.position.y == newer.position.y - newer.size.y - roundi(DesktopToast.STACK_GAP))
+	assert(older.position.y == newer.position.y - newer.size.y - roundi(Margin.ma_3))
 	older.free()
 	newer.free()
 	# Other scenes may still own live toasts; leave the stack as it was.
@@ -81,7 +81,7 @@ func DesktopToast_relayout_test() -> void:
 
 ## [method DesktopToast.show_toast] mounts the toast window, [method DesktopToast.close_toast] retires it.
 func DesktopToast_show_toast_test() -> void:
-	var before := DesktopToast.toasts.size()
+	var before: int = DesktopToast.toasts.size()
 	DesktopToast.show_toast("feedback toast", "run finished", Colors.success)
 	assert(DesktopToast.toasts.size() == before + 1)
 	var toast: DesktopToast = DesktopToast.toasts[before]

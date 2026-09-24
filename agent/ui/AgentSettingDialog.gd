@@ -4,13 +4,10 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection and notification settings.
 ## There is no Save button: every field writes straight to [Setting] once editing finishes.
 
-const DIALOG_SIZE := Vector2i(580, 830)
-const FOLDER_DIALOG_SIZE := Vector2i(900, 600)
-const SETTINGS_ICON_PATH := "res://agent/asset/image/icon/settings.svg"
-const SVG_BASE_COLOR := "#8B949E"
-## Gap between the description label and its toggle, and between the two toggles.
-const LABEL_GAP := 8
-const TOGGLE_GAP := 16
+const DIALOG_SIZE: Vector2i = Vector2i(580, 830)
+const FOLDER_DIALOG_SIZE: Vector2i = Vector2i(900, 600)
+const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
+const SVG_BASE_COLOR: String = "#8B949E"
 
 var button: Button
 var dialog: ConfirmationDialog
@@ -30,7 +27,7 @@ var sound_seconds_spin: SpinBox
 var sound_folder_edit: LineEdit
 var sound_folder_dialog: FileDialog
 ## True once the path was edited by hand, so a click no longer means "pick a folder".
-var folder_field_typing := false
+var folder_field_typing: bool = false
 var token_visibility_button: Button
 var field_labels: Array[Label] = []
 var help_labels: Array[Label] = []
@@ -64,31 +61,31 @@ func build_dialog() -> void:
 	dialog.get_ok_button().hide()
 	dialog.get_cancel_button().hide()
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	var margin: MarginContainer = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", Margin.ma_5)
+	margin.add_theme_constant_override("margin_right", Margin.ma_5)
+	margin.add_theme_constant_override("margin_top", Margin.ma_3)
+	margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
 	dialog.add_child(margin)
 
 	content_panel = PanelContainer.new()
 	content_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(content_panel)
-	var card_margin := MarginContainer.new()
-	card_margin.add_theme_constant_override("margin_left", 20)
-	card_margin.add_theme_constant_override("margin_right", 20)
-	card_margin.add_theme_constant_override("margin_top", 16)
-	card_margin.add_theme_constant_override("margin_bottom", 16)
+	var card_margin: MarginContainer = MarginContainer.new()
+	card_margin.add_theme_constant_override("margin_left", Margin.ma_5)
+	card_margin.add_theme_constant_override("margin_right", Margin.ma_5)
+	card_margin.add_theme_constant_override("margin_top", Margin.ma_4)
+	card_margin.add_theme_constant_override("margin_bottom", Margin.ma_4)
 	content_panel.add_child(card_margin)
 
 	# The rows outgrow a short window, so keep them reachable instead of clipping the last one.
-	var scroll := ScrollContainer.new()
+	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	card_margin.add_child(scroll)
 
-	var fields := VBoxContainer.new()
+	var fields: VBoxContainer = VBoxContainer.new()
 	fields.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	fields.add_theme_constant_override("separation", 13)
+	fields.add_theme_constant_override("separation", Margin.ma_3)
 	scroll.add_child(fields)
 	heading_label = Label.new()
 	heading_label.text = "AI connection"
@@ -99,7 +96,7 @@ func build_dialog() -> void:
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description_label.add_theme_font_size_override("font_size", 12)
 	fields.add_child(description_label)
-	var separator := HSeparator.new()
+	var separator: HSeparator = HSeparator.new()
 	fields.add_child(separator)
 	provider_select = add_provider_field(fields)
 	api_url_edit = add_field(fields, "API endpoint", "https://api.example.com/v1/chat/completions", "Full chat-completions endpoint URL")
@@ -118,15 +115,15 @@ func build_dialog() -> void:
 ## Notification options, one row each, every row hugging the left edge: the toast toggle, the
 ## sound toggle with its duration, then the clip folder. Duration and folder hide with the sound.
 func add_notify_fields(parent: VBoxContainer) -> void:
-	toast_toggle_button = add_check_button(make_option_row(parent, LABEL_GAP), "Agent end Notification Window", AgentSetting.get_notification_window())
+	toast_toggle_button = add_check_button(make_option_row(parent, Margin.ma_2), "Agent end Notification Window", AgentSetting.get_notification_window())
 	toast_toggle_button.toggled.connect(on_toast_toggled)
 
-	var sound_row := make_option_row(parent, TOGGLE_GAP)
+	var sound_row: HBoxContainer = make_option_row(parent, Margin.ma_4)
 	sound_toggle_button = add_check_button(sound_row, "Notification Sound", AgentSetting.get_notification_sound())
 	sound_toggle_button.toggled.connect(on_sound_toggled)
 	sound_seconds_group = add_sound_seconds_group(sound_row)
 
-	sound_folder_row = make_option_row(parent, LABEL_GAP)
+	sound_folder_row = make_option_row(parent, Margin.ma_2)
 	sound_folder_edit = LineEdit.new()
 	sound_folder_edit.custom_minimum_size = Vector2(0, 34)
 	sound_folder_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -144,7 +141,7 @@ func add_notify_fields(parent: VBoxContainer) -> void:
 
 ## Sound length, saved on every step.
 func add_sound_seconds_group(parent: HBoxContainer) -> HBoxContainer:
-	var group := make_option_row(parent, LABEL_GAP)
+	var group: HBoxContainer = make_option_row(parent, Margin.ma_2)
 	group.add_child(make_label("Sound Duration"))
 	sound_seconds_spin = SpinBox.new()
 	sound_seconds_spin.min_value = AgentSetting.MIN_SOUND_SECONDS
@@ -160,7 +157,7 @@ func add_sound_seconds_group(parent: HBoxContainer) -> HBoxContainer:
 
 ## Options row with its own gap: label-to-control and group-to-group gaps differ.
 func make_option_row(parent: Container, separation: int) -> HBoxContainer:
-	var row := HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", separation)
 	parent.add_child(row)
 	return row
@@ -181,7 +178,7 @@ func build_folder_dialog() -> void:
 
 ## Caption label — centered so it lines up with the control on the row next to it.
 func make_label(label_text: String) -> Label:
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.text = label_text
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 13)
@@ -192,8 +189,8 @@ func make_label(label_text: String) -> Label:
 ## Box of a stacked field — caption first, then whatever the caller adds (control, help line) —
 ## with the tighter inner gap.
 func make_field_group(parent: Container, label_text: String) -> VBoxContainer:
-	var group := VBoxContainer.new()
-	group.add_theme_constant_override("separation", 7)
+	var group: VBoxContainer = VBoxContainer.new()
+	group.add_theme_constant_override("separation", Margin.ma_2)
 	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(group)
 	group.add_child(make_label(label_text))
@@ -202,7 +199,7 @@ func make_field_group(parent: Container, label_text: String) -> VBoxContainer:
 
 ## Grey help line closing a field group.
 func add_help_label(parent: Container, help_text: String) -> void:
-	var help := Label.new()
+	var help: Label = Label.new()
 	help.text = help_text
 	help.add_theme_font_size_override("font_size", 11)
 	help_labels.append(help)
@@ -212,7 +209,7 @@ func add_help_label(parent: Container, help_text: String) -> void:
 
 ## Input field with the shared look: 38px tall, clear button, filling the row.
 func make_line_edit(placeholder: String) -> LineEdit:
-	var edit := LineEdit.new()
+	var edit: LineEdit = LineEdit.new()
 	edit.custom_minimum_size = Vector2(0, 38)
 	edit.placeholder_text = placeholder
 	edit.clear_button_enabled = true
@@ -228,8 +225,8 @@ func bind_auto_save(edit: LineEdit, saver: Callable) -> void:
 
 
 func add_provider_field(parent: VBoxContainer) -> OptionButton:
-	var group := make_field_group(parent, "Provider")
-	var select := OptionButton.new()
+	var group: VBoxContainer = make_field_group(parent, "Provider")
+	var select: OptionButton = OptionButton.new()
 	select.custom_minimum_size = Vector2(0, 38)
 	select.add_item(ApiSupport.CUSTOM_PROVIDER)
 	for provider: ApiProvider in ApiSupport.PROVIDERS:
@@ -242,19 +239,19 @@ func add_provider_field(parent: VBoxContainer) -> OptionButton:
 
 
 func add_field(parent: Container, label_text: String, placeholder: String, help_text: String) -> LineEdit:
-	var group := make_field_group(parent, label_text)
-	var edit := make_line_edit(placeholder)
+	var group: VBoxContainer = make_field_group(parent, label_text)
+	var edit: LineEdit = make_line_edit(placeholder)
 	group.add_child(edit)
 	add_help_label(group, help_text)
 	return edit
 
 
 func add_token_field(parent: VBoxContainer) -> LineEdit:
-	var group := make_field_group(parent, "API token")
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	var group: VBoxContainer = make_field_group(parent, "API token")
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", Margin.ma_2)
 	group.add_child(row)
-	var edit := make_line_edit("sk-...")
+	var edit: LineEdit = make_line_edit("sk-...")
 	edit.secret = true
 	edit.secret_character = "*"
 	row.add_child(edit)
@@ -270,7 +267,7 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 
 ## Check button with the accent-tinted switch: on / off is the switch itself, no On / Off caption.
 func add_check_button(parent: Container, label_text: String, enabled: bool) -> CheckButton:
-	var check := CheckButton.new()
+	var check: CheckButton = CheckButton.new()
 	check.text = label_text
 	check.button_pressed = enabled
 	check.focus_mode = Control.FOCUS_NONE
@@ -288,21 +285,21 @@ func style_check_button(check: CheckButton) -> void:
 	check.add_theme_color_override("font_hover_pressed_color", AgentColors.chat_text)
 	# Only the "on" track takes the app accent — the "off" one keeps the theme default.
 	check.add_theme_color_override("button_checked_color", AgentColors.theme_accent_solid())
-	check.add_theme_constant_override("h_separation", 8)
+	check.add_theme_constant_override("h_separation", Margin.ma_2)
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
-	var empty := StyleBoxEmpty.new()
-	empty.content_margin_left = 0
-	empty.content_margin_right = 6
-	empty.content_margin_top = 4
-	empty.content_margin_bottom = 4
-	var hover := StyleBoxFlat.new()
+	var empty: StyleBoxEmpty = StyleBoxEmpty.new()
+	empty.content_margin_left = Margin.ma_0
+	empty.content_margin_right = Margin.ma_2
+	empty.content_margin_top = Margin.ma_1
+	empty.content_margin_bottom = Margin.ma_1
+	var hover: StyleBoxFlat = StyleBoxFlat.new()
 	hover.bg_color = AgentColors.sidebar_row_hover
 	hover.set_corner_radius_all(6)
-	hover.content_margin_left = 0
-	hover.content_margin_right = 6
-	hover.content_margin_top = 4
-	hover.content_margin_bottom = 4
+	hover.content_margin_left = Margin.ma_0
+	hover.content_margin_right = Margin.ma_2
+	hover.content_margin_top = Margin.ma_1
+	hover.content_margin_bottom = Margin.ma_1
 	check.add_theme_stylebox_override("normal", empty)
 	check.add_theme_stylebox_override("disabled", empty.duplicate())
 	check.add_theme_stylebox_override("focus", empty.duplicate())
@@ -380,7 +377,7 @@ func on_sound_seconds_changed(seconds: float) -> void:
 ## A click on the path field opens the folder picker, until the path itself is being typed:
 ## after a manual edit, clicks place the caret instead of popping the picker back up.
 func on_sound_folder_input(event: InputEvent) -> void:
-	var click := event as InputEventMouseButton
+	var click: InputEventMouseButton = event as InputEventMouseButton
 	if click == null or not click.pressed or click.button_index != MOUSE_BUTTON_LEFT:
 		return
 	if folder_field_typing:
@@ -397,7 +394,7 @@ func on_sound_folder_text_changed(_text: String) -> void:
 func open_sound_folder_dialog() -> void:
 	if sound_folder_dialog.visible:
 		return
-	var folder := AgentSetting.get_notification_sound_folder()
+	var folder: String = AgentSetting.get_notification_sound_folder()
 	if not folder.begins_with("res://") and not folder.begins_with("user://") and DirAccess.dir_exists_absolute(folder):
 		sound_folder_dialog.current_dir = folder
 	sound_folder_dialog.popup_centered(FOLDER_DIALOG_SIZE)
@@ -465,16 +462,16 @@ func apply_theme() -> void:
 
 
 func update_button_icon(hovered: bool) -> void:
-	var icon_color := AgentColors.toolbar_title if hovered else AgentColors.toolbar_muted
+	var icon_color: Color = AgentColors.toolbar_title if hovered else AgentColors.toolbar_muted
 	button.icon = make_settings_icon(icon_color)
 	pass
 
 
 func make_settings_icon(color: Color) -> Texture2D:
-	var svg := FileAccess.get_file_as_string(SETTINGS_ICON_PATH)
+	var svg: String = FileAccess.get_file_as_string(SETTINGS_ICON_PATH)
 	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
-	var image := Image.new()
-	var error := image.load_svg_from_string(svg, 2.0)
+	var image: Image = Image.new()
+	var error: int = image.load_svg_from_string(svg, 2.0)
 	if error != OK:
 		return ImageTexture.new()
 	return ImageTexture.create_from_image(image)
@@ -493,17 +490,17 @@ func on_button_mouse_exited() -> void:
 func style_dialog() -> void:
 	if dialog == null:
 		return
-	var dialog_style := StyleBoxFlat.new()
+	var dialog_style: StyleBoxFlat = StyleBoxFlat.new()
 	dialog_style.bg_color = AgentColors.panel
 	dialog_style.set_corner_radius_all(0)
-	dialog_style.expand_margin_right = 2.0
-	dialog_style.expand_margin_bottom = 2.0
-	dialog_style.content_margin_bottom = 14.0
+	dialog_style.expand_margin_right = Margin.ma_1
+	dialog_style.expand_margin_bottom = Margin.ma_1
+	dialog_style.content_margin_bottom = Margin.ma_4
 	dialog.add_theme_stylebox_override("panel", dialog_style)
 	dialog.add_theme_stylebox_override("embedded_border", StyleBoxEmpty.new())
 	dialog.add_theme_stylebox_override("embedded_unfocused_border", StyleBoxEmpty.new())
-	dialog.add_theme_constant_override("resize_margin", 0)
-	dialog.add_theme_constant_override("buttons_separation", 0)
+	dialog.add_theme_constant_override("resize_margin", Margin.ma_0)
+	dialog.add_theme_constant_override("buttons_separation", Margin.ma_0)
 	content_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	heading_label.add_theme_color_override("font_color", AgentColors.chat_text)
 	description_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
@@ -525,8 +522,8 @@ func style_option_button(select: OptionButton) -> void:
 	select.add_theme_color_override("font_color", AgentColors.chat_text)
 	select.add_theme_color_override("font_hover_color", AgentColors.chat_text)
 	select.add_theme_color_override("font_pressed_color", AgentColors.chat_text)
-	var normal := make_input_style()
-	var hover := normal.duplicate() as StyleBoxFlat
+	var normal: StyleBoxFlat = make_input_style()
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.border_color = AgentColors.theme_accent_solid()
 	select.add_theme_stylebox_override("normal", normal)
 	select.add_theme_stylebox_override("hover", hover)
@@ -543,26 +540,26 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_color_override("font_disabled_color", AgentColors.chat_text_muted)
 	popup.add_theme_color_override("font_separator_color", AgentColors.chat_text_muted)
 	popup.add_theme_font_size_override("font_size", 14)
-	popup.add_theme_constant_override("v_separation", 6)
-	popup.add_theme_constant_override("item_start_padding", 12)
-	popup.add_theme_constant_override("item_end_padding", 12)
-	var panel_style := StyleBoxFlat.new()
+	popup.add_theme_constant_override("v_separation", Margin.ma_2)
+	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
+	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
+	var panel_style: StyleBoxFlat = StyleBoxFlat.new()
 	panel_style.bg_color = AgentColors.panel
 	panel_style.border_color = AgentColors.chat_input_border
 	panel_style.set_border_width_all(1)
 	panel_style.set_corner_radius_all(7)
-	panel_style.content_margin_left = 4
-	panel_style.content_margin_right = 4
-	panel_style.content_margin_top = 5
-	panel_style.content_margin_bottom = 5
+	panel_style.content_margin_left = Margin.ma_1
+	panel_style.content_margin_right = Margin.ma_1
+	panel_style.content_margin_top = Margin.ma_1
+	panel_style.content_margin_bottom = Margin.ma_1
 	popup.add_theme_stylebox_override("panel", panel_style)
-	var hover_style := StyleBoxFlat.new()
+	var hover_style: StyleBoxFlat = StyleBoxFlat.new()
 	hover_style.bg_color = AgentColors.theme_selection_bg()
 	hover_style.set_corner_radius_all(5)
-	hover_style.content_margin_left = 8
-	hover_style.content_margin_right = 8
+	hover_style.content_margin_left = Margin.ma_2
+	hover_style.content_margin_right = Margin.ma_2
 	popup.add_theme_stylebox_override("hover", hover_style)
-	var empty_icon := ImageTexture.new()
+	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
 		popup.add_theme_icon_override(state, empty_icon)
 	pass
@@ -572,8 +569,8 @@ func style_line_edit(edit: LineEdit) -> void:
 	edit.add_theme_color_override("font_color", AgentColors.chat_text)
 	edit.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted.darkened(0.08))
 	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
-	var normal := make_input_style()
-	var focus := normal.duplicate() as StyleBoxFlat
+	var normal: StyleBoxFlat = make_input_style()
+	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	focus.border_color = AgentColors.theme_accent_solid()
 	focus.set_border_width_all(2)
 	edit.add_theme_stylebox_override("normal", normal)
@@ -584,13 +581,13 @@ func style_line_edit(edit: LineEdit) -> void:
 
 ## Field look shared by the line edits and the spin box buttons.
 func make_input_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = AgentColors.chat_input
 	style.border_color = AgentColors.chat_input_border
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(7)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
+	style.content_margin_left = Margin.ma_3
+	style.content_margin_right = Margin.ma_3
 	return style
 
 
@@ -605,10 +602,10 @@ func style_spin_box(spin: SpinBox) -> void:
 	spin.add_theme_color_override("down_hover_icon_modulate", AgentColors.theme_accent_solid())
 	spin.add_theme_color_override("up_pressed_icon_modulate", AgentColors.theme_accent_solid())
 	spin.add_theme_color_override("down_pressed_icon_modulate", AgentColors.theme_accent_solid())
-	var normal := make_input_style()
-	normal.content_margin_left = 0
-	normal.content_margin_right = 0
-	var hover := normal.duplicate() as StyleBoxFlat
+	var normal: StyleBoxFlat = make_input_style()
+	normal.content_margin_left = Margin.ma_0
+	normal.content_margin_right = Margin.ma_0
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.sidebar_row_hover
 	for side: String in ["up", "down"]:
 		spin.add_theme_stylebox_override(side + "_background", normal)
@@ -622,11 +619,11 @@ func style_spin_box(spin: SpinBox) -> void:
 
 func style_secondary_button(target: Button) -> void:
 	target.add_theme_color_override("font_color", AgentColors.chat_text)
-	var normal := make_input_style()
+	var normal: StyleBoxFlat = make_input_style()
 	normal.bg_color = AgentColors.toolbar_button
-	normal.content_margin_left = 14
-	normal.content_margin_right = 14
-	var hover := normal.duplicate() as StyleBoxFlat
+	normal.content_margin_left = Margin.ma_4
+	normal.content_margin_right = Margin.ma_4
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.sidebar_row_hover
 	target.add_theme_stylebox_override("normal", normal)
 	target.add_theme_stylebox_override("hover", hover)

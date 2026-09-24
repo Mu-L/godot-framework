@@ -3,9 +3,9 @@ extends Object
 
 ## Error bubble with optional resume action for the agent chat transcript.
 
-const MAX_LINES := 28
+const MAX_LINES: int = 28
 
-const META_RESUME_BUTTON := "resume_button"
+const META_RESUME_BUTTON: String = "resume_button"
 
 
 static func append(
@@ -15,22 +15,22 @@ static func append(
 	session_id: int,
 	running: bool
 ) -> RichTextLabel:
-	var wrapper := PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", panel_style)
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	wrapper.add_child(vbox)
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	title_label.add_theme_font_size_override("font_size", 12)
 	vbox.add_child(title_label)
 
-	var rich_text := MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
 			AgentColors.error,
 			StringUtils.first_lines(entry.body, MAX_LINES),
 			AgentSetting.get_markdown_enabled()
@@ -39,7 +39,7 @@ static func append(
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
 
 	if is_resumable(entry.body):
-		var resume_button := Button.new()
+		var resume_button: Button = Button.new()
 		resume_button.text = "Resume"
 		resume_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		style_resume_button(resume_button)
@@ -55,7 +55,7 @@ static func append(
 static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 	if entry == null:
 		return
-	var display := StringUtils.first_lines(entry.body, MAX_LINES)
+	var display: String = StringUtils.first_lines(entry.body, MAX_LINES)
 	MarkdownUtils.set_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
 	pass
 
@@ -85,21 +85,21 @@ static func style_resume_button(button: Button) -> void:
 	button.add_theme_color_override("font_pressed_color", Color.WHITE)
 	button.add_theme_color_override("font_disabled_color", Color(1, 1, 1, 0.55))
 
-	var normal := StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = AgentColors.accent
 	normal.set_corner_radius_all(6)
-	normal.content_margin_left = 12
-	normal.content_margin_right = 12
-	normal.content_margin_top = 6
-	normal.content_margin_bottom = 6
+	normal.content_margin_left = Margin.ma_3
+	normal.content_margin_right = Margin.ma_3
+	normal.content_margin_top = Margin.ma_2
+	normal.content_margin_bottom = Margin.ma_2
 
-	var hover := normal.duplicate() as StyleBoxFlat
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.accent.lightened(0.10)
 
-	var pressed := normal.duplicate() as StyleBoxFlat
+	var pressed: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	pressed.bg_color = AgentColors.accent.darkened(0.08)
 
-	var disabled := normal.duplicate() as StyleBoxFlat
+	var disabled: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	disabled.bg_color = AgentColors.accent.darkened(0.25)
 
 	button.add_theme_stylebox_override("normal", normal)

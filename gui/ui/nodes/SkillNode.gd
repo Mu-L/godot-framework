@@ -1,7 +1,7 @@
 class_name SkillNode
 extends GraphNode
 
-const NODE_MIN_WIDTH := 400
+const NODE_MIN_WIDTH: int = 400
 
 var node_id: String = ""
 var node_def: GraphNodeDef
@@ -26,8 +26,8 @@ func build_node() -> void:
 
 
 func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
-	var slot_index := get_child_count()
-	var row := create_connect_only_row(port.display_label(node_def.catalog_id()))
+	var slot_index: int = get_child_count()
+	var row: HBoxContainer = create_connect_only_row(port.display_label(node_def.catalog_id()))
 	add_child(row)
 	input_slot_indices[port.id] = slot_index
 	configure_slot(
@@ -43,8 +43,8 @@ func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
 
 
 func add_output_port_row(port: PortDef) -> int:
-	var slot_index := get_child_count()
-	var row := Label.new()
+	var slot_index: int = get_child_count()
+	var row: Label = Label.new()
 	row.text = GuiLocale.text("ui.node.output_arrow", port.display_label(node_def.catalog_id()))
 	row.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(row)
@@ -63,15 +63,15 @@ func add_output_port_row(port: PortDef) -> int:
 
 
 func create_connect_only_row(label_text: String) -> HBoxContainer:
-	var row := HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = 80
 	row.add_child(label)
 
-	var hint := Label.new()
+	var hint: Label = Label.new()
 	hint.text = GuiLocale.text("ui.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.modulate = WorkflowColors.hint
@@ -81,15 +81,15 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 
 
 func create_text_row(port_id: String, label_text: String, placeholder: String) -> HBoxContainer:
-	var row := HBoxContainer.new()
+	var row: HBoxContainer = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
-	var label := Label.new()
+	var label: Label = Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = 80
 	row.add_child(label)
 
-	var field := LineEdit.new()
+	var field: LineEdit = LineEdit.new()
 	field.custom_minimum_size.x = 260
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	field.placeholder_text = placeholder
@@ -157,14 +157,14 @@ func get_output_port_at_slot(slot_index: int) -> PortDef:
 func get_input_port_at_port_index(port_index: int) -> PortDef:
 	if port_index < 0 or port_index >= get_input_port_count():
 		return null
-	var slot_index := get_input_port_slot(port_index)
+	var slot_index: int = get_input_port_slot(port_index)
 	return get_input_port_at_slot(slot_index)
 
 
 func get_output_port_at_port_index(port_index: int) -> PortDef:
 	if port_index < 0 or port_index >= get_output_port_count():
 		return null
-	var slot_index := get_output_port_slot(port_index)
+	var slot_index: int = get_output_port_slot(port_index)
 	return get_output_port_at_slot(slot_index)
 
 
@@ -177,7 +177,7 @@ func is_input_port(port_index: int) -> bool:
 
 
 func get_effective_output_port_type(slot_index: int) -> int:
-	var port := get_output_port_at_slot(slot_index)
+	var port: PortDef = get_output_port_at_slot(slot_index)
 	if port == null:
 		return PortDef.TYPE_STRING
 	return port.port_type
@@ -186,7 +186,7 @@ func get_effective_output_port_type(slot_index: int) -> int:
 func get_effective_output_port_type_at_port(port_index: int) -> int:
 	if port_index < 0 or port_index >= get_output_port_count():
 		return PortDef.TYPE_STRING
-	var slot_index := get_output_port_slot(port_index)
+	var slot_index: int = get_output_port_slot(port_index)
 	return get_effective_output_port_type(slot_index)
 
 
@@ -195,12 +195,12 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 
 
 func set_highlight(running: bool) -> void:
-	var panel := StyleBoxFlat.new()
+	var panel: StyleBoxFlat = StyleBoxFlat.new()
 	panel.bg_color = WorkflowColors.node_running_bg if running else WorkflowColors.node_bg
 	panel.border_color = WorkflowColors.success if running else WorkflowColors.node_border
 	panel.set_border_width_all(3 if running else 2)
 	panel.set_corner_radius_all(6)
-	panel.set_content_margin_all(6)
+	panel.set_content_margin_all(Margin.ma_2)
 	add_theme_stylebox_override("panel", panel)
 	add_theme_color_override(
 		"title_color",

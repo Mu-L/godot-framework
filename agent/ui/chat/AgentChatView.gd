@@ -4,11 +4,9 @@ extends RefCounted
 ## Chat transcript area — bubbles, streaming, scroll, error resume.
 ## One bubble list per session; switching shows the cached list.
 
-const BUBBLE_BODY_MARGIN_H := 12
-const LIST_SEPARATION := 10
-const META_BUBBLE_RICH_TEXT := "bubble_rich_text"
+const META_BUBBLE_RICH_TEXT: String = "bubble_rich_text"
 ## The color picker emits on every drag step; the transcript re-renders once the accent settles.
-const THEME_COLOR_REBUILD_DELAY_MS := 250
+const THEME_COLOR_REBUILD_DELAY_MS: int = 250
 
 
 var chat_scroll: ScrollContainer
@@ -106,7 +104,7 @@ func on_chat_entry_add(session_id: int, entry: ChatEntry) -> void:
 func on_chat_entry_update(session_id: int, entry: ChatEntry, _channel: String) -> void:
 	if chat_list_caches.get(session_id) == null:
 		return
-	var rich_text := get_bubble_rich_text(session_id, entry)
+	var rich_text: RichTextLabel = get_bubble_rich_text(session_id, entry)
 	if rich_text == null:
 		rich_text = append_entry_bubble(entry, session_id)
 	if rich_text != null:
@@ -121,7 +119,7 @@ func on_chat_bubble_flushed() -> void:
 
 
 func on_chat_truncated(session_id: int) -> void:
-	var is_active := AgentSessionManager.is_active(session_id)
+	var is_active: bool = AgentSessionManager.is_active(session_id)
 	if is_active:
 		cache_session_scroll(session_id)
 	clear_bubble_list(session_id)
@@ -136,7 +134,7 @@ func on_chat_truncated(session_id: int) -> void:
 
 ## Re-render the transcript after a context prompt (skill index / AGENTS.md) is added or removed.
 func on_agent_context_changed(session_id: int) -> void:
-	var is_active := AgentSessionManager.is_active(session_id)
+	var is_active: bool = AgentSessionManager.is_active(session_id)
 	if is_active:
 		cache_session_scroll(session_id)
 	clear_bubble_list(session_id)
@@ -146,11 +144,11 @@ func on_agent_context_changed(session_id: int) -> void:
 
 
 func on_markdown_changed(_enabled: bool) -> void:
-	var session := AgentSessionStore.load_session(AgentSessionManager.active_session_id)
+	var session: AgentSession = AgentSessionStore.load_session(AgentSessionManager.active_session_id)
 	if session == null:
 		return
 	for entry: ChatEntry in session.chat_entries:
-		var rich_text := get_bubble_rich_text(session.id, entry)
+		var rich_text: RichTextLabel = get_bubble_rich_text(session.id, entry)
 		if rich_text == null:
 			continue
 		match entry.kind:
@@ -192,17 +190,17 @@ func on_theme_color_rebuild() -> void:
 # ---------------------------------------------------------------------------
 
 func show_session(session_id: int) -> void:
-	var session := AgentSessionStore.load_session(session_id)
+	var session: AgentSession = AgentSessionStore.load_session(session_id)
 	if session == null:
 		return
-	var has_cached_scroll := scroll_position_caches.has(session_id)
+	var has_cached_scroll: bool = scroll_position_caches.has(session_id)
 
 	# One bubble list per session — create on first open, reuse on later switches.
 	var list: VBoxContainer = chat_list_caches.get(session_id)
 	if list == null:
 		list = VBoxContainer.new()
 		list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		list.add_theme_constant_override("separation", LIST_SEPARATION)
+		list.add_theme_constant_override("separation", Margin.ma_3)
 		chat_host.add_child(list)
 		chat_list_caches[session_id] = list
 
@@ -339,22 +337,22 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 
 
 func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color, bg_color: Color, title_color: Color = AgentColors.chat_text_muted) -> RichTextLabel:
-	var wrapper := PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", build_bubble_style(bg_color))
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	wrapper.add_child(vbox)
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", 12)
 	vbox.add_child(title_label)
 
-	var rich_text := MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry)
@@ -369,13 +367,13 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 
 
 func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = bg_color
 	style.set_corner_radius_all(8)
-	style.content_margin_left = BUBBLE_BODY_MARGIN_H
-	style.content_margin_right = BUBBLE_BODY_MARGIN_H
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
+	style.content_margin_left = Margin.ma_3
+	style.content_margin_right = Margin.ma_3
+	style.content_margin_top = Margin.ma_3
+	style.content_margin_bottom = Margin.ma_3
 	if user_beam:
 		style.set_border_width_all(0)
 	elif ThemeColor.is_dark_theme():
@@ -391,11 +389,11 @@ func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFla
 
 ## chat_entries index matches VBoxContainer child order; label lives on wrapper meta.
 func get_bubble_rich_text(session_id: int, entry: ChatEntry) -> RichTextLabel:
-	var session := AgentSessionStore.load_session(session_id)
+	var session: AgentSession = AgentSessionStore.load_session(session_id)
 	var list: VBoxContainer = chat_list_caches.get(session_id)
 	if session == null or list == null:
 		return null
-	var index := session.chat_entries.find(entry)
+	var index: int = session.chat_entries.find(entry)
 	if index < 0 or index >= list.get_child_count():
 		return null
 	var wrapper: Node = list.get_child(index)
@@ -403,7 +401,7 @@ func get_bubble_rich_text(session_id: int, entry: ChatEntry) -> RichTextLabel:
 
 
 func refresh_error_resume_buttons() -> void:
-	var active_chat_list := get_active_chat_list()
+	var active_chat_list: VBoxContainer = get_active_chat_list()
 	if active_chat_list == null:
 		return
 	ErrorBubble.refresh_resume_buttons(active_chat_list, AgentSessionManager.is_running(AgentSessionManager.active_session_id))
@@ -423,7 +421,7 @@ func reset_stick_to_bottom() -> void:
 func cache_session_scroll(session_id: int) -> void:
 	if not AgentSessionManager.has_index(session_id):
 		return
-	var vbar := chat_scroll.get_v_scroll_bar()
+	var vbar: VScrollBar = chat_scroll.get_v_scroll_bar()
 	if vbar == null:
 		return
 	scroll_position_caches[session_id] = vbar.value
@@ -432,7 +430,7 @@ func cache_session_scroll(session_id: int) -> void:
 
 func on_chat_scroll_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
-		var mouse := event as InputEventMouseButton
+		var mouse: InputEventMouseButton = event as InputEventMouseButton
 		if not mouse.pressed:
 			return
 		if mouse.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -458,10 +456,10 @@ func on_chat_scroll_bar_scrolling() -> void:
 func on_chat_window_input(event: InputEvent) -> void:
 	if not event is InputEventKey:
 		return
-	var key := event as InputEventKey
+	var key: InputEventKey = event as InputEventKey
 	if not key.pressed:
 		return
-	var direction := 0
+	var direction: int = 0
 	if key.is_action_pressed(&"ui_page_up", true):
 		direction = -1
 		stick_to_bottom = false
@@ -469,7 +467,7 @@ func on_chat_window_input(event: InputEvent) -> void:
 		direction = 1
 	else:
 		return
-	var vbar := chat_scroll.get_v_scroll_bar()
+	var vbar: VScrollBar = chat_scroll.get_v_scroll_bar()
 	if vbar == null or vbar.max_value <= vbar.page:
 		return
 	vbar.value = clampf(vbar.value + vbar.page * direction, vbar.min_value, vbar.max_value - vbar.page)
@@ -481,7 +479,7 @@ func on_chat_window_input(event: InputEvent) -> void:
 
 ## True when the transcript is already scrolled to (or within a pixel of) the bottom edge.
 func is_scrolled_to_bottom() -> bool:
-	var vbar := chat_scroll.get_v_scroll_bar()
+	var vbar: VScrollBar = chat_scroll.get_v_scroll_bar()
 	if vbar == null:
 		return true
 	return vbar.value >= vbar.max_value - vbar.page - 1.0
@@ -502,12 +500,12 @@ func flush_scroll_to_bottom() -> void:
 	scroll_to_bottom_queued = false
 	if not stick_to_bottom:
 		return
-	var active_chat_list := get_active_chat_list()
+	var active_chat_list: VBoxContainer = get_active_chat_list()
 	if active_chat_list == null or not active_chat_list.visible:
 		return
 	if active_chat_list.get_child_count() == 0:
 		return
-	var vbar := chat_scroll.get_v_scroll_bar()
+	var vbar: VScrollBar = chat_scroll.get_v_scroll_bar()
 	if vbar == null:
 		return
 	vbar.value = vbar.max_value - vbar.page
@@ -516,7 +514,7 @@ func flush_scroll_to_bottom() -> void:
 
 ## Wait one frame for the selected list to establish its scroll range, then restore it.
 func queue_restore_session_scroll_after_layout(session_id: int, has_cached_scroll: bool) -> void:
-	var tree := chat_scroll.get_tree()
+	var tree: SceneTree = chat_scroll.get_tree()
 	if tree == null:
 		restore_session_scroll(session_id, has_cached_scroll)
 		return
@@ -533,7 +531,7 @@ func restore_session_scroll(session_id: int, has_cached_scroll: bool) -> void:
 		stick_to_bottom = true
 		queue_scroll_to_bottom()
 		return
-	var vbar := chat_scroll.get_v_scroll_bar()
+	var vbar: VScrollBar = chat_scroll.get_v_scroll_bar()
 	if vbar == null:
 		return
 	var cached_position: float = scroll_position_caches.get(session_id, 0.0)

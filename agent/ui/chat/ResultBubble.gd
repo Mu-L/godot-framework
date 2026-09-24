@@ -10,39 +10,39 @@ static func append(
 	entry: ChatEntry,
 	panel_style: StyleBoxFlat
 ) -> RichTextLabel:
-	var wrapper := PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", panel_style)
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	wrapper.add_child(vbox)
 
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 6)
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", Margin.ma_2)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color_for(entry))
 	title_label.add_theme_font_size_override("font_size", 12)
 	header.add_child(title_label)
 
-	var view_button := Button.new()
+	var view_button: Button = Button.new()
 	view_button.text = "···"
 	style_view_button(view_button)
 	view_button.pressed.connect(entry.open_full_view)
 	header.add_child(view_button)
 
-	var line_label := Label.new()
+	var line_label: Label = Label.new()
 	line_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	line_label.add_theme_font_size_override("font_size", 11)
 	header.add_child(line_label)
 
 	vbox.add_child(header)
 
-	var rich_text := MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
+	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
 	vbox.add_child(rich_text)
 
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
@@ -55,7 +55,7 @@ static func append(
 static func title_color_for(entry: ChatEntry) -> Color:
 	if not entry.title.begins_with("exit_code:"):
 		return AgentColors.chat_text_muted
-	var exit_code := int(StringUtils.substring_after(entry.title, "exit_code:"))
+	var exit_code: int = int(StringUtils.substring_after(entry.title, "exit_code:"))
 	return AgentColors.chat_text_muted if exit_code == 0 else AgentColors.error
 
 
@@ -67,21 +67,21 @@ static func style_view_button(button: Button) -> void:
 	button.add_theme_color_override("font_hover_color", AgentColors.chat_text.lightened(0.08))
 	button.add_theme_color_override("font_pressed_color", AgentColors.chat_text_muted.darkened(0.08))
 
-	var normal := StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = AgentColors.result_bubble.lightened(0.08)
 	normal.border_color = AgentColors.chat_text_muted.darkened(0.35)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 4
-	normal.content_margin_right = 4
-	normal.content_margin_top = 0
-	normal.content_margin_bottom = 0
+	normal.content_margin_left = Margin.ma_1
+	normal.content_margin_right = Margin.ma_1
+	normal.content_margin_top = Margin.ma_0
+	normal.content_margin_bottom = Margin.ma_0
 
-	var hover := normal.duplicate() as StyleBoxFlat
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.result_bubble.lightened(0.16)
 	hover.border_color = AgentColors.chat_text_muted
 
-	var pressed := hover.duplicate() as StyleBoxFlat
+	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
 	pressed.bg_color = AgentColors.result_bubble.darkened(0.06)
 
 	button.add_theme_stylebox_override("normal", normal)

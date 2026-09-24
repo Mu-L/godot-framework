@@ -11,31 +11,31 @@ static func append(
 	text_color: Color,
 	title_color: Color = AgentColors.chat_text_muted
 ) -> RichTextLabel:
-	var wrapper := PanelContainer.new()
+	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", panel_style)
 
-	var vbox := VBoxContainer.new()
+	var vbox: VBoxContainer = VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", Margin.ma_2)
 	wrapper.add_child(vbox)
 
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 6)
+	var header: HBoxContainer = HBoxContainer.new()
+	header.add_theme_constant_override("separation", Margin.ma_2)
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", 12)
 	header.add_child(title_label)
 
-	var spacer := Control.new()
+	var spacer: Control = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(spacer)
 
-	var copy_button := Button.new()
+	var copy_button: Button = Button.new()
 	copy_button.text = "Copy"
 	style_copy_button(copy_button, panel_style.bg_color)
 	copy_button.pressed.connect(on_copy_pressed.bind(entry))
@@ -43,7 +43,7 @@ static func append(
 
 	vbox.add_child(header)
 
-	var rich_text := MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry)
@@ -77,27 +77,27 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", 10)
 
-	var accent := AgentColors.theme_accent_solid()
-	var is_dark := ThemeColor.is_dark_theme()
+	var accent: Color = AgentColors.theme_accent_solid()
+	var is_dark: bool = ThemeColor.is_dark_theme()
 	button.add_theme_color_override("font_color", accent)
 	button.add_theme_color_override("font_hover_color", accent.lightened(0.12))
 	button.add_theme_color_override("font_pressed_color", accent.darkened(0.10))
 
-	var normal := StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = bubble_bg.lightened(0.08) if is_dark else bubble_bg.darkened(0.04)
 	normal.border_color = Color(accent.r, accent.g, accent.b, 0.45)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(4)
-	normal.content_margin_left = 6
-	normal.content_margin_right = 6
-	normal.content_margin_top = 0
-	normal.content_margin_bottom = 0
+	normal.content_margin_left = Margin.ma_2
+	normal.content_margin_right = Margin.ma_2
+	normal.content_margin_top = Margin.ma_0
+	normal.content_margin_bottom = Margin.ma_0
 
-	var hover := normal.duplicate() as StyleBoxFlat
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.theme_selection_bg()
 	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
 
-	var pressed := hover.duplicate() as StyleBoxFlat
+	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
 	pressed.bg_color = AgentColors.theme_selection_bg()
 	if is_dark:
 		pressed.bg_color = pressed.bg_color.lightened(0.06)

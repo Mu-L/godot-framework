@@ -4,8 +4,8 @@ extends Object
 ## Every stylebox / color override the sidebar uses. All builders read the live palette, so a
 ## theme switch only has to re-apply them (see [method AgentSessionSidebar.apply_theme]).
 
-const ROW_CORNER_RADIUS := 6
-const RENAME_CORNER_RADIUS := 5
+const ROW_CORNER_RADIUS: int = 6
+const RENAME_CORNER_RADIUS: int = 5
 
 
 # ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ const RENAME_CORNER_RADIUS := 5
 
 ## Sidebar background plus the hairline against the chat area.
 static func sidebar_panel() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = AgentColors.sidebar
 	style.border_color = AgentColors.sidebar_border
 	style.set_border_width(SIDE_RIGHT, 1)
@@ -22,8 +22,8 @@ static func sidebar_panel() -> StyleBoxFlat:
 
 
 static func pinned_separator() -> StyleBoxLine:
-	var accent := AgentColors.theme_accent_solid()
-	var line := StyleBoxLine.new()
+	var accent: Color = AgentColors.theme_accent_solid()
+	var line: StyleBoxLine = StyleBoxLine.new()
 	line.color = Color(accent.r, accent.g, accent.b, 0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
 	line.grow_end = 2
@@ -33,7 +33,7 @@ static func pinned_separator() -> StyleBoxLine:
 
 ## "+ New chat" — outlined in the accent, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
-	var accent := AgentColors.theme_accent_solid()
+	var accent: Color = AgentColors.theme_accent_solid()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
 	button.add_theme_color_override("font_color", accent)
@@ -41,21 +41,21 @@ static func apply_new_session_button(button: Button) -> void:
 	button.add_theme_color_override("font_pressed_color", accent.darkened(0.06))
 	button.add_theme_color_override("font_disabled_color", AgentColors.sidebar_muted)
 
-	var normal := StyleBoxFlat.new()
+	var normal: StyleBoxFlat = StyleBoxFlat.new()
 	normal.bg_color = Color(0, 0, 0, 0)
 	normal.border_color = Color(accent.r, accent.g, accent.b, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	normal.set_border_width_all(1)
 	normal.set_corner_radius_all(ROW_CORNER_RADIUS)
-	normal.content_margin_left = 10
-	normal.content_margin_right = 10
-	normal.content_margin_top = 6
-	normal.content_margin_bottom = 6
+	normal.content_margin_left = Margin.ma_3
+	normal.content_margin_right = Margin.ma_3
+	normal.content_margin_top = Margin.ma_2
+	normal.content_margin_bottom = Margin.ma_2
 
-	var hover := normal.duplicate() as StyleBoxFlat
+	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.bg_color = AgentColors.theme_selection_bg()
 	hover.border_color = Color(accent.r, accent.g, accent.b, 0.85)
 
-	var pressed := hover.duplicate() as StyleBoxFlat
+	var pressed: StyleBoxFlat = hover.duplicate() as StyleBoxFlat
 	if ThemeColor.current_theme == ThemeColor.ThemeEnum.DARK:
 		pressed.bg_color = pressed.bg_color.lightened(0.06)
 	else:
@@ -77,12 +77,12 @@ static func apply_new_session_button(button: Button) -> void:
 
 ## Row background — selected beats hovered, transparent otherwise.
 static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.set_corner_radius_all(ROW_CORNER_RADIUS)
-	style.content_margin_left = 10
-	style.content_margin_right = 4
-	style.content_margin_top = 4
-	style.content_margin_bottom = 4
+	style.content_margin_left = Margin.ma_3
+	style.content_margin_right = Margin.ma_1
+	style.content_margin_top = Margin.ma_1
+	style.content_margin_bottom = Margin.ma_1
 	if selected:
 		style.bg_color = AgentColors.theme_selection_bg()
 	elif hovered:
@@ -94,7 +94,7 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 
 ## Title / close button colors for the current row state.
 static func apply_row_colors(title_button: Button, delete_button: Button, selected: bool, hovered: bool) -> void:
-	var text_color := AgentColors.sidebar_text if selected or hovered else AgentColors.sidebar_muted
+	var text_color: Color = AgentColors.sidebar_text if selected or hovered else AgentColors.sidebar_muted
 	title_button.add_theme_color_override("font_color", text_color)
 	title_button.add_theme_color_override("font_hover_color", text_color)
 	title_button.add_theme_color_override("font_pressed_color", text_color)
@@ -106,8 +106,8 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 
 ## Floating row copy that follows the cursor while dragging.
 static func drag_ghost() -> StyleBoxFlat:
-	var accent := AgentColors.theme_accent_solid()
-	var style := row(false, false)
+	var accent: Color = AgentColors.theme_accent_solid()
+	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = AgentColors.theme_selection_bg()
 	style.border_color = Color(accent.r, accent.g, accent.b, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
@@ -128,21 +128,21 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	edit.add_theme_color_override("font_placeholder_color", AgentColors.sidebar_muted)
 	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
 	edit.add_theme_color_override("selection_color", AgentColors.theme_selection_bg())
-	var field_style := rename_field()
+	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
 	edit.add_theme_stylebox_override("focus", field_style)
 	pass
 
 
 static func rename_field() -> StyleBoxFlat:
-	var accent := AgentColors.theme_accent_solid()
-	var style := StyleBoxFlat.new()
+	var accent: Color = AgentColors.theme_accent_solid()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = AgentColors.chat_input
 	style.border_color = Color(accent.r, accent.g, accent.b, 0.75 if ThemeColor.is_dark_theme() else 0.55)
 	style.set_border_width_all(1)
 	style.set_corner_radius_all(RENAME_CORNER_RADIUS)
-	style.content_margin_left = 5
-	style.content_margin_right = 5
+	style.content_margin_left = Margin.ma_1
+	style.content_margin_right = Margin.ma_1
 	return style
 
 

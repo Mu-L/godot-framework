@@ -3,11 +3,11 @@ extends RefCounted
 
 ## Toolbar toggle for the Jarvis 3D orb overlay during agent runs.
 
-const BUTTON_SIZE := 28
-const CORNER_RADIUS := 14
-const ICON_DRAW_SIZE := 24
-const ICON_DISPLAY_SIZE := 24
-const RING_COUNT := 3
+const BUTTON_SIZE: int = 28
+const CORNER_RADIUS: int = 14
+const ICON_DRAW_SIZE: int = 24
+const ICON_DISPLAY_SIZE: int = 24
+const RING_COUNT: int = 3
 ## Integer pixel radii on ICON_DRAW_SIZE canvas (Bresenham outline).
 const RING_RADII: Array[int] = [2, 7, 11]
 
@@ -27,14 +27,14 @@ func setup(p_button: Button) -> void:
 
 
 func apply_theme() -> void:
-	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
-	var tooltip := (
+	var jarvis_orb_enabled: bool = AgentSetting.get_jarvis_orb_enabled()
+	var tooltip: String = (
 		"Hide run animation"
 		if jarvis_orb_enabled
 		else "Show run animation while agent works"
 	)
 	AgentToolbarButton.style(button, tooltip, CORNER_RADIUS)
-	apply_equal_icon_margins(2)
+	apply_equal_icon_margins(Margin.ma_1)
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -52,7 +52,7 @@ func apply_theme() -> void:
 
 func apply_equal_icon_margins(margin: int) -> void:
 	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
+		var box: StyleBoxFlat = button.get_theme_stylebox(state_name) as StyleBoxFlat
 		if box == null:
 			continue
 		box.content_margin_left = margin
@@ -73,10 +73,10 @@ func on_mouse_exited() -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var jarvis_orb_enabled := AgentSetting.get_jarvis_orb_enabled()
-	var icon_color := AgentColors.toolbar_muted
+	var jarvis_orb_enabled: bool = AgentSetting.get_jarvis_orb_enabled()
+	var icon_color: Color = AgentColors.toolbar_muted
 	if jarvis_orb_enabled:
-		var accent := AgentColors.theme_accent_solid()
+		var accent: Color = AgentColors.theme_accent_solid()
 		icon_color = accent if ThemeColor.is_dark_theme() else accent.darkened(0.15)
 		if hovered:
 			icon_color = icon_color.lightened(0.12)
@@ -87,9 +87,9 @@ func update_icon(hovered: bool) -> void:
 
 
 func make_concentric_rings_icon(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
-	var center := Vector2i(size / 2, size / 2)
+	var center: Vector2i = Vector2i(size / 2, size / 2)
 	for ring_index in range(RING_COUNT):
 		draw_circle_outline(img, center, RING_RADII[ring_index], color)
 	return ImageTexture.create_from_image(img)
@@ -98,9 +98,9 @@ func make_concentric_rings_icon(size: int, color: Color) -> ImageTexture:
 func draw_circle_outline(img: Image, center: Vector2i, radius: int, col: Color) -> void:
 	if radius <= 0:
 		return
-	var x := 0
-	var y := radius
-	var decision := 3 - 2 * radius
+	var x: int = 0
+	var y: int = radius
+	var decision: int = 3 - 2 * radius
 	plot_circle_octants(img, center, x, y, col)
 	while x <= y:
 		if decision < 0:

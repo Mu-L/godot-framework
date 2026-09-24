@@ -4,9 +4,7 @@ extends ColorRect
 ## Theme-accent beam traveling along a rounded-rect outline (not chat-specific).
 ## Caller aligns this overlay to the target control — see AgentChatInput, UserBubble.
 
-const BEAM_SHADER := preload("res://agent/ui/shaders/accent_border_beam.gdshader")
-## Outward margin so glow can draw outside the panel (>= half GLOW_W in shader).
-const BEAM_OUTSET := 4.0
+const BEAM_SHADER: Shader = preload("res://agent/ui/shaders/accent_border_beam.gdshader")
 
 var expanded_shape: bool = false
 var fixed_corner_radius: float = -1.0
@@ -46,16 +44,16 @@ func set_highlight_strength(strength: float) -> void:
 
 
 func wrap_size_from_layout() -> Vector2:
-	var beam_size := Vector2(offset_right - offset_left, offset_bottom - offset_top)
+	var beam_size: Vector2 = Vector2(offset_right - offset_left, offset_bottom - offset_top)
 	if beam_size.x < 1.0 or beam_size.y < 1.0:
 		beam_size = size
-	return beam_size - Vector2(BEAM_OUTSET * 2.0, BEAM_OUTSET * 2.0)
+	return beam_size - Vector2(Margin.ma_1 * 2.0, Margin.ma_1 * 2.0)
 
 
 func corner_radius_for_size() -> float:
 	if fixed_corner_radius >= 0.0:
 		return fixed_corner_radius
-	var wrap_size := wrap_size_from_layout()
+	var wrap_size: Vector2 = wrap_size_from_layout()
 	if expanded_shape:
 		return 16.0
 	return maxf(wrap_size.y * 0.5, 1.0)
@@ -72,7 +70,7 @@ func ensure_material() -> void:
 
 func sync_shader_uniforms() -> void:
 	ensure_material()
-	var beam_size := size
+	var beam_size: Vector2 = size
 	if beam_size.x < 1.0 or beam_size.y < 1.0:
 		beam_size = Vector2(offset_right - offset_left, offset_bottom - offset_top)
 	if beam_size.x < 1.0 or beam_size.y < 1.0:
@@ -81,5 +79,6 @@ func sync_shader_uniforms() -> void:
 	beam_material.set_shader_parameter("strength", highlight_strength)
 	beam_material.set_shader_parameter("corner_radius", corner_radius_for_size())
 	beam_material.set_shader_parameter("rect_size", beam_size)
-	beam_material.set_shader_parameter("edge_pad", BEAM_OUTSET)
+	# Outward margin so the glow can draw outside the panel (>= half GLOW_W in the shader).
+	beam_material.set_shader_parameter("edge_pad", Margin.ma_1)
 	pass

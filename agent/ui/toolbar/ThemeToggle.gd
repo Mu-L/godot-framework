@@ -3,11 +3,11 @@ extends RefCounted
 
 ## Circular toolbar button for switching dark / light color schemes.
 
-const BUTTON_SIZE := 28
-const ICON_SIZE := 14
-const SUN_ICON_PATH := "res://agent/asset/image/icon/sun.svg"
-const MOON_ICON_PATH := "res://agent/asset/image/icon/moon.svg"
-const SVG_BASE_COLOR := "#8B949E"
+const BUTTON_SIZE: int = 28
+const ICON_SIZE: int = 14
+const SUN_ICON_PATH: String = "res://agent/asset/image/icon/sun.svg"
+const MOON_ICON_PATH: String = "res://agent/asset/image/icon/moon.svg"
+const SVG_BASE_COLOR: String = "#8B949E"
 
 var button: Button
 
@@ -32,9 +32,9 @@ func setup(p_button: Button) -> void:
 # ---------------------------------------------------------------------------
 
 func apply_theme() -> void:
-	var tooltip := "Switch to light theme" if ThemeColor.is_dark_theme() else "Switch to dark theme"
+	var tooltip: String = "Switch to light theme" if ThemeColor.is_dark_theme() else "Switch to dark theme"
 	AgentToolbarButton.style(button, tooltip, BUTTON_SIZE / 2)
-	apply_equal_icon_margins(2)
+	apply_equal_icon_margins(Margin.ma_1)
 	button.text = ""
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -48,7 +48,7 @@ func apply_theme() -> void:
 
 func apply_equal_icon_margins(margin: int) -> void:
 	for state_name: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-		var box := button.get_theme_stylebox(state_name) as StyleBoxFlat
+		var box: StyleBoxFlat = button.get_theme_stylebox(state_name) as StyleBoxFlat
 		if box == null:
 			continue
 		box.content_margin_left = margin
@@ -82,8 +82,8 @@ func on_mouse_exited() -> void:
 # ---------------------------------------------------------------------------
 
 func update_icon(hovered: bool) -> void:
-	var show_moon := ThemeColor.is_light_theme()
-	var icon_color := AgentColors.toolbar_muted
+	var show_moon: bool = ThemeColor.is_light_theme()
+	var icon_color: Color = AgentColors.toolbar_muted
 	if show_moon:
 		icon_color = AgentColors.theme_accent_solid()
 	if hovered:
@@ -110,9 +110,9 @@ func make_moon_icon(color: Color) -> ImageTexture:
 
 
 func svg_to_texture(path: String, color: Color) -> ImageTexture:
-	var svg := FileAccess.get_file_as_string(path)
+	var svg: String = FileAccess.get_file_as_string(path)
 	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
-	var image := Image.new()
+	var image: Image = Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
 		return ImageTexture.new()
 	return ImageTexture.create_from_image(image)

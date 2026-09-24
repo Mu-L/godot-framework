@@ -9,29 +9,25 @@ extends Window
 ## Example: `DesktopToast.show_toast("Run finished", summary, Colors.success)`
 ## The card follows the app accent through `ThemeColorCard`; the accent color is passed per toast.
 
-const CARD_WIDTH := 380.0
-const CARD_PADDING := 18.0
-const ACCENT_WIDTH := 3
-const TITLE_FONT_SIZE := 15
-const BODY_FONT_SIZE := 13
-const TITLE_BODY_GAP := 8.0
-const MAX_BODY_LINES := 4
-const SCREEN_MARGIN := 24.0
-const STACK_GAP := 12.0
-const SHOW_SECONDS := 4.5
+const CARD_WIDTH: float = 380.0
+const ACCENT_WIDTH: int = 3
+const TITLE_FONT_SIZE: int = 15
+const BODY_FONT_SIZE: int = 13
+const MAX_BODY_LINES: int = 4
+const SHOW_SECONDS: float = 4.5
 ## How long the app window stays above the others after the card is clicked.
-const TOPMOST_MILLIS := 900
+const TOPMOST_MILLIS: int = 900
 
 ## Live toasts, oldest first — the newest one hugs the screen corner.
 static var toasts: Array[DesktopToast] = []
 ## Main-window pixels per viewport unit, so the toast matches the app's UI scale.
-static var ui_scale := 1.0
+static var ui_scale: float = 1.0
 
 var card: PanelContainer
 var body_label: Label
 ## Card title and body text; `*_text` because [member Window.title] is already taken by the native [Window] base.
-var title_text := ""
-var body_text := ""
+var title_text: String = ""
+var body_text: String = ""
 var accent: Color = Colors.info
 
 
@@ -59,7 +55,7 @@ static func show_toast(title: String, body: String, color: Color) -> void:
 	if gdf.gdf_node == null or not gdf.gdf_node.is_inside_tree():
 		return
 	ui_scale = compute_ui_scale()
-	var toast := DesktopToast.new()
+	var toast: DesktopToast = DesktopToast.new()
 	toast.title_text = title
 	toast.body_text = body.strip_edges()
 	toast.accent = color
@@ -70,21 +66,21 @@ static func show_toast(title: String, body: String, color: Color) -> void:
 
 ## App UI scale, i.e. how many screen pixels one viewport unit takes on the main window.
 static func compute_ui_scale() -> float:
-	var viewport := gdf.gdf_node.get_viewport()
+	var viewport: Viewport = gdf.gdf_node.get_viewport()
 	if viewport == null:
 		return 1.0
-	var unit := viewport.get_visible_rect().size
+	var unit: Vector2 = viewport.get_visible_rect().size
 	if unit.x <= 0.0 or unit.y <= 0.0:
 		return 1.0
-	var pixels := Vector2(DisplayServer.window_get_size())
+	var pixels: Vector2 = Vector2(DisplayServer.window_get_size())
 	return clampf(minf(pixels.x / unit.x, pixels.y / unit.y), 0.5, 4.0)
 
 
 ## Bottom-right anchor of the usable screen area (taskbar excluded).
 static func corner_position(window_size: Vector2i) -> Vector2i:
-	var screen := DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
-	var usable := DisplayServer.screen_get_usable_rect(screen)
-	var margin := roundi(SCREEN_MARGIN * ui_scale)
+	var screen: int = DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
+	var usable: Rect2i = DisplayServer.screen_get_usable_rect(screen)
+	var margin: int = roundi(Margin.ma_6 * ui_scale)
 	return Vector2i(
 		usable.position.x + usable.size.x - window_size.x - margin,
 		usable.position.y + usable.size.y - window_size.y - margin,
@@ -93,13 +89,13 @@ static func corner_position(window_size: Vector2i) -> Vector2i:
 
 ## Bring the app window back: restore it when minimized, raise it when it is behind, then focus it.
 static func activate_main_window() -> void:
-	var window_id := DisplayServer.MAIN_WINDOW_ID
-	var mode := DisplayServer.window_get_mode(window_id)
+	var window_id: int = DisplayServer.MAIN_WINDOW_ID
+	var mode: DisplayServer.WindowMode = DisplayServer.window_get_mode(window_id)
 	if mode != DisplayServer.WINDOW_MODE_WINDOWED:
 		# `ShowWindow()` behind a mode change is what restores and activates a hidden window; a plain
 		# `window_move_to_foreground()` is refused by Windows while another app owns the foreground.
 		# Godot drops the maximized flag while minimized, so the cached size decides that case.
-		var restored := mode
+		var restored: DisplayServer.WindowMode = mode
 		if mode == DisplayServer.WINDOW_MODE_MINIMIZED:
 			restored = DisplayServer.WINDOW_MODE_MAXIMIZED if covered_usable_screen(window_id) else DisplayServer.WINDOW_MODE_WINDOWED
 		DisplayServer.window_set_mode(restored, window_id)
@@ -119,22 +115,22 @@ static func drop_topmost(window_id: int) -> void:
 ## True while the window covers the usable screen — either maximized or minimized from maximized,
 ## Godot drops the maximized flag while a window is minimized, so its cached size is all that is left.
 static func covered_usable_screen(window_id: int) -> bool:
-	var window_size := Vector2(DisplayServer.window_get_size_with_decorations(window_id))
-	var usable := Vector2(DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(window_id)).size)
+	var window_size: Vector2 = Vector2(DisplayServer.window_get_size_with_decorations(window_id))
+	var usable: Vector2 = Vector2(DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen(window_id)).size)
 	return window_size.x >= usable.x and window_size.y >= usable.y
 
 
 ## Stack live toasts from the screen corner upward. Dismissed toasts leave [member toasts] first, so
 ## only a node freed behind our back can still show up here.
 static func relayout() -> void:
-	var lift := 0
+	var lift: int = 0
 	for i in range(toasts.size() - 1, -1, -1):
-		var toast := toasts[i]
+		var toast: DesktopToast = toasts[i]
 		if not is_instance_valid(toast):
 			continue
-		var corner := corner_position(toast.size)
+		var corner: Vector2i = corner_position(toast.size)
 		toast.position = Vector2i(corner.x, corner.y - lift)
-		lift += toast.size.y + roundi(STACK_GAP * ui_scale)
+		lift += toast.size.y + roundi(Margin.ma_3 * ui_scale)
 	pass
 
 
@@ -168,20 +164,20 @@ func fit_window_size() -> void:
 
 
 func build_card() -> void:
-	var unit := ui_scale
-	var pad := CARD_PADDING * unit
-	var card_width := CARD_WIDTH * unit
-	var text_width := card_width - pad * 2.0
-	var title_font := Fonts.semibold()
-	var body_font := Fonts.regular()
-	var title_size := roundi(TITLE_FONT_SIZE * unit)
-	var body_size := roundi(BODY_FONT_SIZE * unit)
-	var gap := TITLE_BODY_GAP * unit
+	var unit: float = ui_scale
+	var pad: float = Margin.ma_5 * unit
+	var card_width: float = CARD_WIDTH * unit
+	var text_width: float = card_width - pad * 2.0
+	var title_font: Font = Fonts.semibold()
+	var body_font: Font = Fonts.regular()
+	var title_size: int = roundi(TITLE_FONT_SIZE * unit)
+	var body_size: int = roundi(BODY_FONT_SIZE * unit)
+	var gap: float = Margin.ma_2 * unit
 	# First guess from font metrics; `fit_window_size` corrects it once the labels wrapped.
-	var body_height := 0.0
+	var body_height: float = 0.0
 	if StringUtils.is_not_blank(body_text):
 		body_height = body_font.get_multiline_string_size(body_text, HORIZONTAL_ALIGNMENT_LEFT, text_width, body_size, MAX_BODY_LINES).y
-	var card_height := pad * 2.0 + title_font.get_height(title_size) + (gap + body_height if body_height > 0.0 else 0.0)
+	var card_height: float = pad * 2.0 + title_font.get_height(title_size) + (gap + body_height if body_height > 0.0 else 0.0)
 	size = Vector2i(roundi(card_width), roundi(card_height))
 	# Place it while it is still invisible, so the window never flashes at the tree origin.
 	position = corner_position(size)
@@ -192,11 +188,11 @@ func build_card() -> void:
 	card.gui_input.connect(on_card_input)
 	add_child(card)
 
-	var column := VBoxContainer.new()
+	var column: VBoxContainer = VBoxContainer.new()
 	column.add_theme_constant_override("separation", roundi(gap))
 	card.add_child(column)
 
-	var title_label := Label.new()
+	var title_label: Label = Label.new()
 	title_label.text = title_text
 	title_label.add_theme_font_override("font", title_font)
 	title_label.add_theme_font_size_override("font_size", title_size)
@@ -220,7 +216,7 @@ func build_card() -> void:
 
 ## Flat rectangle: card background plus an accent stripe down the left edge.
 func make_card_style(pad: float, unit: float) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = ThemeColorCard.background_color
 	style.border_color = accent
 	style.border_width_left = roundi(ACCENT_WIDTH * unit)

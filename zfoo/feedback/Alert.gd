@@ -23,10 +23,10 @@ static func create_alert_label(i18n_text: String, color: Color) -> Label:
 	styleBox.bg_color = color
 	styleBox.set_corner_radius_all(default_corner_radius)
 	# Padding keeps text off the rounded edges.
-	styleBox.content_margin_top = 8
-	styleBox.content_margin_bottom = 8
-	styleBox.content_margin_left = 16
-	styleBox.content_margin_right = 16
+	styleBox.content_margin_top = Margin.ma_2
+	styleBox.content_margin_bottom = Margin.ma_2
+	styleBox.content_margin_left = Margin.ma_4
+	styleBox.content_margin_right = Margin.ma_4
 	alertLabel.add_theme_stylebox_override("normal", styleBox)
 	alertLabel.z_index = 1024
 	
@@ -43,9 +43,9 @@ static func alert(txt: String, color: Color) -> void:
 	
 	# Wait one frame so font/theme metrics and StyleBox padding are resolved before sizing.
 	await alertLabel.get_tree().process_frame
-	var label_size := alertLabel.get_combined_minimum_size()
+	var label_size: Vector2 = alertLabel.get_combined_minimum_size()
 	alertLabel.size = label_size
-	var viewport_size := alertLabel.get_viewport().get_visible_rect().size
+	var viewport_size: Vector2 = alertLabel.get_viewport().get_visible_rect().size
 	# Top-left anchor: center by offset, not pivot (early reset_size underestimates width and drifts right).
 	alertLabel.position.x = (viewport_size.x - label_size.x) / 2
 	
