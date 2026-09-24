@@ -75,7 +75,13 @@ static func apply_states(
 	pass
 
 
-## Text colors for the same states, one per `font_*_color` theme item.
+## Text colors for the same states, one per `font_*_color` theme item: focus mirrors
+## [param hover_color] and hover-pressed mirrors [param pressed_color], the same pairing
+## [method apply_states] uses for the boxes.
+##
+## Those two are not optional — an item left out is resolved from the default theme, whose focus
+## and hover-pressed text are near white and would vanish on a light surface.
+##
 ## [param disabled_color] defaults to [param base_color] at half alpha.
 static func apply_font_colors(
 	button: Button,
@@ -87,5 +93,7 @@ static func apply_font_colors(
 	button.add_theme_color_override("font_color", base_color)
 	button.add_theme_color_override("font_hover_color", hover_color)
 	button.add_theme_color_override("font_pressed_color", pressed_color)
+	button.add_theme_color_override("font_focus_color", hover_color)
+	button.add_theme_color_override("font_hover_pressed_color", pressed_color)
 	button.add_theme_color_override("font_disabled_color", disabled_color if disabled_color is Color else with_alpha(base_color, 0.5))
 	pass

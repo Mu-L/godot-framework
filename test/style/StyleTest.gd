@@ -155,3 +155,18 @@ func ButtonStyle_apply_states_test() -> void:
 	pass
 
 
+## Same hole on the text side: the default theme paints focus and hover-pressed text near white,
+## so a button that only overrides normal / hover / pressed goes blank on a light surface.
+func ButtonStyle_apply_font_colors_test() -> void:
+	var button := Button.new()
+	ButtonStyle.apply_font_colors(button, Color.BLACK, Color.RED, Color.GREEN)
+	assert(button.get_theme_color("font_color") == Color.BLACK)
+	assert(button.get_theme_color("font_hover_color") == Color.RED)
+	assert(button.get_theme_color("font_pressed_color") == Color.GREEN)
+	assert(button.get_theme_color("font_focus_color") == Color.RED)
+	assert(button.get_theme_color("font_hover_pressed_color") == Color.GREEN)
+	assert(button.get_theme_color("font_disabled_color") == ButtonStyle.with_alpha(Color.BLACK, 0.5))
+	button.free()
+	pass
+
+

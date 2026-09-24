@@ -509,9 +509,9 @@ func style_dialog() -> void:
 
 
 func style_option_button(select: OptionButton) -> void:
-	select.add_theme_color_override("font_color", AgentColors.chat_text)
-	select.add_theme_color_override("font_hover_color", AgentColors.chat_text)
-	select.add_theme_color_override("font_pressed_color", AgentColors.chat_text)
+	# Every font state, focus included: the dialog hands the focus to this select when it pops up,
+	# and the engine's focus text is near white.
+	ButtonStyle.apply_font_colors(select, AgentColors.chat_text, AgentColors.chat_text, AgentColors.chat_text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.border_color = AgentColors.theme_accent_solid()
@@ -587,7 +587,7 @@ func style_spin_box(spin: SpinBox) -> void:
 
 
 func style_secondary_button(target: Button) -> void:
-	target.add_theme_color_override("font_color", AgentColors.chat_text)
+	ButtonStyle.apply_font_colors(target, AgentColors.chat_text, AgentColors.chat_text, AgentColors.chat_text)
 	var normal: StyleBoxFlat = make_input_style()
 	normal.bg_color = AgentColors.toolbar_button
 	normal.content_margin_left = Margin.ma_4
