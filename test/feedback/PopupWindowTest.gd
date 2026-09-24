@@ -101,6 +101,66 @@ func PopupWindow_parent_test() -> void:
 	pass
 
 
+## [method PopupWindow.apply_theme] paints the frame from [ThemeColorCard] and the text area from its inset surface.
+func PopupWindow_theme_test() -> void:
+	var window := PopupWindow.new()
+	gdf.gdf_node.add_child(window)
+	var border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
+	assert(border.bg_color == ThemeColorCard.background_color)
+	assert(border.corner_radius_top_left == PopupWindow.FRAME_RADIUS)
+	assert(border.get_minimum_size().y == window.get_theme_stylebox("embedded_unfocused_border").get_minimum_size().y)
+	assert(window.get_theme_color("title_color") == ThemeColorCard.title_color)
+	assert(window.get_theme_font("title_font") == Fonts.semibold())
+	assert(window.get_theme_font_size("title_font_size") == PopupWindow.TITLE_FONT_SIZE)
+	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ThemeColorCard.background_color)
+	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ThemeColorCard.inset_color)
+	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).content_margin_left == Margin.ma_4)
+	assert(window.text_edit.get_theme_color("font_readonly_color") == ThemeColorCard.title_color)
+	assert(window.text_edit.get_theme_color("caret_color") == ThemeColorCard.accent_color)
+	assert(window.text_edit.get_theme_font("font") == Fonts.regular())
+	assert(window.text_edit.get_theme_font_size("font_size") == TextStyle.body_large_size)
+	# The bar keeps the engine's 8px box: only the fill is exchanged, not the geometry.
+	var grabber := window.text_edit.get_v_scroll_bar().get_theme_stylebox("grabber") as StyleBoxFlat
+	assert(grabber.bg_color == ThemeColorCard.body_color)
+	assert(grabber.get_minimum_size().x == 8.0)
+	window.free()
+	pass
+
+
+## A theme change repaints an open popup: the frame follows the accent, so does the caret.
+func PopupWindow_theme_change_test() -> void:
+	var window := PopupWindow.new()
+	gdf.gdf_node.add_child(window)
+	var original: Color = ThemeColor.theme_color
+	# Start from an accent this test picks: the palette statics are only as fresh as the last refresh.
+	ThemeColor.theme_color = Color(0.2, 0.45, 1.0)
+	ThemeColor.refresh_derived_colors()
+	gdf.events.theme_color_changed.emit()
+	var painted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
+	assert(painted.bg_color == ThemeColorCard.background_color)
+	ThemeColor.theme_color = Color(1.0, 0.35, 0.05)
+	ThemeColor.refresh_derived_colors()
+	gdf.events.theme_color_changed.emit()
+	var repainted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
+	assert(repainted.bg_color == ThemeColorCard.background_color)
+	assert(repainted.bg_color != painted.bg_color)
+	assert(window.text_edit.get_theme_color("caret_color") == ThemeColorCard.accent_color)
+	# Back to the accent the project was started with, so no other test sees a repaint.
+	ThemeColor.theme_color = original
+	ThemeColor.refresh_derived_colors()
+	gdf.events.theme_color_changed.emit()
+	gdf.events.theme_changed.emit()
+	assert(window.text_edit.get_theme_color("font_readonly_color") == ThemeColorCard.title_color)
+	# The frame is rebuilt from the engine box on every repaint, so its geometry must survive.
+	var engine_border: StyleBox = ThemeDB.get_default_theme().get_stylebox("embedded_border", "Window")
+	var final_border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
+	assert(final_border.expand_margin_top == engine_border.expand_margin_top)
+	assert(final_border.expand_margin_left == engine_border.expand_margin_left)
+	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).expand_margin_top == engine_border.expand_margin_top)
+	window.free()
+	pass
+
+
 ## The headless dummy display clamps embedded windows to 1×1, so percent sizing is only measurable with a real one.
 func has_display() -> bool:
 	return DisplayServer.get_name() != "headless"
