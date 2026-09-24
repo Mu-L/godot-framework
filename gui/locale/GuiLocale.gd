@@ -10,6 +10,10 @@ static var strings: Dictionary = {}
 
 
 static func _static_init() -> void:
+	TranslationJson.register_json_files([
+		LOCALE_DIR + LOCALE_EN + ".json",
+		LOCALE_DIR + LOCALE_ZH + ".json",
+	])
 	load_locale(LOCALE_EN)
 	pass
 
@@ -28,6 +32,7 @@ static func load_locale(locale: String) -> void:
 
 	strings = parsed as Dictionary
 	current_locale = locale
+	TranslationServer.set_locale(locale)
 	pass
 
 

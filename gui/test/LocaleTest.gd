@@ -9,3 +9,11 @@ func graph_nodes_locale_test() -> void:
 		== GuiLocale.node_label("input-audio")
 	)
 	pass
+
+
+func translation_server_locale_test() -> void:
+	TranslationServer.set_locale(GuiLocale.LOCALE_EN)
+	assert(TranslationServer.translate("ui.window_title") == GuiLocale.resolve("ui.window_title"))
+	assert(TranslationServer.translate("ui window_title") == GuiLocale.resolve("ui.window_title"))
+	TranslationServer.set_locale(GuiLocale.current_locale)
+	pass
