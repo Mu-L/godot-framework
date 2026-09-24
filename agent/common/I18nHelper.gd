@@ -29,13 +29,3 @@ static func init_i18n() -> void:
 	var locale_config: LocaleConfig = LOCALE_PATHS.get(locale, LOCALE_PATHS["en"])
 	I18n.set_locale(locale_config.locale_path)
 	pass
-
-
-static func translate(key: String) -> String:
-	return TranslationServer.translate(key)
-
-
-static func entry_title(kind: String, fallback: String) -> String:
-	var key := "agent.chat.title." + kind
-	var translated := translate(key)
-	return fallback if translated == key else translated

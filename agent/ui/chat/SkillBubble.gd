@@ -43,7 +43,7 @@ static func append(
 	header.add_theme_constant_override("separation", Margin.ma_2)
 
 	var title_label: Label = Label.new()
-	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
+	title_label.text = I18n.t("agent.chat.title.agent_prompt") if entry.kind == ChatEntry.KIND_AGENT_PROMPT else I18n.t("agent.chat.title.skill")
 	title_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
@@ -99,12 +99,12 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry, wrapper: PanelCo
 		expand_button.visible = can_expand
 		if can_expand:
 			if expanded:
-				expand_button.text = I18nHelper.translate("agent.chat.collapse")
-				expand_button.tooltip_text = I18nHelper.translate("agent.chat.show_first_lines")
+				expand_button.text = I18n.t("agent.chat.collapse")
+				expand_button.tooltip_text = I18n.t("agent.chat.show_first_lines")
 			else:
 				var hidden: int = hidden_line_count(entry.body)
-				expand_button.text = StringUtils.format(I18nHelper.translate("agent.chat.expand_lines"), hidden)
-				expand_button.tooltip_text = I18nHelper.translate("agent.chat.show_context")
+				expand_button.text = StringUtils.format(I18n.t("agent.chat.expand_lines"), hidden)
+				expand_button.tooltip_text = I18n.t("agent.chat.show_context")
 	pass
 
 

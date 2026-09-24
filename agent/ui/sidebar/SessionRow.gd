@@ -63,7 +63,7 @@ func build(p_session_id: int, title: String) -> void:
 
 	delete_button = Button.new()
 	delete_button.text = "×"
-	delete_button.tooltip_text = I18nHelper.translate("agent.sidebar.delete_chat")
+	delete_button.tooltip_text = I18n.t("agent.sidebar.delete_chat")
 	delete_button.custom_minimum_size = ACTION_SIZE
 	delete_button.focus_mode = Control.FOCUS_NONE
 	delete_button.flat = true
@@ -147,7 +147,7 @@ func open_rename() -> void:
 		return
 	var field: LineEdit = LineEdit.new()
 	field.text = title_button.text
-	field.placeholder_text = I18nHelper.translate("agent.sidebar.chat_title")
+	field.placeholder_text = I18n.t("agent.sidebar.chat_title")
 	field.max_length = AgentSessionManager.MAX_TITLE_LENGTH
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if title_button.size.y > 0.0:

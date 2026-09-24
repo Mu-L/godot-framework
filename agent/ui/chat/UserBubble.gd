@@ -41,7 +41,7 @@ static func append(
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var title_label: Label = Label.new()
-	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
+	title_label.text = I18n.t("agent.chat.title.user")
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
@@ -55,15 +55,15 @@ static func append(
 	if StringUtils.is_not_blank(entry.checkpoint):
 		var revert_button: Button = Button.new()
 		revert_button.name = "RevertButton"
-		revert_button.text = I18nHelper.translate("agent.chat.revert")
-		AgentBubble.style_header_button(revert_button, panel_style.bg_color, I18nHelper.translate("agent.chat.revert_help"), 58.0)
+		revert_button.text = I18n.t("agent.chat.revert")
+		AgentBubble.style_header_button(revert_button, panel_style.bg_color, I18n.t("agent.chat.revert_help"), 58.0)
 		revert_button.pressed.connect(on_revert_pressed.bind(session_id, entry))
 		header.add_child(revert_button)
 
 	var delete_from_here_button: Button = Button.new()
 	delete_from_here_button.name = "DeleteFromHereButton"
-	delete_from_here_button.text = I18nHelper.translate("agent.chat.delete")
-	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, I18nHelper.translate("agent.chat.delete_help"), 52.0)
+	delete_from_here_button.text = I18n.t("agent.chat.delete")
+	AgentBubble.style_header_button(delete_from_here_button, panel_style.bg_color, I18n.t("agent.chat.delete_help"), 52.0)
 	delete_from_here_button.pressed.connect(on_delete_from_here_pressed.bind(session_id, entry))
 	header.add_child(delete_from_here_button)
 
@@ -100,7 +100,7 @@ static func append(
 ## (via AgentEvents.events.chat_input_prefill, see AgentChatInput).
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
 	AgentEvents.events.chat_input_prefill.emit(entry.body)
-	Alert.alert(I18nHelper.translate("agent.chat.moved_to_input"), Colors.success)
+	Alert.alert(I18n.t("agent.chat.moved_to_input"), Colors.success)
 	AgentSessionManager.delete_chat_from_entry(session_id, entry)
 	pass
 

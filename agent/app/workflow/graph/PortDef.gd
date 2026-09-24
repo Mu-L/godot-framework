@@ -23,15 +23,15 @@ var type: String = TYPE_NAME_STRING
 
 func display_label(catalog_id: String) -> String:
 	var node_port_key := "node_port." + catalog_id + "." + id
-	var translated := TranslationServer.translate(node_port_key)
+	var translated := I18n.t(node_port_key)
 	if translated != node_port_key:
 		return translated
 	var port_key := "port." + id
-	translated = TranslationServer.translate(port_key)
+	translated = I18n.t(port_key)
 	if translated != port_key:
 		return translated
 	var type_key := "port_type." + type
-	translated = TranslationServer.translate(type_key)
+	translated = I18n.t(type_key)
 	return type if translated == type_key else translated
 
 

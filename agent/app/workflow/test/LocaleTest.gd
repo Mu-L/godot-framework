@@ -13,13 +13,13 @@ func ensure_translations() -> void:
 func graph_nodes_locale_test() -> void:
 	ensure_translations()
 	TranslationServer.set_locale(LOCALE_EN)
-	assert(GraphNodesConfig.get_def("input-audio").display_label() == TranslationServer.translate("node.input-audio"))
-	assert(GraphNodesConfig.category_label(GraphNodesConfig.SOURCE_CATEGORY) == TranslationServer.translate("category.source"))
+	assert(GraphNodesConfig.get_def("input-audio").display_label() == I18n.t("node.input-audio"))
+	assert(GraphNodesConfig.category_label(GraphNodesConfig.SOURCE_CATEGORY) == I18n.t("category.source"))
 	pass
 
 
 func translation_server_locale_test() -> void:
 	ensure_translations()
 	TranslationServer.set_locale(LOCALE_EN)
-	assert(TranslationServer.translate("workflow.window_title") == TranslationServer.translate("workflow window_title"))
+	assert(I18n.t("workflow.window_title") == I18n.t("workflow window_title"))
 	pass

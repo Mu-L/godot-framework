@@ -88,21 +88,21 @@ func build_dialog() -> void:
 	fields.add_theme_constant_override("separation", Margin.ma_3)
 	scroll.add_child(fields)
 	heading_label = Label.new()
-	heading_label.text = I18nHelper.translate("agent.settings.heading")
+	heading_label.text = I18n.t("agent.settings.heading")
 	heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
 	fields.add_child(heading_label)
 	description_label = Label.new()
-	description_label.text = I18nHelper.translate("agent.settings.description")
+	description_label.text = I18n.t("agent.settings.description")
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description_label.add_theme_font_size_override("font_size", TextStyle.body_small_size)
 	fields.add_child(description_label)
 	var separator: HSeparator = HSeparator.new()
 	fields.add_child(separator)
 	provider_select = add_provider_field(fields)
-	api_url_edit = add_field(fields, I18nHelper.translate("agent.settings.api_endpoint"), "https://api.example.com/v1/chat/completions", I18nHelper.translate("agent.settings.api_endpoint_help"))
-	model_edit = add_field(fields, I18nHelper.translate("agent.settings.model"), ApiSetting.DEFAULT_MODEL, I18nHelper.translate("agent.settings.model_help"))
+	api_url_edit = add_field(fields, I18n.t("agent.settings.api_endpoint"), "https://api.example.com/v1/chat/completions", I18n.t("agent.settings.api_endpoint_help"))
+	model_edit = add_field(fields, I18n.t("agent.settings.model"), ApiSetting.DEFAULT_MODEL, I18n.t("agent.settings.model_help"))
 	api_token_edit = add_token_field(fields)
-	proxy_address_edit = add_field(fields, I18nHelper.translate("agent.settings.proxy"), "http://127.0.0.1:10809", I18nHelper.translate("agent.settings.proxy_help"))
+	proxy_address_edit = add_field(fields, I18n.t("agent.settings.proxy"), "http://127.0.0.1:10809", I18n.t("agent.settings.proxy_help"))
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		bind_auto_save(edit, save_api_settings)
 	fields.add_child(HSeparator.new())
@@ -115,11 +115,11 @@ func build_dialog() -> void:
 ## Notification options, one row each, every row hugging the left edge: the toast toggle, the
 ## sound toggle with its duration, then the clip folder. Duration and folder hide with the sound.
 func add_notify_fields(parent: VBoxContainer) -> void:
-	toast_toggle_button = add_check_button(make_option_row(parent, Margin.ma_2), I18nHelper.translate("agent.settings.notification_window"), AgentSetting.get_notification_window())
+	toast_toggle_button = add_check_button(make_option_row(parent, Margin.ma_2), I18n.t("agent.settings.notification_window"), AgentSetting.get_notification_window())
 	toast_toggle_button.toggled.connect(on_toast_toggled)
 
 	var sound_row: HBoxContainer = make_option_row(parent, Margin.ma_4)
-	sound_toggle_button = add_check_button(sound_row, I18nHelper.translate("agent.settings.notification_sound"), AgentSetting.get_notification_sound())
+	sound_toggle_button = add_check_button(sound_row, I18n.t("agent.settings.notification_sound"), AgentSetting.get_notification_sound())
 	sound_toggle_button.toggled.connect(on_sound_toggled)
 	sound_seconds_group = add_sound_seconds_group(sound_row)
 
@@ -129,7 +129,7 @@ func add_notify_fields(parent: VBoxContainer) -> void:
 	sound_folder_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sound_folder_edit.placeholder_text = AgentSetting.DEFAULT_SOUND_FOLDER
 	sound_folder_edit.text = AgentSetting.get_notification_sound_folder()
-	sound_folder_edit.tooltip_text = I18nHelper.translate("agent.settings.sound_folder_help")
+	sound_folder_edit.tooltip_text = I18n.t("agent.settings.sound_folder_help")
 	sound_folder_edit.gui_input.connect(on_sound_folder_input)
 	sound_folder_edit.text_changed.connect(on_sound_folder_text_changed)
 	sound_folder_row.add_child(sound_folder_edit)
@@ -142,7 +142,7 @@ func add_notify_fields(parent: VBoxContainer) -> void:
 ## Sound length, saved on every step.
 func add_sound_seconds_group(parent: HBoxContainer) -> HBoxContainer:
 	var group: HBoxContainer = make_option_row(parent, Margin.ma_2)
-	group.add_child(make_label(I18nHelper.translate("agent.settings.sound_duration")))
+	group.add_child(make_label(I18n.t("agent.settings.sound_duration")))
 	sound_seconds_spin = SpinBox.new()
 	sound_seconds_spin.min_value = AgentSetting.MIN_SOUND_SECONDS
 	sound_seconds_spin.max_value = AgentSetting.MAX_SOUND_SECONDS
@@ -166,10 +166,10 @@ func make_option_row(parent: Container, separation: int) -> HBoxContainer:
 ## Folder picker behind the path field — no Browse button, clicking the field opens it.
 func build_folder_dialog() -> void:
 	sound_folder_dialog = FileDialog.new()
-	sound_folder_dialog.title = I18nHelper.translate("agent.settings.sound_folder_title")
+	sound_folder_dialog.title = I18n.t("agent.settings.sound_folder_title")
 	sound_folder_dialog.file_mode = FileDialog.FILE_MODE_OPEN_DIR
 	sound_folder_dialog.access = FileDialog.ACCESS_FILESYSTEM
-	sound_folder_dialog.ok_button_text = I18nHelper.translate("agent.common.select")
+	sound_folder_dialog.ok_button_text = I18n.t("agent.common.select")
 	sound_folder_dialog.size = FOLDER_DIALOG_SIZE
 	sound_folder_dialog.dir_selected.connect(on_sound_folder_selected)
 	dialog.add_child(sound_folder_dialog)
@@ -225,7 +225,7 @@ func bind_auto_save(edit: LineEdit, saver: Callable) -> void:
 
 
 func add_provider_field(parent: VBoxContainer) -> OptionButton:
-	var group: VBoxContainer = make_field_group(parent, I18nHelper.translate("agent.settings.provider"))
+	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.provider"))
 	var select: OptionButton = OptionButton.new()
 	select.custom_minimum_size = Vector2(0, 38)
 	select.add_item(ApiSupport.CUSTOM_PROVIDER)
@@ -234,7 +234,7 @@ func add_provider_field(parent: VBoxContainer) -> OptionButton:
 	select.item_selected.connect(on_provider_selected)
 	select.get_popup().popup_hide.connect(on_provider_popup_hide)
 	group.add_child(select)
-	add_help_label(group, I18nHelper.translate("agent.settings.provider_help"))
+	add_help_label(group, I18n.t("agent.settings.provider_help"))
 	return select
 
 
@@ -247,7 +247,7 @@ func add_field(parent: Container, label_text: String, placeholder: String, help_
 
 
 func add_token_field(parent: VBoxContainer) -> LineEdit:
-	var group: VBoxContainer = make_field_group(parent, I18nHelper.translate("agent.settings.api_token"))
+	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.api_token"))
 	var row: HBoxContainer = HBoxContainer.new()
 	row.add_theme_constant_override("separation", Margin.ma_2)
 	group.add_child(row)
@@ -257,11 +257,11 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 	row.add_child(edit)
 	token_visibility_button = Button.new()
 	token_visibility_button.custom_minimum_size = Vector2(64, 38)
-	token_visibility_button.text = I18nHelper.translate("agent.common.show")
+	token_visibility_button.text = I18n.t("agent.common.show")
 	token_visibility_button.focus_mode = Control.FOCUS_NONE
 	token_visibility_button.pressed.connect(on_token_visibility_pressed)
 	row.add_child(token_visibility_button)
-	add_help_label(group, I18nHelper.translate("agent.settings.token_help"))
+	add_help_label(group, I18n.t("agent.settings.token_help"))
 	return edit
 
 
@@ -316,7 +316,7 @@ func on_button_pressed() -> void:
 	api_token_edit.text = ApiSetting.get_api_token()
 	proxy_address_edit.text = ApiSetting.get_proxy_address()
 	api_token_edit.secret = true
-	token_visibility_button.text = I18nHelper.translate("agent.common.show")
+	token_visibility_button.text = I18n.t("agent.common.show")
 	refresh_check_button(toast_toggle_button, AgentSetting.get_notification_window())
 	refresh_check_button(sound_toggle_button, AgentSetting.get_notification_sound())
 	update_sound_options_visible(sound_toggle_button.button_pressed)
@@ -443,7 +443,7 @@ func check_dialog_focus() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, I18nHelper.translate("agent.settings.tooltip"), 14)
+	AgentToolbarButton.style(button, I18n.t("agent.settings.tooltip"), 14)
 	button.custom_minimum_size = Vector2(28, 28)
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
@@ -603,5 +603,5 @@ func style_secondary_button(target: Button) -> void:
 
 func on_token_visibility_pressed() -> void:
 	api_token_edit.secret = not api_token_edit.secret
-	token_visibility_button.text = I18nHelper.translate("agent.common.show") if api_token_edit.secret else I18nHelper.translate("agent.common.hide")
+	token_visibility_button.text = I18n.t("agent.common.show") if api_token_edit.secret else I18n.t("agent.common.hide")
 	pass

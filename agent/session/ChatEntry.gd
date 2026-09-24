@@ -48,6 +48,24 @@ func _init(
 
 
 func open_full_view() -> void:
-	var popup_title := I18nHelper.entry_title(kind, title) if not StringUtils.is_blank(title) else I18nHelper.translate("agent.chat.full_view")
+	var popup_title := title if not StringUtils.is_blank(title) else I18n.t("agent.chat.full_view")
+	match kind:
+		KIND_SYSTEM:
+			popup_title = I18n.t("agent.chat.title.system")
+		KIND_SKILL:
+			popup_title = I18n.t("agent.chat.title.skill")
+		KIND_AGENT_PROMPT:
+			popup_title = I18n.t("agent.chat.title.agent_prompt")
+		KIND_USER:
+			popup_title = I18n.t("agent.chat.title.user")
+		KIND_AGENT:
+			popup_title = I18n.t("agent.chat.title.agent")
+		KIND_THINKING:
+			popup_title = I18n.t("agent.chat.title.thinking")
+		KIND_RESULT:
+			if title == TITLE_RESULT:
+				popup_title = I18n.t("agent.chat.title.result")
+		KIND_ERROR:
+			popup_title = I18n.t("agent.chat.title.error")
 	PopupWindow.show_window(popup_title, body, 76, 78)
 	pass

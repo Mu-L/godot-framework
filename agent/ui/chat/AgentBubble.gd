@@ -25,7 +25,7 @@ static func append(
 	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var title_label: Label = Label.new()
-	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
+	title_label.text = I18n.t("agent.chat.title.agent")
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
@@ -36,7 +36,7 @@ static func append(
 	header.add_child(spacer)
 
 	var copy_button: Button = Button.new()
-	copy_button.text = I18nHelper.translate("agent.chat.copy")
+	copy_button.text = I18n.t("agent.chat.copy")
 	style_copy_button(copy_button, panel_style.bg_color)
 	copy_button.pressed.connect(on_copy_pressed.bind(entry))
 	header.add_child(copy_button)
@@ -65,7 +65,7 @@ static func on_copy_pressed(entry: ChatEntry) -> void:
 
 
 static func style_copy_button(button: Button, bubble_bg: Color) -> void:
-	style_header_button(button, bubble_bg, I18nHelper.translate("agent.chat.copy_message"), 40.0)
+	style_header_button(button, bubble_bg, I18n.t("agent.chat.copy_message"), 40.0)
 	pass
 
 

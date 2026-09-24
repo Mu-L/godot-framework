@@ -104,7 +104,7 @@ static func _static_init() -> void:
 
 static func category_label(category_id: String) -> String:
 	var key := "category." + category_id
-	var translated := TranslationServer.translate(key)
+	var translated := I18n.t(key)
 	return category_id if translated == key else translated
 
 static func get_def(def_id: String) -> GraphNodeDef:

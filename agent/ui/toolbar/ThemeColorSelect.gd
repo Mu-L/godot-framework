@@ -49,7 +49,7 @@ func build_popup() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, I18nHelper.translate("agent.toolbar.theme_color"), BUTTON_SIZE / 2)
+	AgentToolbarButton.style(button, I18n.t("agent.toolbar.theme_color"), BUTTON_SIZE / 2)
 	apply_equal_icon_margins(Margin.ma_1)
 	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

@@ -25,7 +25,7 @@ static func append(
 	wrapper.add_child(vbox)
 
 	var title_label: Label = Label.new()
-	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
+	title_label.text = I18n.t("agent.chat.title.error")
 	title_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	vbox.add_child(title_label)
@@ -40,7 +40,7 @@ static func append(
 
 	if is_resumable(entry.body):
 		var resume_button: Button = Button.new()
-		resume_button.text = I18nHelper.translate("agent.chat.resume")
+		resume_button.text = I18n.t("agent.chat.resume")
 		resume_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		style_resume_button(resume_button)
 		resume_button.pressed.connect(on_resume_pressed.bind(session_id))

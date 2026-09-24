@@ -539,7 +539,7 @@ func layout_bar() -> void:
 	input_field.visible = expanded
 	if not expanded:
 		input_field.scroll_fit_content_height = true
-	input_wrap.tooltip_text = "" if expanded else I18nHelper.translate("agent.input.click_to_ask")
+	input_wrap.tooltip_text = "" if expanded else I18n.t("agent.input.click_to_ask")
 	layout_send_button(expanded)
 	style_wrap()
 	layout_border_beam()
@@ -705,11 +705,11 @@ func configure_send_button(icon: ImageTexture, tooltip: String, base_color: Colo
 
 func set_send_button_appearance(running: bool) -> void:
 	if running:
-		configure_send_button(make_stop_icon(16, Color.WHITE), I18nHelper.translate("agent.input.stop"), AgentColors.error)
+		configure_send_button(make_stop_icon(16, Color.WHITE), I18n.t("agent.input.stop"), AgentColors.error)
 	else:
 		configure_send_button(
 				make_arrow_up_icon(16, Color.WHITE),
-				I18nHelper.translate("agent.input.send"),
+				I18n.t("agent.input.send"),
 				AgentColors.theme_accent_solid()
 		)
 	pass

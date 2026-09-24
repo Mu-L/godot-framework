@@ -29,7 +29,7 @@ func setup(p_wrap: PanelContainer) -> void:
 	gdf.events.theme_color_changed.connect(apply_theme)
 	AgentEvents.events.session_selected.connect(refresh)
 	AgentEvents.events.message_complete.connect(on_message_complete)
-	label.text = StringUtils.format(I18nHelper.translate("agent.tokens.label"), "0")
+	label.text = StringUtils.format(I18n.t("agent.tokens.label"), "0")
 	apply_theme()
 	pass
 
@@ -49,9 +49,9 @@ func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 	var usage: OpenAiUsage = session.usage
 	var n: int = usage.prompt_tokens
 	var ratio: float = token_ratio(n)
-	label.text = StringUtils.format(I18nHelper.translate("agent.tokens.label"), format_count(n))
+	label.text = StringUtils.format(I18n.t("agent.tokens.label"), format_count(n))
 	wrap.tooltip_text = StringUtils.format(
-		I18nHelper.translate("agent.tokens.tooltip"),
+		I18n.t("agent.tokens.tooltip"),
 		n,
 		int(round(ratio * 100.0)),
 		usage.completion_tokens,

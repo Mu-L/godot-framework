@@ -13,6 +13,10 @@ static func is_initialized() -> bool:
 	return not locale.is_empty() and TranslationServer.has_translation_for_locale(locale, true)
 
 
+static func t(key: String) -> String:
+	return TranslationServer.translate(key)
+
+
 ## Loads the translation at path when needed, then switches to its declared locale.
 static func set_locale(locale_path: String) -> void:
 	var locale_data := LocaleData.parse_json_file(locale_path)

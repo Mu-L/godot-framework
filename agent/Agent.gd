@@ -80,13 +80,13 @@ func _ready() -> void:
 
 
 func apply_locale() -> void:
-	toolbar_title.text = tr("agent.toolbar.title")
-	new_session_button.text = tr("agent.sidebar.new_chat")
-	pinned_header.text = tr("agent.sidebar.pinned")
-	normal_header.text = tr("agent.sidebar.chats")
-	input_field.placeholder_text = tr("agent.input.placeholder")
-	workspace_dialog.title = tr("agent.workspace.dialog_title")
-	workspace_dialog.ok_button_text = tr("agent.common.select")
+	toolbar_title.text = I18n.t("agent.toolbar.title")
+	new_session_button.text = I18n.t("agent.sidebar.new_chat")
+	pinned_header.text = I18n.t("agent.sidebar.pinned")
+	normal_header.text = I18n.t("agent.sidebar.chats")
+	input_field.placeholder_text = I18n.t("agent.input.placeholder")
+	workspace_dialog.title = I18n.t("agent.workspace.dialog_title")
+	workspace_dialog.ok_button_text = I18n.t("agent.common.select")
 	pass
 
 

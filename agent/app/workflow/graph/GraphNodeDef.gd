@@ -12,7 +12,7 @@ func catalog_id() -> String:
 func display_label() -> String:
 	var id := catalog_id()
 	var key := "node." + id
-	var translated := TranslationServer.translate(key)
+	var translated := I18n.t(key)
 	return id if translated == key else translated
 
 

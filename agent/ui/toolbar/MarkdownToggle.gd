@@ -27,7 +27,7 @@ func apply_theme() -> void:
 	var markdown_enabled := AgentSetting.get_markdown_enabled()
 	AgentToolbarButton.style(
 			button,
-			I18nHelper.translate("agent.toolbar.raw_text") if markdown_enabled else I18nHelper.translate("agent.toolbar.markdown")
+			I18n.t("agent.toolbar.raw_text") if markdown_enabled else I18n.t("agent.toolbar.markdown")
 	)
 	button.set_block_signals(true)
 	button.button_pressed = markdown_enabled

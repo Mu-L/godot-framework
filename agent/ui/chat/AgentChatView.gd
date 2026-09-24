@@ -347,7 +347,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	wrapper.add_child(vbox)
 
 	var title_label: Label = Label.new()
-	title_label.text = I18nHelper.entry_title(entry.kind, entry.title)
+	title_label.text = I18n.t("agent.chat.title.system") if entry.kind == ChatEntry.KIND_SYSTEM else entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	vbox.add_child(title_label)
