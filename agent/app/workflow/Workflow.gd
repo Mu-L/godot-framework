@@ -118,7 +118,7 @@ func refresh_locale_button() -> void:
 
 func apply_locale_change() -> void:
 	var locale := "en" if I18n.get_locale() == "zh" else "zh"
-	I18n.set_locale(I18nHelper.LOCALE_PATHS[locale])
+	I18n.set_locale(I18nHelper.LOCALE_PATHS[locale].locale_path)
 	apply_ui_locale()
 	build_palette_tree()
 	set_workflow_name(WorkflowManager.workflow_name)
