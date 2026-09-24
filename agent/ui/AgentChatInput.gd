@@ -58,6 +58,7 @@ func setup(
 	send_button.pressed.connect(on_input_action_pressed)
 	input_field.gui_input.connect(on_field_gui_input)
 	input_field.minimum_size_changed.connect(on_field_minimum_size_changed)
+	input_field.text_changed.connect(on_field_text_changed)
 	input_field.focus_entered.connect(on_field_focus_entered)
 	input_field.focus_exited.connect(on_field_focus_exited)
 	input_wrap.gui_input.connect(on_wrap_gui_input)
@@ -159,6 +160,8 @@ func on_chat_input_prefill(text: String) -> void:
 	input_field.text = text
 	force_expanded = false
 	expand_if_collapsed()
+	# Setting .text does not emit text_changed, so ask for the (possibly capped) height by hand.
+	relayout_if_height_changed()
 	focus_input_field.call_deferred()
 	pass
 
@@ -204,6 +207,9 @@ func get_trimmed_text() -> String:
 
 func clear_text() -> void:
 	input_field.text = ""
+	# Setting .text does not emit text_changed, so re-measure by hand. Deferred: a send collapses
+	# right after this, and that tween should still start from the current (capped) height.
+	relayout_if_height_changed.call_deferred()
 	pass
 
 
@@ -275,13 +281,24 @@ func ensure_git_installed(session_id: int) -> bool:
 
 ## Re-layout when line count changes (typing, paste, delete). Skip during expand tween.
 func on_field_minimum_size_changed() -> void:
+	relayout_if_height_changed()
+	pass
+
+
+## While the panel is capped the field keeps the stylebox-only minimum height, so
+## minimum_size_changed never fires and a big delete (or clear) would never shrink the panel.
+func on_field_text_changed() -> void:
+	relayout_if_height_changed()
+	pass
+
+
+func relayout_if_height_changed() -> void:
 	if not expanded:
 		return
 	# Let expand/collapse tweens finish; killing here often freezes the panel at ~collapsed height.
 	if layout_tween != null:
 		return
-	var target_h: float = get_wrap_height(true)
-	if absf(wrap_offset_height() - target_h) < 1.0:
+	if absf(wrap_offset_height() - get_wrap_height(true)) < 1.0:
 		return
 	layout_bar()
 	pass
@@ -475,20 +492,36 @@ func get_expanded_height_max() -> float:
 	return maxf(EXPANDED_HEIGHT_MIN, host.size.y * EXPANDED_HEIGHT_MAX_RATIO)
 
 
+## Fit-content height of the field. The TextEdit only reports its stylebox-only height while
+## scroll_fit_content_height is off, so measure with it temporarily enabled. Two calls in a row
+## return the same value, which is what keeps layout_bar() / get_wrap_height() idempotent.
+func measure_field_content_height() -> float:
+	var was_fit: bool = input_field.scroll_fit_content_height
+	if not was_fit:
+		input_field.scroll_fit_content_height = true
+	var content_h: float = float(input_field.get_minimum_size().y)
+	if not was_fit:
+		input_field.scroll_fit_content_height = false
+	return content_h
+
+
 ## Collapsed: fixed circle. Expanded: follow TextEdit min height, clamped; scroll inside when capped.
+## Depends only on the text content, never on the previous fit flag, so repeated calls agree.
 func get_wrap_height(is_expanded: bool) -> float:
 	if not is_expanded:
 		return COLLAPSED_SIZE
 	# Margin.ma_1 top + bottom on the wrap stylebox is padding, so it is not usable field height.
 	var min_inner: float = maxf(0.0, EXPANDED_HEIGHT_MIN - Margin.ma_2)
 	var max_inner: float = get_expanded_height_max() - Margin.ma_2
-	var field_h: float = maxf(float(input_field.get_minimum_size().y), min_inner)
-	var at_cap: bool = field_h > max_inner
-	# At max height, stop growing the panel and let TextEdit scroll vertically.
-	input_field.scroll_fit_content_height = not at_cap
-	if at_cap:
-		field_h = max_inner
-	return maxf(EXPANDED_HEIGHT_MIN, field_h + Margin.ma_2)
+	var content_h: float = measure_field_content_height()
+	var at_cap: bool = content_h > max_inner
+	# At max height, stop growing the panel and let TextEdit scroll vertically. Fit content must be
+	# off there, otherwise the field clamps its own height to the pasted line count and overflows.
+	var want_fit: bool = not at_cap
+	if input_field.scroll_fit_content_height != want_fit:
+		input_field.scroll_fit_content_height = want_fit
+	var inner_h: float = minf(maxf(content_h, min_inner), max_inner)
+	return maxf(EXPANDED_HEIGHT_MIN, inner_h + Margin.ma_2)
 
 
 func layout_bar() -> void:
