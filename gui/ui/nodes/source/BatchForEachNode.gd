@@ -11,7 +11,7 @@ func build_node() -> void:
 	if not node_def.inputs.is_empty():
 		add_input_port_row(node_def.inputs[0], false)
 
-	add_child(create_text_row(GraphNodesConfig.CONTROL_FIELD_GLOB, tr("ui.batch.glob"), "*.*"))
+	add_child(create_text_row(GraphNodesConfig.CONTROL_FIELD_GLOB, tr("workflow.batch.glob"), "*.*"))
 
 	var type_row := create_item_type_row()
 	add_child(type_row)
@@ -29,7 +29,7 @@ func create_item_type_row() -> HBoxContainer:
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var label := Label.new()
-	label.text = tr("ui.batch.output_type")
+	label.text = tr("workflow.batch.output_type")
 	label.custom_minimum_size.x = 80
 	row.add_child(label)
 

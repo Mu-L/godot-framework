@@ -18,5 +18,5 @@ func graph_nodes_locale_test() -> void:
 func translation_server_locale_test() -> void:
 	assert(TranslationJson.register_json_files(LOCALE_PATHS))
 	TranslationServer.set_locale(LOCALE_EN)
-	assert(TranslationServer.translate("ui.window_title") == TranslationServer.translate("ui window_title"))
+	assert(TranslationServer.translate("workflow.window_title") == TranslationServer.translate("workflow window_title"))
 	pass

@@ -1,6 +1,6 @@
 {
   "locale": "zh-CN",
-  "ui": {
+  "workflow": {
     "window_title": "Skills Workflow — {}",
     "untitled": "未命名",
     "toolbar": {

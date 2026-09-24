@@ -1,6 +1,6 @@
 {
   "locale": "en-US",
-  "ui": {
+  "workflow": {
     "window_title": "Skills Workflow — {}",
     "untitled": "Untitled",
     "toolbar": {

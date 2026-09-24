@@ -64,7 +64,7 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	var translated_type := tr(type_key)
 	if translated_type == type_key:
 		translated_type = type_name
-	field.placeholder_text = tr("ui.node.path_placeholder").format([translated_type], StringUtils.EMPTY_JSON)
+	field.placeholder_text = tr("workflow.node.path_placeholder").format([translated_type], StringUtils.EMPTY_JSON)
 	row.add_child(field)
 	input_fields[port_id] = field
 

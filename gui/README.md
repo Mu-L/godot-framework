@@ -89,7 +89,7 @@ Port types: `audio`, `image`, `video`, `text`, `folder`. Connections require mat
 
 String keys:
 
-- UI, dialogs, alerts, pipeline messages: `ui.*`, `pipeline.*`
+- Workflow UI, dialogs, and alerts: `workflow.*`; pipeline messages: `pipeline.*`
 - Sidebar categories: `category.*`
 - Node titles: `node.{id}` or `node.{skill}` (English UI often uses the id, matching the `.ai/` folder name)
 - Port labels: prefer `node_port.{id}.{port_id}`, then `port.{port_id}`, then `port_type.{type}`

@@ -89,28 +89,28 @@ func set_palette_item_text(item: TreeItem, label: String) -> void:
 
 
 func apply_ui_locale() -> void:
-	new_button.text = tr("ui.toolbar.new")
-	load_button.text = tr("ui.toolbar.load")
-	save_button.text = tr("ui.toolbar.save")
-	delete_button.text = tr("ui.toolbar.delete")
-	log_button.text = tr("ui.toolbar.log")
+	new_button.text = tr("workflow.toolbar.new")
+	load_button.text = tr("workflow.toolbar.load")
+	save_button.text = tr("workflow.toolbar.save")
+	delete_button.text = tr("workflow.toolbar.delete")
+	log_button.text = tr("workflow.toolbar.log")
 	if running_pipeline:
-		run_button.text = tr("ui.toolbar.stop")
+		run_button.text = tr("workflow.toolbar.stop")
 	else:
-		run_button.text = tr("ui.toolbar.run")
-	palette_title.text = tr("ui.palette.title")
-	palette_hint.text = tr("ui.palette.hint")
+		run_button.text = tr("workflow.toolbar.run")
+	palette_title.text = tr("workflow.palette.title")
+	palette_hint.text = tr("workflow.palette.hint")
 	palette_hint.add_theme_color_override("font_color", WorkflowColors.hint)
-	save_dialog.title = tr("ui.dialog.save_title")
-	save_dialog.ok_button_text = tr("ui.toolbar.save")
+	save_dialog.title = tr("workflow.dialog.save_title")
+	save_dialog.ok_button_text = tr("workflow.toolbar.save")
 	save_dialog.filters = PackedStringArray([
-		"*.workflow.json ; " + tr("ui.dialog.workflow_filter"),
-		"* ; " + tr("ui.dialog.all_files"),
+		"*.workflow.json ; " + tr("workflow.dialog.workflow_filter"),
+		"* ; " + tr("workflow.dialog.all_files"),
 	])
-	load_dialog.title = tr("ui.dialog.load_title")
-	load_dialog.ok_button_text = tr("ui.toolbar.load")
+	load_dialog.title = tr("workflow.dialog.load_title")
+	load_dialog.ok_button_text = tr("workflow.toolbar.load")
 	load_dialog.filters = PackedStringArray([
-		"*.workflow.json ; " + tr("ui.dialog.workflow_filter"),
+		"*.workflow.json ; " + tr("workflow.dialog.workflow_filter"),
 	])
 	refresh_locale_button()
 	pass
@@ -118,9 +118,9 @@ func apply_ui_locale() -> void:
 
 func refresh_locale_button() -> void:
 	if TranslationServer.get_locale() == LOCALE_ZH:
-		locale_button.text = tr("ui.locale_switch.to_en")
+		locale_button.text = tr("workflow.locale_switch.to_en")
 	else:
-		locale_button.text = tr("ui.locale_switch.to_zh")
+		locale_button.text = tr("workflow.locale_switch.to_zh")
 	pass
 
 
@@ -161,7 +161,7 @@ func build_palette_tree() -> void:
 			skill_item.set_selectable(0, true)
 
 	var workflows_item: TreeItem = palette_tree.create_item(root)
-	set_palette_item_text(workflows_item, tr("ui.palette.my_workflows"))
+	set_palette_item_text(workflows_item, tr("workflow.palette.my_workflows"))
 	workflows_item.set_collapsed(false)
 	workflows_item.set_selectable(0, true)
 
@@ -256,9 +256,9 @@ func set_workflow_name(name: String) -> void:
 	WorkflowManager.workflow_name = name.strip_edges()
 	var display_name: String = WorkflowManager.workflow_name
 	if display_name == "Untitled":
-		display_name = tr("ui.untitled")
+		display_name = tr("workflow.untitled")
 	workflow_name_label.text = display_name
-	get_window().title = tr("ui.window_title").format([display_name], StringUtils.EMPTY_JSON)
+	get_window().title = tr("workflow.window_title").format([display_name], StringUtils.EMPTY_JSON)
 	pass
 
 
@@ -323,11 +323,11 @@ func set_run_button_running(running: bool) -> void:
 	if running:
 		apply_run_button_style(WorkflowColors.error)
 		run_button.icon = make_stop_icon(14, WorkflowColors.button_text)
-		run_button.text = tr("ui.toolbar.stop")
+		run_button.text = tr("workflow.toolbar.stop")
 	else:
 		apply_run_button_style(WorkflowColors.success)
 		run_button.icon = make_play_icon(14, WorkflowColors.button_text)
-		run_button.text = tr("ui.toolbar.run")
+		run_button.text = tr("workflow.toolbar.run")
 	pass
 
 
@@ -337,7 +337,7 @@ func style_run_button() -> void:
 	run_button.add_theme_color_override("font_hover_color", WorkflowColors.button_text)
 	run_button.add_theme_color_override("font_pressed_color", WorkflowColors.button_text)
 	run_button.icon = make_play_icon(14, WorkflowColors.button_text)
-	run_button.text = tr("ui.toolbar.run")
+	run_button.text = tr("workflow.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", 14)
 	run_button.add_theme_constant_override("icon_max_height", 14)
 	run_button.add_theme_constant_override("h_separation", Margin.ma_2)
