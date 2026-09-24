@@ -24,7 +24,6 @@
     "dialog": {
       "save_title": "Save Workflow",
       "load_title": "Open Workflow",
-      "log_title": "Run Log",
       "workflow_filter": "Workflow JSON",
       "all_files": "All Files"
     },
@@ -57,8 +56,7 @@
     "video": "Video",
     "text": "Text",
     "folder": "Folder",
-    "item": "File",
-    "glob": "Glob"
+    "item": "File"
   },
   "node": {
     "input-audio": "input-audio",
@@ -102,18 +100,6 @@
     "video-merge-gpu.folder": "Video Folder"
   },
   "pipeline": {
-    "empty_or_cycle": "Workflow is empty or contains a cycle",
-    "completed": "Pipeline completed",
-    "unknown_batch": "Unknown batch node",
-    "batch_no_folder": "Connect a folder input to the batch node",
-    "batch_no_files": "No matching files in batch folder ({})",
-    "batch_completed": "Batch completed ({} files)",
-    "unknown_node": "Unknown node: {}",
-    "source_no_path": "Source node {} has no path set",
-    "not_executable": "Node {} is not an executable skill",
-    "missing_input": "Node {} is missing input",
-    "build_command_failed": "Failed to build command: {}",
-    "step_failed": "Step failed: {} (exit {})",
     "stopped": "Workflow stopped"
   }
 }

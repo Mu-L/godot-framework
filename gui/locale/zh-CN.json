@@ -24,7 +24,6 @@
     "dialog": {
       "save_title": "保存工作流",
       "load_title": "打开工作流",
-      "log_title": "运行日志",
       "workflow_filter": "Workflow JSON",
       "all_files": "All Files"
     },
@@ -57,8 +56,7 @@
     "video": "视频",
     "text": "文本",
     "folder": "文件夹",
-    "item": "文件",
-    "glob": "通配符"
+    "item": "文件"
   },
   "node": {
     "input-audio": "音频输入",
@@ -102,18 +100,6 @@
     "video-merge-gpu.folder": "视频文件夹"
   },
   "pipeline": {
-    "empty_or_cycle": "工作流为空或存在环路",
-    "completed": "流水线执行完成",
-    "unknown_batch": "未知批处理节点",
-    "batch_no_folder": "批处理节点请连接文件夹输入",
-    "batch_no_files": "批处理文件夹内无匹配文件 ({})",
-    "batch_completed": "批处理完成 ({} 个文件)",
-    "unknown_node": "未知节点: {}",
-    "source_no_path": "源节点 {} 未设置路径",
-    "not_executable": "节点 {} 不是可执行技能",
-    "missing_input": "节点 {} 缺少输入",
-    "build_command_failed": "无法构建命令: {}",
-    "step_failed": "步骤失败: {} (exit {})",
     "stopped": "工作流已停止"
   }
 }
