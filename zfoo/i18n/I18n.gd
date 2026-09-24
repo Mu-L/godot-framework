@@ -10,6 +10,7 @@ static func set_locale(locale_path: String) -> void:
 	if not TranslationServer.has_translation_for_locale(locale_data.locale, true):
 		TranslationServer.add_translation(create_translation(locale_data))
 	TranslationServer.set_locale(locale_data.locale)
+	gdf.events.locale_changed.emit()
 	pass
 
 
