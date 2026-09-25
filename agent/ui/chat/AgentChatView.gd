@@ -304,9 +304,9 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 			rich_text = append_bubble(
 					chat_list,
 					chat_entry,
-					AgentColors.success,
+					Colors.success,
 					AgentColors.tool_bubble,
-					AgentColors.success
+					Colors.success
 			)
 		ChatEntry.KIND_FILE_TOOL:
 			rich_text = FileBubble.append(

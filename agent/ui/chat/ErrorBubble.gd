@@ -31,7 +31,7 @@ static func append(
 	vbox.add_child(title_label)
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
-			AgentColors.error,
+			Colors.error,
 			StringUtils.first_lines(entry.body, MAX_LINES),
 			AgentSetting.get_markdown_enabled()
 	)

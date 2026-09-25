@@ -30,8 +30,6 @@ static var tool_bubble: Color
 static var file_tool_bubble: Color
 static var file_tool_title: Color
 static var result_bubble: Color
-static var success: Color
-static var error: Color
 static var system_title: Color
 static var thinking_title: Color
 
@@ -114,8 +112,6 @@ static func apply_dark_palette() -> void:
 	file_tool_bubble = Color(0.22, 0.16, 0.10)
 	file_tool_title = Color(0.95, 0.72, 0.38)
 	result_bubble = Color(0.13, 0.16, 0.20)
-	success = Color(0.30, 0.78, 0.45)
-	error = Color(0.85, 0.30, 0.30)
 	system_title = Color(0.55, 0.68, 0.88)
 	thinking_title = Color(0.72, 0.58, 0.88)
 	pass
@@ -160,8 +156,6 @@ static func apply_light_palette() -> void:
 	file_tool_bubble = Color(1.00, 0.97, 0.93)
 	file_tool_title = Color(0.92, 0.35, 0.05)
 	result_bubble = SOFT
-	success = Color(0.09, 0.64, 0.29)
-	error = Color(0.86, 0.15, 0.15)
 	system_title = Color(0.31, 0.27, 0.90)
 	thinking_title = Color(0.49, 0.23, 0.93)
 	pass

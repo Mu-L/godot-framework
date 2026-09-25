@@ -43,9 +43,9 @@ static func color_for(phase: Phase) -> Color:
 		Phase.TOOL_EXEC:
 			return phase_color_from_theme(0.12, 0.9, 1.05)
 		Phase.SUCCESS:
-			return AgentColors.theme_accent_solid().lerp(AgentColors.success, 0.45)
+			return AgentColors.theme_accent_solid().lerp(Colors.success, 0.45)
 		Phase.ERROR:
-			return AgentColors.theme_accent_solid().lerp(AgentColors.error, 0.55)
+			return AgentColors.theme_accent_solid().lerp(Colors.error, 0.55)
 		Phase.AWAKE, Phase.TURN_COOLDOWN:
 			return phase_color_from_theme()
 		Phase.IDLE:

@@ -3,6 +3,29 @@
 const GRAY := Color(0.5, 0.5, 0.5)
 
 
+func Colors_follow_theme_test() -> void:
+	var original := ThemeColor.current_theme
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
+	Colors.refresh()
+	assert(Colors.error == Colors.DARK_ERROR)
+	assert(Colors.info == Colors.DARK_INFO)
+	assert(Colors.warning == Colors.DARK_WARNING)
+	assert(Colors.success == Colors.DARK_SUCCESS)
+	assert(Colors.teal == Colors.DARK_TEAL)
+
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
+	Colors.refresh()
+	assert(Colors.error == Colors.LIGHT_ERROR)
+	assert(Colors.info == Colors.LIGHT_INFO)
+	assert(Colors.warning == Colors.LIGHT_WARNING)
+	assert(Colors.success == Colors.LIGHT_SUCCESS)
+	assert(Colors.teal == Colors.LIGHT_TEAL)
+
+	ThemeColor.current_theme = original
+	Colors.refresh()
+	pass
+
+
 ## The whole point of the helper: the same call keeps contrast on both themes.
 func ButtonStyle_color_direction_test() -> void:
 	var original: ThemeColor.ThemeEnum = ThemeColor.current_theme
@@ -168,5 +191,4 @@ func ButtonStyle_apply_font_colors_test() -> void:
 	assert(button.get_theme_color("font_disabled_color") == ButtonStyle.with_alpha(Color.BLACK, 0.5))
 	button.free()
 	pass
-
 
