@@ -27,8 +27,12 @@ func task_list_test() -> void:
 func blockquote_multiline_test() -> void:
 	var bbcode := MarkdownUtils.to_bbcode("> line one\n> line two")
 	assert("[indent]" in bbcode)
-	assert("▎" in bbcode)
-	assert("[color=" in bbcode)
+	assert("[table=2]" in bbcode)
+	assert(bbcode.count("bg=" + MarkdownUtils.to_bbcode_color(ColorMarkdown.blockquote_bar_color)) == 2)
+	assert(bbcode.count("[/cell]") == 4)
+	assert("[color=" + MarkdownUtils.to_bbcode_color(ColorMarkdown.blockquote_text_color) + "]" in bbcode)
+	assert("[/table][/indent]" in bbcode)
+	assert("[bgcolor=" not in bbcode)
 	assert("line one" in bbcode and "line two" in bbcode)
 	pass
 
@@ -36,7 +40,8 @@ func blockquote_multiline_test() -> void:
 func blockquote_single_line_test() -> void:
 	var bbcode := MarkdownUtils.to_bbcode("> 快乐韭菜网使用的 chatgpt 3.5 模型")
 	assert("[indent]" in bbcode)
-	assert("▎" in bbcode)
+	assert("[table=2]" in bbcode)
+	assert("bg=" + MarkdownUtils.to_bbcode_color(ColorMarkdown.blockquote_bar_color) in bbcode)
 	assert("快乐韭菜网" in bbcode)
 	pass
 

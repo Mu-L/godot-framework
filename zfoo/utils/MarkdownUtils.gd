@@ -9,7 +9,7 @@ extends Object
 ## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]` + right gutter
 ## `` `code` ``           → `[bgcolor=…][code]code[/code][/bgcolor]` (inline chip)
 ## `---` `***` `___`      → full-width `[hr]` line
-## `> quote`              → `[indent][color]▎[/color] [color]quote[/color][/indent]`
+## `> quote`              → two-cell table: accent strip + muted quote text
 ## `-` `*` `+` item       → `• item`  (`- [ ]` / `- [x]` → ☐ / ☑)
 ## `1. item` / `1) item`  → `1. item`
 ## `**bold**` / `__bold__` → `[b]bold[/b]`
@@ -54,6 +54,9 @@ const ESCAPE_SENTINEL := "\uE002"
 const NBSP := "\u00A0"
 const TABLE_CELL_PADDING := "8,4,8,4"
 const CODE_BLOCK_PADDING := "6,6,6,6"
+const BLOCKQUOTE_BAR_PADDING := "1,0,1,0"
+const BLOCKQUOTE_BODY_PADDING := "6,0,0,0"
+const ZERO_WIDTH_SPACE := "\u200B"
 # RichTextLabel paints a `[cell]` background `padding + table_h_separation` wider than
 # the column it sits in (`RichTextLabel::_set_table_size`), so a one-column `expand=1`
 # cell runs past the label's right edge and the fill lands under the bubble's right
@@ -139,7 +142,7 @@ static func to_bbcode(markdown: String) -> String:
 			i += 1
 			continue
 
-		# > quote  →  indented line with left bar + muted color
+		# > quote  →  table cell strip + muted text; the strip is independent of font baseline
 		if is_blockquote_line(line):
 			var quote_lines: PackedStringArray = []
 			while i < lines.size() and is_blockquote_line(lines[i]):
@@ -300,15 +303,28 @@ static func strip_blockquote_prefix(line: String) -> String:
 	return rest
 
 
-## Blockquote: left accent bar + muted body (plain `[indent][i]` is too subtle in chat).
+## Blockquote: the narrow background cell is a real full-height strip, not a baseline-aligned glyph.
 static func format_blockquote_bbcode(text: String) -> String:
-	var body := inline_to_bbcode(text)
-	return StringUtils.format(
-			"[indent][color={}]▎[/color] [color={}]{}[/color][/indent]",
-			to_bbcode_color(ColorMarkdown.blockquote_bar_color),
-			to_bbcode_color(ColorMarkdown.blockquote_text_color),
-			body
-	)
+	var chunks: PackedStringArray = ["[indent][table=2]"]
+	for line: String in text.split(FileUtils.NEWLINE_LF):
+		chunks.append(
+				StringUtils.format(
+						"[cell bg={} padding={}]{}[/cell]",
+						to_bbcode_color(ColorMarkdown.blockquote_bar_color),
+						BLOCKQUOTE_BAR_PADDING,
+						ZERO_WIDTH_SPACE
+				)
+		)
+		chunks.append(
+				StringUtils.format(
+						"[cell shrink=false expand=1 padding={}][color={}]{}[/color][/cell]",
+						BLOCKQUOTE_BODY_PADDING,
+						to_bbcode_color(ColorMarkdown.blockquote_text_color),
+						inline_to_bbcode(line)
+				)
+		)
+	chunks.append("[/table][/indent]")
+	return "".join(chunks)
 
 
 ## GFM table: header row + `\| --- \|` separator + body rows. Needs the separator line.
