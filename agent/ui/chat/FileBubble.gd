@@ -20,7 +20,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
-	title_label.add_theme_color_override("font_color", AgentColors.file_tool_title)
+	title_label.add_theme_color_override("font_color", ColorBase.warning)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 

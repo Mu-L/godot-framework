@@ -77,10 +77,10 @@ func apply_equal_icon_margins(margin: int) -> void:
 
 func update_icon(hovered: bool) -> void:
 	var accent: Color = AgentColors.theme_accent_solid()
-	var handle: Color = AgentColors.toolbar_muted
+	var handle: Color = ColorBase.muted
 	if hovered:
 		accent = accent.lightened(0.10)
-		handle = AgentColors.toolbar_title
+		handle = ColorBase.text
 	button.icon = make_brush_icon(accent, handle)
 	pass
 

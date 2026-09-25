@@ -91,7 +91,7 @@ static func text_color_for_tokens(n: int) -> Color:
 	if ratio >= THRESHOLD_CRITICAL:
 		return ColorBase.error
 	if ratio >= THRESHOLD_CAUTION:
-		return AgentColors.file_tool_title
+		return ColorBase.warning
 	if ratio >= THRESHOLD_WARN:
 		return Color(0.94, 0.84, 0.35) if ThemeColor.is_dark_theme() else Color("#CA8A04")
 	return AgentColors.theme_accent_solid()

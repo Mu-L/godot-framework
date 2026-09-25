@@ -31,10 +31,10 @@ func apply_theme() -> void:
 	toolbar_panel.add_theme_stylebox_override("panel", build_toolbar_style())
 	toolbar_panel.queue_redraw()
 	apply_logo_theme()
-	title_label.add_theme_color_override("font_color", AgentColors.toolbar_title)
-	project_button.add_theme_color_override("font_color", AgentColors.toolbar_muted)
-	project_button.add_theme_color_override("font_hover_color", AgentColors.toolbar_title)
-	project_button.add_theme_color_override("font_pressed_color", AgentColors.toolbar_title)
+	title_label.add_theme_color_override("font_color", ColorBase.text)
+	project_button.add_theme_color_override("font_color", ColorBase.muted)
+	project_button.add_theme_color_override("font_hover_color", ColorBase.text)
+	project_button.add_theme_color_override("font_pressed_color", ColorBase.text)
 	pass
 
 

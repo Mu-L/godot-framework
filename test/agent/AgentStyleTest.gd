@@ -46,7 +46,7 @@ func ToolbarButton_states_test() -> void:
 
 func SessionSidebarTheme_row_test() -> void:
 	assert(SessionSidebarTheme.row(true, false).bg_color == AgentColors.theme_selection_bg())
-	assert(SessionSidebarTheme.row(false, true).bg_color == AgentColors.sidebar_row_hover)
+	assert(SessionSidebarTheme.row(false, true).bg_color == ColorBase.hover_surface)
 	assert(SessionSidebarTheme.row(false, false).bg_color.a == 0.0)
 	var style := SessionSidebarTheme.row(true, false)
 	assert(style.get_margin(SIDE_LEFT) == Margin.ma_3 and style.get_margin(SIDE_RIGHT) == Margin.ma_1)
@@ -81,11 +81,6 @@ func AgentColors_shared_tones_test() -> void:
 	assert(AgentColors.sidebar == AgentColors.toolbar)
 	assert(AgentColors.sidebar_border == AgentColors.toolbar_border)
 	assert(AgentColors.toolbar_border == ColorBase.border)
-	assert(AgentColors.sidebar_title == ColorBase.muted)
-	assert(ColorBase.muted == AgentColors.toolbar_muted)
-	assert(AgentColors.toolbar_muted == ColorBase.muted)
-	assert(ColorBase.text == AgentColors.toolbar_title)
-	assert(AgentColors.toolbar_title == ColorBase.text)
 	assert(ColorBase.elevated_surface == ColorBase.surface)
 	assert(AgentColors.toolbar_button == AgentColors.system_bubble)
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
@@ -97,7 +92,7 @@ func AgentColors_shared_tones_test() -> void:
 	assert(ColorBase.text == ColorBase.DARK_TEXT)
 	assert(ColorBase.muted == ColorBase.DARK_MUTED)
 	assert(ColorBase.surface == ColorBase.DARK_SURFACE)
-	assert(AgentColors.sidebar_row_hover == ColorBase.surface)
+	assert(ColorBase.hover_surface == ColorBase.surface)
 	assert(ColorBase.elevated_surface != ColorBase.surface)
 
 	# Leave the palette as the rest of the suite expects to find it.

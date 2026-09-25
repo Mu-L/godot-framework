@@ -58,7 +58,7 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 	if selected:
 		style.bg_color = AgentColors.theme_selection_bg()
 	elif hovered:
-		style.bg_color = AgentColors.sidebar_row_hover
+		style.bg_color = ColorBase.hover_surface
 	return style
 
 

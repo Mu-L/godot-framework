@@ -332,7 +332,7 @@ func style_check_button(check: CheckButton) -> void:
 	# the same on every state, otherwise hovering would shift the row.
 	var empty := StyleBoxEmpty.new()
 	BoxStyle.pad(empty, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
-	var hover := BoxStyle.make(AgentColors.sidebar_row_hover, 6)
+	var hover := BoxStyle.make(ColorBase.hover_surface, 6)
 	BoxStyle.pad(hover, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
 	check.add_theme_stylebox_override("normal", empty)
 	check.add_theme_stylebox_override("disabled", empty.duplicate())
@@ -525,7 +525,7 @@ func apply_theme() -> void:
 
 
 func update_button_icon(hovered: bool) -> void:
-	var icon_color: Color = AgentColors.toolbar_title if hovered else AgentColors.toolbar_muted
+	var icon_color: Color = ColorBase.text if hovered else ColorBase.muted
 	button.icon = make_settings_icon(icon_color)
 	pass
 
@@ -648,7 +648,7 @@ func style_spin_box(spin: SpinBox) -> void:
 	normal.content_margin_left = Margin.ma_0
 	normal.content_margin_right = Margin.ma_0
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.sidebar_row_hover
+	hover.bg_color = ColorBase.hover_surface
 	for side: String in ["up", "down"]:
 		spin.add_theme_stylebox_override(side + "_background", normal)
 		spin.add_theme_stylebox_override(side + "_background_hovered", hover)
@@ -666,7 +666,7 @@ func style_secondary_button(target: Button) -> void:
 	normal.content_margin_left = Margin.ma_4
 	normal.content_margin_right = Margin.ma_4
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = AgentColors.sidebar_row_hover
+	hover.bg_color = ColorBase.hover_surface
 	target.add_theme_stylebox_override("normal", normal)
 	target.add_theme_stylebox_override("hover", hover)
 	target.add_theme_stylebox_override("pressed", hover.duplicate())
