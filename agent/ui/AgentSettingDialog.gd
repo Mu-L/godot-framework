@@ -606,7 +606,7 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_constant_override("v_separation", Margin.ma_2)
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
-	popup.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.surface, 7, Margin.ma_1, Margin.ma_1, AgentColors.chat_input_border, 1))
+	popup.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.surface, 7, Margin.ma_1, Margin.ma_1, ColorBase.border, 1))
 	popup.add_theme_stylebox_override("hover", BoxStyle.make(AgentColors.theme_selection_bg(), 5, Margin.ma_2, 0))
 	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
@@ -630,7 +630,7 @@ func style_line_edit(edit: LineEdit) -> void:
 
 ## Field look shared by the line edits and the spin box buttons.
 func make_input_style() -> StyleBoxFlat:
-	return BoxStyle.make(ColorBase.surface, 7, Margin.ma_3, Margin.ma_0, AgentColors.chat_input_border, 1)
+	return BoxStyle.make(ColorBase.surface, 7, Margin.ma_3, Margin.ma_0, ColorBase.border, 1)
 
 
 ## Spin box: accent arrows on the shared field background.

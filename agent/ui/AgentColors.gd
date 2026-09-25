@@ -6,15 +6,12 @@ extends RefCounted
 static var sidebar: Color
 static var sidebar_border: Color
 static var sidebar_title: Color
-static var sidebar_row_selected: Color
 static var sidebar_row_hover: Color
 static var toolbar: Color
 static var toolbar_border: Color
 static var toolbar_title: Color
 static var toolbar_muted: Color
 static var toolbar_button: Color
-static var chat_bubble_border: Color
-static var chat_input_border: Color
 static var user_bubble: Color
 static var system_bubble: Color
 static var thinking_bubble: Color
@@ -51,7 +48,7 @@ static func theme_accent_solid() -> Color:
 
 static func theme_selection_bg() -> Color:
 	var mix := 0.14 if ThemeColor.is_dark_theme() else 0.10
-	return sidebar_row_selected.lerp(theme_accent_solid(), mix)
+	return ColorBase.elevated_surface.lerp(theme_accent_solid(), mix)
 
 
 static func toggle_theme() -> void:
@@ -68,25 +65,18 @@ static func toggle_theme() -> void:
 # Dark palette
 # ---------------------------------------------------------------------------
 
-## Roles that share a tone point at one local constant: changing a border greys all four
-## outlines at once, and the constant says which tone it is (`HAIRLINE`, not a hex).
+## Component-specific colors that intentionally differ from the shared [ColorBase] neutrals.
 static func apply_dark_palette() -> void:
 	const PANEL := ColorBase.DARK_SURFACE
-	const SURFACE := Color(0.14, 0.15, 0.18)
-	const HAIRLINE := Color(0.22, 0.24, 0.28)
-
 	sidebar = Color(0.10, 0.11, 0.13)
 	sidebar_border = Color(0.18, 0.20, 0.24)
 	sidebar_title = Color(0.50, 0.52, 0.58)
-	sidebar_row_selected = SURFACE
 	sidebar_row_hover = PANEL
 	toolbar = Color(0.06, 0.07, 0.09)
 	toolbar_border = Color(0.16, 0.18, 0.22)
 	toolbar_title = Color(0.93, 0.94, 0.96)
 	toolbar_muted = Color(0.52, 0.54, 0.60)
 	toolbar_button = Color(0.11, 0.12, 0.15)
-	chat_bubble_border = HAIRLINE
-	chat_input_border = HAIRLINE
 	user_bubble = Color(0.16, 0.22, 0.32)
 	system_bubble = Color(0.10, 0.13, 0.19)
 	thinking_bubble = Color(0.17, 0.13, 0.22)
@@ -106,23 +96,19 @@ static func apply_dark_palette() -> void:
 static func apply_light_palette() -> void:
 	const TEXT := ColorBase.LIGHT_TEXT
 	const MUTED := ColorBase.LIGHT_MUTED
-	const PANEL := ColorBase.LIGHT_SURFACE
 	const SOFT := Color(0.96, 0.96, 0.96)
 	const CHROME := Color(0.95, 0.95, 0.96)
-	const HAIRLINE := Color(0.89, 0.89, 0.91)
+	const HAIRLINE := ColorBase.LIGHT_BORDER
 
 	sidebar = CHROME
 	sidebar_border = HAIRLINE
 	sidebar_title = MUTED
-	sidebar_row_selected = PANEL
 	sidebar_row_hover = Color(0.93, 0.93, 0.94)
 	toolbar = CHROME
 	toolbar_border = HAIRLINE
 	toolbar_title = TEXT
 	toolbar_muted = MUTED
 	toolbar_button = SOFT
-	chat_bubble_border = HAIRLINE
-	chat_input_border = HAIRLINE
 	user_bubble = Color(0.94, 0.96, 1.00)
 	system_bubble = SOFT
 	thinking_bubble = Color(0.96, 0.95, 1.00)

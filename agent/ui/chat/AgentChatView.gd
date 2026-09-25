@@ -369,7 +369,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFlat:
 	var style := BoxStyle.make(bg_color, 8, Margin.ma_3, Margin.ma_3)
 	if not user_beam and ThemeColor.is_light_theme():
-		style.border_color = AgentColors.chat_bubble_border
+		style.border_color = ColorBase.border
 		style.set_border_width_all(1)
 		style.shadow_color = Color(0, 0, 0, 0.04)
 		style.shadow_size = 6

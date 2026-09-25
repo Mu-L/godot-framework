@@ -80,14 +80,13 @@ func AgentColors_shared_tones_test() -> void:
 	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
 	assert(AgentColors.sidebar == AgentColors.toolbar)
 	assert(AgentColors.sidebar_border == AgentColors.toolbar_border)
-	assert(AgentColors.toolbar_border == AgentColors.chat_bubble_border)
-	assert(AgentColors.chat_bubble_border == AgentColors.chat_input_border)
+	assert(AgentColors.toolbar_border == ColorBase.border)
 	assert(AgentColors.sidebar_title == ColorBase.muted)
 	assert(ColorBase.muted == AgentColors.toolbar_muted)
 	assert(AgentColors.toolbar_muted == ColorBase.muted)
 	assert(ColorBase.text == AgentColors.toolbar_title)
 	assert(AgentColors.toolbar_title == ColorBase.text)
-	assert(AgentColors.sidebar_row_selected == ColorBase.surface)
+	assert(ColorBase.elevated_surface == ColorBase.surface)
 	assert(AgentColors.toolbar_button == AgentColors.system_bubble)
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
 
@@ -99,8 +98,7 @@ func AgentColors_shared_tones_test() -> void:
 	assert(ColorBase.muted == ColorBase.DARK_MUTED)
 	assert(ColorBase.surface == ColorBase.DARK_SURFACE)
 	assert(AgentColors.sidebar_row_hover == ColorBase.surface)
-	assert(AgentColors.sidebar_row_selected != ColorBase.surface)
-	assert(AgentColors.chat_bubble_border == AgentColors.chat_input_border)
+	assert(ColorBase.elevated_surface != ColorBase.surface)
 
 	# Leave the palette as the rest of the suite expects to find it.
 	ThemeColor.current_theme = original
