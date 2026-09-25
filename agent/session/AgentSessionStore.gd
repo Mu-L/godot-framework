@@ -4,7 +4,7 @@ extends RefCounted
 ## Persists agent chat sessions as JSON files under the workspace `.agent/sessions/` folder.
 
 const SESSIONS_SUBDIR := ".gai/sessions"
-const FILE_SUFFIX := ".json"
+const FILE_SUFFIX := ".gai"
 
 # Dictionary[int, AgentSession]
 static var sessions: ConcurrentMapInt = ConcurrentMapInt.new()

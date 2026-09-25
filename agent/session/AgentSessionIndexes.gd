@@ -1,9 +1,9 @@
 class_name AgentSessionIndexes
 extends RefCounted
 
-## Persists the session list as `index.json` under the workspace `.agent/sessions/` folder.
+## Persists the session list as `index.gai` under the workspace `.agent/sessions/` folder.
 
-const INDEX_FILE := "index.json"
+const INDEX_FILE := "index.gai"
 
 var pinned_indexes: Array[SessionIndex] = []
 var indexes: Array[SessionIndex] = []
@@ -18,7 +18,7 @@ class RunState:
 class SessionIndex:
 	var id: int = -1
 	var title: String = ""
-	## Active run state; null when idle. Not persisted to index.json.
+	## Active run state; null when idle.
 	var run: RunState = null
 
 
