@@ -3,17 +3,17 @@ extends Object
 
 ## Semantic colors for resource and file categories. The palette uses restrained jewel tones so
 ## resource types remain distinct without borrowing red or orange warning colors.
-const DARK_AUDIO := Color("#8a6bc2")
-const DARK_IMAGE := Color("#3f9477")
-const DARK_VIDEO := Color("#397fa8")
-const DARK_TEXT := Color("#657d96")
-const DARK_FOLDER := Color("#a8843f")
+const DARK_AUDIO := Color(0.54, 0.42, 0.76)
+const DARK_IMAGE := Color(0.25, 0.58, 0.47)
+const DARK_VIDEO := Color(0.22, 0.50, 0.66)
+const DARK_TEXT := Color(0.40, 0.49, 0.59)
+const DARK_FOLDER := Color(0.66, 0.52, 0.25)
 
-const LIGHT_AUDIO := Color("#67459b")
-const LIGHT_IMAGE := Color("#276b57")
-const LIGHT_VIDEO := Color("#285e80")
-const LIGHT_TEXT := Color("#455b70")
-const LIGHT_FOLDER := Color("#7d6026")
+const LIGHT_AUDIO := Color(0.40, 0.27, 0.61)
+const LIGHT_IMAGE := Color(0.15, 0.42, 0.34)
+const LIGHT_VIDEO := Color(0.16, 0.37, 0.50)
+const LIGHT_TEXT := Color(0.27, 0.36, 0.44)
+const LIGHT_FOLDER := Color(0.49, 0.38, 0.15)
 
 static var audio_color: Color = DARK_AUDIO
 static var image_color: Color = DARK_IMAGE
