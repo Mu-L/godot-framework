@@ -34,8 +34,8 @@ func ToolbarButton_states_test() -> void:
 	var button := Button.new()
 	AgentToolbarButton.style(button, "Log")
 	var normal := button.get_theme_stylebox("normal") as StyleBoxFlat
-	assert(normal.bg_color == AgentColors.toolbar_button)
-	assert(normal.border_color == AgentColors.toolbar_border)
+	assert(normal.bg_color == ColorBase.control_surface)
+	assert(normal.border_color == ColorBase.subtle_border)
 	assert(normal.corner_radius_top_left == 6)
 	assert(normal.get_margin(SIDE_LEFT) == Margin.ma_2)
 	var hover_pressed := button.get_theme_stylebox("hover_pressed") as StyleBoxFlat
@@ -66,9 +66,7 @@ func SessionSidebarTheme_new_session_button_test() -> void:
 	pass
 
 
-## [AgentColors] points each group of roles that share a tone at one local constant, so a tone
-## tweak is one edit. These are the groups; if one of them drifts, the palette has two sources
-## for the same color again.
+## Shared neutral roles come from [ColorBase]; [AgentColors] only owns chat-bubble hues.
 func AgentColors_shared_tones_test() -> void:
 	var original := ThemeColor.current_theme
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
@@ -78,11 +76,11 @@ func AgentColors_shared_tones_test() -> void:
 	assert(ColorBase.text == ColorBase.LIGHT_TEXT)
 	assert(ColorBase.muted == ColorBase.LIGHT_MUTED)
 	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
-	assert(AgentColors.sidebar == AgentColors.toolbar)
-	assert(AgentColors.sidebar_border == AgentColors.toolbar_border)
-	assert(AgentColors.toolbar_border == ColorBase.border)
+	assert(ColorBase.inset_surface == ColorBase.recessed_surface)
+	assert(ColorBase.medium_border == ColorBase.subtle_border)
+	assert(ColorBase.subtle_border == ColorBase.border)
 	assert(ColorBase.elevated_surface == ColorBase.surface)
-	assert(AgentColors.toolbar_button == AgentColors.system_bubble)
+	assert(ColorBase.control_surface == AgentColors.system_bubble)
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK

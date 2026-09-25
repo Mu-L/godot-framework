@@ -25,7 +25,7 @@ static func append(
 
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
-	title_label.add_theme_color_override("font_color", AgentColors.thinking_title)
+	title_label.add_theme_color_override("font_color", ColorBase.purple)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	header.add_child(title_label)
 
@@ -57,12 +57,12 @@ static func style_view_button(button: Button) -> void:
 	button.tooltip_text = "View full thinking"
 	button.custom_minimum_size = Vector2(22, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
-	ButtonStyle.apply_font_colors(button, AgentColors.thinking_title, ButtonStyle.hover_color(AgentColors.thinking_title, 0.12), ButtonStyle.press_color(AgentColors.thinking_title, 0.08))
+	ButtonStyle.apply_font_colors(button, ColorBase.purple, ButtonStyle.hover_color(ColorBase.purple, 0.12), ButtonStyle.press_color(ColorBase.purple, 0.08))
 
-	var border := ButtonStyle.muted(AgentColors.thinking_title)
+	var border := ButtonStyle.muted(ColorBase.purple)
 	var normal := BoxStyle.make(ButtonStyle.hover_color(AgentColors.thinking_bubble, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
 	var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(AgentColors.thinking_bubble, 0.16))
-	hover.border_color = AgentColors.thinking_title
+	hover.border_color = ColorBase.purple
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.press_color(AgentColors.thinking_bubble, 0.06))
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

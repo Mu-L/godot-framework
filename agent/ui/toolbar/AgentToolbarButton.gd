@@ -11,7 +11,7 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, AgentColors.theme_accent_solid())
 
-	var normal := BoxStyle.make(AgentColors.toolbar_button, corner_radius, Margin.ma_2, Margin.ma_1, AgentColors.toolbar_border, 1)
+	var normal := BoxStyle.make(ColorBase.control_surface, corner_radius, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, AgentColors.theme_selection_bg())
 	var hover_pressed := BoxStyle.with_bg(pressed, ButtonStyle.hover_color(pressed.bg_color, 0.06))

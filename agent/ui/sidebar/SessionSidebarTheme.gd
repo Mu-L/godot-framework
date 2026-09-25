@@ -14,8 +14,8 @@ const RENAME_CORNER_RADIUS: int = 5
 
 ## Sidebar background plus the hairline against the chat area.
 static func sidebar_panel() -> StyleBoxFlat:
-	var style := BoxStyle.make(AgentColors.sidebar)
-	style.border_color = AgentColors.sidebar_border
+	var style := BoxStyle.make(ColorBase.inset_surface)
+	style.border_color = ColorBase.medium_border
 	style.set_border_width(SIDE_RIGHT, 1)
 	return style
 

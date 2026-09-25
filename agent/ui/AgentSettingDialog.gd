@@ -662,7 +662,7 @@ func style_spin_box(spin: SpinBox) -> void:
 func style_secondary_button(target: Button) -> void:
 	ButtonStyle.apply_font_colors(target, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
-	normal.bg_color = AgentColors.toolbar_button
+	normal.bg_color = ColorBase.control_surface
 	normal.content_margin_left = Margin.ma_4
 	normal.content_margin_right = Margin.ma_4
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
