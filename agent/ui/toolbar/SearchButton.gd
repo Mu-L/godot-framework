@@ -9,7 +9,6 @@ const MAX_POPUP_SIZE := Vector2i(1400, 1000)
 const VIEWPORT_WIDTH_RATIO := 0.84
 const VIEWPORT_HEIGHT_RATIO := 0.92
 const VIEWPORT_MARGIN := 32
-const BUTTON_SIZE := 28
 const MAX_RESULTS := 100
 const MAX_SNIPPET_LENGTH := 260
 ## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
@@ -68,7 +67,7 @@ func build_popup() -> void:
 	close_button.text = "×"
 	close_button.flat = true
 	close_button.focus_mode = Control.FOCUS_NONE
-	close_button.custom_minimum_size = Vector2(28, 28)
+	close_button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	close_button.pressed.connect(popup.hide)
 	header.add_child(close_button)
 	query_edit = LineEdit.new()
@@ -98,8 +97,8 @@ func build_popup() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, I18n.t("agent.search.tooltip"), BUTTON_SIZE / 2)
-	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
+	AgentToolbarButton.style(button, I18n.t("agent.search.tooltip"), ControlSize.sm / 2)
+	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.text = ""

@@ -6,7 +6,7 @@ extends Object
 
 static func style(button: Button, tooltip: String, corner_radius: int = 6) -> void:
 	button.tooltip_text = tooltip
-	button.custom_minimum_size = Vector2(28, 28)
+	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.flat = false
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ThemeColor.theme_color_full_alpha())

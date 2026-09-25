@@ -3,7 +3,6 @@ extends RefCounted
 
 ## Circular toolbar button for switching dark / light color schemes.
 
-const BUTTON_SIZE: int = 28
 const ICON_SIZE: int = 14
 const SUN_ICON_PATH: String = "res://agent/asset/image/icon/sun.svg"
 const MOON_ICON_PATH: String = "res://agent/asset/image/icon/moon.svg"
@@ -34,10 +33,10 @@ func setup(p_button: Button) -> void:
 
 func apply_theme() -> void:
 	var tooltip: String = I18n.t("agent.toolbar.light_theme") if ThemeColor.is_dark_theme() else I18n.t("agent.toolbar.dark_theme")
-	AgentToolbarButton.style(button, tooltip, BUTTON_SIZE / 2)
+	AgentToolbarButton.style(button, tooltip, ControlSize.sm / 2)
 	apply_equal_icon_margins(Margin.ma_1)
 	button.text = ""
-	button.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
+	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.add_theme_constant_override("icon_max_width", ICON_SIZE)
