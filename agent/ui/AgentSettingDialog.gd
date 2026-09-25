@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection and notification settings.
 ## There is no Save button: every field writes straight to [Setting] once editing finishes.
 
-const DIALOG_SIZE: Vector2i = Vector2i(580, 830)
+const DIALOG_SIZE: Vector2i = Vector2i(580, 960)
 const FOLDER_DIALOG_SIZE: Vector2i = Vector2i(900, 600)
 const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
 const SVG_BASE_COLOR: String = "#8B949E"
