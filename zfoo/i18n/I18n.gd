@@ -22,7 +22,7 @@ static func set_locale(locale_path: String) -> void:
 	var locale_data := LocaleData.parse_json_file(locale_path)
 	if locale_data == null:
 		return
-	remove_old_locale()
+	remove_old_locale_translation()
 	if not TranslationServer.has_translation_for_locale(locale_data.locale, true):
 		TranslationServer.add_translation(create_translation(locale_data))
 	TranslationServer.set_locale(locale_data.locale)
@@ -32,7 +32,7 @@ static func set_locale(locale_path: String) -> void:
 	pass
 
 
-static func remove_old_locale() -> void:
+static func remove_old_locale_translation() -> void:
 	var old_locale := get_locale()
 	if old_locale.is_empty():
 		return
