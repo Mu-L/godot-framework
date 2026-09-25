@@ -82,12 +82,12 @@ static func load_session(session_id: int) -> AgentSession:
 	return session
 
 
-## Warm-up loader — loads the leading [param count] sessions of the sidebar index on a worker thread,
-## so file IO and JSON parsing stay off the main thread. [param count] of 0 (the default) loads every
-## indexed session. [method load_session] returns sessions already in memory as-is, so repeating the
-## call is cheap. Returns once the worker has finished.
-static func async_load_sessions(count: int = 0) -> void:
-	var session_ids := AgentSessionManager.session_indexes.collect_session_ids(count)
+## Warm-up loader — loads the leading [param max_count] sessions of the sidebar index on a worker
+## thread, so file IO and JSON parsing stay off the main thread. [param max_count] of 0 (the default)
+## loads every indexed session. [method load_session] returns sessions already in memory as-is, so
+## repeating the call is cheap. Returns once the worker has finished.
+static func async_load_sessions(max_count: int = 0) -> void:
+	var session_ids := AgentSessionManager.session_indexes.collect_session_ids(max_count)
 	if session_ids.is_empty():
 		return
 	var task_id := WorkerThreadPool.add_task(func() -> void: load_sessions(session_ids))
