@@ -104,8 +104,8 @@ func recolor(control: Control, item: String, color: Color) -> void:
 ## Open a centered read-only window. Width/height are percent of the screen (1–100).
 ## [param i18n_title] and [param i18n_text] may be translation keys; text without a registered
 ## translation is displayed unchanged.
-## Example: `PopupWindow.show_window("Full view", body, 76, 78)`
-static func show_window(i18n_title: String, i18n_text: String, width_percent: int, height_percent: int) -> void:
+## Example: `PopupWindow.show_window("Full view", body)`
+static func show_window(i18n_title: String, i18n_text: String, width_percent: int = 70, height_percent: int = 80) -> void:
 	var window := PopupWindow.new()
 	window.title = str(I18n.t(i18n_title))
 	gdf.gdf_node.add_child(window)

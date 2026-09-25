@@ -49,5 +49,5 @@ func _init(
 
 func open_full_view() -> void:
 	var popup_title := title if not StringUtils.is_blank(title) else "Full view"
-	PopupWindow.show_window(popup_title, body, 76, 78)
+	PopupWindow.show_window(popup_title, body)
 	pass
