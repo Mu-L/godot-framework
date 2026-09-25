@@ -63,3 +63,19 @@ static func save_index(session_indexes: AgentSessionIndexes) -> void:
 	var json := JsonUtils.object_to_json(session_indexes)
 	FileUtils.write_string_to_file(get_index_path(), json)
 	pass
+
+
+# ---------------------------------------------------------------------------
+# Query
+# ---------------------------------------------------------------------------
+
+## Session ids in sidebar order — pinned entries first, then the normal list.
+## [param count] of 0 (the default) returns every id, otherwise the leading [param count] ids.
+func collect_session_ids(count: int = 0) -> Array[int]:
+	var session_ids: Array[int] = []
+	for list: Array[SessionIndex] in [pinned_indexes, indexes]:
+		for session_index: SessionIndex in list:
+			if count > 0 and session_ids.size() >= count:
+				return session_ids
+			session_ids.append(session_index.id)
+	return session_ids
