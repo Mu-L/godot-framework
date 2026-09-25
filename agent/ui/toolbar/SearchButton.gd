@@ -13,7 +13,6 @@ const MAX_SNIPPET_LENGTH := 260
 ## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
 const SEARCH_DEBOUNCE_MILLIS := 1000
 const SEARCH_ICON_PATH := "res://agent/asset/image/icon/search.svg"
-const SVG_ICON_COLOR := "#8B949E"
 
 var button: Button
 var popup: Window
@@ -240,7 +239,8 @@ func append_result(session_id: int, entry_index: int, entry: ChatEntry, query: S
 		make_snippet(entry.body, query)
 	)
 	result.custom_minimum_size = Vector2(0, 72)
-	result.add_theme_font_size_override("font_size", TextSize.label_medium_size)
+	result.add_theme_font_override("font", Fonts.light())
+	result.add_theme_font_size_override("font_size", TextSize.label_large_size)
 	style_result_button(result)
 	result.pressed.connect(on_result_pressed.bind(session_id, entry_index))
 	results_list.add_child(result)
@@ -275,7 +275,7 @@ func clear_results() -> void:
 
 func make_search_icon(color: Color) -> ImageTexture:
 	var svg := FileAccess.get_file_as_string(SEARCH_ICON_PATH)
-	svg = svg.replace(SVG_ICON_COLOR, "#" + color.to_html(false))
+	svg = svg.replace("#" + Color.WHITE.to_html(false), "#" + color.to_html(false))
 	var image := Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
 		return ImageTexture.new()
