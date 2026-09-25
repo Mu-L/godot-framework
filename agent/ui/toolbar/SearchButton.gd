@@ -28,6 +28,8 @@ func setup(p_button: Button) -> void:
 	button = p_button
 	build_popup()
 	button.pressed.connect(on_button_pressed)
+	button.mouse_entered.connect(on_mouse_entered)
+	button.mouse_exited.connect(on_mouse_exited)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
 	gdf.events.locale_changed.connect(apply_locale)
@@ -110,10 +112,10 @@ func apply_theme() -> void:
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.text = ""
-	button.icon = make_search_icon(ColorBase.muted)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
+	update_icon(button.is_hovered())
 	popup_panel.add_theme_stylebox_override("panel", make_popup_style())
 	style_query_edit()
 	pass
@@ -137,6 +139,21 @@ func on_button_pressed() -> void:
 	if StringUtils.is_not_blank(query_edit.text):
 		debounce_timer.stop()
 		search(query_edit.text)
+	pass
+
+
+func on_mouse_entered() -> void:
+	update_icon(true)
+	pass
+
+
+func on_mouse_exited() -> void:
+	update_icon(false)
+	pass
+
+
+func update_icon(hovered: bool) -> void:
+	button.icon = make_search_icon(ColorBase.text if hovered else ColorBase.muted)
 	pass
 
 
