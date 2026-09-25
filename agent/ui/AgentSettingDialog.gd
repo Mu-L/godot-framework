@@ -320,11 +320,11 @@ func add_check_button(parent: Container, label_text: String, enabled: bool) -> C
 
 ## Check button: the switch is the built-in toggle icon, tinted with the CheckButton theme colors.
 func style_check_button(check: CheckButton) -> void:
-	check.add_theme_color_override("font_color", AgentColors.chat_text)
-	check.add_theme_color_override("font_hover_color", AgentColors.chat_text)
-	check.add_theme_color_override("font_focus_color", AgentColors.chat_text)
-	check.add_theme_color_override("font_pressed_color", AgentColors.chat_text)
-	check.add_theme_color_override("font_hover_pressed_color", AgentColors.chat_text)
+	check.add_theme_color_override("font_color", ColorBase.text)
+	check.add_theme_color_override("font_hover_color", ColorBase.text)
+	check.add_theme_color_override("font_focus_color", ColorBase.text)
+	check.add_theme_color_override("font_pressed_color", ColorBase.text)
+	check.add_theme_color_override("font_hover_pressed_color", ColorBase.text)
 	# Only the "on" track takes the app accent — the "off" one keeps the theme default.
 	check.add_theme_color_override("button_checked_color", AgentColors.theme_accent_solid())
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
@@ -553,7 +553,7 @@ func on_button_mouse_exited() -> void:
 func style_dialog() -> void:
 	if dialog == null:
 		return
-	var dialog_style := BoxStyle.make(AgentColors.panel)
+	var dialog_style := BoxStyle.make(ColorBase.surface)
 	dialog_style.expand_margin_right = Margin.ma_1
 	dialog_style.expand_margin_bottom = Margin.ma_1
 	dialog_style.content_margin_bottom = Margin.ma_4
@@ -563,13 +563,13 @@ func style_dialog() -> void:
 	dialog.add_theme_constant_override("resize_margin", Margin.ma_0)
 	dialog.add_theme_constant_override("buttons_separation", Margin.ma_0)
 	content_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	appearance_heading_label.add_theme_color_override("font_color", AgentColors.chat_text)
-	heading_label.add_theme_color_override("font_color", AgentColors.chat_text)
-	description_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
+	appearance_heading_label.add_theme_color_override("font_color", ColorBase.text)
+	heading_label.add_theme_color_override("font_color", ColorBase.text)
+	description_label.add_theme_color_override("font_color", ColorBase.muted)
 	for label: Label in field_labels:
-		label.add_theme_color_override("font_color", AgentColors.chat_text)
+		label.add_theme_color_override("font_color", ColorBase.text)
 	for help: Label in help_labels:
-		help.add_theme_color_override("font_color", AgentColors.chat_text_muted)
+		help.add_theme_color_override("font_color", ColorBase.muted)
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit, sound_folder_edit]:
 		style_line_edit(edit)
 	style_option_button(provider_select)
@@ -584,7 +584,7 @@ func style_dialog() -> void:
 func style_option_button(select: OptionButton) -> void:
 	# Every font state, focus included: the dialog hands the focus to this select when it pops up,
 	# and the engine's focus text is near white.
-	ButtonStyle.apply_font_colors(select, AgentColors.chat_text, AgentColors.chat_text, AgentColors.chat_text)
+	ButtonStyle.apply_font_colors(select, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.border_color = AgentColors.theme_accent_solid()
@@ -597,16 +597,16 @@ func style_option_button(select: OptionButton) -> void:
 
 
 func style_provider_popup(popup: PopupMenu) -> void:
-	popup.add_theme_color_override("font_color", AgentColors.chat_text)
-	popup.add_theme_color_override("font_hover_color", AgentColors.chat_text)
-	popup.add_theme_color_override("font_accelerator_color", AgentColors.chat_text_muted)
-	popup.add_theme_color_override("font_disabled_color", AgentColors.chat_text_muted)
-	popup.add_theme_color_override("font_separator_color", AgentColors.chat_text_muted)
+	popup.add_theme_color_override("font_color", ColorBase.text)
+	popup.add_theme_color_override("font_hover_color", ColorBase.text)
+	popup.add_theme_color_override("font_accelerator_color", ColorBase.muted)
+	popup.add_theme_color_override("font_disabled_color", ColorBase.muted)
+	popup.add_theme_color_override("font_separator_color", ColorBase.muted)
 	popup.add_theme_font_size_override("font_size", TextStyle.label_large_size)
 	popup.add_theme_constant_override("v_separation", Margin.ma_2)
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
-	popup.add_theme_stylebox_override("panel", BoxStyle.make(AgentColors.panel, 7, Margin.ma_1, Margin.ma_1, AgentColors.chat_input_border, 1))
+	popup.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.surface, 7, Margin.ma_1, Margin.ma_1, AgentColors.chat_input_border, 1))
 	popup.add_theme_stylebox_override("hover", BoxStyle.make(AgentColors.theme_selection_bg(), 5, Margin.ma_2, 0))
 	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
@@ -615,8 +615,8 @@ func style_provider_popup(popup: PopupMenu) -> void:
 
 
 func style_line_edit(edit: LineEdit) -> void:
-	edit.add_theme_color_override("font_color", AgentColors.chat_text)
-	edit.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted.darkened(0.08))
+	edit.add_theme_color_override("font_color", ColorBase.text)
+	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted.darkened(0.08))
 	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
@@ -630,16 +630,16 @@ func style_line_edit(edit: LineEdit) -> void:
 
 ## Field look shared by the line edits and the spin box buttons.
 func make_input_style() -> StyleBoxFlat:
-	return BoxStyle.make(AgentColors.chat_input, 7, Margin.ma_3, Margin.ma_0, AgentColors.chat_input_border, 1)
+	return BoxStyle.make(ColorBase.surface, 7, Margin.ma_3, Margin.ma_0, AgentColors.chat_input_border, 1)
 
 
 ## Spin box: accent arrows on the shared field background.
 func style_spin_box(spin: SpinBox) -> void:
 	style_line_edit(spin.get_line_edit())
-	spin.add_theme_color_override("font_color", AgentColors.chat_text)
-	spin.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted)
-	spin.add_theme_color_override("up_icon_modulate", AgentColors.chat_text)
-	spin.add_theme_color_override("down_icon_modulate", AgentColors.chat_text)
+	spin.add_theme_color_override("font_color", ColorBase.text)
+	spin.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	spin.add_theme_color_override("up_icon_modulate", ColorBase.text)
+	spin.add_theme_color_override("down_icon_modulate", ColorBase.text)
 	spin.add_theme_color_override("up_hover_icon_modulate", AgentColors.theme_accent_solid())
 	spin.add_theme_color_override("down_hover_icon_modulate", AgentColors.theme_accent_solid())
 	spin.add_theme_color_override("up_pressed_icon_modulate", AgentColors.theme_accent_solid())
@@ -660,7 +660,7 @@ func style_spin_box(spin: SpinBox) -> void:
 
 
 func style_secondary_button(target: Button) -> void:
-	ButtonStyle.apply_font_colors(target, AgentColors.chat_text, AgentColors.chat_text, AgentColors.chat_text)
+	ButtonStyle.apply_font_colors(target, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
 	normal.bg_color = AgentColors.toolbar_button
 	normal.content_margin_left = Margin.ma_4

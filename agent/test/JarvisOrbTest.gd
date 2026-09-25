@@ -46,10 +46,10 @@ func _ready() -> void:
 
 
 func apply_scene_theme() -> void:
-	background.color = AgentColors.chat
-	title_label.add_theme_color_override("font_color", AgentColors.chat_text)
-	hint_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
-	status_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
+	background.color = ColorBase.background
+	title_label.add_theme_color_override("font_color", ColorBase.text)
+	hint_label.add_theme_color_override("font_color", ColorBase.muted)
+	status_label.add_theme_color_override("font_color", ColorBase.muted)
 	pass
 
 

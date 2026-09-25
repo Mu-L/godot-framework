@@ -31,11 +31,19 @@ static var info: Color = DARK_INFO
 static var warning: Color = DARK_WARNING
 static var success: Color = DARK_SUCCESS
 static var teal: Color = DARK_TEAL
+static var background: Color = DARK_BACKGROUND
+static var surface: Color = DARK_SURFACE
+static var text: Color = DARK_TEXT
+static var muted: Color = DARK_MUTED
 
 
-## Select semantic colors with suitable contrast for the current dark or light theme.
+## Select neutral and semantic colors with suitable contrast for the current theme.
 static func refresh() -> void:
 	var dark := ThemeColor.is_dark_theme()
+	background = DARK_BACKGROUND if dark else LIGHT_BACKGROUND
+	surface = DARK_SURFACE if dark else LIGHT_SURFACE
+	text = DARK_TEXT if dark else LIGHT_TEXT
+	muted = DARK_MUTED if dark else LIGHT_MUTED
 	error = DARK_ERROR if dark else LIGHT_ERROR
 	info = DARK_INFO if dark else LIGHT_INFO
 	warning = DARK_WARNING if dark else LIGHT_WARNING

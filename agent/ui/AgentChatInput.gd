@@ -655,7 +655,7 @@ func style_wrap() -> void:
 
 
 func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
-	var wrap_style := BoxStyle.make(AgentColors.chat_input, 16 if is_expanded else int(COLLAPSED_SIZE / 2), Margin.ma_1, Margin.ma_1)
+	var wrap_style := BoxStyle.make(ColorBase.surface, 16 if is_expanded else int(COLLAPSED_SIZE / 2), Margin.ma_1, Margin.ma_1)
 	if ThemeColor.is_dark_theme():
 		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
 		wrap_style.shadow_size = 16 if is_expanded else 10
@@ -679,9 +679,9 @@ func style_field() -> void:
 	input_field.add_theme_stylebox_override("focus", input_style.duplicate())
 	input_field.add_theme_stylebox_override("read_only", input_style.duplicate())
 	input_field.add_theme_font_override("font", Fonts.regular())
-	input_field.add_theme_color_override("font_color", AgentColors.chat_text)
-	input_field.add_theme_color_override("font_placeholder_color", AgentColors.chat_text_muted)
-	input_field.add_theme_color_override("font_readonly_color", AgentColors.chat_text_muted)
+	input_field.add_theme_color_override("font_color", ColorBase.text)
+	input_field.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	input_field.add_theme_color_override("font_readonly_color", ColorBase.muted)
 	# Caret and highlight follow the theme color (same pair the sidebar rename field and the
 	# chat bubbles use), so neither keeps a stale hue after a theme or accent change.
 	input_field.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())

@@ -6,8 +6,6 @@ extends RefCounted
 static var sidebar: Color
 static var sidebar_border: Color
 static var sidebar_title: Color
-static var sidebar_text: Color
-static var sidebar_muted: Color
 static var sidebar_row_selected: Color
 static var sidebar_row_hover: Color
 static var toolbar: Color
@@ -15,15 +13,9 @@ static var toolbar_border: Color
 static var toolbar_title: Color
 static var toolbar_muted: Color
 static var toolbar_button: Color
-static var chat: Color
-static var chat_text: Color
-static var chat_text_muted: Color
 static var chat_bubble_border: Color
-static var chat_input: Color
 static var chat_input_border: Color
-static var panel: Color
 static var user_bubble: Color
-static var assistant_bubble: Color
 static var system_bubble: Color
 static var thinking_bubble: Color
 static var tool_bubble: Color
@@ -79,8 +71,6 @@ static func toggle_theme() -> void:
 ## Roles that share a tone point at one local constant: changing a border greys all four
 ## outlines at once, and the constant says which tone it is (`HAIRLINE`, not a hex).
 static func apply_dark_palette() -> void:
-	const TEXT := ColorBase.DARK_TEXT
-	const MUTED := ColorBase.DARK_MUTED
 	const PANEL := ColorBase.DARK_SURFACE
 	const SURFACE := Color(0.14, 0.15, 0.18)
 	const HAIRLINE := Color(0.22, 0.24, 0.28)
@@ -88,8 +78,6 @@ static func apply_dark_palette() -> void:
 	sidebar = Color(0.10, 0.11, 0.13)
 	sidebar_border = Color(0.18, 0.20, 0.24)
 	sidebar_title = Color(0.50, 0.52, 0.58)
-	sidebar_text = TEXT
-	sidebar_muted = MUTED
 	sidebar_row_selected = SURFACE
 	sidebar_row_hover = PANEL
 	toolbar = Color(0.06, 0.07, 0.09)
@@ -97,15 +85,9 @@ static func apply_dark_palette() -> void:
 	toolbar_title = Color(0.93, 0.94, 0.96)
 	toolbar_muted = Color(0.52, 0.54, 0.60)
 	toolbar_button = Color(0.11, 0.12, 0.15)
-	chat = ColorBase.DARK_BACKGROUND
-	chat_text = TEXT
-	chat_text_muted = MUTED
 	chat_bubble_border = HAIRLINE
-	chat_input = PANEL
 	chat_input_border = HAIRLINE
-	panel = PANEL
 	user_bubble = Color(0.16, 0.22, 0.32)
-	assistant_bubble = SURFACE
 	system_bubble = Color(0.10, 0.13, 0.19)
 	thinking_bubble = Color(0.17, 0.13, 0.22)
 	tool_bubble = Color(0.14, 0.20, 0.16)
@@ -132,8 +114,6 @@ static func apply_light_palette() -> void:
 	sidebar = CHROME
 	sidebar_border = HAIRLINE
 	sidebar_title = MUTED
-	sidebar_text = TEXT
-	sidebar_muted = MUTED
 	sidebar_row_selected = PANEL
 	sidebar_row_hover = Color(0.93, 0.93, 0.94)
 	toolbar = CHROME
@@ -141,15 +121,9 @@ static func apply_light_palette() -> void:
 	toolbar_title = TEXT
 	toolbar_muted = MUTED
 	toolbar_button = SOFT
-	chat = ColorBase.LIGHT_BACKGROUND
-	chat_text = TEXT
-	chat_text_muted = MUTED
 	chat_bubble_border = HAIRLINE
-	chat_input = PANEL
 	chat_input_border = HAIRLINE
-	panel = PANEL
 	user_bubble = Color(0.94, 0.96, 1.00)
-	assistant_bubble = PANEL
 	system_bubble = SOFT
 	thinking_bubble = Color(0.96, 0.95, 1.00)
 	tool_bubble = Color(0.94, 0.99, 0.96)

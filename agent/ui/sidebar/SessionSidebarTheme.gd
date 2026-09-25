@@ -35,7 +35,7 @@ static func apply_new_session_button(button: Button) -> void:
 	var accent: Color = AgentColors.theme_accent_solid()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
-	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.08), ButtonStyle.press_color(accent, 0.06), AgentColors.sidebar_muted)
+	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.08), ButtonStyle.press_color(accent, 0.06), ColorBase.muted)
 
 	var border := ButtonStyle.with_alpha(accent, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
@@ -64,11 +64,11 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 
 ## Title / close button colors for the current row state.
 static func apply_row_colors(title_button: Button, delete_button: Button, selected: bool, hovered: bool) -> void:
-	var text_color: Color = AgentColors.sidebar_text if selected or hovered else AgentColors.sidebar_muted
+	var text_color: Color = ColorBase.text if selected or hovered else ColorBase.muted
 	title_button.add_theme_color_override("font_color", text_color)
 	title_button.add_theme_color_override("font_hover_color", text_color)
 	title_button.add_theme_color_override("font_pressed_color", text_color)
-	delete_button.add_theme_color_override("font_color", AgentColors.sidebar_muted)
+	delete_button.add_theme_color_override("font_color", ColorBase.muted)
 	delete_button.add_theme_color_override("font_hover_color", ColorBase.error)
 	delete_button.add_theme_color_override("font_pressed_color", ColorBase.error)
 	pass
@@ -94,8 +94,8 @@ static func drag_ghost() -> StyleBoxFlat:
 ## The field takes over the title's slot, so it mirrors the title's resolved font.
 static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	copy_font(edit, title_button)
-	edit.add_theme_color_override("font_color", AgentColors.sidebar_text)
-	edit.add_theme_color_override("font_placeholder_color", AgentColors.sidebar_muted)
+	edit.add_theme_color_override("font_color", ColorBase.text)
+	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
 	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
 	edit.add_theme_color_override("selection_color", AgentColors.theme_selection_bg())
 	var field_style: StyleBoxFlat = rename_field()
@@ -107,7 +107,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 static func rename_field() -> StyleBoxFlat:
 	var accent: Color = AgentColors.theme_accent_solid()
 	var border := ButtonStyle.with_alpha(accent, 0.75 if ThemeColor.is_dark_theme() else 0.55)
-	return BoxStyle.make(AgentColors.chat_input, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
+	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 
 
 ## Mirrors a resolved font onto another control (rename field, drag ghost).

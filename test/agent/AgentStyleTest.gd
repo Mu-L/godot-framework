@@ -70,38 +70,40 @@ func SessionSidebarTheme_new_session_button_test() -> void:
 ## tweak is one edit. These are the groups; if one of them drifts, the palette has two sources
 ## for the same color again.
 func AgentColors_shared_tones_test() -> void:
+	var original := ThemeColor.current_theme
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
+	ColorBase.refresh()
 	AgentColors.apply_light_palette()
-	assert(AgentColors.chat == ColorBase.LIGHT_BACKGROUND)
-	assert(AgentColors.chat_text == ColorBase.LIGHT_TEXT)
-	assert(AgentColors.chat_text_muted == ColorBase.LIGHT_MUTED)
-	assert(AgentColors.panel == ColorBase.LIGHT_SURFACE)
+	assert(ColorBase.background == ColorBase.LIGHT_BACKGROUND)
+	assert(ColorBase.text == ColorBase.LIGHT_TEXT)
+	assert(ColorBase.muted == ColorBase.LIGHT_MUTED)
+	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
 	assert(AgentColors.sidebar == AgentColors.toolbar)
 	assert(AgentColors.sidebar_border == AgentColors.toolbar_border)
 	assert(AgentColors.toolbar_border == AgentColors.chat_bubble_border)
 	assert(AgentColors.chat_bubble_border == AgentColors.chat_input_border)
-	assert(AgentColors.sidebar_title == AgentColors.sidebar_muted)
-	assert(AgentColors.sidebar_muted == AgentColors.toolbar_muted)
-	assert(AgentColors.toolbar_muted == AgentColors.chat_text_muted)
-	assert(AgentColors.sidebar_text == AgentColors.toolbar_title)
-	assert(AgentColors.toolbar_title == AgentColors.chat_text)
-	assert(AgentColors.sidebar_row_selected == AgentColors.chat_input)
-	assert(AgentColors.chat_input == AgentColors.panel)
-	assert(AgentColors.panel == AgentColors.assistant_bubble)
+	assert(AgentColors.sidebar_title == ColorBase.muted)
+	assert(ColorBase.muted == AgentColors.toolbar_muted)
+	assert(AgentColors.toolbar_muted == ColorBase.muted)
+	assert(ColorBase.text == AgentColors.toolbar_title)
+	assert(AgentColors.toolbar_title == ColorBase.text)
+	assert(AgentColors.sidebar_row_selected == ColorBase.surface)
 	assert(AgentColors.toolbar_button == AgentColors.system_bubble)
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
 
+	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
+	ColorBase.refresh()
 	AgentColors.apply_dark_palette()
-	assert(AgentColors.chat == ColorBase.DARK_BACKGROUND)
-	assert(AgentColors.chat_text == ColorBase.DARK_TEXT)
-	assert(AgentColors.chat_text_muted == ColorBase.DARK_MUTED)
-	assert(AgentColors.panel == ColorBase.DARK_SURFACE)
-	assert(AgentColors.sidebar_text == AgentColors.chat_text)
-	assert(AgentColors.sidebar_muted == AgentColors.chat_text_muted)
-	assert(AgentColors.sidebar_row_hover == AgentColors.chat_input)
-	assert(AgentColors.chat_input == AgentColors.panel)
-	assert(AgentColors.sidebar_row_selected == AgentColors.assistant_bubble)
+	assert(ColorBase.background == ColorBase.DARK_BACKGROUND)
+	assert(ColorBase.text == ColorBase.DARK_TEXT)
+	assert(ColorBase.muted == ColorBase.DARK_MUTED)
+	assert(ColorBase.surface == ColorBase.DARK_SURFACE)
+	assert(AgentColors.sidebar_row_hover == ColorBase.surface)
+	assert(AgentColors.sidebar_row_selected != ColorBase.surface)
 	assert(AgentColors.chat_bubble_border == AgentColors.chat_input_border)
 
 	# Leave the palette as the rest of the suite expects to find it.
+	ThemeColor.current_theme = original
+	ColorBase.refresh()
 	AgentColors.load_saved_theme()
 	pass

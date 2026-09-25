@@ -36,13 +36,13 @@ static func append(
 	header.add_child(view_button)
 
 	var line_label: Label = Label.new()
-	line_label.add_theme_color_override("font_color", AgentColors.chat_text_muted)
+	line_label.add_theme_color_override("font_color", ColorBase.muted)
 	line_label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 	header.add_child(line_label)
 
 	vbox.add_child(header)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
+	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.muted)
 	vbox.add_child(rich_text)
 
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
@@ -54,21 +54,21 @@ static func append(
 
 static func title_color_for(entry: ChatEntry) -> Color:
 	if not entry.title.begins_with("exit_code:"):
-		return AgentColors.chat_text_muted
+		return ColorBase.muted
 	var exit_code: int = int(StringUtils.substring_after(entry.title, "exit_code:"))
-	return AgentColors.chat_text_muted if exit_code == 0 else ColorBase.error
+	return ColorBase.muted if exit_code == 0 else ColorBase.error
 
 
 static func style_view_button(button: Button) -> void:
 	button.tooltip_text = "View full result"
 	button.custom_minimum_size = Vector2(22, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
-	ButtonStyle.apply_font_colors(button, AgentColors.chat_text_muted, ButtonStyle.hover_color(AgentColors.chat_text, 0.08), ButtonStyle.press_color(AgentColors.chat_text_muted, 0.08))
+	ButtonStyle.apply_font_colors(button, ColorBase.muted, ButtonStyle.hover_color(ColorBase.text, 0.08), ButtonStyle.press_color(ColorBase.muted, 0.08))
 
-	var border := ButtonStyle.muted(AgentColors.chat_text_muted)
+	var border := ButtonStyle.muted(ColorBase.muted)
 	var normal := BoxStyle.make(ButtonStyle.hover_color(AgentColors.result_bubble, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
 	var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(AgentColors.result_bubble, 0.16))
-	hover.border_color = AgentColors.chat_text_muted
+	hover.border_color = ColorBase.muted
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.press_color(AgentColors.result_bubble, 0.06))
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
