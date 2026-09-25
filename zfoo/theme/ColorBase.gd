@@ -29,6 +29,9 @@ const LIGHT_SUBTLE_BORDER := Color(0.87, 0.88, 0.90)
 const LIGHT_TEXT := Color(0.09, 0.09, 0.11)
 const LIGHT_MUTED := Color(0.44, 0.44, 0.48)
 
+const DARK_SELECTION_MIX := 0.14
+const LIGHT_SELECTION_MIX := 0.16
+
 ## Semantic colors are brighter on dark surfaces and darker on pale surfaces.
 const DARK_ERROR := Color(0.85, 0.30, 0.30)
 const DARK_INFO := Color(0.35, 0.65, 0.95)
@@ -52,8 +55,8 @@ const DARK_SUCCESS_SURFACE := Color(0.14, 0.20, 0.16)
 const DARK_WARNING_SURFACE := Color(0.22, 0.16, 0.10)
 const DARK_NEUTRAL_SURFACE := Color(0.13, 0.16, 0.20)
 
-const LIGHT_STRONG_INFO_SURFACE := Color(0.94, 0.96, 1.00)
-const LIGHT_INFO_SURFACE := Color(0.94, 0.96, 0.99)
+const LIGHT_STRONG_INFO_SURFACE := Color(0.90, 0.94, 1.00)
+const LIGHT_INFO_SURFACE := Color(0.95, 0.97, 0.99)
 const LIGHT_PURPLE_SURFACE := Color(0.96, 0.95, 1.00)
 const LIGHT_SUCCESS_SURFACE := Color(0.94, 0.99, 0.96)
 const LIGHT_WARNING_SURFACE := Color(1.00, 0.97, 0.93)
@@ -113,5 +116,5 @@ static func refresh() -> void:
 	success_surface = DARK_SUCCESS_SURFACE if dark else LIGHT_SUCCESS_SURFACE
 	warning_surface = DARK_WARNING_SURFACE if dark else LIGHT_WARNING_SURFACE
 	neutral_surface = DARK_NEUTRAL_SURFACE if dark else LIGHT_NEUTRAL_SURFACE
-	selection_surface = elevated_surface.lerp(ThemeColor.accent_solid(), 0.14 if dark else 0.10)
+	selection_surface = elevated_surface.lerp(ThemeColor.accent_solid(), DARK_SELECTION_MIX if dark else LIGHT_SELECTION_MIX)
 	pass

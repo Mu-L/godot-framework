@@ -84,6 +84,8 @@ func ColorBase_shared_tones_test() -> void:
 	assert(ColorBase.elevated_surface == ColorBase.surface)
 	assert(ColorBase.control_surface != ColorBase.info_surface)
 	assert(ColorBase.info_surface != ColorBase.neutral_surface)
+	assert(ColorBase.strong_info_surface != ColorBase.info_surface)
+	assert(ColorBase.strong_info_surface.b - ColorBase.strong_info_surface.r > ColorBase.info_surface.b - ColorBase.info_surface.r)
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ColorBase.refresh()
