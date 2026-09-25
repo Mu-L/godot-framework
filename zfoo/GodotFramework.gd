@@ -13,6 +13,7 @@ func _ready() -> void:
 		Audio.init()
 		Audios.init()
 		LoggerHelper.init()
+		ThemeColor.init()
 	pass
 
 func _process(_delta: float) -> void:

@@ -13,7 +13,7 @@ enum ThemeEnum {
 static var current_theme: ThemeEnum = ThemeEnum.DARK
 static var theme_color: Color = DEFAULT_THEME_COLOR
 
-static func _static_init() -> void:
+static func init() -> void:
 	load_theme()
 	load_theme_color()
 	pass
