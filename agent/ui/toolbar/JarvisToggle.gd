@@ -3,10 +3,8 @@ extends RefCounted
 
 ## Toolbar toggle for the Jarvis 3D orb overlay during agent runs.
 
-const ICON_DRAW_SIZE: int = 24
-const ICON_DISPLAY_SIZE: int = 24
 const RING_COUNT: int = 3
-## Radii on the ICON_DRAW_SIZE canvas. An even-sized canvas has its centre on a half pixel
+## Radii on the 24 px ([constant Margin.ma_6]) canvas. An even-sized canvas has its centre on a half pixel
 ## ((size - 1) / 2), so the radii stay half integers: an integer radius would push the rings
 ## one texel to the bottom right of the canvas and off centre inside the round button.
 const RING_RADII: Array[float] = [2.5, 7.5, 11.5]
@@ -39,8 +37,8 @@ func apply_theme() -> void:
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.expand_icon = false
-	button.add_theme_constant_override("icon_max_width", ICON_DISPLAY_SIZE)
-	button.add_theme_constant_override("icon_max_height", ICON_DISPLAY_SIZE)
+	button.add_theme_constant_override("icon_max_width", Margin.ma_6)
+	button.add_theme_constant_override("icon_max_height", Margin.ma_6)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	update_icon(button.is_hovered())
@@ -82,7 +80,7 @@ func update_icon(hovered: bool) -> void:
 			icon_color = icon_color.lightened(0.12)
 	elif hovered:
 		icon_color = ColorBase.text
-	button.icon = make_concentric_rings_icon(ICON_DRAW_SIZE, icon_color)
+	button.icon = make_concentric_rings_icon(Margin.ma_6, icon_color)
 	pass
 
 
