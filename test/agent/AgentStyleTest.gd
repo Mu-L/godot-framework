@@ -85,7 +85,6 @@ func AgentColors_shared_tones_test() -> void:
 	assert(AgentColors.panel == AgentColors.assistant_bubble)
 	assert(AgentColors.toolbar_button == AgentColors.system_bubble)
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
-	assert(AgentColors.accent == AgentColors.sidebar_row_accent)
 
 	AgentColors.apply_dark_palette()
 	assert(AgentColors.sidebar_text == AgentColors.chat_text)
@@ -94,7 +93,6 @@ func AgentColors_shared_tones_test() -> void:
 	assert(AgentColors.chat_input == AgentColors.panel)
 	assert(AgentColors.sidebar_row_selected == AgentColors.assistant_bubble)
 	assert(AgentColors.chat_bubble_border == AgentColors.chat_input_border)
-	assert(AgentColors.accent == AgentColors.sidebar_row_accent)
 
 	# Leave the palette as the rest of the suite expects to find it.
 	AgentColors.load_saved_theme()

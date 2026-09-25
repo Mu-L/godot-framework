@@ -10,7 +10,6 @@ static var sidebar_text: Color
 static var sidebar_muted: Color
 static var sidebar_row_selected: Color
 static var sidebar_row_hover: Color
-static var sidebar_row_accent: Color
 static var toolbar: Color
 static var toolbar_border: Color
 static var toolbar_title: Color
@@ -23,7 +22,6 @@ static var chat_bubble_border: Color
 static var chat_input: Color
 static var chat_input_border: Color
 static var panel: Color
-static var accent: Color
 static var user_bubble: Color
 static var assistant_bubble: Color
 static var system_bubble: Color
@@ -52,11 +50,6 @@ static func load_saved_theme() -> void:
 		apply_dark_palette()
 	else:
 		apply_light_palette()
-	pass
-
-
-static func set_theme_color(new_color: Color) -> void:
-	ThemeColor.set_theme_color(new_color)
 	pass
 
 
@@ -93,7 +86,6 @@ static func apply_dark_palette() -> void:
 	const PANEL := Color(0.12, 0.13, 0.16)
 	const SURFACE := Color(0.14, 0.15, 0.18)
 	const HAIRLINE := Color(0.22, 0.24, 0.28)
-	const ACCENT := Color(0.35, 0.65, 0.95)
 
 	sidebar = Color(0.10, 0.11, 0.13)
 	sidebar_border = Color(0.18, 0.20, 0.24)
@@ -102,7 +94,6 @@ static func apply_dark_palette() -> void:
 	sidebar_muted = MUTED
 	sidebar_row_selected = SURFACE
 	sidebar_row_hover = PANEL
-	sidebar_row_accent = ACCENT
 	toolbar = Color(0.06, 0.07, 0.09)
 	toolbar_border = Color(0.16, 0.18, 0.22)
 	toolbar_title = Color(0.93, 0.94, 0.96)
@@ -115,7 +106,6 @@ static func apply_dark_palette() -> void:
 	chat_input = PANEL
 	chat_input_border = HAIRLINE
 	panel = PANEL
-	accent = ACCENT
 	user_bubble = Color(0.16, 0.22, 0.32)
 	assistant_bubble = SURFACE
 	system_bubble = Color(0.10, 0.13, 0.19)
@@ -142,7 +132,6 @@ static func apply_light_palette() -> void:
 	const SOFT := Color(0.96, 0.96, 0.96)
 	const CHROME := Color(0.95, 0.95, 0.96)
 	const HAIRLINE := Color(0.89, 0.89, 0.91)
-	const ACCENT := Color(0.15, 0.39, 0.92)
 
 	sidebar = CHROME
 	sidebar_border = HAIRLINE
@@ -151,7 +140,6 @@ static func apply_light_palette() -> void:
 	sidebar_muted = MUTED
 	sidebar_row_selected = PANEL
 	sidebar_row_hover = Color(0.93, 0.93, 0.94)
-	sidebar_row_accent = ACCENT
 	toolbar = CHROME
 	toolbar_border = HAIRLINE
 	toolbar_title = TEXT
@@ -164,7 +152,6 @@ static func apply_light_palette() -> void:
 	chat_input = PANEL
 	chat_input_border = HAIRLINE
 	panel = PANEL
-	accent = ACCENT
 	user_bubble = Color(0.94, 0.96, 1.00)
 	assistant_bubble = PANEL
 	system_bubble = SOFT

@@ -105,7 +105,7 @@ func on_pressed() -> void:
 
 
 func on_picker_color_changed(new_color: Color) -> void:
-	AgentColors.set_theme_color(new_color)
+	ThemeColor.set_theme_color(new_color)
 	pass
 
 
