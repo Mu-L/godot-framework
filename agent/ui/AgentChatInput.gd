@@ -4,10 +4,6 @@ extends RefCounted
 ## Floating chat input, right-aligned (Margin.ma_12 from the right, Margin.ma_4 from the bottom):
 ## collapse/expand, styling, and send button.
 
-const COLLAPSED_SIZE: float = 52.0
-## Diameter of the round send button. Collapsed offsets are half of it, so the circle lands dead
-## center of the wrap; the stylebox corner radius is half of it too, which is what makes it round.
-const SEND_BUTTON_SIZE: float = 36.0
 ## Expanded panel height when empty or one line (wrap grows upward from bottom).
 const EXPANDED_HEIGHT_MIN: float = 88.0
 ## Cap auto-grow so long paste does not cover most of the chat area.
@@ -485,7 +481,7 @@ func prepare_field_for_expand_measure() -> void:
 func get_wrap_width(is_expanded: bool) -> float:
 	var bar_width: float = maxf(input_bar.size.x, 1.0)
 	if not is_expanded:
-		return minf(COLLAPSED_SIZE, maxf(1.0, bar_width - Margin.ma_12))
+		return minf(ControlSize.xl, maxf(1.0, bar_width - Margin.ma_12))
 	return maxf(1.0, bar_width - Margin.ma_12 * 2.0)
 
 
@@ -513,7 +509,7 @@ func measure_field_content_height() -> float:
 ## Depends only on the text content, never on the previous fit flag, so repeated calls agree.
 func get_wrap_height(is_expanded: bool) -> float:
 	if not is_expanded:
-		return COLLAPSED_SIZE
+		return ControlSize.xl
 	# Margin.ma_1 top + bottom on the wrap stylebox is padding, so it is not usable field height.
 	var min_inner: float = maxf(0.0, EXPANDED_HEIGHT_MIN - Margin.ma_2)
 	var max_inner: float = get_expanded_height_max() - Margin.ma_2
@@ -554,11 +550,11 @@ func layout_send_button(is_expanded: bool) -> void:
 	# size past the offsets above, which silently shifts the circle. Grow both ways instead.
 	send_button.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	send_button.grow_vertical = Control.GROW_DIRECTION_BOTH
-	var half: float = SEND_BUTTON_SIZE * 0.5
+	var half: float = ControlSize.md * 0.5
 	if is_expanded:
 		send_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		send_button.offset_left = -SEND_BUTTON_SIZE - Margin.ma_2
-		send_button.offset_top = -SEND_BUTTON_SIZE - Margin.ma_2
+		send_button.offset_left = -ControlSize.md - Margin.ma_2
+		send_button.offset_top = -ControlSize.md - Margin.ma_2
 		send_button.offset_right = -Margin.ma_2
 		send_button.offset_bottom = -Margin.ma_2
 	else:
@@ -655,7 +651,7 @@ func style_wrap() -> void:
 
 
 func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
-	var wrap_style := BoxStyle.make(ColorBase.surface, 16 if is_expanded else int(COLLAPSED_SIZE / 2), Margin.ma_1, Margin.ma_1)
+	var wrap_style := BoxStyle.make(ColorBase.surface, 16 if is_expanded else int(ControlSize.xl / 2), Margin.ma_1, Margin.ma_1)
 	if ThemeColor.is_dark_theme():
 		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
 		wrap_style.shadow_size = 16 if is_expanded else 10
@@ -718,8 +714,8 @@ func set_send_button_appearance(running: bool) -> void:
 
 func apply_send_button_style(base_color: Color) -> void:
 	# Radius = half the diameter, and small content margins so the stylebox minimum size
-	# (margin + 16px icon + margin) stays below SEND_BUTTON_SIZE, keeping the box a real square.
-	var radius: int = int(SEND_BUTTON_SIZE * 0.5)
+	# (margin + 16px icon + margin) stays below ControlSize.md, keeping the box a real square.
+	var radius: int = int(ControlSize.md * 0.5)
 	# Solid fill: hover / pressed / disabled read as plain shading, so they never flip with the theme.
 	var normal := BoxStyle.make(base_color, radius, Margin.ma_1, Margin.ma_1)
 	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.10))
