@@ -34,6 +34,7 @@
       "tooltip": "搜索聊天记录",
       "placeholder": "搜索聊天内容",
       "hint": "输入关键词搜索已保存的聊天",
+      "loading": "正在加载聊天记录…",
       "empty": "没有已保存的聊天",
       "results": "{} 条结果",
       "limited_results": "{} 条结果（仅显示前 100 条）"

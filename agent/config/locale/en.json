@@ -34,6 +34,7 @@
       "tooltip": "Search chat history",
       "placeholder": "Search chat history",
       "hint": "Type to search saved chats",
+      "loading": "Loading saved chats…",
       "empty": "No saved chats",
       "results": "{} results",
       "limited_results": "{} results (first 100)"

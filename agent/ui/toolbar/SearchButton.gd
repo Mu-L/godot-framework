@@ -106,7 +106,9 @@ func apply_theme() -> void:
 func apply_locale() -> void:
 	title_label.text = I18n.t("agent.search.title")
 	query_edit.placeholder_text = I18n.t("agent.search.placeholder")
-	if StringUtils.is_blank(query_edit.text):
+	if not query_edit.editable:
+		status_label.text = I18n.t("agent.search.loading")
+	elif StringUtils.is_blank(query_edit.text):
 		status_label.text = I18n.t("agent.search.hint")
 	apply_theme()
 	pass
@@ -136,24 +138,30 @@ func calculate_popup_size() -> Vector2i:
 
 
 func search(raw_query: String) -> void:
-	clear_results()
 	var query := raw_query.strip_edges().to_lower()
 	if query.is_empty():
+		clear_results()
 		status_label.text = I18n.t("agent.search.hint")
 		return
-	var match_count := 0
-	var dir_path := AgentSessionStore.get_sessions_dir()
-	if not DirAccess.dir_exists_absolute(dir_path):
+	var session_indexes := AgentSessionManager.session_indexes
+	if session_indexes.size() == 0:
+		clear_results()
 		status_label.text = I18n.t("agent.search.empty")
 		return
-	var file_paths := FileUtils.get_all_files_in_folder(dir_path, false)
-	for file_path: String in file_paths:
+	var session_ids := session_indexes.collect_session_ids()
+	# Returns at once on a warm cache; while it decodes, the read-only box keeps this the only search in
+	# flight, and clearing afterwards drops rows an older search may have left behind.
+	query_edit.editable = false
+	status_label.text = I18n.t("agent.search.loading")
+	await AgentSessionStore.async_load_sessions()
+	query_edit.editable = true
+	clear_results()
+	var match_count := 0
+	for session_id: int in session_ids:
 		if match_count >= MAX_RESULTS:
 			break
-		if not file_path.ends_with(AgentSessionStore.FILE_SUFFIX) or file_path.get_file() == AgentSessionIndexes.INDEX_FILE:
-			continue
-		var session := AgentSessionStore.load_session_file(file_path)
-		if session == null or not AgentSessionManager.has_index(session.id):
+		var session := AgentSessionStore.load_session(session_id)
+		if session == null:
 			continue
 		for entry_index: int in session.chat_entries.size():
 			var entry: ChatEntry = session.chat_entries[entry_index]
