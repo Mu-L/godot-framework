@@ -69,6 +69,11 @@ static func save_index(session_indexes: AgentSessionIndexes) -> void:
 # Query
 # ---------------------------------------------------------------------------
 
+## Indexed session count — pinned entries plus the normal list.
+func size() -> int:
+	return pinned_indexes.size() + indexes.size()
+
+
 ## Session ids in sidebar order — pinned entries first, then the normal list.
 ## [param max_count] of 0 (the default) returns every id, otherwise the leading [param max_count] ids.
 func collect_session_ids(max_count: int = 0) -> Array[int]:
