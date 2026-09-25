@@ -42,6 +42,7 @@ static func _static_init() -> void:
 
 ## Boot: reload the index of the current workspace, then select the first session (create one if the list is empty).
 static func load_from_disk() -> void:
+	AgentSessionStore.sessions.clear()
 	session_indexes = AgentSessionIndexes.load_index()
 	select_default_session()
 	pass
@@ -124,7 +125,7 @@ static func select_session(session_id: int) -> void:
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
 		session = AgentSession.new(session_id)
-		AgentSessionStore.sessions[session_id] = session
+		AgentSessionStore.sessions.put(session_id, session)
 	var previous_session_id := active_session_id
 	active_session_id = session_id
 	AgentEvents.events.session_selected.emit(session_id, previous_session_id)

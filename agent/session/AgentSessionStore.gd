@@ -6,7 +6,8 @@ extends RefCounted
 const SESSIONS_SUBDIR := ".gai/sessions"
 const FILE_SUFFIX := ".json"
 
-static var sessions: Dictionary[int, AgentSession] = {}
+# Dictionary[int, AgentSession]
+static var sessions: ConcurrentMapInt = ConcurrentMapInt.new()
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +37,7 @@ static func ensure_sessions_dir() -> bool:
 static func create_session() -> AgentSession:
 	var session_id := IdUtils.short_uuid()
 	var session := AgentSession.new(session_id)
-	sessions[session.id] = session
+	sessions.put(session.id, session)
 	return session
 
 # ---------------------------------------------------------------------------
@@ -58,7 +59,7 @@ static func save_session(session_id: int) -> void:
 static func delete_session(session_id: int) -> void:
 	if session_id < 0:
 		return
-	sessions.erase(session_id)
+	sessions.remove(session_id)
 	FileUtils.delete_file_or_directory(get_session_path(session_id))
 	pass
 
@@ -67,34 +68,17 @@ static func delete_session(session_id: int) -> void:
 # Load
 # ---------------------------------------------------------------------------
 
-static func load_all_sessions() -> Array[AgentSession]:
-	var result: Array[AgentSession] = []
-	var dir_path := get_sessions_dir()
-	if not DirAccess.dir_exists_absolute(dir_path):
-		return result
-
-	var file_paths := FileUtils.get_all_files_in_folder(dir_path, false)
-	file_paths.sort_custom(func(a: String, b: String) -> bool:
-		return a.get_file().to_lower() > b.get_file().to_lower()
-	)
-	for file_path in file_paths:
-		if file_path.get_file() == AgentSessionIndexes.INDEX_FILE:
-			continue
-		if not file_path.ends_with(FILE_SUFFIX):
-			continue
-		var session := load_session_file(file_path)
-		if session != null:
-			result.append(session)
-	return result
 
 
 static func load_session(session_id: int) -> AgentSession:
-	var session: AgentSession = sessions.get(session_id)
+	var session := sessions.get_value(session_id) as AgentSession
 	if session != null:
 		return session
 	session = load_session_file(get_session_path(session_id))
 	if session != null:
-		sessions[session_id] = session
+		var existing := sessions.put_if_absent(session_id, session) as AgentSession
+		if existing != null:
+			return existing
 	return session
 
 
