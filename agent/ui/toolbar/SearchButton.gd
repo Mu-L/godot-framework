@@ -12,6 +12,8 @@ const VIEWPORT_MARGIN := 32
 const BUTTON_SIZE := 28
 const MAX_RESULTS := 100
 const MAX_SNIPPET_LENGTH := 260
+## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
+const SEARCH_DEBOUNCE_MILLIS := 1000
 const SEARCH_ICON_PATH := "res://agent/asset/image/icon/search.svg"
 const SVG_ICON_COLOR := "#8B949E"
 
@@ -21,6 +23,7 @@ var title_label: Label
 var query_edit: LineEdit
 var status_label: Label
 var results_list: VBoxContainer
+var debounce_timer: Timer
 
 
 func setup(p_button: Button) -> void:
@@ -71,8 +74,14 @@ func build_popup() -> void:
 	query_edit = LineEdit.new()
 	query_edit.custom_minimum_size = Vector2(0, 42)
 	query_edit.clear_button_enabled = true
-	query_edit.text_changed.connect(search)
+	query_edit.text_changed.connect(on_query_changed)
+	query_edit.text_submitted.connect(on_query_submitted)
 	content.add_child(query_edit)
+	debounce_timer = Timer.new()
+	debounce_timer.one_shot = true
+	debounce_timer.wait_time = SEARCH_DEBOUNCE_MILLIS / float(TimeUtils.MILLIS_PER_SECOND)
+	debounce_timer.timeout.connect(on_debounce_timeout)
+	popup.add_child(debounce_timer)
 	status_label = Label.new()
 	status_label.add_theme_color_override("font_color", ColorBase.muted)
 	status_label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
@@ -119,7 +128,30 @@ func on_button_pressed() -> void:
 	query_edit.grab_focus()
 	query_edit.select_all()
 	if StringUtils.is_not_blank(query_edit.text):
+		debounce_timer.stop()
 		search(query_edit.text)
+	pass
+
+
+## Restarts the pause on every keystroke, so a typing burst costs one scan instead of one per character.
+func on_query_changed(raw_query: String) -> void:
+	# An empty box has nothing to scan — answer at once instead of waiting out the pause.
+	if StringUtils.is_blank(raw_query):
+		debounce_timer.stop()
+		search(raw_query)
+		return
+	debounce_timer.start()
+	pass
+
+
+func on_query_submitted(raw_query: String) -> void:
+	debounce_timer.stop()
+	search(raw_query)
+	pass
+
+
+func on_debounce_timeout() -> void:
+	search(query_edit.text)
 	pass
 
 
