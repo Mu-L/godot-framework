@@ -5,7 +5,7 @@
       <circle cx="8" cy="8" r="1.8" fill="black"/>
     </mask>
   </defs>
-  <g fill="#8B949E" mask="url(#hole)">
+  <g fill="#FFFFFF" mask="url(#hole)">
     <circle cx="8" cy="8" r="4.7"/>
     <rect x="7" y="0.5" width="2" height="4" rx="0.6"/>
     <rect x="7" y="0.5" width="2" height="4" rx="0.6" transform="rotate(45 8 8)"/>

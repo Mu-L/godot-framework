@@ -7,7 +7,6 @@ extends RefCounted
 const DIALOG_SIZE: Vector2i = Vector2i(580, 1000)
 const FOLDER_DIALOG_SIZE: Vector2i = Vector2i(900, 600)
 const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
-const SVG_BASE_COLOR: String = "#8B949E"
 
 var button: Button
 var dialog: ConfirmationDialog
@@ -40,9 +39,8 @@ func setup(p_button: Button) -> void:
 	button = p_button
 	build_dialog()
 	button.text = ""
+	button.icon = load(SETTINGS_ICON_PATH) as Texture2D
 	button.pressed.connect(on_button_pressed)
-	button.mouse_entered.connect(on_button_mouse_entered)
-	button.mouse_exited.connect(on_button_mouse_exited)
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
 	gdf.events.locale_changed.connect(apply_locale)
@@ -524,35 +522,12 @@ func apply_theme() -> void:
 	AgentToolbarButton.style(button, I18n.t("agent.settings.tooltip"), ControlSize.sm / 2)
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
+	button.add_theme_color_override("icon_normal_color", ColorBase.muted)
+	button.add_theme_color_override("icon_hover_color", ColorBase.text)
+	button.add_theme_color_override("icon_pressed_color", ColorBase.text)
+	button.add_theme_color_override("icon_focus_color", ColorBase.text)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	update_button_icon(button.is_hovered())
 	style_dialog()
-	pass
-
-
-func update_button_icon(hovered: bool) -> void:
-	var icon_color: Color = ColorBase.text if hovered else ColorBase.muted
-	button.icon = make_settings_icon(icon_color)
-	pass
-
-
-func make_settings_icon(color: Color) -> Texture2D:
-	var svg: String = FileAccess.get_file_as_string(SETTINGS_ICON_PATH)
-	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
-	var image: Image = Image.new()
-	var error: int = image.load_svg_from_string(svg, 2.0)
-	if error != OK:
-		return ImageTexture.new()
-	return ImageTexture.create_from_image(image)
-
-
-func on_button_mouse_entered() -> void:
-	update_button_icon(true)
-	pass
-
-
-func on_button_mouse_exited() -> void:
-	update_button_icon(false)
 	pass
 
 
