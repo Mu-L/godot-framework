@@ -38,12 +38,12 @@ extends Object
 # h1–h6; body uses RichTextLabel default size. Headline/Title steps of [TextStyle]: h4 and h5
 # both land on title_large because the 20px step has no counterpart in the scale.
 const HEADING_FONT_SIZES: PackedInt32Array = [
-	TextStyle.headline_large_size,
-	TextStyle.headline_medium_size,
-	TextStyle.headline_small_size,
-	TextStyle.title_large_size,
-	TextStyle.title_large_size,
-	TextStyle.title_medium_size,
+	TextSize.headline_large_size,
+	TextSize.headline_medium_size,
+	TextSize.headline_small_size,
+	TextSize.title_large_size,
+	TextSize.title_large_size,
+	TextSize.title_medium_size,
 ]
 
 # Private-use tokens; must not appear in source markdown.

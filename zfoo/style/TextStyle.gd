@@ -1,4 +1,4 @@
-class_name TextStyle
+class_name TextSize
 extends Object
 
 ## Material Design text scale: font size in px and letter spacing in px.

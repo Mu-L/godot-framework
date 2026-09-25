@@ -43,7 +43,7 @@ func apply_theme() -> void:
 	add_theme_stylebox_override("embedded_unfocused_border", make_embedded_border(BORDER_ALPHA_UNFOCUSED))
 	add_theme_color_override("title_color", ColorCard.title_color)
 	add_theme_font_override("title_font", Fonts.semibold())
-	add_theme_font_size_override("title_font_size", TextStyle.title_medium_size)
+	add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
 	style_text_edit()
 	pass
 
@@ -76,7 +76,7 @@ func style_text_edit() -> void:
 	text_edit.add_theme_color_override("selection_color", ColorCard.selection_color)
 	text_edit.add_theme_color_override("current_line_color", Color(ColorCard.accent_color, 0.10))
 	text_edit.add_theme_font_override("font", Fonts.regular())
-	text_edit.add_theme_font_size_override("font_size", TextStyle.body_large_size)
+	text_edit.add_theme_font_size_override("font_size", TextSize.body_large_size)
 	style_scroll_bar(text_edit.get_v_scroll_bar())
 	style_scroll_bar(text_edit.get_h_scroll_bar())
 	pass

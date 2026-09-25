@@ -61,7 +61,7 @@ func build_popup() -> void:
 	header.add_child(header_icon)
 	title_label = Label.new()
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label.add_theme_font_size_override("font_size", TextStyle.title_medium_size)
+	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	header.add_child(title_label)
 	var close_button := Button.new()
 	close_button.text = "×"
@@ -83,7 +83,7 @@ func build_popup() -> void:
 	popup.add_child(debounce_timer)
 	status_label = Label.new()
 	status_label.add_theme_color_override("font_color", ColorBase.muted)
-	status_label.add_theme_font_size_override("font_size", TextStyle.label_small_size)
+	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	content.add_child(status_label)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -217,7 +217,7 @@ func append_result(session_id: int, entry_index: int, entry: ChatEntry, query: S
 		make_snippet(entry.body, query)
 	)
 	result.custom_minimum_size = Vector2(0, 72)
-	result.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
+	result.add_theme_font_size_override("font_size", TextSize.label_medium_size)
 	style_result_button(result)
 	result.pressed.connect(on_result_pressed.bind(session_id, entry_index))
 	results_list.add_child(result)

@@ -27,7 +27,7 @@ static func append(
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
-	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
+	title_label.add_theme_font_size_override("font_size", TextSize.label_medium_size)
 	header.add_child(title_label)
 
 	var spacer: Control = Control.new()
@@ -75,7 +75,7 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	button.focus_mode = Control.FOCUS_NONE
 	button.tooltip_text = tooltip
 	button.custom_minimum_size = Vector2(min_width, 18)
-	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
+	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 
 	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.10))
