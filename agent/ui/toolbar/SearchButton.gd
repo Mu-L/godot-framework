@@ -8,7 +8,6 @@ const MIN_POPUP_SIZE := Vector2i(860, 680)
 const MAX_POPUP_SIZE := Vector2i(1400, 1000)
 const VIEWPORT_WIDTH_RATIO := 0.84
 const VIEWPORT_HEIGHT_RATIO := 0.92
-const VIEWPORT_MARGIN := 32
 const MAX_RESULTS := 100
 const MAX_SNIPPET_LENGTH := 260
 ## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
@@ -181,7 +180,7 @@ func calculate_popup_size() -> Vector2i:
 	var viewport_size := Vector2i(button.get_viewport_rect().size)
 	if viewport_size.x <= 0 or viewport_size.y <= 0:
 		return DEFAULT_POPUP_SIZE
-	var available := viewport_size - Vector2i(VIEWPORT_MARGIN * 2, VIEWPORT_MARGIN * 2)
+	var available := viewport_size - Vector2i(Margin.ma_8 * 2, Margin.ma_8 * 2)
 	var target := Vector2i(
 		int(viewport_size.x * VIEWPORT_WIDTH_RATIO),
 		int(viewport_size.y * VIEWPORT_HEIGHT_RATIO)
