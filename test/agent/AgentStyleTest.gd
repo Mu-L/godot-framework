@@ -77,11 +77,13 @@ func ColorBase_shared_tones_test() -> void:
 	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
 	assert(ColorBase.inset_surface != ColorBase.recessed_surface)
 	assert(ColorBase.recessed_surface.get_luminance() < ColorBase.inset_surface.get_luminance())
-	assert(ColorBase.medium_border == ColorBase.subtle_border)
-	assert(ColorBase.subtle_border == ColorBase.border)
+	assert(ColorBase.hover_surface.get_luminance() < ColorBase.inset_surface.get_luminance())
+	assert(ColorBase.hover_surface.get_luminance() < ColorBase.control_surface.get_luminance())
+	assert(ColorBase.medium_border.get_luminance() < ColorBase.border.get_luminance())
+	assert(ColorBase.border.get_luminance() < ColorBase.subtle_border.get_luminance())
 	assert(ColorBase.elevated_surface == ColorBase.surface)
-	assert(ColorBase.control_surface == ColorBase.info_surface)
-	assert(ColorBase.info_surface == ColorBase.neutral_surface)
+	assert(ColorBase.control_surface != ColorBase.info_surface)
+	assert(ColorBase.info_surface != ColorBase.neutral_surface)
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ColorBase.refresh()
