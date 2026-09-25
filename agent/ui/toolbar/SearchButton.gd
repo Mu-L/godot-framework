@@ -1,4 +1,4 @@
-class_name ChatSearchButton
+class_name SearchButton
 extends RefCounted
 
 ## Searches persisted chat entry bodies and opens a result at its exact transcript bubble.

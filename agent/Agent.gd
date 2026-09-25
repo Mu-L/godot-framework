@@ -35,7 +35,7 @@ extends Control
 
 var toolbar: AgentToolbar = AgentToolbar.new()
 var workspace_button: WorkspaceButton = WorkspaceButton.new()
-var chat_search_button: ChatSearchButton = ChatSearchButton.new()
+var search_button_ctrl: SearchButton = SearchButton.new()
 var log_button_ctrl: LogButton = LogButton.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
 var theme_toggle: ThemeToggle = ThemeToggle.new()
@@ -73,7 +73,7 @@ func _ready() -> void:
 	theme_toggle.setup(theme_toggle_button)
 	agent_setting_dialog.setup(agent_setting_button)
 	workspace_button.setup(project_button, workspace_dialog)
-	chat_search_button.setup(search_button)
+	search_button_ctrl.setup(search_button)
 	log_button_ctrl.setup(log_button)
 	apply_locale()
 
