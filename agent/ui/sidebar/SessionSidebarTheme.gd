@@ -14,35 +14,35 @@ const RENAME_CORNER_RADIUS: int = 5
 
 ## Sidebar background plus the hairline against the chat area.
 static func sidebar_panel() -> StyleBoxFlat:
-	var style := BoxStyle.make(ColorBase.inset_surface)
-	style.border_color = ColorBase.medium_border
+	var style := BoxStyle.make(ColorBase.chrome_surface)
+	style.border_color = ColorBase.muted_border
 	style.set_border_width(SIDE_RIGHT, 1)
 	return style
 
 
 static func pinned_separator() -> StyleBoxLine:
-	var accent: Color = ThemeColor.accent_solid()
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	var line: StyleBoxLine = StyleBoxLine.new()
-	line.color = ButtonStyle.with_alpha(accent, 0.42 if ThemeColor.is_dark_theme() else 0.32)
+	line.color = ButtonStyle.with_alpha(theme_color, 0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
 	line.grow_end = 2
 	line.thickness = 1
 	return line
 
 
-## "+ New chat" — outlined in the accent, filled while hovered / pressed.
+## "+ New chat" — outlined in the theme color, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
-	var accent: Color = ThemeColor.accent_solid()
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
-	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.08), ButtonStyle.press_color(accent, 0.06), ColorBase.muted)
+	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.muted)
 
-	var border := ButtonStyle.with_alpha(accent, 0.55 if ThemeColor.is_dark_theme() else 0.45)
+	var border := ButtonStyle.with_alpha(theme_color, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.selection_surface)
-	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
+	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.85)
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ColorBase.selection_surface, 0.06))
-	pressed.border_color = accent
+	pressed.border_color = theme_color
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
 
@@ -76,10 +76,10 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 
 ## Floating row copy that follows the cursor while dragging.
 static func drag_ghost() -> StyleBoxFlat:
-	var accent: Color = ThemeColor.accent_solid()
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = ColorBase.selection_surface
-	style.border_color = ButtonStyle.with_alpha(accent, 0.9 if ThemeColor.is_dark_theme() else 0.75)
+	style.border_color = ButtonStyle.with_alpha(theme_color, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
 	style.shadow_size = 6
@@ -96,7 +96,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	copy_font(edit, title_button)
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
-	edit.add_theme_color_override("caret_color", ThemeColor.accent_solid())
+	edit.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
 	edit.add_theme_color_override("selection_color", ColorBase.selection_surface)
 	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
@@ -105,8 +105,8 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 
 
 static func rename_field() -> StyleBoxFlat:
-	var accent: Color = ThemeColor.accent_solid()
-	var border := ButtonStyle.with_alpha(accent, 0.75 if ThemeColor.is_dark_theme() else 0.55)
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var border := ButtonStyle.with_alpha(theme_color, 0.75 if ThemeColor.is_dark_theme() else 0.55)
 	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 
 

@@ -25,8 +25,8 @@ static func load_theme() -> ThemeEnum:
 	return current_theme
 
 
-static func set_theme(_theme: ThemeEnum) -> void:
-	current_theme = _theme
+static func set_theme(new_theme: ThemeEnum) -> void:
+	current_theme = new_theme
 	Setting.set_bool(THEME_SETTING_KEY, current_theme == ThemeEnum.DARK)
 	Setting.save()
 	refresh_derived_colors()
@@ -39,8 +39,8 @@ static func toggle_theme() -> void:
 	pass
 
 
-## Current theme accent with full opacity for UI highlights and controls.
-static func accent_solid() -> Color:
+## Current theme color with alpha forced to 1 for UI highlights and controls.
+static func theme_color_full_alpha() -> Color:
 	return Color(theme_color, 1.0)
 
 

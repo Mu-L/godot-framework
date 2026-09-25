@@ -79,8 +79,8 @@ func update_icon(hovered: bool) -> void:
 	var jarvis_orb_enabled: bool = AgentSetting.get_jarvis_orb_enabled()
 	var icon_color: Color = ColorBase.muted
 	if jarvis_orb_enabled:
-		var accent: Color = ThemeColor.accent_solid()
-		icon_color = accent if ThemeColor.is_dark_theme() else accent.darkened(0.15)
+		var theme_color: Color = ThemeColor.theme_color_full_alpha()
+		icon_color = theme_color if ThemeColor.is_dark_theme() else theme_color.darkened(0.15)
 		if hovered:
 			icon_color = icon_color.lightened(0.12)
 	elif hovered:

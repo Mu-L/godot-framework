@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar badge — current context length from the latest LLM request (left of the skill toggle).
 ##
 ## Shows [member OpenAiUsage.prompt_tokens] from the last API call (input context size, not session total).
-## Panel matches [member ColorBase.selection_surface]. Label text uses theme accent until
+## Panel matches [member ColorBase.selection_surface]. Label text uses the theme color until
 ## [constant THRESHOLD_WARN], then a traffic-light scale against [constant MAX_CONTEXT_TOKENS]:
 ##
 ## ```
@@ -94,4 +94,4 @@ static func text_color_for_tokens(n: int) -> Color:
 		return ColorBase.warning
 	if ratio >= THRESHOLD_WARN:
 		return Color(0.94, 0.84, 0.35) if ThemeColor.is_dark_theme() else Color("#CA8A04")
-	return ThemeColor.accent_solid()
+	return ThemeColor.theme_color_full_alpha()

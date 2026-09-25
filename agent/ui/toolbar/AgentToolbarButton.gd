@@ -9,7 +9,7 @@ static func style(button: Button, tooltip: String, corner_radius: int = 6) -> vo
 	button.custom_minimum_size = Vector2(28, 28)
 	button.flat = false
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
-	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ThemeColor.accent_solid())
+	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ThemeColor.theme_color_full_alpha())
 
 	var normal := BoxStyle.make(ColorBase.control_surface, corner_radius, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)

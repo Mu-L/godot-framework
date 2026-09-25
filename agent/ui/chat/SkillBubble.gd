@@ -119,11 +119,11 @@ static func style_expand_button(button: Button) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(0, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
-	var accent := ThemeColor.accent_solid()
-	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.12), ButtonStyle.press_color(accent, 0.08))
+	var theme_color := ThemeColor.theme_color_full_alpha()
+	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.08))
 
 	var normal := BoxStyle.make(Color.TRANSPARENT, 0, Margin.ma_1, Margin.ma_0)
-	var hover := BoxStyle.with_bg(normal, ButtonStyle.with_alpha(accent, 0.12))
+	var hover := BoxStyle.with_bg(normal, ButtonStyle.with_alpha(theme_color, 0.12))
 	hover.set_corner_radius_all(4)
 
 	# Pressed looks exactly like hover here, so the two states share one box.

@@ -2,7 +2,7 @@ class_name SessionRowRunFx
 extends Control
 
 ## Small flowing sine wave shown in place of the close button while a session runs.
-## Drawn in code so it always reflects the live theme accent.
+## Drawn in code so it always reflects the live theme color.
 ## It shares the close button's slot size, so the swap costs no extra row width.
 
 ## Horizontal distance between samples, and the padding that keeps the stroked
@@ -60,14 +60,14 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if size.x - PAD * 2.0 <= 2.0 or size.y <= PAD * 2.0:
 		return
-	var accent := ThemeColor.accent_solid()
+	var theme_color := ThemeColor.theme_color_full_alpha()
 	var points := wave_points()
 	# Glow pass keeps the thin stroke readable on either theme.
-	draw_polyline(points, Color(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
-	draw_polyline(points, accent, 0.8, true)
+	draw_polyline(points, Color(theme_color, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)
+	draw_polyline(points, theme_color, 0.8, true)
 	# Bright beads on the samples, giving the wave a sense of flow.
 	for index in range(0, points.size(), PACKET_STEP):
-		draw_circle(points[index], PACKET_RADIUS, Color(accent.lightened(0.35), 0.55))
+		draw_circle(points[index], PACKET_RADIUS, Color(theme_color.lightened(0.35), 0.55))
 	pass
 
 

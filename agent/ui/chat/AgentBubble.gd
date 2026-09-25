@@ -69,21 +69,21 @@ static func style_copy_button(button: Button, bubble_bg: Color) -> void:
 	pass
 
 
-## Header actions (Copy / Delete / Revert) are tinted with the user accent, so picking a new
-## theme color re-renders them with the transcript (see AgentChatView.on_theme_color_changed).
+## Header actions (Copy / Delete / Revert) are tinted with the theme color, so picking a new
+## Theme color changes re-render them with the transcript (see AgentChatView.on_theme_color_changed).
 static func style_header_button(button: Button, bubble_bg: Color, tooltip: String, min_width: float) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.tooltip_text = tooltip
 	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 
-	var accent: Color = ThemeColor.accent_solid()
-	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.12), ButtonStyle.press_color(accent, 0.10))
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.10))
 
-	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(accent, 0.45), 1)
+	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(theme_color, 0.45), 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.selection_surface)
-	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
+	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.85)
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ColorBase.selection_surface, 0.06))
-	pressed.border_color = accent
+	pressed.border_color = theme_color
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

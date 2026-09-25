@@ -5,7 +5,7 @@ extends RefCounted
 ## One bubble list per session; switching shows the cached list.
 
 const META_BUBBLE_RICH_TEXT: String = "bubble_rich_text"
-## The color picker emits on every drag step; the transcript re-renders once the accent settles.
+## The color picker emits on every drag step; the transcript re-renders once the theme color settles.
 const THEME_COLOR_REBUILD_DELAY_MS: int = 250
 
 
@@ -169,7 +169,7 @@ func on_theme_changed() -> void:
 	pass
 
 
-## Markdown colors are derived from the accent, so a color pick has to re-render the
+## Markdown colors are derived from the theme color, so a color pick has to re-render the
 ## transcript — but only once: the picker emits on every drag step.
 func on_theme_color_changed() -> void:
 	if theme_color_rebuild_scheduled:

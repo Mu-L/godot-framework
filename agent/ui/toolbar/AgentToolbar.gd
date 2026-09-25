@@ -40,7 +40,7 @@ func apply_theme() -> void:
 
 ## GAI wordmark on the far left of the toolbar row.
 func apply_logo_theme() -> void:
-	var accent: Color = ThemeColor.accent_solid()
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	var logo_font: FontVariation = FontVariation.new()
 	logo_font.base_font = Fonts.bold()
 	logo_font.spacing_glyph = LOGO_GLYPH_SPACING
@@ -48,13 +48,13 @@ func apply_logo_theme() -> void:
 	logo_label.tooltip_text = "GAI Code Agent"
 	logo_label.add_theme_font_override("font", logo_font)
 	logo_label.add_theme_font_size_override("font_size", LOGO_FONT_SIZE)
-	logo_label.add_theme_color_override("font_color", accent if ThemeColor.is_dark_theme() else accent.darkened(0.08))
+	logo_label.add_theme_color_override("font_color", theme_color if ThemeColor.is_dark_theme() else theme_color.darkened(0.08))
 	pass
 
 
 func build_toolbar_style() -> StyleBoxFlat:
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = ColorBase.recessed_surface
+	style.bg_color = ColorBase.deep_surface
 	style.border_color = ColorBase.subtle_border
 	style.content_margin_left = Margin.ma_3
 	style.set_border_width(SIDE_BOTTOM, 1)

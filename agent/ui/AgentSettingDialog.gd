@@ -307,7 +307,7 @@ func add_token_field(parent: VBoxContainer) -> LineEdit:
 	return edit
 
 
-## Check button with the accent-tinted switch: on / off is the switch itself, no On / Off caption.
+## Check button with the theme-color-tinted switch: on / off is the switch itself, no On / Off caption.
 func add_check_button(parent: Container, label_text: String, enabled: bool) -> CheckButton:
 	var check: CheckButton = CheckButton.new()
 	check.text = label_text
@@ -325,8 +325,8 @@ func style_check_button(check: CheckButton) -> void:
 	check.add_theme_color_override("font_focus_color", ColorBase.text)
 	check.add_theme_color_override("font_pressed_color", ColorBase.text)
 	check.add_theme_color_override("font_hover_pressed_color", ColorBase.text)
-	# Only the "on" track takes the app accent — the "off" one keeps the theme default.
-	check.add_theme_color_override("button_checked_color", ThemeColor.accent_solid())
+	# Only the "on" track takes the theme color — the "off" one keeps the theme default.
+	check.add_theme_color_override("button_checked_color", ThemeColor.theme_color_full_alpha())
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
@@ -587,7 +587,7 @@ func style_option_button(select: OptionButton) -> void:
 	ButtonStyle.apply_font_colors(select, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.border_color = ThemeColor.accent_solid()
+	hover.border_color = ThemeColor.theme_color_full_alpha()
 	select.add_theme_stylebox_override("normal", normal)
 	select.add_theme_stylebox_override("hover", hover)
 	select.add_theme_stylebox_override("pressed", hover.duplicate())
@@ -617,10 +617,10 @@ func style_provider_popup(popup: PopupMenu) -> void:
 func style_line_edit(edit: LineEdit) -> void:
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted.darkened(0.08))
-	edit.add_theme_color_override("caret_color", ThemeColor.accent_solid())
+	edit.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	focus.border_color = ThemeColor.accent_solid()
+	focus.border_color = ThemeColor.theme_color_full_alpha()
 	focus.set_border_width_all(2)
 	edit.add_theme_stylebox_override("normal", normal)
 	edit.add_theme_stylebox_override("focus", focus)
@@ -633,17 +633,17 @@ func make_input_style() -> StyleBoxFlat:
 	return BoxStyle.make(ColorBase.surface, 7, Margin.ma_3, Margin.ma_0, ColorBase.border, 1)
 
 
-## Spin box: accent arrows on the shared field background.
+## Spin box: theme-color arrows on the shared field background.
 func style_spin_box(spin: SpinBox) -> void:
 	style_line_edit(spin.get_line_edit())
 	spin.add_theme_color_override("font_color", ColorBase.text)
 	spin.add_theme_color_override("font_placeholder_color", ColorBase.muted)
 	spin.add_theme_color_override("up_icon_modulate", ColorBase.text)
 	spin.add_theme_color_override("down_icon_modulate", ColorBase.text)
-	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.accent_solid())
-	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.accent_solid())
-	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.accent_solid())
-	spin.add_theme_color_override("down_pressed_icon_modulate", ThemeColor.accent_solid())
+	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.theme_color_full_alpha())
+	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.theme_color_full_alpha())
+	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.theme_color_full_alpha())
+	spin.add_theme_color_override("down_pressed_icon_modulate", ThemeColor.theme_color_full_alpha())
 	var normal: StyleBoxFlat = make_input_style()
 	normal.content_margin_left = Margin.ma_0
 	normal.content_margin_right = Margin.ma_0

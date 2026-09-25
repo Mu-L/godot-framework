@@ -76,19 +76,19 @@ func apply_equal_icon_margins(margin: int) -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var accent: Color = ThemeColor.accent_solid()
+	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	var handle: Color = ColorBase.muted
 	if hovered:
-		accent = accent.lightened(0.10)
+		theme_color = theme_color.lightened(0.10)
 		handle = ColorBase.text
-	button.icon = make_brush_icon(accent, handle)
+	button.icon = make_brush_icon(theme_color, handle)
 	pass
 
 
-func make_brush_icon(accent: Color, handle: Color) -> ImageTexture:
+func make_brush_icon(theme_color: Color, handle: Color) -> ImageTexture:
 	var svg: String = FileAccess.get_file_as_string(BRUSH_ICON_PATH)
 	svg = svg.replace(SVG_HANDLE_COLOR, "#" + handle.to_html(false))
-	svg = svg.replace(SVG_ACCENT_COLOR, "#" + accent.to_html(false))
+	svg = svg.replace(SVG_ACCENT_COLOR, "#" + theme_color.to_html(false))
 	svg = svg.replace(SVG_FERRULE_COLOR, "#" + handle.lightened(0.14).to_html(false))
 	var image: Image = Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
