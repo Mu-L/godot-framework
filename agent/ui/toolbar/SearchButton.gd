@@ -17,7 +17,8 @@ const SEARCH_ICON_PATH := "res://agent/asset/image/icon/search.svg"
 const SVG_ICON_COLOR := "#8B949E"
 
 var button: Button
-var popup: PopupPanel
+var popup: Window
+var popup_panel: PanelContainer
 var title_label: Label
 var query_edit: LineEdit
 var status_label: Label
@@ -37,16 +38,26 @@ func setup(p_button: Button) -> void:
 
 
 func build_popup() -> void:
-	popup = PopupPanel.new()
+	popup = Window.new()
 	popup.size = DEFAULT_POPUP_SIZE
+	popup.visible = false
+	popup.transient = true
+	popup.borderless = true
+	popup.transparent_bg = true
+	popup.close_requested.connect(popup.hide)
+	popup.focus_exited.connect(on_popup_focus_exited)
+	popup.window_input.connect(on_popup_window_input)
 	button.add_child(popup)
+	popup_panel = PanelContainer.new()
+	popup_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	popup.add_child(popup_panel)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", Margin.ma_3)
 	margin.add_theme_constant_override("margin_right", Margin.ma_3)
 	margin.add_theme_constant_override("margin_top", Margin.ma_3)
 	margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
-	popup.add_child(margin)
+	popup_panel.add_child(margin)
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", Margin.ma_3)
 	margin.add_child(content)
@@ -105,7 +116,7 @@ func apply_theme() -> void:
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
-	popup.add_theme_stylebox_override("panel", make_popup_style())
+	popup_panel.add_theme_stylebox_override("panel", make_popup_style())
 	style_query_edit()
 	pass
 
@@ -128,6 +139,19 @@ func on_button_pressed() -> void:
 	if StringUtils.is_not_blank(query_edit.text):
 		debounce_timer.stop()
 		search(query_edit.text)
+	pass
+
+
+func on_popup_window_input(event: InputEvent) -> void:
+	if popup.visible and event.is_action_pressed("ui_cancel"):
+		popup.hide()
+		popup.set_input_as_handled()
+	pass
+
+
+func on_popup_focus_exited() -> void:
+	if popup.visible:
+		popup.hide()
 	pass
 
 
