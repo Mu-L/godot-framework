@@ -23,7 +23,7 @@
       "show_animation": "智能体工作时显示运行动画"
     },
     "sidebar": {
-      "new_chat": "+ 新建对话",
+      "new_session": "+ 新建智能体",
       "pinned": "已固定",
       "chats": "对话",
       "delete_chat": "删除对话",

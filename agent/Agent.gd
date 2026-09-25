@@ -84,7 +84,7 @@ func _ready() -> void:
 
 func apply_locale() -> void:
 	toolbar_title.text = I18n.t("agent.toolbar.title")
-	new_session_button.text = I18n.t("agent.sidebar.new_chat")
+	new_session_button.text = I18n.t("agent.sidebar.new_session")
 	pinned_header.text = I18n.t("agent.sidebar.pinned")
 	normal_header.text = I18n.t("agent.sidebar.chats")
 	input_field.placeholder_text = I18n.t("agent.input.placeholder")

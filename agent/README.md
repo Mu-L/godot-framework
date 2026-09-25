@@ -56,7 +56,7 @@ run/main_scene="res://agent/Agent.tscn"
 
 ## UI
 
-- **Left sidebar** — session list; click to switch; **+ New chat** or toolbar **New Chat**
+- **Left sidebar** — session list; click to switch; **New Agent** or toolbar **New Chat**
 - **Concurrent chats** — each session runs independently; switch sessions while others are thinking
 - **Chat area** — user / assistant / tool messages with streaming
 - **Input bar** — type a task; **Ctrl+Enter** or **Send** to run

@@ -196,7 +196,7 @@ theme_override_constants/separation = 8
 
 [node name="NewSessionButton" type="Button" parent="Root/Body/Sidebar/SidebarVBox" unique_id=317863370]
 layout_mode = 2
-text = "+ New chat"
+text = "+ New Agent"
 
 [node name="SessionListScroll" type="ScrollContainer" parent="Root/Body/Sidebar/SidebarVBox" unique_id=204891054]
 layout_mode = 2

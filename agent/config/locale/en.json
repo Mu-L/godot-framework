@@ -23,7 +23,7 @@
       "show_animation": "Show run animation while agent works"
     },
     "sidebar": {
-      "new_chat": "+ New chat",
+      "new_session": "+ New Agent",
       "pinned": "Pinned",
       "chats": "Chats",
       "delete_chat": "Delete chat",

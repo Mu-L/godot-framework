@@ -30,7 +30,7 @@ static func pinned_separator() -> StyleBoxLine:
 	return line
 
 
-## "+ New chat" — outlined in the theme color, filled while hovered / pressed.
+## "New Agent" — outlined in the theme color, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
 	var theme_color: Color = ThemeColor.theme_color_full_alpha()
 	button.flat = false

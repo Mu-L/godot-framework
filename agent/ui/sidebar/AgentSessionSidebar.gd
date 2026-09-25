@@ -98,7 +98,7 @@ func apply_theme() -> void:
 func apply_locale() -> void:
 	pinned_header.text = I18n.t("agent.sidebar.pinned")
 	normal_header.text = I18n.t("agent.sidebar.chats")
-	new_session_button.text = I18n.t("agent.sidebar.new_chat")
+	new_session_button.text = I18n.t("agent.sidebar.new_session")
 	for row: SessionRow in session_rows.values():
 		row.apply_locale()
 	pass
