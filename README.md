@@ -68,8 +68,8 @@ var reply2 := await client.async_chat_messages(messages)
 ## Alert — Floating toast messages
 
 ```gdscript
-Alert.alert("Saved successfully", Colors.success)
-Alert.alert("Network error", Colors.error)
+Alert.alert("Saved successfully", ColorBase.success)
+Alert.alert("Network error", ColorBase.error)
 ```
 
 ---

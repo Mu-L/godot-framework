@@ -60,7 +60,7 @@ static func on_copy_pressed(entry: ChatEntry) -> void:
 	if entry == null or StringUtils.is_blank(entry.body):
 		return
 	MarkdownUtils.copy_to_clipboard(entry.body)
-	Alert.alert("Copied", Colors.success)
+	Alert.alert("Copied", ColorBase.success)
 	pass
 
 

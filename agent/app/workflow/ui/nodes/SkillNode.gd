@@ -212,14 +212,14 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 
 func set_highlight(running: bool) -> void:
 	var panel: StyleBoxFlat = StyleBoxFlat.new()
-	panel.bg_color = ColorCard.background_color.lerp(Colors.success, 0.12) if running else ColorCard.background_color
-	panel.border_color = Colors.success if running else ColorMarkdown.table_grid_color
+	panel.bg_color = ColorCard.background_color.lerp(ColorBase.success, 0.12) if running else ColorCard.background_color
+	panel.border_color = ColorBase.success if running else ColorMarkdown.table_grid_color
 	panel.set_border_width_all(3 if running else 2)
 	panel.set_corner_radius_all(6)
 	panel.set_content_margin_all(Margin.ma_2)
 	add_theme_stylebox_override("panel", panel)
 	add_theme_color_override(
 		"title_color",
-		Colors.success.lightened(0.35) if running else ColorCard.title_color,
+		ColorBase.success.lightened(0.35) if running else ColorCard.title_color,
 	)
 	pass

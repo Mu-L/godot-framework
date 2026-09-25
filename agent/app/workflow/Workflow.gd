@@ -295,7 +295,7 @@ func on_pipeline_stopped() -> void:
 	set_run_button_running(false)
 	var message := tr("pipeline.stopped")
 	Log.info(message)
-	Alert.alert(message, Colors.warning)
+	Alert.alert(message, ColorBase.warning)
 	pass
 
 
@@ -304,28 +304,28 @@ func on_pipeline_finished(success: bool, message: String) -> void:
 	set_run_button_running(false)
 	if success:
 		Log.info(message)
-		Alert.alert(message, Colors.success)
+		Alert.alert(message, ColorBase.success)
 	else:
 		Log.error(message)
-		Alert.alert(message, Colors.error)
+		Alert.alert(message, ColorBase.error)
 	pass
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 func set_run_button_running(running: bool) -> void:
 	if running:
-		apply_run_button_style(Colors.error)
+		apply_run_button_style(ColorBase.error)
 		run_button.icon = make_stop_icon(14, ColorCard.title_color)
 		run_button.text = tr("workflow.toolbar.stop")
 	else:
-		apply_run_button_style(Colors.success)
+		apply_run_button_style(ColorBase.success)
 		run_button.icon = make_play_icon(14, ColorCard.title_color)
 		run_button.text = tr("workflow.toolbar.run")
 	pass
 
 
 func style_run_button() -> void:
-	apply_run_button_style(Colors.success)
+	apply_run_button_style(ColorBase.success)
 	run_button.add_theme_color_override("font_color", ColorCard.title_color)
 	run_button.add_theme_color_override("font_hover_color", ColorCard.title_color)
 	run_button.add_theme_color_override("font_pressed_color", ColorCard.title_color)

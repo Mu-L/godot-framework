@@ -56,7 +56,7 @@ static func title_color_for(entry: ChatEntry) -> Color:
 	if not entry.title.begins_with("exit_code:"):
 		return AgentColors.chat_text_muted
 	var exit_code: int = int(StringUtils.substring_after(entry.title, "exit_code:"))
-	return AgentColors.chat_text_muted if exit_code == 0 else Colors.error
+	return AgentColors.chat_text_muted if exit_code == 0 else ColorBase.error
 
 
 static func style_view_button(button: Button) -> void:

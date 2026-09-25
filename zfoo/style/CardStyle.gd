@@ -12,9 +12,9 @@ extends Object
 ##
 ## Typical use:
 ## [codeblock]
-## var snackbar := CardStyle.make(Colors.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
+## var snackbar := CardStyle.make(ColorBase.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
 ##
-## var toast := CardStyle.make(Colors.info, 0, 0.0, 0.0, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * unit))
+## var toast := CardStyle.make(ColorBase.info, 0, 0.0, 0.0, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * unit))
 ## [/codeblock]
 
 ## Corner radius of a floating card. A native window passes 0 instead: the OS decides its corners.

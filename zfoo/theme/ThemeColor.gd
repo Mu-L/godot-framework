@@ -37,7 +37,7 @@ static func set_theme(_theme: ThemeEnum) -> void:
 ## Refresh every palette derived from the active appearance. Cards follow the accent hue; semantic,
 ## markdown and file colors select their hand-tuned dark or light variants.
 static func refresh_derived_colors() -> void:
-	Colors.refresh()
+	ColorBase.refresh()
 	ColorCard.refresh()
 	ColorMarkdown.refresh()
 	ColorFile.refresh()

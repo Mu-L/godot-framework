@@ -249,7 +249,7 @@ static func async_send(session_id: int, user_text: String) -> void:
 	if session_index == null:
 		return
 	if session_index.is_running():
-		Alert.alert("session is busy", Colors.error)
+		Alert.alert("session is busy", ColorBase.error)
 		return
 	if StringUtils.is_blank(user_text):
 		return
@@ -275,7 +275,7 @@ static func async_resume(session_id: int) -> void:
 	if session_index == null:
 		return
 	if session_index.is_running():
-		Alert.alert("session is busy", Colors.error)
+		Alert.alert("session is busy", ColorBase.error)
 		return
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
@@ -377,10 +377,10 @@ static func revert_to_entry(session_id: int, entry: ChatEntry) -> void:
 		return
 	var sha := entry.checkpoint
 	if not await AgentCheckpoint.async_restore(sha):
-		Alert.alert("Workspace restore failed; chat history was kept", Colors.error)
+		Alert.alert("Workspace restore failed; chat history was kept", ColorBase.error)
 		return
 	delete_chat_from_entry(session_id, entry)
-	Alert.alert("Workspace restored", Colors.success)
+	Alert.alert("Workspace restored", ColorBase.success)
 	pass
 
 

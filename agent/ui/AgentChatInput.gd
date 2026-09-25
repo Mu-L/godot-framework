@@ -706,7 +706,7 @@ func configure_send_button(icon: ImageTexture, tooltip: String, base_color: Colo
 
 func set_send_button_appearance(running: bool) -> void:
 	if running:
-		configure_send_button(make_stop_icon(16, Color.WHITE), I18n.t("agent.input.stop"), Colors.error)
+		configure_send_button(make_stop_icon(16, Color.WHITE), I18n.t("agent.input.stop"), ColorBase.error)
 	else:
 		configure_send_button(
 				make_arrow_up_icon(16, Color.WHITE),

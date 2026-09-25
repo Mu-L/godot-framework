@@ -28,11 +28,11 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 	var file_lines_removed: int = int(entry.details.get(AgentToolResult.DETAIL_FILE_LINES_REMOVED, "0"))
 	var file_message: String = entry.details.get(AgentToolResult.DETAIL_FILE_MESSAGE, "")
 	if file_lines_added > 0:
-		header.add_child(create_file_detail_label(StringUtils.format("+{}", file_lines_added), Colors.success))
+		header.add_child(create_file_detail_label(StringUtils.format("+{}", file_lines_added), ColorBase.success))
 	if file_lines_removed > 0:
-		header.add_child(create_file_detail_label(StringUtils.format("-{}", file_lines_removed), Colors.error))
+		header.add_child(create_file_detail_label(StringUtils.format("-{}", file_lines_removed), ColorBase.error))
 	if StringUtils.is_not_blank(file_message):
-		header.add_child(create_file_detail_label(file_message, Colors.error))
+		header.add_child(create_file_detail_label(file_message, ColorBase.error))
 	vbox.add_child(header)
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
@@ -58,7 +58,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 static func open_file(meta: Variant) -> void:
 	var path: String = str(meta)
 	if FileUtils.open_file(path) != OK:
-		Alert.alert(StringUtils.format("File not found: {}", path), Colors.error)
+		Alert.alert(StringUtils.format("File not found: {}", path), ColorBase.error)
 	pass
 
 

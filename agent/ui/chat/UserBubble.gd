@@ -100,7 +100,7 @@ static func append(
 ## (via AgentEvents.events.chat_input_prefill, see AgentChatInput).
 static func on_delete_from_here_pressed(session_id: int, entry: ChatEntry) -> void:
 	AgentEvents.events.chat_input_prefill.emit(entry.body)
-	Alert.alert("Message moved to the input box", Colors.success)
+	Alert.alert("Message moved to the input box", ColorBase.success)
 	AgentSessionManager.delete_chat_from_entry(session_id, entry)
 	pass
 

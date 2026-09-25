@@ -89,7 +89,7 @@ static func token_ratio(n: int) -> float:
 static func text_color_for_tokens(n: int) -> Color:
 	var ratio: float = token_ratio(n)
 	if ratio >= THRESHOLD_CRITICAL:
-		return Colors.error
+		return ColorBase.error
 	if ratio >= THRESHOLD_CAUTION:
 		return AgentColors.file_tool_title
 	if ratio >= THRESHOLD_WARN:

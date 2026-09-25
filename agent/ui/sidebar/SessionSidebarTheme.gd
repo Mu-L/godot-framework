@@ -69,8 +69,8 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 	title_button.add_theme_color_override("font_hover_color", text_color)
 	title_button.add_theme_color_override("font_pressed_color", text_color)
 	delete_button.add_theme_color_override("font_color", AgentColors.sidebar_muted)
-	delete_button.add_theme_color_override("font_hover_color", Colors.error)
-	delete_button.add_theme_color_override("font_pressed_color", Colors.error)
+	delete_button.add_theme_color_override("font_hover_color", ColorBase.error)
+	delete_button.add_theme_color_override("font_pressed_color", ColorBase.error)
 	pass
 
 

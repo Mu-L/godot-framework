@@ -6,7 +6,7 @@ extends Window
 ## `force_native` makes it a real system window without turning the app's dialogs into ones.
 ## It never activates and never joins Godot's popup list, so the app window keeps its input.
 ##
-## Example: `DesktopToast.show_toast("Run finished", summary, Colors.success)`
+## Example: `DesktopToast.show_toast("Run finished", summary, ColorBase.success)`
 ## The card is [CardStyle] on the [ThemeColorCard] surface — the same card the snackbar paints, only
 ## with the stripe on the leading edge; the accent color is passed per toast.
 
@@ -26,7 +26,7 @@ var body_label: Label
 ## Card title and body text; `*_text` because [member Window.title] is already taken by the native [Window] base.
 var title_text: String = ""
 var body_text: String = ""
-var accent: Color = Colors.info
+var accent: Color = ColorBase.info
 
 
 func _init() -> void:
