@@ -24,21 +24,22 @@ void fragment() {
 	if (mask * strength > 0.001) {
 		vec3 rgb = vec3(0.0);
 		float alpha = 0.0;
+		float visibility = mix(1.0, 1.65, is_dark);
 
 		float px = UV.x * rect_size.x;
 		float py = UV.y * rect_size.y;
 
 		// Horizontal scan lines
 		float scan_wave = sin(py * 1.45 + TIME * scan_speed * 6.28318);
-		float scan_shade = 0.045 * (0.5 + 0.5 * scan_wave);
+		float scan_shade = 0.045 * visibility * (0.5 + 0.5 * scan_wave);
 		vec3 scan_tint = mix(vec3(0.0), accent_color.rgb, 0.35);
 		rgb += scan_tint * scan_shade;
 		alpha = max(alpha, scan_shade * 0.85);
 
 		// Data shimmer grid
 		float grid = sin(px * 0.11 + TIME * 2.6) * sin(py * 0.08 - TIME * 1.9);
-		rgb += accent_color.rgb * grid * 0.018;
-		alpha = max(alpha, abs(grid) * 0.04);
+		rgb += accent_color.rgb * grid * 0.018 * visibility;
+		alpha = max(alpha, abs(grid) * 0.04 * visibility);
 
 		// Left energy rail + soft bleed
 		float rail_w = 3.0;
@@ -46,9 +47,9 @@ void fragment() {
 		float pulse = 0.68 + 0.32 * sin(TIME * pulse_speed);
 		vec3 rail_rgb = accent_color.rgb * (1.1 + 0.35 * sin(TIME * pulse_speed * 1.6));
 		rgb = mix(rgb, rail_rgb, rail * 0.92);
-		alpha = max(alpha, rail * 0.55 * pulse);
+		alpha = max(alpha, rail * mix(0.55, 0.78, is_dark) * pulse);
 
-		float bleed = exp(-px * 0.065) * 0.14 * pulse;
+		float bleed = exp(-px * 0.065) * 0.14 * visibility * pulse;
 		rgb += accent_color.rgb * bleed;
 		alpha = max(alpha, bleed * 0.35);
 
@@ -56,15 +57,15 @@ void fragment() {
 		float sweep_pos = fract(TIME * 0.22);
 		float sweep_band = smoothstep(0.14, 0.0, abs(UV.x - sweep_pos));
 		float top_band = smoothstep(0.12, 0.0, UV.y);
-		float sweep = sweep_band * top_band * 0.42;
+		float sweep = sweep_band * top_band * 0.42 * visibility;
 		rgb += accent_color.rgb * sweep;
 		alpha = max(alpha, sweep * 0.5);
 
 		// Rounded border glow
 		float border = 1.0 - smoothstep(0.0, 1.35, abs(d));
 		float border_pulse = 0.55 + 0.45 * sin(TIME * 1.35 + px * 0.04);
-		rgb += accent_color.rgb * border * 0.07 * border_pulse;
-		alpha = max(alpha, border * 0.12 * border_pulse);
+		rgb += accent_color.rgb * border * 0.07 * visibility * border_pulse;
+		alpha = max(alpha, border * mix(0.12, 0.24, is_dark) * border_pulse);
 
 		// Corner brackets (HUD)
 		float bracket_len = min(rect_size.x, rect_size.y) * 0.22;
@@ -77,11 +78,9 @@ void fragment() {
 		if (corner_y < bracket_len && corner_x < 1.8) {
 			bracket = max(bracket, smoothstep(1.8, 0.0, corner_x));
 		}
-		rgb += accent_color.rgb * bracket * 0.22;
-		alpha = max(alpha, bracket * 0.18);
+		rgb += accent_color.rgb * bracket * 0.22 * visibility;
+		alpha = max(alpha, bracket * mix(0.18, 0.32, is_dark));
 
-		float dark_mul = mix(1.0, 0.92, is_dark);
-		rgb *= dark_mul;
 		alpha *= mask * strength;
 		COLOR = vec4(rgb, alpha);
 	}

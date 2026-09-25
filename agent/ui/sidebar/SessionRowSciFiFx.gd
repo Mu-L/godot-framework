@@ -51,6 +51,12 @@ func sync_uniforms() -> void:
 			sz = parent_row.size
 	fx_material.set_shader_parameter("rect_size", sz)
 	fx_material.set_shader_parameter("corner_radius", CORNER_RADIUS)
-	fx_material.set_shader_parameter("accent_color", ThemeColor.theme_color_full_alpha())
-	fx_material.set_shader_parameter("is_dark", 1.0 if ThemeColor.is_dark_theme() else 0.0)
+	var is_dark := ThemeColor.is_dark_theme()
+	var accent_color := ThemeColor.theme_color_full_alpha()
+	# Dark surfaces swallow low-alpha shader details, especially with a user-selected dark accent.
+	# Lift the display color while keeping the configured hue unchanged everywhere else in the UI.
+	if is_dark:
+		accent_color = accent_color.lightened(0.22)
+	fx_material.set_shader_parameter("accent_color", accent_color)
+	fx_material.set_shader_parameter("is_dark", 1.0 if is_dark else 0.0)
 	pass
