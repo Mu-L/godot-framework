@@ -11,12 +11,12 @@ extends Object
 
 ## The dark set doubles as the fallback until `refresh()` runs for the first time (see `ThemeColor`),
 ## so it is defined once here: the constants are the fallback initializers *and* the dark palette.
-const DARK_CODE_BLOCK_BG := Color(0.07, 0.08, 0.10)
+const DARK_CODE_BLOCK_BG := ThemeColorBase.DARK_BACKGROUND
 const DARK_TABLE_GRID := Color(0.35, 0.36, 0.41)
 const DARK_TABLE_HEADER_BG := Color(1.0, 1.0, 1.0, 0.08)
 const DARK_INLINE_CODE_BG := Color(0.45, 0.47, 0.52, 0.18)
 const DARK_LINK := Color(0.35, 0.65, 0.95)
-const DARK_BLOCKQUOTE_TEXT := Color(0.55, 0.57, 0.62)
+const DARK_BLOCKQUOTE_TEXT := ThemeColorBase.DARK_MUTED
 
 static var code_block_bg: Color = DARK_CODE_BLOCK_BG
 static var table_grid_color: Color = DARK_TABLE_GRID
@@ -40,10 +40,8 @@ static func refresh() -> void:
 # Dark palette
 # ---------------------------------------------------------------------------
 
-## Fills sit a hair darker than the chat surface (#0d0f12) so a code block or a table grid now
-## reads as a recess rather than as a colored block; the marks carry the accent brightness —
-## link 5.9:1 on the assistant bubble, quote body 4.8:1, i.e. dimmer than the bubble text
-## (0.90, 0.91, 0.93) without reading as disabled.
+## Code blocks use the shared dark canvas while table marks carry the accent brightness. Link contrast
+## is 5.9:1 on the assistant bubble; quote body is 4.8:1 and reads dimmer than primary text.
 static func apply_dark_palette() -> void:
 	code_block_bg = DARK_CODE_BLOCK_BG
 	table_grid_color = DARK_TABLE_GRID
@@ -69,5 +67,5 @@ static func apply_light_palette() -> void:
 	inline_code_bg = Color(0.96, 0.965, 0.97)
 	link_color = Color(0.15, 0.39, 0.92)
 	blockquote_bar_color = link_color
-	blockquote_text_color = Color(0.44, 0.44, 0.48)
+	blockquote_text_color = ThemeColorBase.LIGHT_MUTED
 	pass

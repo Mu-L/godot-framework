@@ -31,14 +31,14 @@ const BODY_VALUE_LIGHT := 0.42
 const SELECTION_MIX := 0.30
 
 ## Card surface: the background of a floating card or window (`Alert`, `DesktopToast`, `PopupWindow`).
-static var background_color: Color = Color(0.12, 0.13, 0.16)
+static var background_color: Color = ThemeColorBase.DARK_SURFACE
 ## Inset surface one step below the card: a window's body, so its text reads as sitting in a well
 ## rather than in a second card.
 static var inset_color: Color = Color(0.09, 0.10, 0.12)
 ## Primary text: near-white on the dark surface, near-black on the light one.
-static var title_color: Color = Color(0.90, 0.91, 0.93)
+static var title_color: Color = ThemeColorBase.DARK_TEXT
 ## Secondary text: captions, muted labels, and the resting scrollbar grabber.
-static var body_color: Color = Color(0.55, 0.57, 0.62)
+static var body_color: Color = ThemeColorBase.DARK_MUTED
 ## The accent at full alpha: caret, scrollbar hover / press and other highlights.
 static var accent_color: Color = Color(0.0, 0.84, 0.68)
 ## [member inset_color] mixed with [member accent_color]: the background of selected text.
