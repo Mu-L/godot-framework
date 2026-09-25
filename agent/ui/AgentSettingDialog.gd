@@ -4,7 +4,7 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection and notification settings.
 ## There is no Save button: every field writes straight to [Setting] once editing finishes.
 
-const DIALOG_SIZE: Vector2i = Vector2i(580, 960)
+const DIALOG_SIZE: Vector2i = Vector2i(580, 1000)
 const FOLDER_DIALOG_SIZE: Vector2i = Vector2i(900, 600)
 const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
 const SVG_BASE_COLOR: String = "#8B949E"
@@ -33,6 +33,7 @@ var folder_field_typing: bool = false
 var token_visibility_button: Button
 var field_labels: Array[Label] = []
 var help_labels: Array[Label] = []
+var separators: Array[HSeparator] = []
 
 
 func setup(p_button: Button) -> void:
@@ -95,7 +96,7 @@ func build_dialog() -> void:
 	appearance_heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
 	fields.add_child(appearance_heading_label)
 	add_language_field(fields)
-	fields.add_child(HSeparator.new())
+	add_separator(fields)
 	heading_label = Label.new()
 	heading_label.text = I18n.t("agent.settings.heading")
 	heading_label.add_theme_font_size_override("font_size", TextStyle.title_large_size)
@@ -105,8 +106,7 @@ func build_dialog() -> void:
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description_label.add_theme_font_size_override("font_size", TextStyle.body_small_size)
 	fields.add_child(description_label)
-	var separator: HSeparator = HSeparator.new()
-	fields.add_child(separator)
+	add_separator(fields)
 	provider_select = add_provider_field(fields)
 	api_url_edit = add_field(fields, I18n.t("agent.settings.api_endpoint"), "https://api.example.com/v1/chat/completions", I18n.t("agent.settings.api_endpoint_help"))
 	model_edit = add_field(fields, I18n.t("agent.settings.model"), ApiSetting.DEFAULT_MODEL, I18n.t("agent.settings.model_help"))
@@ -114,11 +114,18 @@ func build_dialog() -> void:
 	proxy_address_edit = add_field(fields, I18n.t("agent.settings.proxy"), "http://127.0.0.1:10809", I18n.t("agent.settings.proxy_help"))
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		bind_auto_save(edit, save_api_settings)
-	fields.add_child(HSeparator.new())
+	add_separator(fields)
 	add_notify_fields(fields)
-	fields.add_child(HSeparator.new())
+	add_separator(fields)
 	build_folder_dialog()
 	pass
+
+
+func add_separator(parent: Container) -> HSeparator:
+	var separator := HSeparator.new()
+	separators.append(separator)
+	parent.add_child(separator)
+	return separator
 
 
 func add_language_field(parent: VBoxContainer) -> void:
@@ -570,6 +577,11 @@ func style_dialog() -> void:
 		label.add_theme_color_override("font_color", ColorBase.text)
 	for help: Label in help_labels:
 		help.add_theme_color_override("font_color", ColorBase.muted)
+	var separator_style := StyleBoxLine.new()
+	separator_style.color = ThemeColor.theme_color_full_alpha()
+	separator_style.thickness = 1
+	for separator: HSeparator in separators:
+		separator.add_theme_stylebox_override("separator", separator_style)
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit, sound_folder_edit]:
 		style_line_edit(edit)
 	style_option_button(provider_select)

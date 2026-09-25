@@ -42,14 +42,14 @@ void fragment() {
 		alpha = max(alpha, abs(grid) * 0.04 * visibility);
 
 		// Left energy rail + soft bleed
-		float rail_w = 5.0;
-		float rail = smoothstep(rail_w + 2.5, 0.0, px);
+		float rail_w = 4.0;
+		float rail = smoothstep(rail_w + 2.0, 0.0, px);
 		float pulse = 0.68 + 0.32 * sin(TIME * pulse_speed);
 		vec3 rail_rgb = accent_color.rgb * (1.1 + 0.35 * sin(TIME * pulse_speed * 1.6));
 		rgb = mix(rgb, rail_rgb, rail * 0.92);
 		alpha = max(alpha, rail * mix(0.55, 0.78, is_dark) * pulse);
 
-		float bleed = exp(-px * 0.045) * 0.14 * visibility * pulse;
+		float bleed = exp(-px * 0.055) * 0.14 * visibility * pulse;
 		rgb += accent_color.rgb * bleed;
 		alpha = max(alpha, bleed * 0.35);
 
