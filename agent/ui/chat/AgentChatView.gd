@@ -7,6 +7,8 @@ extends RefCounted
 const META_BUBBLE_RICH_TEXT: String = "bubble_rich_text"
 ## The color picker emits on every drag step; the transcript re-renders once the theme color settles.
 const THEME_COLOR_REBUILD_DELAY_MS: int = 250
+## Keeps a little context above an entry opened from search.
+const SEARCH_ENTRY_TOP_MARGIN: float = 20.0
 
 
 var chat_scroll: ScrollContainer
@@ -19,6 +21,8 @@ var chat_bubble_flusher: ChatBubbleFlusher = ChatBubbleFlusher.new()
 var stick_to_bottom: bool = true
 var scroll_to_bottom_queued: bool = false
 var theme_color_rebuild_scheduled: bool = false
+var search_target_session_id: int = 0
+var search_target_entry_index: int = -1
 
 
 # ---------------------------------------------------------------------------
@@ -52,6 +56,7 @@ func setup(
 	AgentEvents.events.chat_entry_update.connect(on_chat_entry_update)
 	AgentEvents.events.chat_bubble_flushed.connect(on_chat_bubble_flushed)
 	AgentEvents.events.chat_truncated.connect(on_chat_truncated)
+	AgentEvents.events.chat_search_result_selected.connect(on_chat_search_result_selected)
 	pass
 
 
@@ -125,6 +130,54 @@ func on_chat_truncated(session_id: int) -> void:
 	clear_bubble_list(session_id)
 	if is_active:
 		show_session(session_id)
+	pass
+
+
+## Reveals the persisted entry selected by chat search after the target session is visible.
+func on_chat_search_result_selected(session_id: int, entry_index: int) -> void:
+	if not AgentSessionManager.is_active(session_id):
+		return
+	search_target_session_id = session_id
+	search_target_entry_index = entry_index
+	stick_to_bottom = false
+	reveal_entry_after_layout(session_id, entry_index)
+	pass
+
+
+## A newly opened transcript needs two layout passes before RichTextLabel heights and the
+## ScrollContainer range are final. Waiting here also lets any queued bottom-scroll abort
+## after [member stick_to_bottom] was disabled above.
+func reveal_entry_after_layout(session_id: int, entry_index: int) -> void:
+	var tree := chat_scroll.get_tree()
+	if tree != null:
+		await tree.process_frame
+		await tree.process_frame
+	if not AgentSessionManager.is_active(session_id) or search_target_session_id != session_id or search_target_entry_index != entry_index:
+		return
+	# First-open restoration enables bottom-follow one frame after session selection.
+	# Disable it again at the final positioning point so the periodic follower cannot
+	# overwrite the search result position.
+	stick_to_bottom = false
+	reveal_entry(entry_index)
+	cache_session_scroll(session_id)
+	search_target_session_id = 0
+	search_target_entry_index = -1
+	pass
+
+
+func reveal_entry(entry_index: int) -> void:
+	var list := get_active_chat_list()
+	if list == null or entry_index < 0 or entry_index >= list.get_child_count():
+		return
+	var entry_control := list.get_child(entry_index) as Control
+	var vbar := chat_scroll.get_v_scroll_bar()
+	if entry_control == null or vbar == null:
+		return
+	# The bar value is expressed in ChatMargin content coordinates. The list starts after
+	# ChatMargin's top inset, and each entry position is local to the list.
+	var entry_y := list.position.y + entry_control.position.y
+	var max_scroll := maxf(vbar.min_value, vbar.max_value - vbar.page)
+	vbar.value = clampf(entry_y - SEARCH_ENTRY_TOP_MARGIN, vbar.min_value, max_scroll)
 	pass
 
 
@@ -516,6 +569,8 @@ func queue_restore_session_scroll_after_layout(session_id: int, has_cached_scrol
 
 func restore_session_scroll(session_id: int, has_cached_scroll: bool) -> void:
 	if not AgentSessionManager.is_active(session_id):
+		return
+	if search_target_session_id == session_id:
 		return
 	if not has_cached_scroll:
 		stick_to_bottom = true

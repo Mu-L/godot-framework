@@ -26,6 +26,7 @@ extends Control
 @onready var input_field: TextEdit = $Root/Body/ChatArea/InputBar/InputWrap/InputInner/InputField
 @onready var send_button: Button = $Root/Body/ChatArea/InputBar/InputWrap/InputInner/SendButton
 @onready var project_button: Button = $Root/Toolbar/ToolbarRow/ProjectButton
+@onready var search_button: Button = $Root/Toolbar/ToolbarRow/SearchButtonWrap/SearchButton
 @onready var log_button: Button = $Root/Toolbar/ToolbarRow/LogButtonWrap/LogButton
 @onready var theme_color_select: Button = $Root/Toolbar/ToolbarRow/ThemeColorSelectWrap/ThemeColorSelect
 @onready var theme_toggle_button: Button = $Root/Toolbar/ToolbarRow/ThemeToggleWrap/ThemeToggleButton
@@ -34,6 +35,7 @@ extends Control
 
 var toolbar: AgentToolbar = AgentToolbar.new()
 var workspace_button: WorkspaceButton = WorkspaceButton.new()
+var chat_search_button: ChatSearchButton = ChatSearchButton.new()
 var log_button_ctrl: LogButton = LogButton.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
 var theme_toggle: ThemeToggle = ThemeToggle.new()
@@ -71,6 +73,7 @@ func _ready() -> void:
 	theme_toggle.setup(theme_toggle_button)
 	agent_setting_dialog.setup(agent_setting_button)
 	workspace_button.setup(project_button, workspace_dialog)
+	chat_search_button.setup(search_button)
 	log_button_ctrl.setup(log_button)
 	apply_locale()
 

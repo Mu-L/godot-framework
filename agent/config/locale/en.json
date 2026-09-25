@@ -29,6 +29,15 @@
       "delete_chat": "Delete chat",
       "chat_title": "Chat title"
     },
+    "search": {
+      "title": "Search chats",
+      "tooltip": "Search chat history",
+      "placeholder": "Search chat history",
+      "hint": "Type to search saved chats",
+      "empty": "No saved chats",
+      "results": "{} results",
+      "limited_results": "{} results (first 100)"
+    },
     "workspace": {
       "choose": "Click to choose workspace folder",
       "dialog_title": "Open a Directory"
