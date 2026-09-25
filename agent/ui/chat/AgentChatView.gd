@@ -41,7 +41,6 @@ func setup(
 	chat_scroll.get_window().window_input.connect(on_chat_window_input)
 	gdf.events.theme_changed.connect(on_theme_changed)
 	gdf.events.theme_color_changed.connect(on_theme_color_changed)
-	gdf.events.locale_changed.connect(on_locale_changed)
 	AgentEvents.events.markdown_changed.connect(on_markdown_changed)
 	AgentEvents.events.skill_context_changed.connect(on_agent_context_changed)
 	AgentEvents.events.agent_context_changed.connect(on_agent_context_changed)
@@ -166,11 +165,6 @@ func on_markdown_changed(_enabled: bool) -> void:
 
 
 func on_theme_changed() -> void:
-	rebuild(AgentSessionManager.active_session_id)
-	pass
-
-
-func on_locale_changed() -> void:
 	rebuild(AgentSessionManager.active_session_id)
 	pass
 
@@ -353,7 +347,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	wrapper.add_child(vbox)
 
 	var title_label: Label = Label.new()
-	title_label.text = I18n.t("agent.chat.title.system") if entry.kind == ChatEntry.KIND_SYSTEM else entry.title
+	title_label.text = entry.title
 	title_label.add_theme_color_override("font_color", title_color)
 	title_label.add_theme_font_size_override("font_size", TextStyle.label_medium_size)
 	vbox.add_child(title_label)

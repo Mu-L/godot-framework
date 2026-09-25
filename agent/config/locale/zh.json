@@ -43,35 +43,6 @@
       "label": "{} 个令牌",
       "tooltip": "上下文：{}（{}%）· 回复：{} · 总计：{}（上次请求）"
     },
-    "chat": {
-      "copy": "复制",
-      "copy_message": "复制消息",
-      "revert": "还原",
-      "delete": "删除",
-      "resume": "继续",
-      "full_view": "完整视图",
-      "revert_help": "从此处删除、还原工作区，并将消息放回输入框",
-      "delete_help": "从此处删除、保留工作区，并将消息放回输入框",
-      "moved_to_input": "消息已移回输入框",
-      "view_thinking": "查看完整思考过程",
-      "view_result": "查看完整结果",
-      "open_file": "打开文件",
-      "collapse": "收起",
-      "show_first_lines": "显示前 8 行",
-      "expand_lines": "展开（另有 {} 行）",
-      "show_context": "显示完整上下文",
-      "more_lines": "另有 {} 行",
-      "title": {
-        "system": "系统",
-        "skill": "技能",
-        "agent_prompt": "AGENTS.md",
-        "user": "你",
-        "agent": "智能体",
-        "thinking": "思考",
-        "result": "结果",
-        "error": "错误"
-      }
-    },
     "settings": {
       "appearance": "外观",
       "language": "语言",

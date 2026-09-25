@@ -43,35 +43,6 @@
       "label": "{} tokens",
       "tooltip": "Context: {} ({}%) · Completion: {} · Total: {} (last request)"
     },
-    "chat": {
-      "copy": "Copy",
-      "copy_message": "Copy message",
-      "revert": "Revert",
-      "delete": "Delete",
-      "resume": "Resume",
-      "full_view": "Full view",
-      "revert_help": "Delete from here, restore the workspace, and return the message to the input box",
-      "delete_help": "Delete from here, keep the workspace, and return the message to the input box",
-      "moved_to_input": "Message moved to the input box",
-      "view_thinking": "View full thinking",
-      "view_result": "View full result",
-      "open_file": "Open file",
-      "collapse": "Collapse",
-      "show_first_lines": "Show first 8 lines",
-      "expand_lines": "Expand (+{} lines)",
-      "show_context": "Show full context",
-      "more_lines": "+{} lines",
-      "title": {
-        "system": "System",
-        "skill": "Skills",
-        "agent_prompt": "AGENTS.md",
-        "user": "You",
-        "agent": "Agent",
-        "thinking": "Thinking",
-        "result": "Result",
-        "error": "Error"
-      }
-    },
     "settings": {
       "appearance": "Appearance",
       "language": "Language",

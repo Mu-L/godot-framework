@@ -37,7 +37,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(AgentColors.chat_text_muted)
 	rich_text.meta_clicked.connect(open_file)
-	rich_text.tooltip_text = I18n.t("agent.chat.open_file")
+	rich_text.tooltip_text = "Open file"
 	vbox.add_child(rich_text)
 	wrapper.set_meta(AgentChatView.META_BUBBLE_RICH_TEXT, rich_text)
 
