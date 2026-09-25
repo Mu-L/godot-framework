@@ -3,11 +3,6 @@ extends RefCounted
 
 ## Toolbar button that opens the framework system log window.
 
-## Tailed lines, and window size as percent of screen (1–100).
-const LINE_COUNT := 128
-const WIDTH_PERCENT := 70
-const HEIGHT_PERCENT := 80
-
 var button: Button
 
 
@@ -28,5 +23,5 @@ func apply_theme() -> void:
 
 
 func on_pressed() -> void:
-	LogWindow.show_log_window(LINE_COUNT, WIDTH_PERCENT, HEIGHT_PERCENT)
+	LogWindow.show_log_window()
 	pass

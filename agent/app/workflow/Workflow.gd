@@ -256,7 +256,7 @@ func set_workflow_name(name: String) -> void:
 
 
 func on_log_pressed() -> void:
-	LogWindow.show_log_window(128, 70, 80)
+	LogWindow.show_log_window()
 	pass
 
 
