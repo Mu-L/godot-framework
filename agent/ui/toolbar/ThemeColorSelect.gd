@@ -51,7 +51,6 @@ func build_popup() -> void:
 func apply_theme() -> void:
 	AgentToolbarButton.style(button, I18n.t("agent.toolbar.theme_color"), ControlSize.sm / 2)
 	apply_equal_icon_margins(Margin.ma_1)
-	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.add_theme_constant_override("icon_max_width", ICON_SIZE)

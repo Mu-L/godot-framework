@@ -3,7 +3,6 @@ extends RefCounted
 
 ## Toolbar toggle for the Jarvis 3D orb overlay during agent runs.
 
-const CORNER_RADIUS: int = 14
 const ICON_DRAW_SIZE: int = 24
 const ICON_DISPLAY_SIZE: int = 24
 const RING_COUNT: int = 3
@@ -35,9 +34,8 @@ func apply_theme() -> void:
 		if jarvis_orb_enabled
 		else I18n.t("agent.toolbar.show_animation")
 	)
-	AgentToolbarButton.style(button, tooltip, CORNER_RADIUS)
+	AgentToolbarButton.style(button, tooltip, ControlSize.sm / 2)
 	apply_equal_icon_margins(Margin.ma_1)
-	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.expand_icon = false

@@ -55,7 +55,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="SearchButton" type="Button" parent="Root/Toolbar/ToolbarRow/SearchButtonWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
@@ -81,7 +80,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="AgentPromptToggleButton" type="Button" parent="Root/Toolbar/ToolbarRow/AgentPromptToggleWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 toggle_mode = true
@@ -95,7 +93,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="SkillToggleButton" type="Button" parent="Root/Toolbar/ToolbarRow/SkillToggleWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 toggle_mode = true
@@ -109,7 +106,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="MarkdownToggleButton" type="Button" parent="Root/Toolbar/ToolbarRow/MarkdownToggleWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 toggle_mode = true
@@ -123,7 +119,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="LogButton" type="Button" parent="Root/Toolbar/ToolbarRow/LogButtonWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 mouse_default_cursor_shape = 2
@@ -136,7 +131,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="JarvisToggleButton" type="Button" parent="Root/Toolbar/ToolbarRow/JarvisToggleWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -151,7 +145,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="ThemeColorSelect" type="Button" parent="Root/Toolbar/ToolbarRow/ThemeColorSelectWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -165,7 +158,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 8
 
 [node name="ThemeToggleButton" type="Button" parent="Root/Toolbar/ToolbarRow/ThemeToggleWrap" unique_id=1504746610]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -179,7 +171,6 @@ size_flags_vertical = 4
 theme_override_constants/margin_right = 12
 
 [node name="AgentSettingButton" type="Button" parent="Root/Toolbar/ToolbarRow/AgentSettingWrap"]
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
