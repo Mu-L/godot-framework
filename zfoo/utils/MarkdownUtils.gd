@@ -54,9 +54,8 @@ const ESCAPE_SENTINEL := "\uE002"
 const NBSP := "\u00A0"
 const TABLE_CELL_PADDING := "8,4,8,4"
 const CODE_BLOCK_PADDING := "6,6,6,6"
-const BLOCKQUOTE_BAR_PADDING := "1,0,1,0"
+const BLOCKQUOTE_BAR_PADDING := "2,0,0,0"
 const BLOCKQUOTE_BODY_PADDING := "6,0,0,0"
-const ZERO_WIDTH_SPACE := "\u200B"
 # RichTextLabel paints a `[cell]` background `padding + table_h_separation` wider than
 # the column it sits in (`RichTextLabel::_set_table_size`), so a one-column `expand=1`
 # cell runs past the label's right edge and the fill lands under the bubble's right
@@ -309,10 +308,9 @@ static func format_blockquote_bbcode(text: String) -> String:
 	for line: String in text.split(FileUtils.NEWLINE_LF):
 		chunks.append(
 				StringUtils.format(
-						"[cell bg={} padding={}]{}[/cell]",
+						"[cell bg={} padding={}][/cell]",
 						to_bbcode_color(ColorMarkdown.blockquote_bar_color),
-						BLOCKQUOTE_BAR_PADDING,
-						ZERO_WIDTH_SPACE
+						BLOCKQUOTE_BAR_PADDING
 				)
 		)
 		chunks.append(
@@ -725,6 +723,7 @@ static func escape_bbcode_literals(text: String) -> String:
 # ---------------------------------------------------------------------------
 
 const BODY_LABEL_MIN_HEIGHT := 24
+const TABLE_H_SEPARATION := 0
 const TABLE_V_SEPARATION := 0
 # Inline chip box (`[bgcolor]`): RichTextLabel draws it `line_height + 2 * padding` tall
 # (`_draw_line`), so the engine default of 3 spills 3px over the line above and below and
@@ -819,6 +818,7 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	label.add_theme_font_override("italics_font", Fonts.semibold())
 	label.add_theme_font_override("bold_italics_font", Fonts.bold())
 	label.add_theme_font_override("mono_font", Fonts.regular())
+	label.add_theme_constant_override("table_h_separation", TABLE_H_SEPARATION)
 	label.add_theme_constant_override("table_v_separation", TABLE_V_SEPARATION)
 	label.add_theme_constant_override("text_highlight_h_padding", HIGHLIGHT_H_PADDING)
 	label.add_theme_constant_override("text_highlight_v_padding", HIGHLIGHT_V_PADDING)

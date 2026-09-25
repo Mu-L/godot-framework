@@ -122,6 +122,7 @@ func inline_code_box_padding_test() -> void:
 	var label := MarkdownUtils.create_rich_text_label(Color.WHITE, "`x`", true)
 	assert(label.get_theme_constant("text_highlight_v_padding") == MarkdownUtils.HIGHLIGHT_V_PADDING)
 	assert(label.get_theme_constant("text_highlight_h_padding") == MarkdownUtils.HIGHLIGHT_H_PADDING)
+	assert(label.get_theme_constant("table_h_separation") == MarkdownUtils.TABLE_H_SEPARATION)
 	label.free()
 	pass
 
