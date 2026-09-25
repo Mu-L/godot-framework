@@ -45,6 +45,7 @@ static func load_from_disk() -> void:
 	AgentSessionStore.sessions.clear()
 	session_indexes = AgentSessionIndexes.load_index()
 	select_default_session()
+	AgentSessionStore.async_load_sessions(18)
 	pass
 
 
