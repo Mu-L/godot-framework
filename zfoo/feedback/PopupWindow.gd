@@ -107,7 +107,7 @@ func recolor(control: Control, item: String, color: Color) -> void:
 ## Example: `PopupWindow.show_window("Full view", body, 76, 78)`
 static func show_window(i18n_title: String, i18n_text: String, width_percent: int, height_percent: int) -> void:
 	var window := PopupWindow.new()
-	window.title = str(TranslationServer.translate(i18n_title))
+	window.title = str(I18n.t(i18n_title))
 	gdf.gdf_node.add_child(window)
 	# Size against the root viewport; this Window is itself a Viewport.
 	var viewport := gdf.gdf_node.get_tree().root.get_visible_rect().size
@@ -115,7 +115,7 @@ static func show_window(i18n_title: String, i18n_text: String, width_percent: in
 		int(viewport.x * clampf(width_percent, 1.0, 100.0) / 100.0),
 		int(viewport.y * clampf(height_percent, 1.0, 100.0) / 100.0),
 	)
-	window.set_body(str(TranslationServer.translate(i18n_text)))
+	window.set_body(str(I18n.t(i18n_text)))
 	window.popup_centered()
 	pass
 

@@ -40,7 +40,7 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_theme_stylebox_override("panel", make_card_style(stripe_color))
 	card.label = Label.new()
-	card.label.text = TranslationServer.translate(i18n_text)
+	card.label.text = I18n.t(i18n_text)
 	card.label.vertical_alignment = VerticalAlignment.VERTICAL_ALIGNMENT_CENTER
 	card.label.add_theme_font_override("font", make_font())
 	card.label.add_theme_font_size_override("font_size", TextStyle.body_large_size)

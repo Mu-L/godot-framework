@@ -55,8 +55,8 @@ static func show_toast(i18n_title: String, i18n_body: String, color: Color) -> v
 		return
 	ui_scale = compute_ui_scale()
 	var toast: DesktopToast = DesktopToast.new()
-	toast.title_text = str(TranslationServer.translate(i18n_title))
-	toast.body_text = str(TranslationServer.translate(i18n_body)).strip_edges()
+	toast.title_text = str(I18n.t(i18n_title))
+	toast.body_text = str(I18n.t(i18n_body)).strip_edges()
 	toast.accent = color
 	toasts.append(toast)
 	gdf.gdf_node.add_child(toast)
