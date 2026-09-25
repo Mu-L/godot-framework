@@ -45,7 +45,7 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 	card.label.add_theme_font_override("font", make_font())
 	card.label.add_theme_font_size_override("font_size", TextStyle.body_large_size)
 	# Near-white on the dark surface, dark on the light one — the accent-tinted card decides this.
-	card.label.add_theme_color_override("font_color", ThemeColorCard.title_color)
+	card.label.add_theme_color_override("font_color", ColorCard.title_color)
 	card.label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	card.add_child(card.label)
 	card.resize_to_text()

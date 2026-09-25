@@ -196,7 +196,7 @@ func build_card() -> void:
 	title_label.text = title_text
 	title_label.add_theme_font_override("font", title_font)
 	title_label.add_theme_font_size_override("font_size", title_size)
-	title_label.add_theme_color_override("font_color", ThemeColorCard.title_color)
+	title_label.add_theme_color_override("font_color", ColorCard.title_color)
 	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(title_label)
 
@@ -205,7 +205,7 @@ func build_card() -> void:
 		body_label.text = body_text
 		body_label.add_theme_font_override("font", body_font)
 		body_label.add_theme_font_size_override("font_size", body_size)
-		body_label.add_theme_color_override("font_color", ThemeColorCard.body_color)
+		body_label.add_theme_color_override("font_color", ColorCard.body_color)
 		body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body_label.max_lines_visible = MAX_BODY_LINES
 		body_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

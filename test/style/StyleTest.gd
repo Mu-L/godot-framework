@@ -85,7 +85,7 @@ func BoxStyle_pad_test() -> void:
 ## only marks the leading one.
 func CardStyle_make_test() -> void:
 	var snackbar := CardStyle.make(Colors.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
-	assert(snackbar.bg_color == ThemeColorCard.background_color)
+	assert(snackbar.bg_color == ColorCard.background_color)
 	assert(snackbar.border_color == Colors.success)
 	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(snackbar.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)

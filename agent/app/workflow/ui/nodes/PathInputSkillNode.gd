@@ -42,7 +42,7 @@ func add_input_port_row(port: PortDef, allow_manual: bool = true) -> int:
 		port_color(port.port_type),
 		false,
 		0,
-		ThemeColorCard.title_color,
+		ColorCard.title_color,
 	)
 	return slot_index
 

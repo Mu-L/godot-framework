@@ -41,7 +41,7 @@ func _init() -> void:
 func apply_theme() -> void:
 	add_theme_stylebox_override("embedded_border", make_embedded_border(BORDER_ALPHA))
 	add_theme_stylebox_override("embedded_unfocused_border", make_embedded_border(BORDER_ALPHA_UNFOCUSED))
-	add_theme_color_override("title_color", ThemeColorCard.title_color)
+	add_theme_color_override("title_color", ColorCard.title_color)
 	add_theme_font_override("title_font", Fonts.semibold())
 	add_theme_font_size_override("title_font_size", TextStyle.title_medium_size)
 	style_text_edit()
@@ -53,9 +53,9 @@ func apply_theme() -> void:
 ## square, so its corners can never open a gap against the frame's inner edge.
 func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 	var style: StyleBoxFlat = get_theme_stylebox("embedded_border").duplicate() as StyleBoxFlat
-	style.bg_color = ThemeColorCard.background_color
+	style.bg_color = ColorCard.background_color
 	style.set_corner_radius_all(CardStyle.CORNER_RADIUS)
-	style.border_color = Color(ThemeColorCard.title_color, border_alpha)
+	style.border_color = Color(ColorCard.title_color, border_alpha)
 	style.set_border_width_all(1)
 	return style
 
@@ -63,18 +63,18 @@ func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 ## Read-only text area on the card's inset surface: padding from [Margin], accent caret and
 ## selection, themed scrollbars.
 func style_text_edit() -> void:
-	var style := BoxStyle.make(ThemeColorCard.inset_color, 0, Margin.ma_4, Margin.ma_3)
+	var style := BoxStyle.make(ColorCard.inset_color, 0, Margin.ma_4, Margin.ma_3)
 	# A read-only TextEdit paints `read_only`, not `normal`; all three get the box so any state matches.
 	text_edit.add_theme_stylebox_override("normal", style)
 	text_edit.add_theme_stylebox_override("focus", style.duplicate())
 	text_edit.add_theme_stylebox_override("read_only", style.duplicate())
-	text_edit.add_theme_color_override("background_color", ThemeColorCard.inset_color)
-	text_edit.add_theme_color_override("font_color", ThemeColorCard.title_color)
-	text_edit.add_theme_color_override("font_readonly_color", ThemeColorCard.title_color)
-	text_edit.add_theme_color_override("font_selected_color", ThemeColorCard.title_color)
-	text_edit.add_theme_color_override("caret_color", ThemeColorCard.accent_color)
-	text_edit.add_theme_color_override("selection_color", ThemeColorCard.selection_color)
-	text_edit.add_theme_color_override("current_line_color", Color(ThemeColorCard.accent_color, 0.10))
+	text_edit.add_theme_color_override("background_color", ColorCard.inset_color)
+	text_edit.add_theme_color_override("font_color", ColorCard.title_color)
+	text_edit.add_theme_color_override("font_readonly_color", ColorCard.title_color)
+	text_edit.add_theme_color_override("font_selected_color", ColorCard.title_color)
+	text_edit.add_theme_color_override("caret_color", ColorCard.accent_color)
+	text_edit.add_theme_color_override("selection_color", ColorCard.selection_color)
+	text_edit.add_theme_color_override("current_line_color", Color(ColorCard.accent_color, 0.10))
 	text_edit.add_theme_font_override("font", Fonts.regular())
 	text_edit.add_theme_font_size_override("font_size", TextStyle.body_large_size)
 	style_scroll_bar(text_edit.get_v_scroll_bar())
@@ -87,9 +87,9 @@ func style_text_edit() -> void:
 func style_scroll_bar(bar: ScrollBar) -> void:
 	recolor(bar, "scroll", Color(0, 0, 0, 0))
 	recolor(bar, "scroll_focus", Color(0, 0, 0, 0))
-	recolor(bar, "grabber", ThemeColorCard.body_color)
-	recolor(bar, "grabber_highlight", ThemeColorCard.accent_color)
-	recolor(bar, "grabber_pressed", ThemeColorCard.accent_color)
+	recolor(bar, "grabber", ColorCard.body_color)
+	recolor(bar, "grabber_highlight", ColorCard.accent_color)
+	recolor(bar, "grabber_pressed", ColorCard.accent_color)
 	pass
 
 

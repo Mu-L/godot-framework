@@ -79,9 +79,9 @@ static func toggle_theme() -> void:
 ## Roles that share a tone point at one local constant: changing a border greys all four
 ## outlines at once, and the constant says which tone it is (`HAIRLINE`, not a hex).
 static func apply_dark_palette() -> void:
-	const TEXT := ThemeColorBase.DARK_TEXT
-	const MUTED := ThemeColorBase.DARK_MUTED
-	const PANEL := ThemeColorBase.DARK_SURFACE
+	const TEXT := ColorBase.DARK_TEXT
+	const MUTED := ColorBase.DARK_MUTED
+	const PANEL := ColorBase.DARK_SURFACE
 	const SURFACE := Color(0.14, 0.15, 0.18)
 	const HAIRLINE := Color(0.22, 0.24, 0.28)
 
@@ -97,7 +97,7 @@ static func apply_dark_palette() -> void:
 	toolbar_title = Color(0.93, 0.94, 0.96)
 	toolbar_muted = Color(0.52, 0.54, 0.60)
 	toolbar_button = Color(0.11, 0.12, 0.15)
-	chat = ThemeColorBase.DARK_BACKGROUND
+	chat = ColorBase.DARK_BACKGROUND
 	chat_text = TEXT
 	chat_text_muted = MUTED
 	chat_bubble_border = HAIRLINE
@@ -122,9 +122,9 @@ static func apply_dark_palette() -> void:
 # ---------------------------------------------------------------------------
 
 static func apply_light_palette() -> void:
-	const TEXT := ThemeColorBase.LIGHT_TEXT
-	const MUTED := ThemeColorBase.LIGHT_MUTED
-	const PANEL := ThemeColorBase.LIGHT_SURFACE
+	const TEXT := ColorBase.LIGHT_TEXT
+	const MUTED := ColorBase.LIGHT_MUTED
+	const PANEL := ColorBase.LIGHT_SURFACE
 	const SOFT := Color(0.96, 0.96, 0.96)
 	const CHROME := Color(0.95, 0.95, 0.96)
 	const HAIRLINE := Color(0.89, 0.89, 0.91)
@@ -141,7 +141,7 @@ static func apply_light_palette() -> void:
 	toolbar_title = TEXT
 	toolbar_muted = MUTED
 	toolbar_button = SOFT
-	chat = ThemeColorBase.LIGHT_BACKGROUND
+	chat = ColorBase.LIGHT_BACKGROUND
 	chat_text = TEXT
 	chat_text_muted = MUTED
 	chat_bubble_border = HAIRLINE

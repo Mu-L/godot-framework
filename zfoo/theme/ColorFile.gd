@@ -1,4 +1,4 @@
-﻿class_name ThemeColorFile
+﻿class_name ColorFile
 extends Object
 
 ## Semantic colors for resource and file categories. The palette uses restrained jewel tones so

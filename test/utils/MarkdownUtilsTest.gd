@@ -90,7 +90,7 @@ func code_fence_blank_lines_test() -> void:
 ## The fence fill follows the theme accent instead of a hex the caller passes in.
 func code_block_bg_themed_test() -> void:
 	var bbcode := MarkdownUtils.to_bbcode("```\nx\n```")
-	assert("bg=" + MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.code_block_bg) in bbcode)
+	assert("bg=" + MarkdownUtils.to_bbcode_color(ColorMarkdown.code_block_bg) in bbcode)
 	pass
 
 
@@ -105,7 +105,7 @@ func inline_code_tinted_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("`x`")
 	assert(bbcode.begins_with(MarkdownUtils.INLINE_CODE_MARGIN))
 	assert(bbcode.ends_with(MarkdownUtils.INLINE_CODE_MARGIN))
-	assert("[bgcolor=" + MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.inline_code_bg) + "]" in bbcode)
+	assert("[bgcolor=" + MarkdownUtils.to_bbcode_color(ColorMarkdown.inline_code_bg) + "]" in bbcode)
 	assert("[code]x[/code]" in bbcode)
 	assert("[table=" not in bbcode)
 	pass
@@ -129,8 +129,8 @@ func selection_theme_test() -> void:
 		MarkdownUtils.create_plain_rich_text_label(Color.WHITE),
 	]
 	for label: RichTextLabel in labels:
-		assert(label.get_theme_color("selection_color") == ThemeColorCard.selection_color)
-		assert(label.get_theme_color("font_selected_color") == ThemeColorCard.title_color)
+		assert(label.get_theme_color("selection_color") == ColorCard.selection_color)
+		assert(label.get_theme_color("font_selected_color") == ColorCard.title_color)
 		label.free()
 	pass
 
@@ -197,7 +197,7 @@ func url_with_parens_test() -> void:
 func link_label_blue_test() -> void:
 	var bbcode := MarkdownUtils.inline_to_bbcode("[hi](https://a.com)")
 	assert(
-			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownUtils.to_bbcode_color(ThemeColorMarkdown.link_color)
+			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownUtils.to_bbcode_color(ColorMarkdown.link_color)
 	)
 	var bold_label := MarkdownUtils.inline_to_bbcode("[**hi**](https://a.com)")
 	assert("[b]hi[/b]" in bold_label)

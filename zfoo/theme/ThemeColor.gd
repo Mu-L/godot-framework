@@ -38,9 +38,9 @@ static func set_theme(_theme: ThemeEnum) -> void:
 ## markdown and file colors select their hand-tuned dark or light variants.
 static func refresh_derived_colors() -> void:
 	Colors.refresh()
-	ThemeColorCard.refresh()
-	ThemeColorMarkdown.refresh()
-	ThemeColorFile.refresh()
+	ColorCard.refresh()
+	ColorMarkdown.refresh()
+	ColorFile.refresh()
 	pass
 
 

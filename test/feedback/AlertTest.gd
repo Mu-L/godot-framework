@@ -7,11 +7,11 @@ func Alert_create_card_test() -> void:
 	assert(card.label.text == "feedback")
 	assert(card.label.get_theme_font_size("font_size") == TextStyle.body_large_size)
 	assert(card.label.get_theme_font("font") is FontVariation)
-	assert(card.label.get_theme_color("font_color") == ThemeColorCard.title_color)
+	assert(card.label.get_theme_color("font_color") == ColorCard.title_color)
 	assert(card.label.text_overrun_behavior == TextServer.OVERRUN_TRIM_ELLIPSIS)
 	assert(card.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	var style := card.get_theme_stylebox("panel") as StyleBoxFlat
-	assert(style.bg_color == ThemeColorCard.background_color)
+	assert(style.bg_color == ColorCard.background_color)
 	assert(style.border_color == Colors.success)
 	assert(style.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(style.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)

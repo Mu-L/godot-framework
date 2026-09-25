@@ -16,7 +16,7 @@ func _ready() -> void:
 	WorkflowEvents.events.pipeline_stopped.connect(clear_node_highlight)
 
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = ThemeColorCard.inset_color
+	bg.bg_color = ColorCard.inset_color
 	add_theme_stylebox_override("panel", bg)
 	pass
 

@@ -1,4 +1,4 @@
-class_name ThemeColorBase
+class_name ColorBase
 extends Object
 
 ## Neutral foundation shared by framework palettes and application themes. Keep only colors whose

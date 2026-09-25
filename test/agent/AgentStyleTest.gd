@@ -10,8 +10,8 @@ func AgentChatInput_text_colors_follow_theme_test() -> void:
 	input.input_field = TextEdit.new()
 	input.style_field()
 	assert(input.input_field.get_theme_color("caret_color") == AgentColors.theme_accent_solid())
-	assert(input.input_field.get_theme_color("selection_color") == ThemeColorCard.selection_color)
-	assert(input.input_field.get_theme_color("font_selected_color") == ThemeColorCard.title_color)
+	assert(input.input_field.get_theme_color("selection_color") == ColorCard.selection_color)
+	assert(input.input_field.get_theme_color("font_selected_color") == ColorCard.title_color)
 	input.input_field.free()
 	pass
 
@@ -71,10 +71,10 @@ func SessionSidebarTheme_new_session_button_test() -> void:
 ## for the same color again.
 func AgentColors_shared_tones_test() -> void:
 	AgentColors.apply_light_palette()
-	assert(AgentColors.chat == ThemeColorBase.LIGHT_BACKGROUND)
-	assert(AgentColors.chat_text == ThemeColorBase.LIGHT_TEXT)
-	assert(AgentColors.chat_text_muted == ThemeColorBase.LIGHT_MUTED)
-	assert(AgentColors.panel == ThemeColorBase.LIGHT_SURFACE)
+	assert(AgentColors.chat == ColorBase.LIGHT_BACKGROUND)
+	assert(AgentColors.chat_text == ColorBase.LIGHT_TEXT)
+	assert(AgentColors.chat_text_muted == ColorBase.LIGHT_MUTED)
+	assert(AgentColors.panel == ColorBase.LIGHT_SURFACE)
 	assert(AgentColors.sidebar == AgentColors.toolbar)
 	assert(AgentColors.sidebar_border == AgentColors.toolbar_border)
 	assert(AgentColors.toolbar_border == AgentColors.chat_bubble_border)
@@ -91,10 +91,10 @@ func AgentColors_shared_tones_test() -> void:
 	assert(AgentColors.system_bubble == AgentColors.result_bubble)
 
 	AgentColors.apply_dark_palette()
-	assert(AgentColors.chat == ThemeColorBase.DARK_BACKGROUND)
-	assert(AgentColors.chat_text == ThemeColorBase.DARK_TEXT)
-	assert(AgentColors.chat_text_muted == ThemeColorBase.DARK_MUTED)
-	assert(AgentColors.panel == ThemeColorBase.DARK_SURFACE)
+	assert(AgentColors.chat == ColorBase.DARK_BACKGROUND)
+	assert(AgentColors.chat_text == ColorBase.DARK_TEXT)
+	assert(AgentColors.chat_text_muted == ColorBase.DARK_MUTED)
+	assert(AgentColors.panel == ColorBase.DARK_SURFACE)
 	assert(AgentColors.sidebar_text == AgentColors.chat_text)
 	assert(AgentColors.sidebar_muted == AgentColors.chat_text_muted)
 	assert(AgentColors.sidebar_row_hover == AgentColors.chat_input)

@@ -685,8 +685,8 @@ func style_field() -> void:
 	# Caret and highlight follow the theme color (same pair the sidebar rename field and the
 	# chat bubbles use), so neither keeps a stale hue after a theme or accent change.
 	input_field.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
-	input_field.add_theme_color_override("font_selected_color", ThemeColorCard.title_color)
-	input_field.add_theme_color_override("selection_color", ThemeColorCard.selection_color)
+	input_field.add_theme_color_override("font_selected_color", ColorCard.title_color)
+	input_field.add_theme_color_override("selection_color", ColorCard.selection_color)
 	input_field.caret_blink = true
 	pass
 

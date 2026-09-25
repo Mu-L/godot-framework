@@ -40,7 +40,7 @@ static func make(
 	stripe_width: int = ACCENT_STRIPE_WIDTH
 ) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = ThemeColorCard.background_color
+	style.bg_color = ColorCard.background_color
 	style.set_corner_radius_all(radius)
 	style.content_margin_left = margin_h
 	style.content_margin_right = margin_h

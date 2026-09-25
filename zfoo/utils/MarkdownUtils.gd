@@ -279,7 +279,7 @@ static func is_horizontal_rule_line(line: String) -> bool:
 
 ## `---` → full-width rule in the table grid color, so rules and table lines match.
 static func format_horizontal_rule_line() -> String:
-	return StringUtils.format("[hr width=100% height=1 color={}]", to_bbcode_color(ThemeColorMarkdown.table_grid_color))
+	return StringUtils.format("[hr width=100% height=1 color={}]", to_bbcode_color(ColorMarkdown.table_grid_color))
 
 
 ## `>` after 0–3 spaces. Nested `>>` is left as leftover `>` in the quote body.
@@ -305,8 +305,8 @@ static func format_blockquote_bbcode(text: String) -> String:
 	var body := inline_to_bbcode(text)
 	return StringUtils.format(
 			"[indent][color={}]▎[/color] [color={}]{}[/color][/indent]",
-			to_bbcode_color(ThemeColorMarkdown.blockquote_bar_color),
-			to_bbcode_color(ThemeColorMarkdown.blockquote_text_color),
+			to_bbcode_color(ColorMarkdown.blockquote_bar_color),
+			to_bbcode_color(ColorMarkdown.blockquote_text_color),
 			body
 	)
 
@@ -387,13 +387,13 @@ static func format_table_bbcode(header: PackedStringArray, body_rows: Array[Pack
 
 static func format_table_cell(text: String, is_header: bool) -> String:
 	var content := inline_to_bbcode(text)
-	var border := to_bbcode_color(ThemeColorMarkdown.table_grid_color)
+	var border := to_bbcode_color(ColorMarkdown.table_grid_color)
 	if is_header:
 		content = StringUtils.format("[b]{}[/b]", content)
 		return StringUtils.format(
 				"[cell border={} bg={} padding={}]{}[/cell]",
 				border,
-				to_bbcode_color(ThemeColorMarkdown.table_header_bg),
+				to_bbcode_color(ColorMarkdown.table_header_bg),
 				TABLE_CELL_PADDING,
 				content
 		)
@@ -535,7 +535,7 @@ static func apply_inline(text: String, parts: Array[String]) -> String:
 						StringUtils.format(
 								"[url={}][color={}]{}[/color][/url]",
 								url,
-								to_bbcode_color(ThemeColorMarkdown.link_color),
+								to_bbcode_color(ColorMarkdown.link_color),
 								label
 						)
 				)
@@ -618,7 +618,7 @@ static func parse_link_destination(raw: String) -> String:
 static func format_code_fence_bbcode(code: String) -> String:
 	var block := StringUtils.format(
 			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}[/cell][/table]",
-			to_bbcode_color(ThemeColorMarkdown.code_block_bg),
+			to_bbcode_color(ColorMarkdown.code_block_bg),
 			CODE_BLOCK_PADDING,
 			wrap_code(code)
 	)
@@ -639,7 +639,7 @@ static func add_code_background(code: String) -> String:
 	return StringUtils.format(
 			"{}[bgcolor={}]{}[/bgcolor]{}",
 			INLINE_CODE_MARGIN,
-			to_bbcode_color(ThemeColorMarkdown.inline_code_bg),
+			to_bbcode_color(ColorMarkdown.inline_code_bg),
 			wrap_code(code),
 			INLINE_CODE_MARGIN
 	)
@@ -784,8 +784,8 @@ class SelectableRichTextLabel extends RichTextLabel:
 ## primary text for the highlighted glyphs. Both come from [ThemeColorCard], so a bubble keeps
 ## readable contrast in either theme and re-tints when the user picks another accent color.
 static func apply_selection_theme(label: RichTextLabel) -> void:
-	label.add_theme_color_override("selection_color", ThemeColorCard.selection_color)
-	label.add_theme_color_override("font_selected_color", ThemeColorCard.title_color)
+	label.add_theme_color_override("selection_color", ColorCard.selection_color)
+	label.add_theme_color_override("font_selected_color", ColorCard.title_color)
 	pass
 
 

@@ -92,7 +92,7 @@ func apply_ui_locale() -> void:
 		run_button.text = tr("workflow.toolbar.run")
 	palette_title.text = tr("workflow.palette.title")
 	palette_hint.text = tr("workflow.palette.hint")
-	palette_hint.add_theme_color_override("font_color", ThemeColorCard.body_color)
+	palette_hint.add_theme_color_override("font_color", ColorCard.body_color)
 	save_dialog.title = tr("workflow.dialog.save_title")
 	save_dialog.ok_button_text = tr("workflow.toolbar.save")
 	save_dialog.filters = PackedStringArray([
@@ -315,21 +315,21 @@ func on_pipeline_finished(success: bool, message: String) -> void:
 func set_run_button_running(running: bool) -> void:
 	if running:
 		apply_run_button_style(Colors.error)
-		run_button.icon = make_stop_icon(14, ThemeColorCard.title_color)
+		run_button.icon = make_stop_icon(14, ColorCard.title_color)
 		run_button.text = tr("workflow.toolbar.stop")
 	else:
 		apply_run_button_style(Colors.success)
-		run_button.icon = make_play_icon(14, ThemeColorCard.title_color)
+		run_button.icon = make_play_icon(14, ColorCard.title_color)
 		run_button.text = tr("workflow.toolbar.run")
 	pass
 
 
 func style_run_button() -> void:
 	apply_run_button_style(Colors.success)
-	run_button.add_theme_color_override("font_color", ThemeColorCard.title_color)
-	run_button.add_theme_color_override("font_hover_color", ThemeColorCard.title_color)
-	run_button.add_theme_color_override("font_pressed_color", ThemeColorCard.title_color)
-	run_button.icon = make_play_icon(14, ThemeColorCard.title_color)
+	run_button.add_theme_color_override("font_color", ColorCard.title_color)
+	run_button.add_theme_color_override("font_hover_color", ColorCard.title_color)
+	run_button.add_theme_color_override("font_pressed_color", ColorCard.title_color)
+	run_button.icon = make_play_icon(14, ColorCard.title_color)
 	run_button.text = tr("workflow.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", 14)
 	run_button.add_theme_constant_override("icon_max_height", 14)
