@@ -77,13 +77,13 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", TextStyle.label_small_size)
 
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.12), ButtonStyle.press_color(accent, 0.10))
 
 	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(accent, 0.45), 1)
-	var hover := BoxStyle.with_bg(normal, AgentColors.theme_selection_bg())
+	var hover := BoxStyle.with_bg(normal, ColorBase.selection_surface)
 	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(AgentColors.theme_selection_bg(), 0.06))
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ColorBase.selection_surface, 0.06))
 	pressed.border_color = accent
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

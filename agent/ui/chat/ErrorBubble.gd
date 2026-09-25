@@ -83,7 +83,7 @@ static func style_resume_button(button: Button) -> void:
 	ButtonStyle.apply_font_colors(button, Color.WHITE, Color.WHITE, Color.WHITE, ButtonStyle.with_alpha(Color.WHITE, 0.55))
 
 	# Solid fill: pressed / disabled read as plain shading, so they never flip with the theme.
-	var accent := AgentColors.theme_accent_solid()
+	var accent := ThemeColor.accent_solid()
 	var normal := BoxStyle.make(accent, 6, Margin.ma_3, Margin.ma_2)
 	var hover := BoxStyle.with_bg(normal, accent.lightened(0.10))
 	var pressed := BoxStyle.with_bg(normal, accent.darkened(0.08))

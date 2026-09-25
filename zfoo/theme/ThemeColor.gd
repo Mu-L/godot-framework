@@ -34,6 +34,16 @@ static func set_theme(_theme: ThemeEnum) -> void:
 	pass
 
 
+static func toggle_theme() -> void:
+	set_theme(ThemeEnum.LIGHT if is_dark_theme() else ThemeEnum.DARK)
+	pass
+
+
+## Current theme accent with full opacity for UI highlights and controls.
+static func accent_solid() -> Color:
+	return Color(theme_color, 1.0)
+
+
 ## Refresh every palette derived from the active appearance. Cards follow the accent hue; semantic,
 ## markdown and file colors select their hand-tuned dark or light variants.
 static func refresh_derived_colors() -> void:

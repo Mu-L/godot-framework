@@ -326,7 +326,7 @@ func style_check_button(check: CheckButton) -> void:
 	check.add_theme_color_override("font_pressed_color", ColorBase.text)
 	check.add_theme_color_override("font_hover_pressed_color", ColorBase.text)
 	# Only the "on" track takes the app accent — the "off" one keeps the theme default.
-	check.add_theme_color_override("button_checked_color", AgentColors.theme_accent_solid())
+	check.add_theme_color_override("button_checked_color", ThemeColor.accent_solid())
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
@@ -587,7 +587,7 @@ func style_option_button(select: OptionButton) -> void:
 	ButtonStyle.apply_font_colors(select, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.border_color = AgentColors.theme_accent_solid()
+	hover.border_color = ThemeColor.accent_solid()
 	select.add_theme_stylebox_override("normal", normal)
 	select.add_theme_stylebox_override("hover", hover)
 	select.add_theme_stylebox_override("pressed", hover.duplicate())
@@ -607,7 +607,7 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
 	popup.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.surface, 7, Margin.ma_1, Margin.ma_1, ColorBase.border, 1))
-	popup.add_theme_stylebox_override("hover", BoxStyle.make(AgentColors.theme_selection_bg(), 5, Margin.ma_2, 0))
+	popup.add_theme_stylebox_override("hover", BoxStyle.make(ColorBase.selection_surface, 5, Margin.ma_2, 0))
 	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
 		popup.add_theme_icon_override(state, empty_icon)
@@ -617,10 +617,10 @@ func style_provider_popup(popup: PopupMenu) -> void:
 func style_line_edit(edit: LineEdit) -> void:
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted.darkened(0.08))
-	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
+	edit.add_theme_color_override("caret_color", ThemeColor.accent_solid())
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	focus.border_color = AgentColors.theme_accent_solid()
+	focus.border_color = ThemeColor.accent_solid()
 	focus.set_border_width_all(2)
 	edit.add_theme_stylebox_override("normal", normal)
 	edit.add_theme_stylebox_override("focus", focus)
@@ -640,10 +640,10 @@ func style_spin_box(spin: SpinBox) -> void:
 	spin.add_theme_color_override("font_placeholder_color", ColorBase.muted)
 	spin.add_theme_color_override("up_icon_modulate", ColorBase.text)
 	spin.add_theme_color_override("down_icon_modulate", ColorBase.text)
-	spin.add_theme_color_override("up_hover_icon_modulate", AgentColors.theme_accent_solid())
-	spin.add_theme_color_override("down_hover_icon_modulate", AgentColors.theme_accent_solid())
-	spin.add_theme_color_override("up_pressed_icon_modulate", AgentColors.theme_accent_solid())
-	spin.add_theme_color_override("down_pressed_icon_modulate", AgentColors.theme_accent_solid())
+	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.accent_solid())
+	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.accent_solid())
+	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.accent_solid())
+	spin.add_theme_color_override("down_pressed_icon_modulate", ThemeColor.accent_solid())
 	var normal: StyleBoxFlat = make_input_style()
 	normal.content_margin_left = Margin.ma_0
 	normal.content_margin_right = Margin.ma_0

@@ -64,7 +64,7 @@ func apply_equal_icon_margins(margin: int) -> void:
 # ---------------------------------------------------------------------------
 
 func on_pressed() -> void:
-	AgentColors.toggle_theme()
+	ThemeColor.toggle_theme()
 	pass
 
 
@@ -86,7 +86,7 @@ func update_icon(hovered: bool) -> void:
 	var show_moon: bool = ThemeColor.is_light_theme()
 	var icon_color: Color = ColorBase.muted
 	if show_moon:
-		icon_color = AgentColors.theme_accent_solid()
+		icon_color = ThemeColor.accent_solid()
 	if hovered:
 		if icon_color == ColorBase.muted:
 			icon_color = ColorBase.text

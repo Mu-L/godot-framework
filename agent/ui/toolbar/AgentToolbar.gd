@@ -40,7 +40,7 @@ func apply_theme() -> void:
 
 ## GAI wordmark on the far left of the toolbar row.
 func apply_logo_theme() -> void:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	var logo_font: FontVariation = FontVariation.new()
 	logo_font.base_font = Fonts.bold()
 	logo_font.spacing_glyph = LOGO_GLYPH_SPACING

@@ -21,7 +21,7 @@ static func sidebar_panel() -> StyleBoxFlat:
 
 
 static func pinned_separator() -> StyleBoxLine:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	var line: StyleBoxLine = StyleBoxLine.new()
 	line.color = ButtonStyle.with_alpha(accent, 0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
@@ -32,16 +32,16 @@ static func pinned_separator() -> StyleBoxLine:
 
 ## "+ New chat" — outlined in the accent, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
 	ButtonStyle.apply_font_colors(button, accent, ButtonStyle.hover_color(accent, 0.08), ButtonStyle.press_color(accent, 0.06), ColorBase.muted)
 
 	var border := ButtonStyle.with_alpha(accent, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
-	var hover := BoxStyle.with_bg(normal, AgentColors.theme_selection_bg())
+	var hover := BoxStyle.with_bg(normal, ColorBase.selection_surface)
 	hover.border_color = ButtonStyle.with_alpha(accent, 0.85)
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(AgentColors.theme_selection_bg(), 0.06))
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ColorBase.selection_surface, 0.06))
 	pressed.border_color = accent
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
@@ -56,7 +56,7 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 	var style := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS)
 	BoxStyle.pad(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	if selected:
-		style.bg_color = AgentColors.theme_selection_bg()
+		style.bg_color = ColorBase.selection_surface
 	elif hovered:
 		style.bg_color = ColorBase.hover_surface
 	return style
@@ -76,9 +76,9 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 
 ## Floating row copy that follows the cursor while dragging.
 static func drag_ghost() -> StyleBoxFlat:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	var style: StyleBoxFlat = row(false, false)
-	style.bg_color = AgentColors.theme_selection_bg()
+	style.bg_color = ColorBase.selection_surface
 	style.border_color = ButtonStyle.with_alpha(accent, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
@@ -96,8 +96,8 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	copy_font(edit, title_button)
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
-	edit.add_theme_color_override("caret_color", AgentColors.theme_accent_solid())
-	edit.add_theme_color_override("selection_color", AgentColors.theme_selection_bg())
+	edit.add_theme_color_override("caret_color", ThemeColor.accent_solid())
+	edit.add_theme_color_override("selection_color", ColorBase.selection_surface)
 	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
 	edit.add_theme_stylebox_override("focus", field_style)
@@ -105,7 +105,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 
 
 static func rename_field() -> StyleBoxFlat:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	var border := ButtonStyle.with_alpha(accent, 0.75 if ThemeColor.is_dark_theme() else 0.55)
 	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 

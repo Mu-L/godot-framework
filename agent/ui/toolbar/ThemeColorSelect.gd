@@ -76,7 +76,7 @@ func apply_equal_icon_margins(margin: int) -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var accent: Color = AgentColors.theme_accent_solid()
+	var accent: Color = ThemeColor.accent_solid()
 	var handle: Color = ColorBase.muted
 	if hovered:
 		accent = accent.lightened(0.10)

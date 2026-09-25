@@ -44,6 +44,21 @@ const LIGHT_TEAL := Color(0.00, 0.48, 0.43)
 const DARK_PURPLE := Color(0.72, 0.58, 0.88)
 const LIGHT_PURPLE := Color(0.49, 0.23, 0.93)
 
+## Semantic surfaces keep status/category fills readable without using strong text colors as fills.
+const DARK_STRONG_INFO_SURFACE := Color(0.16, 0.22, 0.32)
+const DARK_INFO_SURFACE := Color(0.10, 0.13, 0.19)
+const DARK_PURPLE_SURFACE := Color(0.17, 0.13, 0.22)
+const DARK_SUCCESS_SURFACE := Color(0.14, 0.20, 0.16)
+const DARK_WARNING_SURFACE := Color(0.22, 0.16, 0.10)
+const DARK_NEUTRAL_SURFACE := Color(0.13, 0.16, 0.20)
+
+const LIGHT_STRONG_INFO_SURFACE := Color(0.94, 0.96, 1.00)
+const LIGHT_INFO_SURFACE := LIGHT_CONTROL_SURFACE
+const LIGHT_PURPLE_SURFACE := Color(0.96, 0.95, 1.00)
+const LIGHT_SUCCESS_SURFACE := Color(0.94, 0.99, 0.96)
+const LIGHT_WARNING_SURFACE := Color(1.00, 0.97, 0.93)
+const LIGHT_NEUTRAL_SURFACE := LIGHT_CONTROL_SURFACE
+
 static var error: Color = DARK_ERROR
 static var info: Color = DARK_INFO
 static var warning: Color = DARK_WARNING
@@ -62,6 +77,13 @@ static var medium_border: Color = DARK_MEDIUM_BORDER
 static var subtle_border: Color = DARK_SUBTLE_BORDER
 static var text: Color = DARK_TEXT
 static var muted: Color = DARK_MUTED
+static var strong_info_surface: Color = DARK_STRONG_INFO_SURFACE
+static var info_surface: Color = DARK_INFO_SURFACE
+static var purple_surface: Color = DARK_PURPLE_SURFACE
+static var success_surface: Color = DARK_SUCCESS_SURFACE
+static var warning_surface: Color = DARK_WARNING_SURFACE
+static var neutral_surface: Color = DARK_NEUTRAL_SURFACE
+static var selection_surface: Color = DARK_ELEVATED_SURFACE
 
 
 ## Select neutral and semantic colors with suitable contrast for the current theme.
@@ -85,4 +107,11 @@ static func refresh() -> void:
 	success = DARK_SUCCESS if dark else LIGHT_SUCCESS
 	teal = DARK_TEAL if dark else LIGHT_TEAL
 	purple = DARK_PURPLE if dark else LIGHT_PURPLE
+	strong_info_surface = DARK_STRONG_INFO_SURFACE if dark else LIGHT_STRONG_INFO_SURFACE
+	info_surface = DARK_INFO_SURFACE if dark else LIGHT_INFO_SURFACE
+	purple_surface = DARK_PURPLE_SURFACE if dark else LIGHT_PURPLE_SURFACE
+	success_surface = DARK_SUCCESS_SURFACE if dark else LIGHT_SUCCESS_SURFACE
+	warning_surface = DARK_WARNING_SURFACE if dark else LIGHT_WARNING_SURFACE
+	neutral_surface = DARK_NEUTRAL_SURFACE if dark else LIGHT_NEUTRAL_SURFACE
+	selection_surface = elevated_surface.lerp(ThemeColor.accent_solid(), 0.14 if dark else 0.10)
 	pass

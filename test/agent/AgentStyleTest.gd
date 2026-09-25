@@ -1,4 +1,4 @@
-## Unit tests for the agent-side style classes: [AgentColors], [SessionSidebarTheme], the toolbar button,
+## Unit tests for the agent-side style classes: [SessionSidebarTheme], the toolbar button,
 ## the chat-bubble header buttons and the chat input's text colors.
 ## Loaded by [code]test/agent/AgentStyleTest.tscn[/code] ([UnitTest]).
 
@@ -9,7 +9,7 @@ func AgentChatInput_text_colors_follow_theme_test() -> void:
 	var input := AgentChatInput.new()
 	input.input_field = TextEdit.new()
 	input.style_field()
-	assert(input.input_field.get_theme_color("caret_color") == AgentColors.theme_accent_solid())
+	assert(input.input_field.get_theme_color("caret_color") == ThemeColor.accent_solid())
 	assert(input.input_field.get_theme_color("selection_color") == ColorCard.selection_color)
 	assert(input.input_field.get_theme_color("font_selected_color") == ColorCard.title_color)
 	input.input_field.free()
@@ -45,7 +45,7 @@ func ToolbarButton_states_test() -> void:
 
 
 func SessionSidebarTheme_row_test() -> void:
-	assert(SessionSidebarTheme.row(true, false).bg_color == AgentColors.theme_selection_bg())
+	assert(SessionSidebarTheme.row(true, false).bg_color == ColorBase.selection_surface)
 	assert(SessionSidebarTheme.row(false, true).bg_color == ColorBase.hover_surface)
 	assert(SessionSidebarTheme.row(false, false).bg_color.a == 0.0)
 	var style := SessionSidebarTheme.row(true, false)
@@ -66,12 +66,11 @@ func SessionSidebarTheme_new_session_button_test() -> void:
 	pass
 
 
-## Shared neutral roles come from [ColorBase]; [AgentColors] only owns chat-bubble hues.
-func AgentColors_shared_tones_test() -> void:
+## Shared neutral and semantic surface roles all follow the active theme through [ColorBase].
+func ColorBase_shared_tones_test() -> void:
 	var original := ThemeColor.current_theme
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
 	ColorBase.refresh()
-	AgentColors.apply_light_palette()
 	assert(ColorBase.background == ColorBase.LIGHT_BACKGROUND)
 	assert(ColorBase.text == ColorBase.LIGHT_TEXT)
 	assert(ColorBase.muted == ColorBase.LIGHT_MUTED)
@@ -80,12 +79,11 @@ func AgentColors_shared_tones_test() -> void:
 	assert(ColorBase.medium_border == ColorBase.subtle_border)
 	assert(ColorBase.subtle_border == ColorBase.border)
 	assert(ColorBase.elevated_surface == ColorBase.surface)
-	assert(ColorBase.control_surface == AgentColors.system_bubble)
-	assert(AgentColors.system_bubble == AgentColors.result_bubble)
+	assert(ColorBase.control_surface == ColorBase.info_surface)
+	assert(ColorBase.info_surface == ColorBase.neutral_surface)
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ColorBase.refresh()
-	AgentColors.apply_dark_palette()
 	assert(ColorBase.background == ColorBase.DARK_BACKGROUND)
 	assert(ColorBase.text == ColorBase.DARK_TEXT)
 	assert(ColorBase.muted == ColorBase.DARK_MUTED)
@@ -96,5 +94,4 @@ func AgentColors_shared_tones_test() -> void:
 	# Leave the palette as the rest of the suite expects to find it.
 	ThemeColor.current_theme = original
 	ColorBase.refresh()
-	AgentColors.load_saved_theme()
 	pass

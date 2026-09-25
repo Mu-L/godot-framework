@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if size.x - PAD * 2.0 <= 2.0 or size.y <= PAD * 2.0:
 		return
-	var accent := AgentColors.theme_accent_solid()
+	var accent := ThemeColor.accent_solid()
 	var points := wave_points()
 	# Glow pass keeps the thin stroke readable on either theme.
 	draw_polyline(points, Color(accent, 0.30 if ThemeColor.is_dark_theme() else 0.22), 1.6, true)

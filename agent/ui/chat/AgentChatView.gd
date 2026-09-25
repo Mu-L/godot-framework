@@ -269,19 +269,19 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 	var rich_text: RichTextLabel = null
 	match chat_entry.kind:
 		ChatEntry.KIND_SYSTEM:
-			rich_text = append_bubble(chat_list, chat_entry, ColorBase.muted, AgentColors.system_bubble, ColorBase.info)
+			rich_text = append_bubble(chat_list, chat_entry, ColorBase.muted, ColorBase.info_surface, ColorBase.info)
 		ChatEntry.KIND_SKILL, ChatEntry.KIND_AGENT_PROMPT:
 			rich_text = SkillBubble.append(
 					chat_list,
 					chat_entry,
-					build_bubble_style(AgentColors.system_bubble)
+					build_bubble_style(ColorBase.info_surface)
 			)
 		ChatEntry.KIND_USER:
 			rich_text = UserBubble.append(
 					chat_list,
 					session_id,
 					chat_entry,
-					build_bubble_style(AgentColors.user_bubble, true),
+					build_bubble_style(ColorBase.strong_info_surface, true),
 					ColorBase.text
 			)
 			queue_scroll_to_bottom()
@@ -289,7 +289,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 			rich_text = ThinkingBubble.append(
 					chat_list,
 					chat_entry,
-					build_bubble_style(AgentColors.thinking_bubble)
+					build_bubble_style(ColorBase.purple_surface)
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_AGENT:
@@ -305,21 +305,21 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 					chat_list,
 					chat_entry,
 					ColorBase.success,
-					AgentColors.tool_bubble,
+					ColorBase.success_surface,
 					ColorBase.success
 			)
 		ChatEntry.KIND_FILE_TOOL:
 			rich_text = FileBubble.append(
 					chat_list,
 					chat_entry,
-					build_bubble_style(AgentColors.file_tool_bubble)
+					build_bubble_style(ColorBase.warning_surface)
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_RESULT:
 			rich_text = ResultBubble.append(
 					chat_list,
 					chat_entry,
-					build_bubble_style(AgentColors.result_bubble)
+					build_bubble_style(ColorBase.neutral_surface)
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_ERROR:

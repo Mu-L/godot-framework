@@ -28,7 +28,6 @@ var theme_color_select_ctrl: ThemeColorSelect = ThemeColorSelect.new()
 
 
 func _ready() -> void:
-	AgentColors.load_saved_theme()
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	setup_demo_session()
 	theme_color_select_ctrl.setup(theme_color_select)

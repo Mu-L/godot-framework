@@ -51,7 +51,6 @@ var notification: AgentNotification = AgentNotification.new()
 
 func _ready() -> void:
 	I18nHelper.init_i18n()
-	AgentColors.load_saved_theme()
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.locale_changed.connect(apply_locale)
 	apply_theme()

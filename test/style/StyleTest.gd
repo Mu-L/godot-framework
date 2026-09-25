@@ -25,6 +25,13 @@ func ColorBase_follow_theme_test() -> void:
 	assert(ColorBase.success == ColorBase.DARK_SUCCESS)
 	assert(ColorBase.teal == ColorBase.DARK_TEAL)
 	assert(ColorBase.purple == ColorBase.DARK_PURPLE)
+	assert(ColorBase.strong_info_surface == ColorBase.DARK_STRONG_INFO_SURFACE)
+	assert(ColorBase.info_surface == ColorBase.DARK_INFO_SURFACE)
+	assert(ColorBase.purple_surface == ColorBase.DARK_PURPLE_SURFACE)
+	assert(ColorBase.success_surface == ColorBase.DARK_SUCCESS_SURFACE)
+	assert(ColorBase.warning_surface == ColorBase.DARK_WARNING_SURFACE)
+	assert(ColorBase.neutral_surface == ColorBase.DARK_NEUTRAL_SURFACE)
+	assert(ColorBase.selection_surface == ColorBase.DARK_ELEVATED_SURFACE.lerp(ThemeColor.accent_solid(), 0.14))
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
 	ColorBase.refresh()
@@ -46,6 +53,13 @@ func ColorBase_follow_theme_test() -> void:
 	assert(ColorBase.success == ColorBase.LIGHT_SUCCESS)
 	assert(ColorBase.teal == ColorBase.LIGHT_TEAL)
 	assert(ColorBase.purple == ColorBase.LIGHT_PURPLE)
+	assert(ColorBase.strong_info_surface == ColorBase.LIGHT_STRONG_INFO_SURFACE)
+	assert(ColorBase.info_surface == ColorBase.LIGHT_INFO_SURFACE)
+	assert(ColorBase.purple_surface == ColorBase.LIGHT_PURPLE_SURFACE)
+	assert(ColorBase.success_surface == ColorBase.LIGHT_SUCCESS_SURFACE)
+	assert(ColorBase.warning_surface == ColorBase.LIGHT_WARNING_SURFACE)
+	assert(ColorBase.neutral_surface == ColorBase.LIGHT_NEUTRAL_SURFACE)
+	assert(ColorBase.selection_surface == ColorBase.LIGHT_ELEVATED_SURFACE.lerp(ThemeColor.accent_solid(), 0.10))
 
 	ThemeColor.current_theme = original
 	ColorBase.refresh()

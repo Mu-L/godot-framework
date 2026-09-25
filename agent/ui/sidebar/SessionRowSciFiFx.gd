@@ -51,6 +51,6 @@ func sync_uniforms() -> void:
 			sz = parent_row.size
 	fx_material.set_shader_parameter("rect_size", sz)
 	fx_material.set_shader_parameter("corner_radius", CORNER_RADIUS)
-	fx_material.set_shader_parameter("accent_color", AgentColors.theme_accent_solid())
+	fx_material.set_shader_parameter("accent_color", ThemeColor.accent_solid())
 	fx_material.set_shader_parameter("is_dark", 1.0 if ThemeColor.is_dark_theme() else 0.0)
 	pass
