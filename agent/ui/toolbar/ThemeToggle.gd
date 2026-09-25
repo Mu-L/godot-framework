@@ -3,10 +3,8 @@ extends RefCounted
 
 ## Circular toolbar button for switching dark / light color schemes.
 
-const ICON_SIZE: int = 14
 const SUN_ICON_PATH: String = "res://agent/asset/image/icon/sun.svg"
 const MOON_ICON_PATH: String = "res://agent/asset/image/icon/moon.svg"
-const SVG_BASE_COLOR: String = "#8B949E"
 
 var button: Button
 
@@ -38,8 +36,8 @@ func apply_theme() -> void:
 	button.text = ""
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	button.add_theme_constant_override("icon_max_width", ICON_SIZE)
-	button.add_theme_constant_override("icon_max_height", ICON_SIZE)
+	button.add_theme_constant_override("icon_max_width", TextSize.title_small_size)
+	button.add_theme_constant_override("icon_max_height", TextSize.title_small_size)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	update_icon(button.is_hovered())
 	pass
@@ -110,7 +108,7 @@ func make_moon_icon(color: Color) -> ImageTexture:
 
 func svg_to_texture(path: String, color: Color) -> ImageTexture:
 	var svg: String = FileAccess.get_file_as_string(path)
-	svg = svg.replace(SVG_BASE_COLOR, "#" + color.to_html(false))
+	svg = svg.replace("#" + Color.WHITE.to_html(false), "#" + color.to_html(false))
 	var image: Image = Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
 		return ImageTexture.new()
