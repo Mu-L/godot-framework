@@ -14,12 +14,15 @@ Project root: {}
 
 {}
 
+{}
+
 Rules:
 - Inspect relevant files before modifying them.
 - Keep changes minimal and focused.
 - Briefly summarize completed changes.""",
 		AgentWorkspace.get_root(),
 		build_godot_context(),
+		build_dependency_context(),
 		build_os_context()
 	)
 
@@ -30,6 +33,11 @@ static func build_godot_context() -> String:
 	var executable_path := OS.get_executable_path()
 	if StringUtils.is_not_blank(executable_path):
 		build.append(StringUtils.format("Godot executable: {}", executable_path))
+	return build.build_joined(FileUtils.NEWLINE_LF)
+
+
+static func build_dependency_context() -> String:
+	var build := StringBuilder.new()
 	build.append(StringUtils.format("Python path: {}", DependencyManifest.PYTHON_PATH))
 	return build.build_joined(FileUtils.NEWLINE_LF)
 
