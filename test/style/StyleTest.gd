@@ -180,7 +180,7 @@ func ButtonStyle_apply_states_test() -> void:
 	var pressed := BoxStyle.with_bg(normal, Color(0.1, 0.1, 0.1))
 
 	var button := Button.new()
-	ButtonStyle.apply_states(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal, hover, pressed)
 	assert(button.get_theme_stylebox("normal") == normal)
 	assert(button.get_theme_stylebox("hover") == hover)
 	assert(button.get_theme_stylebox("pressed") == pressed)

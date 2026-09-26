@@ -95,6 +95,6 @@ static func style_resume_button(button: Button) -> void:
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.22))
 	var disabled := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.04))
 	disabled.border_color = ThemeColor.alpha_theme_color(0.12)
-	ButtonStyle.apply_states(button, normal, hover, pressed, disabled)
+	ButtonStyle.apply(button, normal, hover, pressed, disabled)
 	pass
 

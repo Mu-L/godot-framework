@@ -47,7 +47,7 @@ static func press_color(base: Color, amount: float = PRESS_AMOUNT) -> Color:
 ## [param hover_pressed] must not be left out: Godot resolves a missing item from the default
 ## theme, so a button that only overrides normal / hover / pressed paints the engine's own box
 ## while it is pressed *and* hovered.
-static func apply_states(
+static func apply(
 	button: Button,
 	normal: StyleBoxFlat,
 	hover: StyleBoxFlat,

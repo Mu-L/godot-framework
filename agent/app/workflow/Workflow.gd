@@ -408,7 +408,7 @@ func apply_run_button_style(base_color: Color) -> void:
 	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.12))
 	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
 	var hover_pressed := BoxStyle.with_bg(pressed, base_color.darkened(0.02))
-	ButtonStyle.apply_states(run_button, normal, hover, pressed, null, hover_pressed)
+	ButtonStyle.apply(run_button, normal, hover, pressed, null, hover_pressed)
 	pass
 
 

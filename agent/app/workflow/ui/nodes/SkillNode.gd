@@ -261,5 +261,5 @@ func style_node_button(button: Button) -> void:
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	ButtonStyle.apply_states(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal, hover, pressed)
 	pass

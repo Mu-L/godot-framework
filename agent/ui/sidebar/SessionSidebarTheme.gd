@@ -1,4 +1,4 @@
-﻿class_name SessionSidebarTheme
+class_name SessionSidebarTheme
 extends Object
 
 ## Every stylebox / color override the sidebar uses. All builders read the live palette, so a
@@ -43,7 +43,7 @@ static func apply_new_session_button(button: Button) -> void:
 	hover.border_color = ThemeColor.alpha_theme_color(0.85)
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
 	pressed.border_color = theme_color
-	ButtonStyle.apply_states(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal, hover, pressed)
 	pass
 
 
@@ -116,4 +116,3 @@ static func copy_font(target: Control, source: Control) -> void:
 	target.add_theme_font_override("font", source.get_theme_font("font"))
 	target.add_theme_font_size_override("font_size", source.get_theme_font_size("font_size"))
 	pass
-

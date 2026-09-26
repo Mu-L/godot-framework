@@ -733,7 +733,7 @@ func apply_send_button_style(base_color: Color) -> void:
 	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.10))
 	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
 	var disabled := BoxStyle.with_bg(normal, base_color.darkened(0.25))
-	ButtonStyle.apply_states(send_button, normal, hover, pressed, disabled)
+	ButtonStyle.apply(send_button, normal, hover, pressed, disabled)
 	send_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pass
 

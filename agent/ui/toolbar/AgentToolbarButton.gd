@@ -15,7 +15,7 @@ static func style(button: Button, tooltip: String) -> void:
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	var hover_pressed := BoxStyle.with_bg(pressed, ButtonStyle.hover_color(pressed.bg_color, 0.06))
-	ButtonStyle.apply_states(button, normal, hover, pressed, null, hover_pressed)
+	ButtonStyle.apply(button, normal, hover, pressed, null, hover_pressed)
 	pass
 
 
@@ -30,5 +30,5 @@ static func style_round(button: Button, tooltip: String) -> void:
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	var hover_pressed := BoxStyle.with_bg(pressed, ButtonStyle.hover_color(pressed.bg_color, 0.06))
-	ButtonStyle.apply_states(button, normal, hover, pressed, null, hover_pressed)
+	ButtonStyle.apply(button, normal, hover, pressed, null, hover_pressed)
 	pass
