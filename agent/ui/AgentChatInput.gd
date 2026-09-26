@@ -254,7 +254,7 @@ func on_input_action_pressed() -> void:
 		return
 	if not ensure_git_installed(session.id):
 		return
-	text = DependencyManifest.prepend_python_install_skill(text)
+	append_python_install_message(session)
 	clear_text()
 	collapse_after_send()
 	await AgentSessionManager.async_send(session.id, text)
@@ -277,6 +277,16 @@ func ensure_git_installed(session_id: int) -> bool:
 					+ StringUtils.format("Git Download: [{}]({})", url, url)
 	)
 	return false
+
+
+## When Python is missing, append a separate user message that asks the agent to install it.
+func append_python_install_message(session: AgentSession) -> void:
+	if DependencyManifest.has_populated_runtime(DependencyManifest.PYTHON_PATH):
+		return
+	var prompt := DependencyManifest.PYTHON_INSTALL_PROMPT
+	session.messages.append(ChatMessage.user(prompt))
+	AgentSessionManager.add_chat_entry(session.id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, prompt)
+	pass
 
 
 ## Re-layout when line count changes (typing, paste, delete). Skip during expand tween.

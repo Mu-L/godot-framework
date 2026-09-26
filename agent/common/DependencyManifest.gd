@@ -12,6 +12,10 @@ class DependencyManifestEntry:
 const MANIFEST_REL_PATH := ".dependency/manifest.json"
 const SKILL_DEPENDENCY_MANAGER_PATH := ".agents/skills/skill-dependency-manager.md"
 const PYTHON_PATH := ".dependency/python/python"
+const PYTHON_INSTALL_PROMPT := (
+	"The required Python runtime is not installed. Read and follow the dependency setup "
+	+ "instructions in " + SKILL_DEPENDENCY_MANAGER_PATH + " and install the Python runtime."
+)
 
 static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
@@ -56,16 +60,3 @@ static func has_populated_runtime(runtime_path: String) -> bool:
 	var key := normalized.trim_prefix(".dependency/").split("/")[0]
 	var entry: DependencyManifestEntry = entries.get(key, null)
 	return entry != null and entry.populated and not entry.bin.is_empty()
-
-
-## When Python is missing, ask the agent to read the dependency-manager skill first.
-static func prepend_python_install_skill(user_text: String) -> String:
-	if has_populated_runtime(PYTHON_PATH):
-		return user_text
-	return (
-		"The required Python runtime is not installed. Before handling this request, read and follow the "
-		+ "dependency setup instructions in " + SKILL_DEPENDENCY_MANAGER_PATH
-		+ ", install the Python runtime, and then complete the original request below."
-		+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-		+ user_text
-	)
