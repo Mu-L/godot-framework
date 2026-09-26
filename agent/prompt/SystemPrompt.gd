@@ -30,6 +30,7 @@ static func build_godot_context() -> String:
 	var executable_path := OS.get_executable_path()
 	if StringUtils.is_not_blank(executable_path):
 		build.append(StringUtils.format("Godot executable: {}", executable_path))
+	build.append(StringUtils.format("Python path: {}", DependencyManifest.PYTHON_PATH))
 	return build.build_joined(FileUtils.NEWLINE_LF)
 
 

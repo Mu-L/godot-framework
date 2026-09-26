@@ -58,27 +58,14 @@ static func has_populated_runtime(runtime_path: String) -> bool:
 	return entry != null and entry.populated and not entry.bin.is_empty()
 
 
-## When the bundled Python runtime is missing, prepend the dependency-manager skill to the
-## user message so the agent installs Python before continuing with the original request.
+## When Python is missing, ask the agent to read the dependency-manager skill first.
 static func prepend_python_install_skill(user_text: String) -> String:
 	if has_populated_runtime(PYTHON_PATH):
 		return user_text
-	var skill_path := AgentWorkspace.resolve_path(SKILL_DEPENDENCY_MANAGER_PATH)
-	if not FileAccess.file_exists(skill_path):
-		Log.error("python install skill missing:[{}]", skill_path)
-		return user_text
-	var skill_text := FileUtils.read_file_to_string(skill_path).strip_edges()
-	if skill_text.is_empty():
-		Log.error("python install skill empty:[{}]", skill_path)
-		return user_text
 	return (
-		"Python is not installed in .dependency/. Before handling the user request, "
-		+ "follow the dependency-manager skill below to install the default Python runtime. "
-		+ "After Python is installed, continue with the original user request."
+		"The required Python runtime is not installed. Before handling this request, read and follow the "
+		+ "dependency setup instructions in " + SKILL_DEPENDENCY_MANAGER_PATH
+		+ ", install the Python runtime, and then complete the original request below."
 		+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-		+ skill_text
-		+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-		+ "Original user request:"
-		+ FileUtils.NEWLINE_LF
 		+ user_text
 	)

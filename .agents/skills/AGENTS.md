@@ -167,6 +167,7 @@ When a skill does **not** specify a Python version, assume **Python 3.14** as th
 - Install to `.dependency/python/` and register as the `python` entry in `manifest.json`.
 - Skills that only reference `python` (no version suffix) rely on this default.
 - If a skill explicitly requires another version (e.g. `python-3.11`), use a separate manifest entry and install directory instead.
+- Install runtimes by extracting portable archives into `.dependency/<name>/`; never run interactive/system installers or modify the host environment.
 
 The `python` runtime is for **stdlib-only** skill scripts (e.g. audio wrappers, path/batch wrappers). Do **not** `pip install` into `.dependency/python/` itself.
 
