@@ -65,6 +65,10 @@ const CARD_SATURATION_DARK := 0.27
 const CARD_SATURATION_LIGHT := 0.10
 const CARD_VALUE_DARK := 0.16
 const CARD_VALUE_LIGHT := 0.87
+const DARK_SELECTED_SURFACE_BASE := Color(0.14, 0.15, 0.18)
+const LIGHT_SELECTED_SURFACE_BASE := Color(1.00, 1.00, 1.00)
+const DARK_SELECTED_SURFACE_MIX := 0.14
+const LIGHT_SELECTED_SURFACE_MIX := 0.16
 const TITLE_SATURATION_DARK := 0.12
 const TITLE_SATURATION_LIGHT := 0.20
 const TITLE_VALUE_DARK := 0.94
@@ -74,10 +78,6 @@ const BODY_SATURATION_LIGHT := 0.28
 const BODY_VALUE_DARK := 0.68
 const BODY_VALUE_LIGHT := 0.42
 const SELECTION_MIX := 0.30
-const DARK_SELECTED_SURFACE_BASE := Color(0.14, 0.15, 0.18)
-const LIGHT_SELECTED_SURFACE_BASE := Color(1.00, 1.00, 1.00)
-const DARK_SELECTED_SURFACE_MIX := 0.14
-const LIGHT_SELECTED_SURFACE_MIX := 0.16
 
 ## User-selected accent color; its alpha is preserved for translucent theme effects.
 static var theme_color: Color = DEFAULT_THEME_COLOR
@@ -87,14 +87,14 @@ static var accent_surface: Color = ColorBase.DARK_SURFACE
 static var inset_surface := Color(0.09, 0.10, 0.12)
 ## Background for cards inside a content area.
 static var card_surface := Color(0.14, 0.15, 0.18)
+## Large-area surface color for selected rows, nodes and pressed controls.
+static var selected_surface: Color = DARK_SELECTED_SURFACE_BASE
 ## High-contrast primary text color displayed on accent-derived card surfaces.
 static var title_color: Color = ColorBase.DARK_TEXT
 ## Lower-emphasis secondary text and resting control color on accent-derived surfaces.
 static var body_color: Color = ColorBase.DARK_MUTED
 ## Text-selection background color used by editable and selectable text controls.
 static var selection_color := Color(0.12, 0.29, 0.25)
-## Large-area surface color for selected rows, nodes and pressed controls.
-static var selected_surface: Color = DARK_SELECTED_SURFACE_BASE
 
 
 static func load_theme_color() -> Color:
