@@ -13,10 +13,16 @@ const MAX_SNIPPET_LENGTH := 260
 ## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
 const SEARCH_DEBOUNCE_MILLIS := 1000
 const SEARCH_ICON_PATH := "res://agent/asset/image/icon/search.svg"
+const CLOSE_ICON_PATH := "res://agent/asset/image/icon/close.svg"
+const POPUP_BORDER_ALPHA := 0.18
 
 var button: Button
 var popup: Window
 var popup_panel: PanelContainer
+var content_panel: PanelContainer
+var header_icon: TextureRect
+var title_label: Label
+var close_button: Button
 var query_edit: LineEdit
 var status_label: Label
 var results_scroll: ScrollContainer
@@ -42,6 +48,8 @@ func build_popup() -> void:
 	popup.size = DEFAULT_POPUP_SIZE
 	popup.visible = false
 	popup.transient = true
+	popup.borderless = true
+	popup.transparent_bg = true
 	popup.close_requested.connect(popup.hide)
 	popup.focus_exited.connect(on_popup_focus_exited)
 	popup.window_input.connect(on_popup_window_input)
@@ -59,6 +67,31 @@ func build_popup() -> void:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", Margin.ma_3)
 	margin.add_child(content)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", Margin.ma_2)
+	content.add_child(header)
+	header_icon = TextureRect.new()
+	header_icon.custom_minimum_size = Vector2(22, 22)
+	header_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	header_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	header_icon.texture = make_icon(SEARCH_ICON_PATH, ThemeColor.title_color)
+	header.add_child(header_icon)
+	title_label = Label.new()
+	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	header.add_child(title_label)
+	close_button = Button.new()
+	close_button.icon = make_icon(CLOSE_ICON_PATH, Color.WHITE)
+	close_button.expand_icon = true
+	close_button.focus_mode = Control.FOCUS_NONE
+	close_button.custom_minimum_size = ControlSize.square(ControlSize.lg)
+	close_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	close_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	close_button.add_theme_constant_override("icon_max_width", 22)
+	close_button.add_theme_constant_override("icon_max_height", 22)
+	close_button.pressed.connect(popup.hide)
+	header.add_child(close_button)
 	query_edit = LineEdit.new()
 	query_edit.custom_minimum_size = Vector2(0, 42)
 	query_edit.clear_button_enabled = true
@@ -73,14 +106,27 @@ func build_popup() -> void:
 	status_label = Label.new()
 	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	content.add_child(status_label)
+	content_panel = PanelContainer.new()
+	content_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(content_panel)
+	var results_margin := MarginContainer.new()
+	results_margin.add_theme_constant_override("margin_left", Margin.ma_2)
+	results_margin.add_theme_constant_override("margin_right", Margin.ma_2)
+	results_margin.add_theme_constant_override("margin_top", Margin.ma_2)
+	results_margin.add_theme_constant_override("margin_bottom", Margin.ma_2)
+	content_panel.add_child(results_margin)
 	results_scroll = ScrollContainer.new()
 	results_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	results_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	content.add_child(results_scroll)
+	results_margin.add_child(results_scroll)
+	var list_margin := MarginContainer.new()
+	list_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_margin.add_theme_constant_override("margin_right", Margin.ma_2)
+	results_scroll.add_child(list_margin)
 	results_list = VBoxContainer.new()
 	results_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	results_list.add_theme_constant_override("separation", Margin.ma_1)
-	results_scroll.add_child(results_list)
+	list_margin.add_child(results_list)
 	pass
 
 
@@ -93,14 +139,13 @@ func apply_theme() -> void:
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
 	update_icon(button.is_hovered())
-	popup.add_theme_stylebox_override("embedded_border", make_embedded_border(PopupWindow.BORDER_ALPHA))
-	popup.add_theme_stylebox_override("embedded_unfocused_border", make_embedded_border(PopupWindow.BORDER_ALPHA_UNFOCUSED))
-	popup.add_theme_color_override("title_color", ThemeColor.title_color)
-	popup.add_theme_font_override("title_font", Fonts.semibold())
-	popup.add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
-	popup_panel.add_theme_stylebox_override("panel", make_content_style())
+	popup_panel.add_theme_stylebox_override("panel", make_popup_style())
+	content_panel.add_theme_stylebox_override("panel", make_content_style())
+	header_icon.texture = make_icon(SEARCH_ICON_PATH, ThemeColor.title_color)
+	title_label.add_theme_color_override("font_color", ThemeColor.title_color)
+	style_close_button()
 	status_label.add_theme_color_override("font_color", Color(ThemeColor.title_color, 0.62))
-	ScrollBarStyle.apply(results_scroll.get_v_scroll_bar())
+	ScrollBarStyle.apply_custom(results_scroll.get_v_scroll_bar(), ScrollBarStyle.thickness_sm, Color(ThemeColor.body_color, 0.35), Color(ThemeColor.body_color, 0.70), true)
 	style_query_edit()
 	for child: Node in results_list.get_children():
 		if child is Button:
@@ -109,7 +154,7 @@ func apply_theme() -> void:
 
 
 func apply_locale() -> void:
-	popup.title = I18n.t("agent.search.title")
+	title_label.text = I18n.t("agent.search.title")
 	query_edit.placeholder_text = I18n.t("agent.search.placeholder")
 	if not query_edit.editable:
 		status_label.text = I18n.t("agent.search.loading")
@@ -140,7 +185,7 @@ func on_mouse_exited() -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	button.icon = make_search_icon(ColorBase.primary_text if hovered else ColorBase.secondary_text)
+	button.icon = make_icon(SEARCH_ICON_PATH, ColorBase.primary_text if hovered else ColorBase.secondary_text)
 	pass
 
 
@@ -277,8 +322,8 @@ func clear_results() -> void:
 	pass
 
 
-func make_search_icon(color: Color) -> ImageTexture:
-	var svg := FileAccess.get_file_as_string(SEARCH_ICON_PATH)
+func make_icon(path: String, color: Color) -> ImageTexture:
+	var svg := FileAccess.get_file_as_string(path)
 	svg = svg.replace("#" + Color.WHITE.to_html(false), "#" + color.to_html(false))
 	var image := Image.new()
 	if image.load_svg_from_string(svg, 2.0) != OK:
@@ -286,22 +331,29 @@ func make_search_icon(color: Color) -> ImageTexture:
 	return ImageTexture.create_from_image(image)
 
 
-func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
-	var style: StyleBoxFlat = popup.get_theme_stylebox("embedded_border").duplicate() as StyleBoxFlat
-	style.bg_color = ThemeColor.accent_surface
-	style.set_corner_radius_all(ControlSize.radius_md)
-	style.border_color = Color(ThemeColor.title_color, border_alpha)
-	style.set_border_width_all(ControlSize.border_xs)
+func style_close_button() -> void:
+	var normal := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, int(ControlSize.lg * 0.5))
+	var hover := ButtonStyle.filled(normal, Color(ThemeColor.title_color, 0.08))
+	var pressed := ButtonStyle.filled(normal, Color(ThemeColor.title_color, 0.14))
+	ButtonStyle.apply(close_button, normal, hover, pressed)
+	close_button.add_theme_color_override("icon_normal_color", Color(ThemeColor.body_color, 0.75))
+	close_button.add_theme_color_override("icon_hover_color", ThemeColor.title_color)
+	close_button.add_theme_color_override("icon_pressed_color", ThemeColor.title_color)
+	close_button.add_theme_color_override("icon_hover_pressed_color", ThemeColor.title_color)
+	pass
+
+
+func make_popup_style() -> StyleBoxFlat:
+	var style := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 12, Margin.ma_0, Margin.ma_0, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
 	return style
 
 
 func make_content_style() -> StyleBoxFlat:
-	var style := StyleBoxHelper.create_style_box_flat(ThemeColor.inset_surface, 0)
-	return style
+	return StyleBoxHelper.create_style_box_flat(ThemeColor.inset_surface, 8)
 
 
 func style_query_edit() -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, PopupWindow.BORDER_ALPHA), ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.inset_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
 	var focus := normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()
 	focus.set_border_width_all(ControlSize.border_sm)
@@ -309,12 +361,15 @@ func style_query_edit() -> void:
 	query_edit.add_theme_stylebox_override("focus", focus)
 	query_edit.add_theme_color_override("font_color", ThemeColor.title_color)
 	query_edit.add_theme_color_override("font_placeholder_color", Color(ThemeColor.title_color, 0.62))
+	query_edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
+	query_edit.add_theme_color_override("font_selected_color", ThemeColor.title_color)
 	query_edit.add_theme_color_override("selection_color", ThemeColor.selection_color)
+	query_edit.caret_blink = true
 	pass
 
 
 func style_result_button(result: Button) -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, PopupWindow.BORDER_ALPHA), ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
 	ButtonStyle.apply(result, normal,
 		ButtonStyle.filled(normal, ThemeColor.accent_surface.lerp(ThemeColor.accent_theme_color(), 0.12), ThemeColor.accent_theme_color()),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))

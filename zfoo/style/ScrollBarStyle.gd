@@ -1,11 +1,27 @@
 class_name ScrollBarStyle
 extends Object
 
-const THICKNESS: float = 6.0
+## Hairline scrollbar: low-priority inset areas and compact previews.
+const thickness_xs: int = 1
+## Slim scrollbar: dense lists where the thumb should stay quiet.
+const thickness_sm: int = 2
+## Compact scrollbar: secondary panels such as search results.
+const thickness_md: int = 3
+## Standard scrollbar: ordinary scrollable controls.
+const thickness_lg: int = 4
+## Prominent scrollbar: large content surfaces needing easier targeting.
+const thickness_xl: int = 5
+## Widest scrollbar: the shared default and accessibility-oriented surfaces.
+const thickness_xxl: int = 6
 
-## Shared thin scrollbar for popup, transcript and sidebar surfaces.
-## Keeps the engine's shape while replacing its thickness and state fill colors.
+## Shared default used by popup, transcript and sidebar surfaces.
 static func apply(bar: ScrollBar) -> void:
+	apply_custom(bar, thickness_xxl, ThemeColor.body_color, ThemeColor.accent_theme_color(), false)
+	pass
+
+
+## Configurable variant for controls whose scrollbar intentionally differs from the shared default.
+static func apply_custom(bar: ScrollBar, thickness: int, resting_color: Color, hover_color: Color, rounded: bool = false) -> void:
 	var scroll := bar.get_theme_stylebox("scroll").duplicate() as StyleBoxFlat
 	scroll.bg_color = Color(0, 0, 0, 0)
 	bar.add_theme_stylebox_override("scroll", scroll)
@@ -13,15 +29,19 @@ static func apply(bar: ScrollBar) -> void:
 	scroll_focus.bg_color = Color(0, 0, 0, 0)
 	bar.add_theme_stylebox_override("scroll_focus", scroll_focus)
 	var grabber := bar.get_theme_stylebox("grabber").duplicate() as StyleBoxFlat
-	grabber.bg_color = ThemeColor.body_color
+	grabber.bg_color = resting_color
 	bar.add_theme_stylebox_override("grabber", grabber)
 	var grabber_highlight := bar.get_theme_stylebox("grabber_highlight").duplicate() as StyleBoxFlat
-	grabber_highlight.bg_color = ThemeColor.accent_theme_color()
+	grabber_highlight.bg_color = hover_color
 	bar.add_theme_stylebox_override("grabber_highlight", grabber_highlight)
 	var grabber_pressed := bar.get_theme_stylebox("grabber_pressed").duplicate() as StyleBoxFlat
 	grabber_pressed.bg_color = ThemeColor.accent_theme_color()
 	bar.add_theme_stylebox_override("grabber_pressed", grabber_pressed)
-	var half_thickness := THICKNESS * 0.5
+	var half_thickness := maxi(thickness, 1) * 0.5
+	if rounded:
+		var radius := ceili(half_thickness)
+		for style: StyleBoxFlat in [grabber, grabber_highlight, grabber_pressed]:
+			style.set_corner_radius_all(radius)
 	if bar is VScrollBar:
 		scroll.content_margin_left = half_thickness
 		scroll.content_margin_right = half_thickness
