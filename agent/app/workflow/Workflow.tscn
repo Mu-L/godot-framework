@@ -25,19 +25,15 @@ layout_mode = 2
 [node name="ToolbarRow" type="HBoxContainer" parent="Root/Toolbar/ToolbarMargin"]
 layout_mode = 2
 
-[node name="Brand" type="VBoxContainer" parent="Root/Toolbar/ToolbarMargin/ToolbarRow"]
-custom_minimum_size = Vector2(300, 0)
+[node name="Logo" type="Label" parent="Root/Toolbar/ToolbarMargin/ToolbarRow"]
 layout_mode = 2
-size_flags_vertical = 4
+text = "GAI"
+vertical_alignment = 1
 
-[node name="Eyebrow" type="Label" parent="Root/Toolbar/ToolbarMargin/ToolbarRow/Brand"]
+[node name="Title" type="Label" parent="Root/Toolbar/ToolbarMargin/ToolbarRow"]
 layout_mode = 2
-text = "WORKFLOW"
-
-[node name="WorkflowName" type="Label" parent="Root/Toolbar/ToolbarMargin/ToolbarRow/Brand"]
-layout_mode = 2
-text = "Untitled"
-text_overrun_behavior = 3
+text = "Workflow"
+vertical_alignment = 1
 
 [node name="Spacer" type="Control" parent="Root/Toolbar/ToolbarMargin/ToolbarRow"]
 layout_mode = 2

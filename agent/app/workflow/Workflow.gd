@@ -7,14 +7,13 @@ const PALETTE_LABEL_MAX: int = 30
 @onready var toolbar: PanelContainer = $Root/Toolbar
 @onready var toolbar_margin: MarginContainer = $Root/Toolbar/ToolbarMargin
 @onready var toolbar_row: HBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow
-@onready var brand: VBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand
-@onready var eyebrow: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand/Eyebrow
+@onready var logo_label: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Logo
+@onready var title_label: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Title
 @onready var actions: HBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
 @onready var sidebar_margin: MarginContainer = $Root/Body/Sidebar/SidebarMargin
 @onready var palette_vbox: VBoxContainer = $Root/Body/Sidebar/SidebarMargin/PaletteVBox
 @onready var palette_tree: Tree = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteScroll/PaletteTree
-@onready var workflow_name_label: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand/WorkflowName
 @onready var palette_title: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteTitle
 @onready var palette_hint: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteHint
 @onready var new_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/NewButton
@@ -84,7 +83,6 @@ func apply_layout_tokens() -> void:
 	toolbar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
 	toolbar_margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
 	toolbar_row.add_theme_constant_override("separation", Margin.ma_4)
-	brand.add_theme_constant_override("separation", Margin.ma_0)
 	actions.add_theme_constant_override("separation", Margin.ma_2)
 	sidebar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_top", Margin.ma_4)
@@ -95,10 +93,15 @@ func apply_layout_tokens() -> void:
 
 
 func apply_text_tokens() -> void:
-	eyebrow.add_theme_font_size_override("font_size", TextSize.label_small_size)
-	eyebrow.add_theme_color_override("font_color", ThemeColor.theme_color_full_alpha())
-	workflow_name_label.add_theme_font_size_override("font_size", TextSize.title_large_size)
-	workflow_name_label.add_theme_color_override("font_color", ColorBase.text)
+	var logo_font := FontVariation.new()
+	logo_font.base_font = Fonts.bold()
+	logo_font.spacing_glyph = TextSize.title_medium_letter_spacing * 20
+	logo_label.add_theme_font_override("font", logo_font)
+	logo_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	var logo_color := ThemeColor.theme_color_full_alpha()
+	logo_label.add_theme_color_override("font_color", logo_color if ThemeColor.is_dark_theme() else logo_color.darkened(0.08))
+	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	title_label.add_theme_color_override("font_color", ColorBase.text)
 	palette_title.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	palette_title.add_theme_color_override("font_color", ColorBase.text)
 	palette_hint.add_theme_font_size_override("font_size", TextSize.body_small_size)
@@ -304,7 +307,6 @@ func set_workflow_name(name: String) -> void:
 	var display_name: String = WorkflowManager.workflow_name
 	if display_name == "Untitled":
 		display_name = tr("workflow.untitled")
-	workflow_name_label.text = display_name
 	get_window().title = tr("workflow.window_title").format([display_name], StringUtils.EMPTY_JSON)
 	pass
 
