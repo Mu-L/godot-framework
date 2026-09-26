@@ -656,8 +656,7 @@ func style_spin_box(spin: SpinBox) -> void:
 	var normal: StyleBoxFlat = make_input_style()
 	normal.content_margin_left = Margin.ma_0
 	normal.content_margin_right = Margin.ma_0
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = ColorBase.hover_surface
+	var hover := ButtonStyle.filled(normal, ColorBase.hover_surface)
 	for side: String in ["up", "down"]:
 		spin.add_theme_stylebox_override(side + "_background", normal)
 		spin.add_theme_stylebox_override(side + "_background_hovered", hover)

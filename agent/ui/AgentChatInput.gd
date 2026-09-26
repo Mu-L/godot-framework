@@ -730,10 +730,10 @@ func apply_send_button_style(base_color: Color) -> void:
 	var radius: int = int(ControlSize.md * 0.5)
 	# Solid fill: hover / pressed / disabled read as plain shading, so they never flip with the theme.
 	var normal := BoxStyle.make(base_color, radius, Margin.ma_1, Margin.ma_1)
-	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.10))
-	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
-	var disabled := BoxStyle.with_bg(normal, base_color.darkened(0.25))
-	ButtonStyle.apply(send_button, normal, hover, pressed, disabled)
+	ButtonStyle.apply(send_button, normal,
+		ButtonStyle.filled(normal, base_color.lightened(0.10)),
+		ButtonStyle.filled(normal, base_color.darkened(0.08)),
+		ButtonStyle.filled(normal, base_color.darkened(0.25)))
 	send_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	pass
 

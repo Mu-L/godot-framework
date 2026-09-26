@@ -61,8 +61,7 @@ static func style_view_button(button: Button) -> void:
 
 	var border := ButtonStyle.press_color(ColorBase.purple)
 	var normal := BoxStyle.make(ButtonStyle.hover_color(ColorBase.purple_surface, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
-	var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(ColorBase.purple_surface, 0.16))
-	hover.border_color = ColorBase.purple
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.press_color(ColorBase.purple_surface, 0.06))
-	ButtonStyle.apply(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ButtonStyle.hover_color(ColorBase.purple_surface, 0.16), ColorBase.purple),
+		ButtonStyle.filled(normal, ButtonStyle.press_color(ColorBase.purple_surface, 0.06), ColorBase.purple))
 	pass

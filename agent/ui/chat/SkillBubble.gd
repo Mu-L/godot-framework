@@ -1,4 +1,4 @@
-﻿class_name SkillBubble
+class_name SkillBubble
 extends RefCounted
 
 ## Skill index / AGENTS.md context chat bubble 鈥?expand/collapse with Markdown preview.
@@ -123,7 +123,7 @@ static func style_expand_button(button: Button) -> void:
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.08))
 
 	var normal := BoxStyle.make(Color.TRANSPARENT, 0, Margin.ma_1, Margin.ma_0)
-	var hover := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.12))
+	var hover := ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.12))
 	hover.set_corner_radius_all(4)
 
 	# Pressed looks exactly like hover here, so the two states share one box.

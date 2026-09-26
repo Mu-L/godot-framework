@@ -12,10 +12,10 @@ static func style(button: Button, tooltip: String) -> void:
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
-	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	var hover_pressed := BoxStyle.with_bg(pressed, ButtonStyle.hover_color(pressed.bg_color, 0.06))
-	ButtonStyle.apply(button, normal, hover, pressed, null, hover_pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ColorBase.hover_surface),
+		ButtonStyle.filled(normal, ThemeColor.selected_surface),
+		null, ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06)))
 	pass
 
 
@@ -27,8 +27,8 @@ static func style_round(button: Button, tooltip: String) -> void:
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.sm / 2, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
-	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	var hover_pressed := BoxStyle.with_bg(pressed, ButtonStyle.hover_color(pressed.bg_color, 0.06))
-	ButtonStyle.apply(button, normal, hover, pressed, null, hover_pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ColorBase.hover_surface),
+		ButtonStyle.filled(normal, ThemeColor.selected_surface),
+		null, ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06)))
 	pass

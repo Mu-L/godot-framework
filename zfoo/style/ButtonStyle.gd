@@ -5,8 +5,8 @@ extends Object
 ## and install the state set a [Button] needs. The boxes themselves are built by [BoxStyle].
 ##
 ## The derivation is theme-aware on purpose. [method hover_color] steps *away* from the surface —
-## brighter on the dark theme, darker on the light one — and [method press_color] / [method muted]
-## step back toward it, so a control keeps its contrast when the theme flips instead of washing out.
+## brighter on the dark theme, darker on the light one — and [method press_color] steps back toward
+## it, so a control keeps its contrast when the theme flips instead of washing out.
 ## The amount is the caller's: that is per-component tuning, not a shared token, and the defaults
 ## are just the common step.
 ##
@@ -16,9 +16,9 @@ extends Object
 ## Typical use:
 ## [codeblock]
 ## var normal := BoxStyle.make(ThemeColor.card_surface, 6, Margin.ma_2, Margin.ma_1, ThemeColor.accent_theme_color(), 1)
-## var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(ThemeColor.card_surface, 0.08))
-## var pressed := BoxStyle.with_bg(hover, ThemeColor.inset_surface)
-## ButtonStyle.apply_states(button, normal, hover, pressed)
+## ButtonStyle.apply(button, normal,
+## 	ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.card_surface, 0.08)),
+## 	ButtonStyle.filled(normal, ThemeColor.inset_surface, ThemeColor.accent_theme_color()))
 ## [/codeblock]
 
 ## Common step sizes; pass an explicit amount when a component needs a different one.
@@ -38,8 +38,20 @@ static func press_color(base: Color, amount: float = PRESS_AMOUNT) -> Color:
 	return base.darkened(amount) if ThemeColor.is_dark_theme() else base.lightened(amount)
 
 
-## Supporting color that should recede into the background: hairline outlines, secondary lines.
-## Same direction as [method press_color], with a larger default step.
+## A copy of [param base] with a new fill — how the hover / pressed / disabled box of a button is
+## derived from its normal box, so the border, padding and corners are written only once.
+##
+## A transparent [param border_color] keeps the outline of [param base]; pass one only for a state
+## whose outline changes. Pass a state box as [param base] when the next state builds on it instead
+## of on the normal box.
+static func filled(base: StyleBoxFlat, fill: Color, border_color: Color = Color.TRANSPARENT) -> StyleBoxFlat:
+	var style: StyleBoxFlat = base.duplicate() as StyleBoxFlat
+	style.bg_color = fill
+	if border_color != Color.TRANSPARENT:
+		style.border_color = border_color
+	return style
+
+
 ## Install the button states. [param disabled] falls back to a copy of [param normal] and
 ## [param hover_pressed] to a copy of [param pressed]; [code]focus[/code] always mirrors
 ## [param hover].
@@ -66,7 +78,7 @@ static func apply(
 
 ## Text colors for the same states, one per `font_*_color` theme item: focus mirrors
 ## [param hover_color] and hover-pressed mirrors [param pressed_color], the same pairing
-## [method apply_states] uses for the boxes.
+## [method apply] uses for the boxes.
 ##
 ## Those two are not optional — an item left out is resolved from the default theme, whose focus
 ## and hover-pressed text are near white and would vanish on a light surface.

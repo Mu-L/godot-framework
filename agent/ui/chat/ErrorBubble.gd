@@ -1,4 +1,4 @@
-﻿class_name ErrorBubble
+class_name ErrorBubble
 extends Object
 
 ## Error bubble with optional resume action for the agent chat transcript.
@@ -89,12 +89,9 @@ static func style_resume_button(button: Button) -> void:
 
 	var normal := BoxStyle.make(ThemeColor.alpha_theme_color(0.08),5,
 		Margin.ma_3,Margin.ma_1,ThemeColor.alpha_theme_color(0.35),1)
-	
-	var hover := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.16))
-	hover.border_color = ThemeColor.alpha_theme_color(0.55)
-	var pressed := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.22))
-	var disabled := BoxStyle.with_bg(normal, ThemeColor.alpha_theme_color(0.04))
-	disabled.border_color = ThemeColor.alpha_theme_color(0.12)
-	ButtonStyle.apply(button, normal, hover, pressed, disabled)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.16), ThemeColor.alpha_theme_color(0.55)),
+		ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.22)),
+		ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.04), ThemeColor.alpha_theme_color(0.12)))
 	pass
 

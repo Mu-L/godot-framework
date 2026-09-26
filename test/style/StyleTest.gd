@@ -78,10 +78,6 @@ func ButtonStyle_color_direction_test() -> void:
 	assert(ButtonStyle.hover_color(GRAY, 0.10) == GRAY.darkened(0.10))
 	assert(ButtonStyle.press_color(GRAY, 0.06) == GRAY.lightened(0.06))
 
-	# `muted` is the resting counterpart of the pressed step, one bigger default amount.
-	assert(ButtonStyle.muted(GRAY) == ButtonStyle.press_color(GRAY, ButtonStyle.MUTED_AMOUNT))
-	assert(ButtonStyle.MUTED_AMOUNT > ButtonStyle.PRESS_AMOUNT)
-
 	ThemeColor.current_theme = original
 	pass
 
@@ -162,22 +158,28 @@ func card_components_test() -> void:
 	pass
 
 
-func BoxStyle_with_bg_test() -> void:
+## Every state box is a copy of the normal one with a new fill, so the border, padding and corners
+## only have to be written once — this is the copy that keeps them.
+func ButtonStyle_filled_test() -> void:
 	var normal := BoxStyle.make(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
-	var hover := BoxStyle.with_bg(normal, Color(0.3, 0.3, 0.3))
+	var hover := ButtonStyle.filled(normal, Color(0.3, 0.3, 0.3))
 	assert(hover.bg_color == Color(0.3, 0.3, 0.3))
 	assert(hover.border_color == normal.border_color and hover.get_margin(SIDE_LEFT) == Margin.ma_2)
 	assert(hover.corner_radius_top_left == 6)
 	assert(normal.bg_color == Color(0.2, 0.2, 0.2))
+
+	# A border color is only written when one is given, so a state keeps the normal outline by default.
+	var outlined := ButtonStyle.filled(normal, Color(0.3, 0.3, 0.3), Color.RED)
+	assert(outlined.border_color == Color.RED and normal.border_color == Color.WHITE)
 	pass
 
 
 ## A missed `hover_pressed` override resolves to the *default theme* box, not to `pressed`,
 ## so the helper has to set it. This is what that regression looked like.
-func ButtonStyle_apply_states_test() -> void:
+func ButtonStyle_apply_test() -> void:
 	var normal := BoxStyle.make(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
-	var hover := BoxStyle.with_bg(normal, Color(0.3, 0.3, 0.3))
-	var pressed := BoxStyle.with_bg(normal, Color(0.1, 0.1, 0.1))
+	var hover := ButtonStyle.filled(normal, Color(0.3, 0.3, 0.3))
+	var pressed := ButtonStyle.filled(normal, Color(0.1, 0.1, 0.1))
 
 	var button := Button.new()
 	ButtonStyle.apply(button, normal, hover, pressed)

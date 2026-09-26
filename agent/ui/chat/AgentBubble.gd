@@ -81,9 +81,7 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.10))
 
 	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ThemeColor.alpha_theme_color(0.45), 1)
-	var hover := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	hover.border_color = ThemeColor.alpha_theme_color(0.85)
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
-	pressed.border_color = theme_color
-	ButtonStyle.apply(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ThemeColor.selected_surface, ThemeColor.alpha_theme_color(0.85)),
+		ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06), theme_color))
 	pass

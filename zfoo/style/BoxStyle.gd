@@ -5,13 +5,13 @@ extends Object
 ## plain panel can build a box without pulling in the hover / pressed derivation.
 ##
 ## Padding comes from the [Margin] scale, so a box is written in the same 4px steps as the rest of
-## the layout: symmetric through [method make], per-side through [method pad]. [method with_bg]
-## derives a hover / pressed box from the normal one.
+## the layout: symmetric through [method make], per-side through [method pad].
 ##
 ## Typical use:
 ## [codeblock]
 ## var normal := BoxStyle.make(ThemeColor.card_surface, 6, Margin.ma_2, Margin.ma_1, ThemeColor.accent_theme_color(), 1)
-## var hover := BoxStyle.with_bg(normal, ThemeColor.inset_surface)
+## var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
+## hover.bg_color = ThemeColor.inset_surface
 ## [/codeblock]
 
 
@@ -46,10 +46,3 @@ static func pad(style: StyleBox, left: int, top: int, right: int, bottom: int) -
 	style.content_margin_right = right
 	style.content_margin_bottom = bottom
 	pass
-
-
-## [param base] with a new fill — how a hover / pressed box is built from the normal one.
-static func with_bg(base: StyleBoxFlat, bg: Color) -> StyleBoxFlat:
-	var style: StyleBoxFlat = base.duplicate() as StyleBoxFlat
-	style.bg_color = bg
-	return style

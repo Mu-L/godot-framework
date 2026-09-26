@@ -259,7 +259,7 @@ func style_node_button(button: Button) -> void:
 	button.add_theme_font_size_override("font_size", TextSize.body_medium_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
-	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	ButtonStyle.apply(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ColorBase.hover_surface),
+		ButtonStyle.filled(normal, ThemeColor.selected_surface))
 	pass

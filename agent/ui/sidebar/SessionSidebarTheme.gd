@@ -39,11 +39,9 @@ static func apply_new_session_button(button: Button) -> void:
 
 	var border := ThemeColor.alpha_theme_color(0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
-	var hover := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	hover.border_color = ThemeColor.alpha_theme_color(0.85)
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
-	pressed.border_color = theme_color
-	ButtonStyle.apply(button, normal, hover, pressed)
+	ButtonStyle.apply(button, normal,
+		ButtonStyle.filled(normal, ThemeColor.selected_surface, ThemeColor.alpha_theme_color(0.85)),
+		ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06), theme_color))
 	pass
 
 
