@@ -63,9 +63,6 @@ text = "Save"
 layout_mode = 2
 text = "Delete Node"
 
-[node name="Divider" type="VSeparator" parent="Root/Toolbar/ToolbarMargin/ToolbarRow/Actions"]
-layout_mode = 2
-
 [node name="LogButton" type="Button" parent="Root/Toolbar/ToolbarMargin/ToolbarRow/Actions"]
 layout_mode = 2
 text = "Log"
