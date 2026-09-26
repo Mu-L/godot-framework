@@ -9,7 +9,8 @@ class DependencyManifestEntry:
 
 ## Static manifest loaded from `.dependency/manifest.json`. Do not instantiate.
 
-const MANIFEST_REL_PATH := "res://.dependency/manifest.json"
+const MANIFEST_REL_PATH := ".dependency/manifest.json"
+const PYTHON_PATH := "./dependency/python/python"
 
 static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
@@ -39,15 +40,11 @@ static func _static_init() -> void:
 	pass
 
 
-static func get_entry(runtime: String) -> DependencyManifestEntry:
-	return entries.get(runtime, null)
-
-
 static func has_populated_runtime(runtime_path: String) -> bool:
 	var normalized := runtime_path.replace("\\", "/")
 	if not normalized.begins_with(".dependency/"):
 		return false
 
 	var key := normalized.trim_prefix(".dependency/").split("/")[0]
-	var entry := get_entry(key)
+	var entry: DependencyManifestEntry = entries.get(key, null)
 	return entry != null and entry.populated and not entry.bin.is_empty()
