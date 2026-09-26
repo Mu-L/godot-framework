@@ -88,12 +88,12 @@ static func apply_font_colors(
 	base_color: Color,
 	hover_color: Color,
 	pressed_color: Color,
-	disabled_color: Variant = null
+	disabled_color: Color = Color.TRANSPARENT
 ) -> void:
 	button.add_theme_color_override("font_color", base_color)
 	button.add_theme_color_override("font_hover_color", hover_color)
 	button.add_theme_color_override("font_pressed_color", pressed_color)
 	button.add_theme_color_override("font_focus_color", hover_color)
 	button.add_theme_color_override("font_hover_pressed_color", pressed_color)
-	button.add_theme_color_override("font_disabled_color", disabled_color if disabled_color is Color else with_alpha(base_color, 0.5))
+	button.add_theme_color_override("font_disabled_color", disabled_color if disabled_color != Color.TRANSPARENT else with_alpha(base_color, 0.5))
 	pass

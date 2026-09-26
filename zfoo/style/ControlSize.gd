@@ -47,6 +47,13 @@ const radius_xl: int = 12
 ## Largest radius: showcase controls and prominent floating containers.
 const radius_xxl: int = 16
 
+## Hairline border: separators, subtle outlines and ordinary control frames.
+const border_xs: int = 1
+## Emphasized border: focus rings and selected control outlines.
+const border_sm: int = 2
+## Accent border: semantic stripes and prominent edge markers.
+const border_md: int = 3
+
 
 ## Both axes at one tier, for the square icon buttons that make up most of the chrome.
 static func square(size: int) -> Vector2:
