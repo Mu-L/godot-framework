@@ -134,10 +134,10 @@ func PopupWindow_theme_test() -> void:
 	assert(window.text_edit.get_theme_color("caret_color") == ColorCard.accent_color)
 	assert(window.text_edit.get_theme_font("font") == Fonts.regular())
 	assert(window.text_edit.get_theme_font_size("font_size") == TextSize.body_large_size)
-	# The bar keeps the engine's 8px box: only the fill is exchanged, not the geometry.
+	# The popup uses the shared thin scrollbar geometry and palette.
 	var grabber := window.text_edit.get_v_scroll_bar().get_theme_stylebox("grabber") as StyleBoxFlat
 	assert(grabber.bg_color == ColorCard.body_color)
-	assert(grabber.get_minimum_size().x == 8.0)
+	assert(grabber.get_minimum_size().x == ScrollBarStyle.THICKNESS)
 	window.free()
 	pass
 
