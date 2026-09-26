@@ -350,11 +350,11 @@ func add_check_button(parent: Container, label_text: String, enabled: bool) -> C
 
 ## Check button: the switch is the built-in toggle icon, tinted with the CheckButton theme colors.
 func style_check_button(check: CheckButton) -> void:
-	check.add_theme_color_override("font_color", ColorBase.text)
-	check.add_theme_color_override("font_hover_color", ColorBase.text)
-	check.add_theme_color_override("font_focus_color", ColorBase.text)
-	check.add_theme_color_override("font_pressed_color", ColorBase.text)
-	check.add_theme_color_override("font_hover_pressed_color", ColorBase.text)
+	check.add_theme_color_override("font_color", ColorBase.primary_text)
+	check.add_theme_color_override("font_hover_color", ColorBase.primary_text)
+	check.add_theme_color_override("font_focus_color", ColorBase.primary_text)
+	check.add_theme_color_override("font_pressed_color", ColorBase.primary_text)
+	check.add_theme_color_override("font_hover_pressed_color", ColorBase.primary_text)
 	# Only the "on" track takes the theme color — the "off" one keeps the theme default.
 	check.add_theme_color_override("button_checked_color", ThemeColor.accent_theme_color())
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
@@ -544,10 +544,10 @@ func apply_theme() -> void:
 	AgentToolbarButton.style_round(button, I18n.t("agent.settings.tooltip"))
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
-	button.add_theme_color_override("icon_normal_color", ColorBase.muted)
-	button.add_theme_color_override("icon_hover_color", ColorBase.text)
-	button.add_theme_color_override("icon_pressed_color", ColorBase.text)
-	button.add_theme_color_override("icon_focus_color", ColorBase.text)
+	button.add_theme_color_override("icon_normal_color", ColorBase.secondary_text)
+	button.add_theme_color_override("icon_hover_color", ColorBase.primary_text)
+	button.add_theme_color_override("icon_pressed_color", ColorBase.primary_text)
+	button.add_theme_color_override("icon_focus_color", ColorBase.primary_text)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ScrollBarStyle.apply(content_scroll.get_v_scroll_bar())
 	style_dialog()
@@ -567,14 +567,14 @@ func style_dialog() -> void:
 	dialog.add_theme_constant_override("resize_margin", Margin.ma_0)
 	dialog.add_theme_constant_override("buttons_separation", Margin.ma_0)
 	content_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	appearance_heading_label.add_theme_color_override("font_color", ColorBase.text)
-	notification_heading_label.add_theme_color_override("font_color", ColorBase.text)
-	heading_label.add_theme_color_override("font_color", ColorBase.text)
-	description_label.add_theme_color_override("font_color", ColorBase.muted)
+	appearance_heading_label.add_theme_color_override("font_color", ColorBase.primary_text)
+	notification_heading_label.add_theme_color_override("font_color", ColorBase.primary_text)
+	heading_label.add_theme_color_override("font_color", ColorBase.primary_text)
+	description_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	for label: Label in field_labels:
-		label.add_theme_color_override("font_color", ColorBase.text)
+		label.add_theme_color_override("font_color", ColorBase.primary_text)
 	for help: Label in help_labels:
-		help.add_theme_color_override("font_color", ColorBase.muted)
+		help.add_theme_color_override("font_color", ColorBase.secondary_text)
 	var separator_style := StyleBoxLine.new()
 	separator_style.color = ThemeColor.accent_theme_color()
 	separator_style.thickness = 1
@@ -593,7 +593,7 @@ func style_dialog() -> void:
 func style_option_button(select: OptionButton) -> void:
 	# Every font state, focus included: the dialog hands the focus to this select when it pops up,
 	# and the engine's focus text is near white.
-	ButtonStyle.apply_font_colors(select, ColorBase.text, ColorBase.text, ColorBase.text)
+	ButtonStyle.apply_font_colors(select, ColorBase.primary_text, ColorBase.primary_text, ColorBase.primary_text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	hover.border_color = ThemeColor.accent_theme_color()
@@ -606,11 +606,11 @@ func style_option_button(select: OptionButton) -> void:
 
 
 func style_provider_popup(popup: PopupMenu) -> void:
-	popup.add_theme_color_override("font_color", ColorBase.text)
-	popup.add_theme_color_override("font_hover_color", ColorBase.text)
-	popup.add_theme_color_override("font_accelerator_color", ColorBase.muted)
-	popup.add_theme_color_override("font_disabled_color", ColorBase.muted)
-	popup.add_theme_color_override("font_separator_color", ColorBase.muted)
+	popup.add_theme_color_override("font_color", ColorBase.primary_text)
+	popup.add_theme_color_override("font_hover_color", ColorBase.primary_text)
+	popup.add_theme_color_override("font_accelerator_color", ColorBase.secondary_text)
+	popup.add_theme_color_override("font_disabled_color", ColorBase.secondary_text)
+	popup.add_theme_color_override("font_separator_color", ColorBase.secondary_text)
 	popup.add_theme_font_size_override("font_size", TextSize.label_large_size)
 	popup.add_theme_constant_override("v_separation", Margin.ma_2)
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
@@ -624,8 +624,8 @@ func style_provider_popup(popup: PopupMenu) -> void:
 
 
 func style_line_edit(edit: LineEdit) -> void:
-	edit.add_theme_color_override("font_color", ColorBase.text)
-	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted.darkened(0.08))
+	edit.add_theme_color_override("font_color", ColorBase.primary_text)
+	edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text.darkened(0.08))
 	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
@@ -645,10 +645,10 @@ func make_input_style() -> StyleBoxFlat:
 ## Spin box: theme-color arrows on the shared field background.
 func style_spin_box(spin: SpinBox) -> void:
 	style_line_edit(spin.get_line_edit())
-	spin.add_theme_color_override("font_color", ColorBase.text)
-	spin.add_theme_color_override("font_placeholder_color", ColorBase.muted)
-	spin.add_theme_color_override("up_icon_modulate", ColorBase.text)
-	spin.add_theme_color_override("down_icon_modulate", ColorBase.text)
+	spin.add_theme_color_override("font_color", ColorBase.primary_text)
+	spin.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
+	spin.add_theme_color_override("up_icon_modulate", ColorBase.primary_text)
+	spin.add_theme_color_override("down_icon_modulate", ColorBase.primary_text)
 	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.accent_theme_color())
 	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.accent_theme_color())
 	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.accent_theme_color())

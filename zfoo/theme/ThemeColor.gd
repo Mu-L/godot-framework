@@ -78,9 +78,9 @@ const LIGHT_SELECTED_SURFACE_MIX := 0.16
 ## User-selected accent color; its alpha is preserved for translucent theme effects.
 static var theme_color: Color = DEFAULT_THEME_COLOR
 ## Accent-derived background for floating cards, notifications and popup window frames.
-static var background_color: Color = ColorBase.DARK_SURFACE
+static var accent_surface: Color = ColorBase.DARK_SURFACE
 ## Recessed accent-derived background for content areas nested inside cards and windows.
-static var inset_color := Color(0.09, 0.10, 0.12)
+static var inset_surface := Color(0.09, 0.10, 0.12)
 ## High-contrast primary text color displayed on accent-derived card surfaces.
 static var title_color: Color = ColorBase.DARK_TEXT
 ## Lower-emphasis secondary text and resting control color on accent-derived surfaces.
@@ -125,11 +125,11 @@ static func refresh_derived_colors() -> void:
 ## Recompute every color derived from [member theme_color].
 static func refresh_theme_colors() -> void:
 	var dark := is_dark_theme()
-	background_color = derive_theme_color(SURFACE_SATURATION_DARK if dark else SURFACE_SATURATION_LIGHT, SURFACE_VALUE_DARK if dark else SURFACE_VALUE_LIGHT)
-	inset_color = derive_theme_color(INSET_SATURATION_DARK if dark else INSET_SATURATION_LIGHT, INSET_VALUE_DARK if dark else INSET_VALUE_LIGHT)
+	accent_surface = derive_theme_color(SURFACE_SATURATION_DARK if dark else SURFACE_SATURATION_LIGHT, SURFACE_VALUE_DARK if dark else SURFACE_VALUE_LIGHT)
+	inset_surface = derive_theme_color(INSET_SATURATION_DARK if dark else INSET_SATURATION_LIGHT, INSET_VALUE_DARK if dark else INSET_VALUE_LIGHT)
 	title_color = derive_theme_color(TITLE_SATURATION_DARK if dark else TITLE_SATURATION_LIGHT, TITLE_VALUE_DARK if dark else TITLE_VALUE_LIGHT)
 	body_color = derive_theme_color(BODY_SATURATION_DARK if dark else BODY_SATURATION_LIGHT, BODY_VALUE_DARK if dark else BODY_VALUE_LIGHT)
-	selection_color = inset_color.lerp(accent_theme_color(), SELECTION_MIX)
+	selection_color = inset_surface.lerp(accent_theme_color(), SELECTION_MIX)
 	var selected_surface_base := DARK_SELECTED_SURFACE_BASE if dark else LIGHT_SELECTED_SURFACE_BASE
 	selected_surface = selected_surface_base.lerp(accent_theme_color(), DARK_SELECTED_SURFACE_MIX if dark else LIGHT_SELECTED_SURFACE_MIX)
 	pass

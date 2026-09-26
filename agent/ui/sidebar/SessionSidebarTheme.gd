@@ -35,7 +35,7 @@ static func apply_new_session_button(button: Button) -> void:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
-	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.muted)
+	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.secondary_text)
 
 	var border := ButtonStyle.with_alpha(theme_color, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
@@ -64,12 +64,12 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 
 ## Title / close button colors for the current row state.
 static func apply_row_colors(title_button: Button, delete_button: Button, selected: bool, hovered: bool) -> void:
-	var text_color: Color = ColorBase.text if selected or hovered else ColorBase.muted
+	var text_color: Color = ColorBase.primary_text if selected or hovered else ColorBase.secondary_text
 	title_button.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	title_button.add_theme_color_override("font_color", text_color)
 	title_button.add_theme_color_override("font_hover_color", text_color)
 	title_button.add_theme_color_override("font_pressed_color", text_color)
-	delete_button.add_theme_color_override("font_color", ColorBase.muted)
+	delete_button.add_theme_color_override("font_color", ColorBase.secondary_text)
 	delete_button.add_theme_color_override("font_hover_color", ColorBase.error)
 	delete_button.add_theme_color_override("font_pressed_color", ColorBase.error)
 	pass
@@ -95,8 +95,8 @@ static func drag_ghost() -> StyleBoxFlat:
 ## The field takes over the title's slot, so it mirrors the title's resolved font.
 static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	copy_font(edit, title_button)
-	edit.add_theme_color_override("font_color", ColorBase.text)
-	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	edit.add_theme_color_override("font_color", ColorBase.primary_text)
+	edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	edit.add_theme_color_override("selection_color", ThemeColor.selected_surface)
 	var field_style: StyleBoxFlat = rename_field()

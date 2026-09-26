@@ -72,14 +72,14 @@ func on_mouse_exited() -> void:
 
 func update_icon(hovered: bool) -> void:
 	var jarvis_orb_enabled: bool = AgentSetting.get_jarvis_orb_enabled()
-	var icon_color: Color = ColorBase.muted
+	var icon_color: Color = ColorBase.secondary_text
 	if jarvis_orb_enabled:
 		var theme_color: Color = ThemeColor.accent_theme_color()
 		icon_color = theme_color if ThemeColor.is_dark_theme() else theme_color.darkened(0.15)
 		if hovered:
 			icon_color = icon_color.lightened(0.12)
 	elif hovered:
-		icon_color = ColorBase.text
+		icon_color = ColorBase.primary_text
 	button.icon = make_concentric_rings_icon(Margin.ma_6, icon_color)
 	pass
 

@@ -11,7 +11,7 @@ func Alert_create_card_test() -> void:
 	assert(card.label.text_overrun_behavior == TextServer.OVERRUN_TRIM_ELLIPSIS)
 	assert(card.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	var style := card.get_theme_stylebox("panel") as StyleBoxFlat
-	assert(style.bg_color == ThemeColor.background_color)
+	assert(style.bg_color == ThemeColor.accent_surface)
 	assert(style.border_color == ColorBase.success)
 	assert(style.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(style.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)

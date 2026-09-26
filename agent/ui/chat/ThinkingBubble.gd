@@ -36,13 +36,13 @@ static func append(
 	header.add_child(view_button)
 
 	var line_label: Label = Label.new()
-	line_label.add_theme_color_override("font_color", ColorBase.muted)
+	line_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	line_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	header.add_child(line_label)
 
 	vbox.add_child(header)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.muted)
+	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.secondary_text)
 	ChatBubblePreview.enable_fixed_height_at_limit(rich_text)
 	vbox.add_child(rich_text)
 

@@ -29,10 +29,10 @@ func apply_theme() -> void:
 	toolbar_panel.queue_redraw()
 	apply_logo_theme()
 	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	title_label.add_theme_color_override("font_color", ColorBase.text)
-	project_button.add_theme_color_override("font_color", ColorBase.muted)
-	project_button.add_theme_color_override("font_hover_color", ColorBase.text)
-	project_button.add_theme_color_override("font_pressed_color", ColorBase.text)
+	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
+	project_button.add_theme_color_override("font_color", ColorBase.secondary_text)
+	project_button.add_theme_color_override("font_hover_color", ColorBase.primary_text)
+	project_button.add_theme_color_override("font_pressed_color", ColorBase.primary_text)
 	pass
 
 

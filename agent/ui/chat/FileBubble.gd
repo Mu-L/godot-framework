@@ -35,7 +35,7 @@ static func append(chat_list: VBoxContainer, entry: ChatEntry, panel_style: Styl
 		header.add_child(create_file_detail_label(file_message, ColorBase.error))
 	vbox.add_child(header)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.muted)
+	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.secondary_text)
 	rich_text.meta_clicked.connect(open_file)
 	rich_text.tooltip_text = "Open file"
 	vbox.add_child(rich_text)

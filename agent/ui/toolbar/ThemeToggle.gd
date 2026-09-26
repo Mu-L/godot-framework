@@ -80,12 +80,12 @@ func on_mouse_exited() -> void:
 
 func update_icon(hovered: bool) -> void:
 	var show_moon: bool = ThemeColor.is_light_theme()
-	var icon_color: Color = ColorBase.muted
+	var icon_color: Color = ColorBase.secondary_text
 	if show_moon:
 		icon_color = ThemeColor.accent_theme_color()
 	if hovered:
-		if icon_color == ColorBase.muted:
-			icon_color = ColorBase.text
+		if icon_color == ColorBase.secondary_text:
+			icon_color = ColorBase.primary_text
 		else:
 			icon_color = icon_color.lightened(0.12)
 	button.icon = make_icon(icon_color, show_moon)

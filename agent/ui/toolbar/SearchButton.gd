@@ -69,7 +69,7 @@ func build_popup() -> void:
 	header_icon.custom_minimum_size = Vector2(22, 22)
 	header_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	header_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	header_icon.texture = make_search_icon(ColorBase.text)
+	header_icon.texture = make_search_icon(ColorBase.primary_text)
 	header.add_child(header_icon)
 	title_label = Label.new()
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -95,7 +95,7 @@ func build_popup() -> void:
 	debounce_timer.timeout.connect(on_debounce_timeout)
 	popup.add_child(debounce_timer)
 	status_label = Label.new()
-	status_label.add_theme_color_override("font_color", ColorBase.muted)
+	status_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	content.add_child(status_label)
 	results_scroll = ScrollContainer.new()
@@ -156,7 +156,7 @@ func on_mouse_exited() -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	button.icon = make_search_icon(ColorBase.text if hovered else ColorBase.muted)
+	button.icon = make_search_icon(ColorBase.primary_text if hovered else ColorBase.secondary_text)
 	pass
 
 
@@ -317,8 +317,8 @@ func style_query_edit() -> void:
 	focus.set_border_width_all(2)
 	query_edit.add_theme_stylebox_override("normal", normal)
 	query_edit.add_theme_stylebox_override("focus", focus)
-	query_edit.add_theme_color_override("font_color", ColorBase.text)
-	query_edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	query_edit.add_theme_color_override("font_color", ColorBase.primary_text)
+	query_edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	pass
 
 
@@ -328,5 +328,5 @@ func style_result_button(result: Button) -> void:
 	hover.border_color = ThemeColor.accent_theme_color()
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	ButtonStyle.apply_states(result, normal, hover, pressed)
-	ButtonStyle.apply_font_colors(result, ColorBase.text, ColorBase.text, ColorBase.text)
+	ButtonStyle.apply_font_colors(result, ColorBase.primary_text, ColorBase.primary_text, ColorBase.primary_text)
 	pass

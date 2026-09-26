@@ -89,8 +89,8 @@ static var muted_border: Color = DARK_MUTED_BORDER
 ## Lightest outline for compact controls and toolbar elements.
 static var subtle_border: Color = DARK_SUBTLE_BORDER
 ## Primary and secondary foreground text colors.
-static var text: Color = DARK_TEXT
-static var muted: Color = DARK_MUTED
+static var primary_text: Color = DARK_TEXT
+static var secondary_text: Color = DARK_MUTED
 
 ## Strong blue information fill, used where an information surface needs extra emphasis.
 static var strong_info_surface: Color = DARK_STRONG_INFO_SURFACE
@@ -114,8 +114,8 @@ static func refresh() -> void:
 	border = DARK_BORDER if dark else LIGHT_BORDER
 	muted_border = DARK_MUTED_BORDER if dark else LIGHT_MUTED_BORDER
 	subtle_border = DARK_SUBTLE_BORDER if dark else LIGHT_SUBTLE_BORDER
-	text = DARK_TEXT if dark else LIGHT_TEXT
-	muted = DARK_MUTED if dark else LIGHT_MUTED
+	primary_text = DARK_TEXT if dark else LIGHT_TEXT
+	secondary_text = DARK_MUTED if dark else LIGHT_MUTED
 	error = DARK_ERROR if dark else LIGHT_ERROR
 	info = DARK_INFO if dark else LIGHT_INFO
 	warning = DARK_WARNING if dark else LIGHT_WARNING

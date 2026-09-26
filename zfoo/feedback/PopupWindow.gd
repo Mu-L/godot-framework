@@ -2,7 +2,7 @@
 ##
 ## The popup paints itself from the app theme: the embedded frame and title take the accent-derived
 ## card colors of [ThemeColor] — the same surface the snackbar and the desktop toast use, with the
-## card radius from [CardStyle] — and the text area takes [member ThemeColor.inset_color], with the
+## card radius from [CardStyle] — and the text area takes [member ThemeColor.inset_surface], with the
 ## accent on the caret, the selection and the scrollbar grabber. [method apply_theme] runs on open and
 ## on every theme change.
 ## The frame overrides only apply while subwindows are embedded, which is the project default; with
@@ -53,7 +53,7 @@ func apply_theme() -> void:
 ## square, so its corners can never open a gap against the frame's inner edge.
 func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 	var style: StyleBoxFlat = get_theme_stylebox("embedded_border").duplicate() as StyleBoxFlat
-	style.bg_color = ThemeColor.background_color
+	style.bg_color = ThemeColor.accent_surface
 	style.set_corner_radius_all(CardStyle.CORNER_RADIUS)
 	style.border_color = Color(ThemeColor.title_color, border_alpha)
 	style.set_border_width_all(1)
@@ -63,12 +63,12 @@ func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 ## Read-only text area on the card's inset surface: padding from [Margin], accent caret and
 ## selection, themed scrollbars.
 func style_text_edit() -> void:
-	var style := BoxStyle.make(ThemeColor.inset_color, 0, Margin.ma_4, Margin.ma_3)
+	var style := BoxStyle.make(ThemeColor.inset_surface, 0, Margin.ma_4, Margin.ma_3)
 	# A read-only TextEdit paints `read_only`, not `normal`; all three get the box so any state matches.
 	text_edit.add_theme_stylebox_override("normal", style)
 	text_edit.add_theme_stylebox_override("focus", style.duplicate())
 	text_edit.add_theme_stylebox_override("read_only", style.duplicate())
-	text_edit.add_theme_color_override("background_color", ThemeColor.inset_color)
+	text_edit.add_theme_color_override("background_color", ThemeColor.inset_surface)
 	text_edit.add_theme_color_override("font_color", ThemeColor.title_color)
 	text_edit.add_theme_color_override("font_readonly_color", ThemeColor.title_color)
 	text_edit.add_theme_color_override("font_selected_color", ThemeColor.title_color)

@@ -46,9 +46,9 @@ func _ready() -> void:
 
 func apply_scene_theme() -> void:
 	background.color = ColorBase.app_background
-	title_label.add_theme_color_override("font_color", ColorBase.text)
-	hint_label.add_theme_color_override("font_color", ColorBase.muted)
-	status_label.add_theme_color_override("font_color", ColorBase.muted)
+	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
+	hint_label.add_theme_color_override("font_color", ColorBase.secondary_text)
+	status_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	pass
 
 

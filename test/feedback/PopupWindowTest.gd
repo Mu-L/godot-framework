@@ -121,14 +121,14 @@ func PopupWindow_theme_test() -> void:
 	var window := PopupWindow.new()
 	gdf.gdf_node.add_child(window)
 	var border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(border.bg_color == ThemeColor.background_color)
+	assert(border.bg_color == ThemeColor.accent_surface)
 	assert(border.corner_radius_top_left == CardStyle.CORNER_RADIUS)
 	assert(border.get_minimum_size().y == window.get_theme_stylebox("embedded_unfocused_border").get_minimum_size().y)
 	assert(window.get_theme_color("title_color") == ThemeColor.title_color)
 	assert(window.get_theme_font("title_font") == Fonts.semibold())
 	assert(window.get_theme_font_size("title_font_size") == TextSize.title_medium_size)
-	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ThemeColor.background_color)
-	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ThemeColor.inset_color)
+	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ThemeColor.accent_surface)
+	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ThemeColor.inset_surface)
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).content_margin_left == Margin.ma_4)
 	assert(window.text_edit.get_theme_color("font_readonly_color") == ThemeColor.title_color)
 	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
@@ -152,12 +152,12 @@ func PopupWindow_theme_change_test() -> void:
 	ThemeColor.refresh_derived_colors()
 	gdf.events.theme_color_changed.emit()
 	var painted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(painted.bg_color == ThemeColor.background_color)
+	assert(painted.bg_color == ThemeColor.accent_surface)
 	ThemeColor.theme_color = Color(1.0, 0.35, 0.05)
 	ThemeColor.refresh_derived_colors()
 	gdf.events.theme_color_changed.emit()
 	var repainted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(repainted.bg_color == ThemeColor.background_color)
+	assert(repainted.bg_color == ThemeColor.accent_surface)
 	assert(repainted.bg_color != painted.bg_color)
 	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	# Back to the accent the project was started with, so no other test sees a repaint.

@@ -26,7 +26,7 @@ static func append(
 
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
-	title_label.add_theme_color_override("font_color", ColorBase.muted)
+	title_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	title_label.add_theme_font_size_override("font_size", TextSize.label_medium_size)
 	vbox.add_child(title_label)
 

@@ -44,7 +44,7 @@ static func append(
 
 	var title_label: Label = Label.new()
 	title_label.text = entry.title
-	title_label.add_theme_color_override("font_color", ColorBase.muted)
+	title_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	title_label.add_theme_font_size_override("font_size", TextSize.label_medium_size)
 	header.add_child(title_label)
 
@@ -57,7 +57,7 @@ static func append(
 	vbox.add_child(header)
 
 	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
-		ColorBase.muted,
+		ColorBase.secondary_text,
 		StringUtils.EMPTY,
 		true
 	)

@@ -104,11 +104,11 @@ func apply_text_tokens() -> void:
 	var logo_color := ThemeColor.accent_theme_color()
 	logo_label.add_theme_color_override("font_color", logo_color if ThemeColor.is_dark_theme() else logo_color.darkened(0.08))
 	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	title_label.add_theme_color_override("font_color", ColorBase.text)
+	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
 	palette_title.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	palette_title.add_theme_color_override("font_color", ColorBase.text)
+	palette_title.add_theme_color_override("font_color", ColorBase.primary_text)
 	palette_hint.add_theme_font_size_override("font_size", TextSize.body_small_size)
-	palette_hint.add_theme_color_override("font_color", ColorBase.muted)
+	palette_hint.add_theme_color_override("font_color", ColorBase.secondary_text)
 	pass
 
 
@@ -132,10 +132,10 @@ func style_palette_tree() -> void:
 	ScrollBarStyle.apply(palette_scroll.get_v_scroll_bar())
 	ScrollBarStyle.apply(palette_tree.get_v_scroll_bar())
 	palette_tree.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	palette_tree.add_theme_color_override("font_color", ColorBase.text)
-	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.text)
-	palette_tree.add_theme_color_override("font_selected_color", ColorBase.text)
-	palette_tree.add_theme_color_override("font_hovered_selected_color", ColorBase.text)
+	palette_tree.add_theme_color_override("font_color", ColorBase.primary_text)
+	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.primary_text)
+	palette_tree.add_theme_color_override("font_selected_color", ColorBase.primary_text)
+	palette_tree.add_theme_color_override("font_hovered_selected_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("guide_color", ColorBase.muted_border)
 	palette_tree.add_theme_stylebox_override("panel", BoxStyle.make(Color.TRANSPARENT))
 	var selected := BoxStyle.make(ThemeColor.selected_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
@@ -183,7 +183,7 @@ func apply_ui_locale() -> void:
 		run_button.text = tr("workflow.toolbar.run")
 	palette_title.text = tr("workflow.palette.title")
 	palette_hint.text = tr("workflow.palette.hint")
-	palette_hint.add_theme_color_override("font_color", ColorBase.muted)
+	palette_hint.add_theme_color_override("font_color", ColorBase.secondary_text)
 	save_dialog.title = tr("workflow.dialog.save_title")
 	save_dialog.ok_button_text = tr("workflow.toolbar.save")
 	save_dialog.filters = PackedStringArray([

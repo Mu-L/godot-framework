@@ -29,7 +29,7 @@ func add_input_port_row(port: PortDef, allow_manual: bool = true) -> int:
 	var row := create_path_row(port.id, port.display_label(node_def.catalog_id()), port.port_type) if allow_manual else create_connect_only_row(port.display_label(node_def.catalog_id()))
 	add_child(row)
 	input_slot_indices[port.id] = slot_index
-	configure_slot(slot_index, true, port.port_type, port_color(port.port_type), false, 0, ColorBase.text)
+	configure_slot(slot_index, true, port.port_type, port_color(port.port_type), false, 0, ColorBase.primary_text)
 	return slot_index
 
 
@@ -41,7 +41,7 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	var label := Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = LABEL_WIDTH
-	style_label(label, ColorBase.text)
+	style_label(label, ColorBase.primary_text)
 	row.add_child(label)
 
 	var field := LineEdit.new()
@@ -61,7 +61,7 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	browse.text = "…"
 	browse.custom_minimum_size = ControlSize.square(ControlSize.md)
 	browse.add_theme_font_size_override("font_size", TextSize.label_large_size)
-	ButtonStyle.apply_font_colors(browse, ColorBase.muted, ColorBase.text, ColorBase.text)
+	ButtonStyle.apply_font_colors(browse, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_1, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)

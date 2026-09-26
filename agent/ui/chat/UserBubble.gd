@@ -18,7 +18,7 @@ static func append(
 	entry: ChatEntry,
 	panel_style: StyleBoxFlat,
 	text_color: Color,
-	title_color: Color = ColorBase.muted
+	title_color: Color = ColorBase.secondary_text
 ) -> RichTextLabel:
 	var host: Control = Control.new()
 	host.size_flags_horizontal = Control.SIZE_EXPAND_FILL

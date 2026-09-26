@@ -9,7 +9,7 @@ static func style(button: Button, tooltip: String) -> void:
 	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.flat = false
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
-	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ThemeColor.accent_theme_color())
+	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
@@ -24,7 +24,7 @@ static func style_round(button: Button, tooltip: String) -> void:
 	button.custom_minimum_size = ControlSize.square(ControlSize.sm)
 	button.flat = false
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
-	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ThemeColor.accent_theme_color())
+	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.sm / 2, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)

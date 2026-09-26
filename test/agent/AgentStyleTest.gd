@@ -86,8 +86,8 @@ func ColorBase_shared_tones_test() -> void:
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
 	ColorBase.refresh()
 	assert(ColorBase.app_background == ColorBase.LIGHT_BACKGROUND)
-	assert(ColorBase.text == ColorBase.LIGHT_TEXT)
-	assert(ColorBase.muted == ColorBase.LIGHT_MUTED)
+	assert(ColorBase.primary_text == ColorBase.LIGHT_TEXT)
+	assert(ColorBase.secondary_text == ColorBase.LIGHT_MUTED)
 	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
 	assert(ColorBase.chrome_surface != ColorBase.deep_surface)
 	assert(ColorBase.deep_surface.get_luminance() < ColorBase.chrome_surface.get_luminance())
@@ -104,8 +104,8 @@ func ColorBase_shared_tones_test() -> void:
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ColorBase.refresh()
 	assert(ColorBase.app_background == ColorBase.DARK_BACKGROUND)
-	assert(ColorBase.text == ColorBase.DARK_TEXT)
-	assert(ColorBase.muted == ColorBase.DARK_MUTED)
+	assert(ColorBase.primary_text == ColorBase.DARK_TEXT)
+	assert(ColorBase.secondary_text == ColorBase.DARK_MUTED)
 	assert(ColorBase.surface == ColorBase.DARK_SURFACE)
 	assert(ColorBase.hover_surface == ColorBase.surface)
 	assert(ColorBase.elevated_surface != ColorBase.surface)

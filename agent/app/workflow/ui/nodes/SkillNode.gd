@@ -49,7 +49,7 @@ func add_output_port_row(port: PortDef) -> int:
 	var row: Label = Label.new()
 	row.text = tr("workflow.node.output_arrow").format([port.display_label(node_def.catalog_id())], StringUtils.EMPTY_JSON)
 	row.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	style_label(row, ColorBase.muted)
+	style_label(row, ColorBase.secondary_text)
 	add_child(row)
 
 	output_slot_indices[port.id] = slot_index
@@ -72,13 +72,13 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 	var label: Label = Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = LABEL_WIDTH
-	style_label(label, ColorBase.text)
+	style_label(label, ColorBase.primary_text)
 	row.add_child(label)
 
 	var hint: Label = Label.new()
 	hint.text = tr("workflow.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	style_label(hint, ColorBase.muted)
+	style_label(hint, ColorBase.secondary_text)
 	row.add_child(hint)
 
 	return row
@@ -91,7 +91,7 @@ func create_text_row(port_id: String, label_text: String, placeholder: String) -
 	var label: Label = Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = LABEL_WIDTH
-	style_label(label, ColorBase.text)
+	style_label(label, ColorBase.primary_text)
 	row.add_child(label)
 
 	var field: LineEdit = LineEdit.new()
@@ -227,7 +227,7 @@ func apply_theme(running: bool = false) -> void:
 	add_theme_stylebox_override("panel", BoxStyle.make(background, ControlSize.radius_lg, Margin.ma_3, Margin.ma_2, border, 2 if running else 1))
 	add_theme_color_override(
 		"title_color",
-		ColorBase.success if running else ColorBase.text,
+		ColorBase.success if running else ColorBase.primary_text,
 	)
 	add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
 	for field: LineEdit in input_fields.values():
@@ -246,8 +246,8 @@ func style_label(label: Label, color: Color) -> void:
 func style_field(field: LineEdit) -> void:
 	field.custom_minimum_size.y = ControlSize.md
 	field.add_theme_font_size_override("font_size", TextSize.body_medium_size)
-	field.add_theme_color_override("font_color", ColorBase.text)
-	field.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	field.add_theme_color_override("font_color", ColorBase.primary_text)
+	field.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	field.add_theme_stylebox_override("normal", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1))
 	field.add_theme_stylebox_override("focus", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.accent_theme_color(), 1))
@@ -257,7 +257,7 @@ func style_field(field: LineEdit) -> void:
 func style_node_button(button: Button) -> void:
 	button.custom_minimum_size.y = ControlSize.md
 	button.add_theme_font_size_override("font_size", TextSize.body_medium_size)
-	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ColorBase.text)
+	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)

@@ -325,7 +325,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 	var rich_text: RichTextLabel = null
 	match chat_entry.kind:
 		ChatEntry.KIND_SYSTEM:
-			rich_text = append_bubble(chat_list, chat_entry, ColorBase.muted, ColorBase.info_surface, ColorBase.info)
+			rich_text = append_bubble(chat_list, chat_entry, ColorBase.secondary_text, ColorBase.info_surface, ColorBase.info)
 		ChatEntry.KIND_SKILL, ChatEntry.KIND_AGENT_PROMPT:
 			rich_text = SkillBubble.append(
 					chat_list,
@@ -338,7 +338,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 					session_id,
 					chat_entry,
 					build_bubble_style(ColorBase.strong_info_surface, true),
-					ColorBase.text
+					ColorBase.primary_text
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_THINKING:
@@ -353,7 +353,7 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 					chat_list,
 					chat_entry,
 					build_bubble_style(ColorBase.surface),
-					ColorBase.text
+					ColorBase.primary_text
 			)
 			queue_scroll_to_bottom()
 		ChatEntry.KIND_TOOL:
@@ -388,11 +388,11 @@ func append_entry_bubble(chat_entry: ChatEntry, session_id: int) -> RichTextLabe
 			)
 			queue_scroll_to_bottom()
 		_:
-			rich_text = append_bubble(chat_list, chat_entry, ColorBase.muted, ColorBase.surface)
+			rich_text = append_bubble(chat_list, chat_entry, ColorBase.secondary_text, ColorBase.surface)
 	return rich_text
 
 
-func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color, bg_color: Color, title_color: Color = ColorBase.muted) -> RichTextLabel:
+func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color, bg_color: Color, title_color: Color = ColorBase.secondary_text) -> RichTextLabel:
 	var wrapper: PanelContainer = PanelContainer.new()
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.add_theme_stylebox_override("panel", build_bubble_style(bg_color))
