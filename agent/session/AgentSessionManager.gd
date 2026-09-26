@@ -110,13 +110,14 @@ static func delete_session(session_id: int) -> void:
 
 ## Selects the first pinned or normal entry, creating a session when the index is empty.
 static func select_default_session() -> void:
-	if session_indexes.pinned_indexes.is_empty() and session_indexes.indexes.is_empty():
-		select_session(create_session().id)
-		return
-	var session_index := session_indexes.indexes[0]
+	var session_index_id: = 0
 	if not session_indexes.pinned_indexes.is_empty():
-		session_index = session_indexes.pinned_indexes[0]
-	select_session(session_index.id)
+		session_index_id = session_indexes.pinned_indexes[0].id
+	elif not session_indexes.indexes.is_empty():
+		session_index_id = session_indexes.indexes[0].id
+	else:
+		session_index_id = create_session().id
+	select_session(session_index_id)
 
 
 ## Selects [param session_id]; ids missing from the index are ignored.

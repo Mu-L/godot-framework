@@ -79,14 +79,20 @@ static func on_resume_pressed(session_id: int) -> void:
 
 
 static func style_resume_button(button: Button) -> void:
-	button.custom_minimum_size = Vector2(88, 30)
-	ButtonStyle.apply_font_colors(button, Color.WHITE, Color.WHITE, Color.WHITE, ButtonStyle.with_alpha(Color.WHITE, 0.55))
+	button.custom_minimum_size = Vector2(0, ControlSize.md)
+	button.add_theme_font_size_override("font_size", TextSize.label_large_size)
 
-	# Solid fill: pressed / disabled read as plain shading, so they never flip with the theme.
 	var theme_color := ThemeColor.theme_color_full_alpha()
-	var normal := BoxStyle.make(theme_color, 6, Margin.ma_3, Margin.ma_2)
-	var hover := BoxStyle.with_bg(normal, theme_color.lightened(0.10))
-	var pressed := BoxStyle.with_bg(normal, theme_color.darkened(0.08))
-	var disabled := BoxStyle.with_bg(normal, theme_color.darkened(0.25))
+	ButtonStyle.apply_font_colors(button,theme_color,ButtonStyle.hover_color(theme_color, 0.12),
+		ButtonStyle.press_color(theme_color, 0.08),ButtonStyle.with_alpha(theme_color, 0.45))
+
+	var normal := BoxStyle.make(ButtonStyle.with_alpha(theme_color, 0.08),5,
+		Margin.ma_3,Margin.ma_1,ButtonStyle.with_alpha(theme_color, 0.35),1)
+	
+	var hover := BoxStyle.with_bg(normal, ButtonStyle.with_alpha(theme_color, 0.16))
+	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.55)
+	var pressed := BoxStyle.with_bg(normal, ButtonStyle.with_alpha(theme_color, 0.22))
+	var disabled := BoxStyle.with_bg(normal, ButtonStyle.with_alpha(theme_color, 0.04))
+	disabled.border_color = ButtonStyle.with_alpha(theme_color, 0.12)
 	ButtonStyle.apply_states(button, normal, hover, pressed, disabled)
 	pass
