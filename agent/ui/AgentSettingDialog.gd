@@ -104,7 +104,6 @@ func build_dialog() -> void:
 	description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description_label.add_theme_font_size_override("font_size", TextSize.body_small_size)
 	fields.add_child(description_label)
-	add_separator(fields)
 	provider_select = add_provider_field(fields)
 	api_url_edit = add_field(fields, I18n.t("agent.settings.api_endpoint"), "https://api.example.com/v1/chat/completions", I18n.t("agent.settings.api_endpoint_help"))
 	model_edit = add_field(fields, I18n.t("agent.settings.model"), ApiSetting.DEFAULT_MODEL, I18n.t("agent.settings.model_help"))
@@ -373,8 +372,6 @@ func on_button_pressed() -> void:
 	folder_field_typing = false
 	dialog.popup_centered(DIALOG_SIZE)
 	dialog.size = DIALOG_SIZE
-	# Deferred: the hidden OK button grabs focus while the dialog pops up.
-	provider_select.grab_focus.call_deferred()
 	pass
 
 
