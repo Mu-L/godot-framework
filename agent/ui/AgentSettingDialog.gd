@@ -361,9 +361,9 @@ func style_check_button(check: CheckButton) -> void:
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
 	var empty := StyleBoxEmpty.new()
-	BoxStyle.pad(empty, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
+	Margin.apply_style_box_margin(empty, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
 	var hover := BoxStyle.make(ColorBase.hover_surface, 6)
-	BoxStyle.pad(hover, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
+	Margin.apply_style_box_margin(hover, Margin.ma_0, Margin.ma_1, Margin.ma_2, Margin.ma_1)
 	check.add_theme_stylebox_override("normal", empty)
 	check.add_theme_stylebox_override("disabled", empty.duplicate())
 	check.add_theme_stylebox_override("focus", empty.duplicate())

@@ -5,7 +5,7 @@ extends Object
 ## plain panel can build a box without pulling in the hover / pressed derivation.
 ##
 ## Padding comes from the [Margin] scale, so a box is written in the same 4px steps as the rest of
-## the layout: symmetric through [method make], per-side through [method pad].
+## the layout: symmetric through [method make], per-side through [method Margin.apply_style].
 ##
 ## Typical use:
 ## [codeblock]
@@ -35,14 +35,3 @@ static func make(
 		style.border_color = border_color
 		style.set_border_width_all(border_width)
 	return style
-
-
-## All four padding sides in one call (left, top, right, bottom) — for asymmetrical boxes.
-## Edits [param style] in place; takes the [StyleBox] base class, so an empty box or a line box
-## gets the same treatment.
-static func pad(style: StyleBox, left: int, top: int, right: int, bottom: int) -> void:
-	style.content_margin_left = left
-	style.content_margin_top = top
-	style.content_margin_right = right
-	style.content_margin_bottom = bottom
-	pass

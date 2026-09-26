@@ -1,4 +1,4 @@
-## Unit tests for [BoxStyle], [ButtonStyle] and the builders that go through them.
+## Unit tests for [BoxStyle], [ButtonStyle], [Margin] and the builders that go through them.
 
 const GRAY := Color(0.5, 0.5, 0.5)
 
@@ -104,15 +104,15 @@ func BoxStyle_make_test() -> void:
 	pass
 
 
-func BoxStyle_pad_test() -> void:
+func Margin_apply_style_test() -> void:
 	var style := BoxStyle.make(Color.WHITE, 4)
-	BoxStyle.pad(style, Margin.ma_3, Margin.ma_2, Margin.ma_1, Margin.ma_0)
+	Margin.apply_style_box_margin(style, Margin.ma_3, Margin.ma_2, Margin.ma_1, Margin.ma_0)
 	assert(style.get_margin(SIDE_LEFT) == Margin.ma_3 and style.get_margin(SIDE_RIGHT) == Margin.ma_1)
 	assert(style.get_margin(SIDE_TOP) == Margin.ma_2 and style.get_margin(SIDE_BOTTOM) == Margin.ma_0)
 
 	# Base class on purpose: an empty box takes the same padding as a filled one.
 	var empty := StyleBoxEmpty.new()
-	BoxStyle.pad(empty, Margin.ma_1, Margin.ma_1, Margin.ma_1, Margin.ma_1)
+	Margin.apply_style_box_margin(empty, Margin.ma_1, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	assert(empty.get_margin(SIDE_LEFT) == Margin.ma_1)
 	pass
 
