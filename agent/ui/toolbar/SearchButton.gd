@@ -3,11 +3,11 @@ extends RefCounted
 
 ## Searches persisted chat entry bodies and opens a result at its exact transcript bubble.
 
-const DEFAULT_POPUP_SIZE := Vector2i(1080, 840)
-const MIN_POPUP_SIZE := Vector2i(860, 680)
-const MAX_POPUP_SIZE := Vector2i(1400, 1000)
+const DEFAULT_POPUP_SIZE := Vector2i(1080, 900)
+const MIN_POPUP_SIZE := Vector2i(860, 720)
+const MAX_POPUP_SIZE := Vector2i(1400, 1200)
 const VIEWPORT_WIDTH_RATIO := 0.84
-const VIEWPORT_HEIGHT_RATIO := 0.92
+const VIEWPORT_HEIGHT_RATIO := 0.94
 const MAX_RESULTS := 100
 const MAX_SNIPPET_LENGTH := 260
 ## Typing pause before the scan runs — it walks every entry of every session, so per-keystroke is too heavy.
@@ -193,9 +193,28 @@ func update_icon(hovered: bool) -> void:
 
 
 func on_popup_window_input(event: InputEvent) -> void:
-	if popup.visible and event.is_action_pressed("ui_cancel"):
+	if not popup.visible:
+		return
+	if event.is_action_pressed("ui_cancel"):
 		popup.hide()
 		popup.set_input_as_handled()
+		return
+	if not event is InputEventKey:
+		return
+	var key := event as InputEventKey
+	if not key.pressed:
+		return
+	var direction: int = 0
+	if key.is_action_pressed(&"ui_page_up", true):
+		direction = -1
+	elif key.is_action_pressed(&"ui_page_down", true):
+		direction = 1
+	else:
+		return
+	var vbar := results_scroll.get_v_scroll_bar()
+	var max_scroll := maxf(vbar.min_value, vbar.max_value - vbar.page)
+	vbar.value = clampf(vbar.value + vbar.page * direction, vbar.min_value, max_scroll)
+	popup.set_input_as_handled()
 	pass
 
 
