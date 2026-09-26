@@ -12,6 +12,7 @@ var pinned_list: VBoxContainer
 var pinned_separator: HSeparator
 var normal_header: Label
 var normal_list: VBoxContainer
+var session_list_scroll: ScrollContainer
 var new_session_button: Button
 var sidebar_panel: PanelContainer
 
@@ -29,6 +30,7 @@ func setup(
 	p_pinned_separator: HSeparator,
 	p_normal_header: Label,
 	p_normal_list: VBoxContainer,
+	p_session_list_scroll: ScrollContainer,
 	p_new_session_button: Button,
 	p_sidebar_panel: PanelContainer
 ) -> void:
@@ -37,6 +39,7 @@ func setup(
 	pinned_separator = p_pinned_separator
 	normal_header = p_normal_header
 	normal_list = p_normal_list
+	session_list_scroll = p_session_list_scroll
 	new_session_button = p_new_session_button
 	sidebar_panel = p_sidebar_panel
 	drag.setup(session_rows, pinned_list, normal_list)
@@ -89,6 +92,7 @@ func apply_theme() -> void:
 	pinned_header.add_theme_color_override("font_color", ColorBase.muted)
 	normal_header.add_theme_color_override("font_color", ColorBase.muted)
 	pinned_separator.add_theme_stylebox_override("separator", SessionSidebarTheme.pinned_separator())
+	ScrollBarStyle.apply(session_list_scroll.get_v_scroll_bar())
 	SessionSidebarTheme.apply_new_session_button(new_session_button)
 	for row: SessionRow in session_rows.values():
 		row.apply_style()

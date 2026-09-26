@@ -16,6 +16,19 @@ func AgentChatInput_text_colors_follow_theme_test() -> void:
 	pass
 
 
+## The shared scrollbar style supplies the popup, transcript and session sidebar palette.
+func ScrollBarStyle_apply_test() -> void:
+	var scroll := ScrollContainer.new()
+	var bar := scroll.get_v_scroll_bar()
+	ScrollBarStyle.apply(bar)
+	assert((bar.get_theme_stylebox("scroll") as StyleBoxFlat).bg_color.a == 0.0)
+	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).bg_color == ColorCard.body_color)
+	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ColorCard.accent_color)
+	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ColorCard.accent_color)
+	scroll.free()
+	pass
+
+
 ## Every bubble header button goes through the helper, so all of them now carry six states.
 func ChatBubble_buttons_have_all_states_test() -> void:
 	var builders: Array[Callable] = [ThinkingBubble.style_view_button, ResultBubble.style_view_button, SkillBubble.style_expand_button, ErrorBubble.style_resume_button]

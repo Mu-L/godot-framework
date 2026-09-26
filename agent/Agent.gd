@@ -12,6 +12,7 @@ extends Control
 @onready var pinned_separator: HSeparator = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedSeparator
 @onready var normal_header: Label = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/NormalHeader
 @onready var normal_list: VBoxContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/NormalList
+@onready var session_list_scroll: ScrollContainer = $Root/Body/Sidebar/SidebarVBox/SessionListScroll
 @onready var new_session_button: Button = $Root/Body/Sidebar/SidebarVBox/NewSessionButton
 @onready var chat_scroll: ScrollContainer = $Root/Body/ChatArea/ChatScroll
 @onready var chat_host: MarginContainer = $Root/Body/ChatArea/ChatScroll/ChatMargin
@@ -59,8 +60,8 @@ func _ready() -> void:
 	
 	toolbar.setup(toolbar_panel, toolbar_logo, toolbar_title, project_button)
 	notification.setup()
-	session_sidebar.setup(pinned_header,pinned_list,pinned_separator
-			,normal_header,normal_list,new_session_button,sidebar_panel)
+	session_sidebar.setup(pinned_header, pinned_list, pinned_separator,
+			normal_header, normal_list, session_list_scroll, new_session_button, sidebar_panel)
 	token_usage_display.setup(token_usage_wrap)
 	jarvis_toggle.setup(jarvis_toggle_button)
 	skill_toggle.setup(skill_toggle_button)

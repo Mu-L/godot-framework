@@ -77,27 +77,8 @@ func style_text_edit() -> void:
 	text_edit.add_theme_color_override("current_line_color", Color(ColorCard.accent_color, 0.10))
 	text_edit.add_theme_font_override("font", Fonts.regular())
 	text_edit.add_theme_font_size_override("font_size", TextSize.body_large_size)
-	style_scroll_bar(text_edit.get_v_scroll_bar())
-	style_scroll_bar(text_edit.get_h_scroll_bar())
-	pass
-
-
-## Transparent track, muted grabber, accent on hover and press — recolored engine boxes, so the bar
-## keeps its 8px width and pill radius.
-func style_scroll_bar(bar: ScrollBar) -> void:
-	recolor(bar, "scroll", Color(0, 0, 0, 0))
-	recolor(bar, "scroll_focus", Color(0, 0, 0, 0))
-	recolor(bar, "grabber", ColorCard.body_color)
-	recolor(bar, "grabber_highlight", ColorCard.accent_color)
-	recolor(bar, "grabber_pressed", ColorCard.accent_color)
-	pass
-
-
-## [param item] with only its fill exchanged.
-func recolor(control: Control, item: String, color: Color) -> void:
-	var style: StyleBoxFlat = control.get_theme_stylebox(item).duplicate() as StyleBoxFlat
-	style.bg_color = color
-	control.add_theme_stylebox_override(item, style)
+	ScrollBarStyle.apply(text_edit.get_v_scroll_bar())
+	ScrollBarStyle.apply(text_edit.get_h_scroll_bar())
 	pass
 
 

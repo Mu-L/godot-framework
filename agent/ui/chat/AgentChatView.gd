@@ -37,6 +37,7 @@ func setup(
 	chat_host = p_chat_host
 	chat_scroll.clip_contents = true
 	chat_host.clip_contents = true
+	ScrollBarStyle.apply(chat_scroll.get_v_scroll_bar())
 	chat_bubble_flusher.setup()
 	SchedulerBus.schedule_at_fixed_rate(queue_scroll_to_bottom, 1000, "agent_chat_stick_to_bottom")
 	chat_scroll.gui_input.connect(on_chat_scroll_gui_input)
@@ -218,6 +219,7 @@ func on_markdown_changed(_enabled: bool) -> void:
 
 
 func on_theme_changed() -> void:
+	ScrollBarStyle.apply(chat_scroll.get_v_scroll_bar())
 	rebuild(AgentSessionManager.active_session_id)
 	pass
 
@@ -225,6 +227,7 @@ func on_theme_changed() -> void:
 ## Markdown colors are derived from the theme color, so a color pick has to re-render the
 ## transcript — but only once: the picker emits on every drag step.
 func on_theme_color_changed() -> void:
+	ScrollBarStyle.apply(chat_scroll.get_v_scroll_bar())
 	if theme_color_rebuild_scheduled:
 		return
 	theme_color_rebuild_scheduled = true
