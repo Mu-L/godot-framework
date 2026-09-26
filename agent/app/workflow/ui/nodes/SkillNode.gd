@@ -248,9 +248,9 @@ func style_field(field: LineEdit) -> void:
 	field.add_theme_font_size_override("font_size", TextSize.body_medium_size)
 	field.add_theme_color_override("font_color", ColorBase.text)
 	field.add_theme_color_override("font_placeholder_color", ColorBase.muted)
-	field.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
+	field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	field.add_theme_stylebox_override("normal", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1))
-	field.add_theme_stylebox_override("focus", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.theme_color_full_alpha(), 1))
+	field.add_theme_stylebox_override("focus", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.accent_theme_color(), 1))
 	pass
 
 

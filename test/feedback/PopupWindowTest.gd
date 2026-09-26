@@ -131,7 +131,7 @@ func PopupWindow_theme_test() -> void:
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ColorCard.inset_color)
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).content_margin_left == Margin.ma_4)
 	assert(window.text_edit.get_theme_color("font_readonly_color") == ColorCard.title_color)
-	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.theme_color_full_alpha())
+	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	assert(window.text_edit.get_theme_font("font") == Fonts.regular())
 	assert(window.text_edit.get_theme_font_size("font_size") == TextSize.body_large_size)
 	# The popup uses the shared thin scrollbar geometry and palette.
@@ -159,7 +159,7 @@ func PopupWindow_theme_change_test() -> void:
 	var repainted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
 	assert(repainted.bg_color == ColorCard.background_color)
 	assert(repainted.bg_color != painted.bg_color)
-	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.theme_color_full_alpha())
+	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	# Back to the accent the project was started with, so no other test sees a repaint.
 	ThemeColor.theme_color = original
 	ThemeColor.refresh_derived_colors()

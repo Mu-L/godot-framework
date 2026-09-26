@@ -135,5 +135,5 @@ static func refresh() -> void:
 	success_surface = DARK_SUCCESS_SURFACE if dark else LIGHT_SUCCESS_SURFACE
 	warning_surface = DARK_WARNING_SURFACE if dark else LIGHT_WARNING_SURFACE
 	neutral_surface = DARK_NEUTRAL_SURFACE if dark else LIGHT_NEUTRAL_SURFACE
-	selection_surface = elevated_surface.lerp(ThemeColor.theme_color_full_alpha(), DARK_SELECTION_MIX if dark else LIGHT_SELECTION_MIX)
+	selection_surface = elevated_surface.lerp(ThemeColor.accent_theme_color(), DARK_SELECTION_MIX if dark else LIGHT_SELECTION_MIX)
 	pass

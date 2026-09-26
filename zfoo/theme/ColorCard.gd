@@ -53,7 +53,7 @@ static func refresh() -> void:
 	body_color = derive(BODY_SATURATION_DARK if dark else BODY_SATURATION_LIGHT, BODY_VALUE_DARK if dark else BODY_VALUE_LIGHT)
 	# Theme colors are stored translucent — they also tint the window — while a caret or a highlight
 	# wants the solid hue.
-	selection_color = inset_color.lerp(ThemeColor.theme_color_full_alpha(), SELECTION_MIX)
+	selection_color = inset_color.lerp(ThemeColor.accent_theme_color(), SELECTION_MIX)
 	pass
 
 

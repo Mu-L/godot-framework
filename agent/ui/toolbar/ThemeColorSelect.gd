@@ -74,7 +74,7 @@ func apply_equal_icon_margins(margin: int) -> void:
 
 
 func update_icon(hovered: bool) -> void:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	var handle: Color = ColorBase.muted
 	if hovered:
 		theme_color = theme_color.lightened(0.10)

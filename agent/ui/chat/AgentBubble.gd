@@ -77,7 +77,7 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	button.custom_minimum_size = Vector2(min_width, 18)
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.10))
 
 	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(theme_color, 0.45), 1)

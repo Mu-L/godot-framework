@@ -9,7 +9,7 @@ func AgentChatInput_text_colors_follow_theme_test() -> void:
 	var input := AgentChatInput.new()
 	input.input_field = TextEdit.new()
 	input.style_field()
-	assert(input.input_field.get_theme_color("caret_color") == ThemeColor.theme_color_full_alpha())
+	assert(input.input_field.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	assert(input.input_field.get_theme_color("selection_color") == ColorCard.selection_color)
 	assert(input.input_field.get_theme_color("font_selected_color") == ColorCard.title_color)
 	input.input_field.free()
@@ -24,8 +24,8 @@ func ScrollBarStyle_apply_test() -> void:
 	assert((bar.get_theme_stylebox("scroll") as StyleBoxFlat).bg_color.a == 0.0)
 	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).bg_color == ColorCard.body_color)
 	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).get_minimum_size().x == ScrollBarStyle.THICKNESS)
-	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ThemeColor.theme_color_full_alpha())
-	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ThemeColor.theme_color_full_alpha())
+	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ThemeColor.accent_theme_color())
+	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ThemeColor.accent_theme_color())
 	scroll.free()
 	pass
 

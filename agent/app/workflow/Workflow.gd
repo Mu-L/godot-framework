@@ -101,7 +101,7 @@ func apply_text_tokens() -> void:
 	logo_font.spacing_glyph = TextSize.title_medium_letter_spacing * 20
 	logo_label.add_theme_font_override("font", logo_font)
 	logo_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	var logo_color := ThemeColor.theme_color_full_alpha()
+	var logo_color := ThemeColor.accent_theme_color()
 	logo_label.add_theme_color_override("font_color", logo_color if ThemeColor.is_dark_theme() else logo_color.darkened(0.08))
 	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	title_label.add_theme_color_override("font_color", ColorBase.text)

@@ -83,7 +83,7 @@ static func style_resume_button(button: Button) -> void:
 	button.custom_minimum_size = Vector2(0, ControlSize.md)
 	button.add_theme_font_size_override("font_size", TextSize.label_large_size)
 
-	var theme_color := ThemeColor.theme_color_full_alpha()
+	var theme_color := ThemeColor.accent_theme_color()
 	ButtonStyle.apply_font_colors(button,theme_color,ButtonStyle.hover_color(theme_color, 0.12),
 		ButtonStyle.press_color(theme_color, 0.08),ButtonStyle.with_alpha(theme_color, 0.45))
 

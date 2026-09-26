@@ -313,7 +313,7 @@ func make_popup_style() -> StyleBoxFlat:
 func style_query_edit() -> void:
 	var normal := BoxStyle.make(ColorBase.control_surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
 	var focus := normal.duplicate() as StyleBoxFlat
-	focus.border_color = ThemeColor.theme_color_full_alpha()
+	focus.border_color = ThemeColor.accent_theme_color()
 	focus.set_border_width_all(2)
 	query_edit.add_theme_stylebox_override("normal", normal)
 	query_edit.add_theme_stylebox_override("focus", focus)
@@ -325,7 +325,7 @@ func style_query_edit() -> void:
 func style_result_button(result: Button) -> void:
 	var normal := BoxStyle.make(ColorBase.surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	hover.border_color = ThemeColor.theme_color_full_alpha()
+	hover.border_color = ThemeColor.accent_theme_color()
 	var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
 	ButtonStyle.apply_states(result, normal, hover, pressed)
 	ButtonStyle.apply_font_colors(result, ColorBase.text, ColorBase.text, ColorBase.text)

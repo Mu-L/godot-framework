@@ -690,7 +690,7 @@ func style_field() -> void:
 	input_field.add_theme_color_override("font_readonly_color", ColorBase.muted)
 	# Caret and highlight follow the theme color (same pair the sidebar rename field and the
 	# chat bubbles use), so neither keeps a stale hue after a theme or theme-color change.
-	input_field.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
+	input_field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	input_field.add_theme_color_override("font_selected_color", ColorCard.title_color)
 	input_field.add_theme_color_override("selection_color", ColorCard.selection_color)
 	ScrollBarStyle.apply(input_field.get_v_scroll_bar())
@@ -719,7 +719,7 @@ func set_send_button_appearance(running: bool) -> void:
 		configure_send_button(
 				make_arrow_up_icon(16, Color.WHITE),
 				I18n.t("agent.input.send"),
-				ThemeColor.theme_color_full_alpha()
+				ThemeColor.accent_theme_color()
 		)
 	pass
 

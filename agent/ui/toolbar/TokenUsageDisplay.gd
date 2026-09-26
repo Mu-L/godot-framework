@@ -94,4 +94,4 @@ static func text_color_for_tokens(n: int) -> Color:
 		return ColorBase.warning
 	if ratio >= THRESHOLD_WARN:
 		return Color(0.94, 0.84, 0.35) if ThemeColor.is_dark_theme() else Color("#CA8A04")
-	return ThemeColor.theme_color_full_alpha()
+	return ThemeColor.accent_theme_color()

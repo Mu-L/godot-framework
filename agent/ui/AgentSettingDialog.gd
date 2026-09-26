@@ -356,7 +356,7 @@ func style_check_button(check: CheckButton) -> void:
 	check.add_theme_color_override("font_pressed_color", ColorBase.text)
 	check.add_theme_color_override("font_hover_pressed_color", ColorBase.text)
 	# Only the "on" track takes the theme color — the "off" one keeps the theme default.
-	check.add_theme_color_override("button_checked_color", ThemeColor.theme_color_full_alpha())
+	check.add_theme_color_override("button_checked_color", ThemeColor.accent_theme_color())
 	check.add_theme_constant_override("h_separation", Margin.ma_2)
 	# No left inset, so the caption lines up with the labels and fields around it. The margins are
 	# the same on every state, otherwise hovering would shift the row.
@@ -576,7 +576,7 @@ func style_dialog() -> void:
 	for help: Label in help_labels:
 		help.add_theme_color_override("font_color", ColorBase.muted)
 	var separator_style := StyleBoxLine.new()
-	separator_style.color = ThemeColor.theme_color_full_alpha()
+	separator_style.color = ThemeColor.accent_theme_color()
 	separator_style.thickness = 1
 	for separator: HSeparator in separators:
 		separator.add_theme_stylebox_override("separator", separator_style)
@@ -596,7 +596,7 @@ func style_option_button(select: OptionButton) -> void:
 	ButtonStyle.apply_font_colors(select, ColorBase.text, ColorBase.text, ColorBase.text)
 	var normal: StyleBoxFlat = make_input_style()
 	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.border_color = ThemeColor.theme_color_full_alpha()
+	hover.border_color = ThemeColor.accent_theme_color()
 	select.add_theme_stylebox_override("normal", normal)
 	select.add_theme_stylebox_override("hover", hover)
 	select.add_theme_stylebox_override("pressed", hover.duplicate())
@@ -626,10 +626,10 @@ func style_provider_popup(popup: PopupMenu) -> void:
 func style_line_edit(edit: LineEdit) -> void:
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted.darkened(0.08))
-	edit.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
+	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	focus.border_color = ThemeColor.theme_color_full_alpha()
+	focus.border_color = ThemeColor.accent_theme_color()
 	focus.set_border_width_all(2)
 	edit.add_theme_stylebox_override("normal", normal)
 	edit.add_theme_stylebox_override("focus", focus)
@@ -649,10 +649,10 @@ func style_spin_box(spin: SpinBox) -> void:
 	spin.add_theme_color_override("font_placeholder_color", ColorBase.muted)
 	spin.add_theme_color_override("up_icon_modulate", ColorBase.text)
 	spin.add_theme_color_override("down_icon_modulate", ColorBase.text)
-	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.theme_color_full_alpha())
-	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.theme_color_full_alpha())
-	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.theme_color_full_alpha())
-	spin.add_theme_color_override("down_pressed_icon_modulate", ThemeColor.theme_color_full_alpha())
+	spin.add_theme_color_override("up_hover_icon_modulate", ThemeColor.accent_theme_color())
+	spin.add_theme_color_override("down_hover_icon_modulate", ThemeColor.accent_theme_color())
+	spin.add_theme_color_override("up_pressed_icon_modulate", ThemeColor.accent_theme_color())
+	spin.add_theme_color_override("down_pressed_icon_modulate", ThemeColor.accent_theme_color())
 	var normal: StyleBoxFlat = make_input_style()
 	normal.content_margin_left = Margin.ma_0
 	normal.content_margin_right = Margin.ma_0

@@ -38,7 +38,7 @@ func apply_theme() -> void:
 
 ## GAI wordmark on the far left of the toolbar row.
 func apply_logo_theme() -> void:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	var logo_font: FontVariation = FontVariation.new()
 	logo_font.base_font = Fonts.bold()
 	logo_font.spacing_glyph = TextSize.title_medium_letter_spacing * 20

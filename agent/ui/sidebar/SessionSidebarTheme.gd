@@ -21,7 +21,7 @@ static func sidebar_panel() -> StyleBoxFlat:
 
 
 static func pinned_separator() -> StyleBoxLine:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	var line: StyleBoxLine = StyleBoxLine.new()
 	line.color = ButtonStyle.with_alpha(theme_color, 0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
@@ -32,7 +32,7 @@ static func pinned_separator() -> StyleBoxLine:
 
 ## "New Agent" — outlined in the theme color, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.muted)
@@ -77,7 +77,7 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 
 ## Floating row copy that follows the cursor while dragging.
 static func drag_ghost() -> StyleBoxFlat:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = ColorBase.selection_surface
 	style.border_color = ButtonStyle.with_alpha(theme_color, 0.9 if ThemeColor.is_dark_theme() else 0.75)
@@ -97,7 +97,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	copy_font(edit, title_button)
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
-	edit.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
+	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	edit.add_theme_color_override("selection_color", ColorBase.selection_surface)
 	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
@@ -106,7 +106,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 
 
 static func rename_field() -> StyleBoxFlat:
-	var theme_color: Color = ThemeColor.theme_color_full_alpha()
+	var theme_color: Color = ThemeColor.accent_theme_color()
 	var border := ButtonStyle.with_alpha(theme_color, 0.75 if ThemeColor.is_dark_theme() else 0.55)
 	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 
