@@ -53,6 +53,12 @@ const border_xs: int = 1
 const border_sm: int = 2
 ## Accent border: semantic stripes and prominent edge markers.
 const border_md: int = 3
+## Prominent border: strong selection frames and compact decorative bands.
+const border_lg: int = 4
+## Wide border: large control accents and display outlines.
+const border_xl: int = 5
+## Widest border: hero surfaces and highly emphasized decorative frames.
+const border_xxl: int = 6
 
 
 ## Both axes at one tier, for the square icon buttons that make up most of the chrome.

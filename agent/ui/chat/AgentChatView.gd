@@ -426,7 +426,7 @@ func build_bubble_style(bg_color: Color, user_beam: bool = false) -> StyleBoxFla
 	var style := BoxStyle.make(bg_color, 8, Margin.ma_3, Margin.ma_3)
 	if not user_beam and ThemeColor.is_light_theme():
 		style.border_color = ColorBase.border
-		style.set_border_width_all(1)
+		style.set_border_width_all(ControlSize.border_xs)
 		style.shadow_color = Color(0, 0, 0, 0.04)
 		style.shadow_size = 6
 		style.shadow_offset = Vector2(0, 2)

@@ -145,7 +145,7 @@ func Alert_card_shadow_test() -> void:
 func card_components_test() -> void:
 	var snackbar := Alert.make_card_style(ColorBase.success)
 	assert(snackbar.corner_radius_top_left == ControlSize.radius_md)
-	assert(snackbar.border_width_left == Alert.accent_stripe_width)
+	assert(snackbar.border_width_left == ControlSize.border_md)
 	assert(snackbar.shadow_size == Alert.shadow_size)
 
 	DesktopToast.ui_scale = 1.0

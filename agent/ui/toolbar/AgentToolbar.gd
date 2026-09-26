@@ -55,7 +55,7 @@ func build_toolbar_style() -> StyleBoxFlat:
 	style.bg_color = ColorBase.deep_surface
 	style.border_color = ColorBase.subtle_border
 	style.content_margin_left = Margin.ma_3
-	style.set_border_width(SIDE_BOTTOM, 1)
+	style.set_border_width(SIDE_BOTTOM, ControlSize.border_xs)
 	if ThemeColor.is_light_theme():
-		style.set_border_width(SIDE_TOP, 1)
+		style.set_border_width(SIDE_TOP, ControlSize.border_xs)
 	return style

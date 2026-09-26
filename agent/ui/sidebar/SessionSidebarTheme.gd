@@ -16,7 +16,7 @@ const RENAME_CORNER_RADIUS: int = 5
 static func sidebar_panel() -> StyleBoxFlat:
 	var style := BoxStyle.make(ColorBase.chrome_surface)
 	style.border_color = ColorBase.muted_border
-	style.set_border_width(SIDE_RIGHT, 1)
+	style.set_border_width(SIDE_RIGHT, ControlSize.border_xs)
 	return style
 
 
@@ -81,7 +81,7 @@ static func drag_ghost() -> StyleBoxFlat:
 	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = ThemeColor.selected_surface
 	style.border_color = ButtonStyle.with_alpha(theme_color, 0.9 if ThemeColor.is_dark_theme() else 0.75)
-	style.set_border_width_all(1)
+	style.set_border_width_all(ControlSize.border_xs)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
 	style.shadow_size = 6
 	style.shadow_offset = Vector2(0, 3)

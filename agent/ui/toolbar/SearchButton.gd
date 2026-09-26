@@ -314,7 +314,7 @@ func style_query_edit() -> void:
 	var normal := BoxStyle.make(ColorBase.control_surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
 	var focus := normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()
-	focus.set_border_width_all(2)
+	focus.set_border_width_all(ControlSize.border_sm)
 	query_edit.add_theme_stylebox_override("normal", normal)
 	query_edit.add_theme_stylebox_override("focus", focus)
 	query_edit.add_theme_color_override("font_color", ColorBase.primary_text)

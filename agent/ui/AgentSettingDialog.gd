@@ -630,7 +630,7 @@ func style_line_edit(edit: LineEdit) -> void:
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()
-	focus.set_border_width_all(2)
+	focus.set_border_width_all(ControlSize.border_sm)
 	edit.add_theme_stylebox_override("normal", normal)
 	edit.add_theme_stylebox_override("focus", focus)
 	edit.add_theme_stylebox_override("read_only", normal.duplicate())

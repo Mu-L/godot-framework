@@ -13,8 +13,8 @@ func Alert_create_card_test() -> void:
 	var style := card.get_theme_stylebox("panel") as StyleBoxFlat
 	assert(style.bg_color == ThemeColor.accent_surface)
 	assert(style.border_color == ColorBase.success)
-	assert(style.border_width_left == Alert.accent_stripe_width)
-	assert(style.border_width_right == Alert.accent_stripe_width)
+	assert(style.border_width_left == ControlSize.border_md)
+	assert(style.border_width_right == ControlSize.border_md)
 	assert(style.border_width_top == 0 and style.border_width_bottom == 0)
 	assert(style.corner_radius_top_left == ControlSize.radius_md)
 	assert(style.content_margin_left == Margin.ma_4)

@@ -56,7 +56,7 @@ func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 	style.bg_color = ThemeColor.accent_surface
 	style.set_corner_radius_all(ControlSize.radius_md)
 	style.border_color = Color(ThemeColor.title_color, border_alpha)
-	style.set_border_width_all(1)
+	style.set_border_width_all(ControlSize.border_xs)
 	return style
 
 

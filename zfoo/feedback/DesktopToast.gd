@@ -14,7 +14,6 @@ const MAX_BODY_LINES: int = 4
 const SHOW_SECONDS: float = 4.5
 ## How long the app window stays above the others after the card is clicked.
 const TOPMOST_MILLIS: int = 900
-const ACCENT_STRIPE_WIDTH: int = 3
 
 ## Live toasts, oldest first — the newest one hugs the screen corner.
 static var toasts: Array[DesktopToast] = []
@@ -190,7 +189,7 @@ func build_card() -> void:
 	card_style.content_margin_top = pad
 	card_style.content_margin_bottom = pad
 	card_style.border_color = accent
-	card_style.set_border_width(SIDE_LEFT, roundi(ACCENT_STRIPE_WIDTH * unit))
+	card_style.set_border_width(SIDE_LEFT, roundi(ControlSize.border_md * unit))
 	card.add_theme_stylebox_override("panel", card_style)
 	card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	card.gui_input.connect(on_card_input)

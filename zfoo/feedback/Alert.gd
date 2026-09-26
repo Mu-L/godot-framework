@@ -22,7 +22,6 @@ const shadow_alpha_dark: float = 0.35
 const shadow_alpha_light: float = 0.18
 const shadow_size: int = 4
 const shadow_offset: Vector2 = Vector2(0.0, 2.0)
-const accent_stripe_width: int = 3
 
 ## Live cards, oldest first — [method relayout] stacks them from the top edge downward.
 static var alerts: Array[Alert] = []
@@ -62,8 +61,8 @@ static func make_card_style(stripe_color: Color) -> StyleBoxFlat:
 	style.content_margin_top = Margin.ma_3
 	style.content_margin_bottom = Margin.ma_3
 	style.border_color = stripe_color
-	style.set_border_width(SIDE_LEFT, accent_stripe_width)
-	style.set_border_width(SIDE_RIGHT, accent_stripe_width)
+	style.set_border_width(SIDE_LEFT, ControlSize.border_md)
+	style.set_border_width(SIDE_RIGHT, ControlSize.border_md)
 	style.shadow_color = Color(0.0, 0.0, 0.0, shadow_alpha_dark if ThemeColor.is_dark_theme() else shadow_alpha_light)
 	style.shadow_size = shadow_size
 	style.shadow_offset = shadow_offset
