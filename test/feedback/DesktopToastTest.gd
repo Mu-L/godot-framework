@@ -39,7 +39,7 @@ func DesktopToast_build_card_test() -> void:
 	assert(toast.body_label.max_lines_visible == DesktopToast.MAX_BODY_LINES)
 	var style: StyleBoxFlat = toast.card.get_theme_stylebox("panel") as StyleBoxFlat
 	assert(style.border_color == ColorBase.success)
-	assert(style.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
+	assert(style.border_width_left == DesktopToast.ACCENT_STRIPE_WIDTH)
 	assert(style.bg_color == ThemeColor.accent_surface)
 	toast.free()
 	pass

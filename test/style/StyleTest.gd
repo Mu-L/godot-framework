@@ -1,4 +1,4 @@
-## Unit tests for [BoxStyle], [ButtonStyle], [CardStyle] and the builders that go through them.
+## Unit tests for [BoxStyle], [ButtonStyle] and the builders that go through them.
 
 const GRAY := Color(0.5, 0.5, 0.5)
 
@@ -121,27 +121,6 @@ func BoxStyle_pad_test() -> void:
 	pass
 
 
-## Accent-striped cards: the snackbar frames its text with a stripe on both edges, the desktop toast
-## only marks the leading one.
-func CardStyle_make_test() -> void:
-	var snackbar := CardStyle.make(ColorBase.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
-	assert(snackbar.bg_color == ThemeColor.accent_surface)
-	assert(snackbar.border_color == ColorBase.success)
-	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
-	assert(snackbar.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)
-	assert(snackbar.border_width_top == 0 and snackbar.border_width_bottom == 0)
-	assert(snackbar.corner_radius_top_left == CardStyle.CORNER_RADIUS)
-	assert(snackbar.get_margin(SIDE_LEFT) == Margin.ma_4 and snackbar.get_margin(SIDE_TOP) == Margin.ma_3)
-
-	# Leading-edge stripe, square corners and a padding scaled by the app UI scale: the desktop toast card.
-	var toast := CardStyle.make(ColorBase.error, 0, 10.0, 10.0, CardStyle.STRIPE_LEFT, roundi(CardStyle.ACCENT_STRIPE_WIDTH * 2.0))
-	assert(toast.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH * 2)
-	assert(toast.border_width_right == 0)
-	assert(toast.corner_radius_top_left == 0)
-	assert(toast.get_margin(SIDE_RIGHT) == 10.0)
-	pass
-
-
 ## The snackbar shadow is the one card value that cannot be a plain token: the same alpha over a dark
 ## surface and over a light one reads as either nothing or a smudge.
 func Alert_card_shadow_test() -> void:
@@ -161,12 +140,12 @@ func Alert_card_shadow_test() -> void:
 	pass
 
 
-## The card surfaces come from one place, so [Alert] and [DesktopToast] differ in where the stripe sits,
-## not in surface, stripe width or radius.
-func CardStyle_card_components_test() -> void:
+## Both feedback cards use the accent surface; the snackbar frames both edges while the desktop toast
+## only marks the leading one.
+func card_components_test() -> void:
 	var snackbar := Alert.make_card_style(ColorBase.success)
-	assert(snackbar.corner_radius_top_left == CardStyle.CORNER_RADIUS)
-	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
+	assert(snackbar.corner_radius_top_left == ControlSize.radius_md)
+	assert(snackbar.border_width_left == Alert.accent_stripe_width)
 	assert(snackbar.shadow_size == Alert.shadow_size)
 
 	DesktopToast.ui_scale = 1.0

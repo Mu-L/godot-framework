@@ -1,8 +1,8 @@
 ## Read-only text popup. Dismiss with Esc, the close button, or a click outside (window loses focus).
 ##
 ## The popup paints itself from the app theme: the embedded frame and title take the accent-derived
-## card colors of [ThemeColor] — the same surface the snackbar and the desktop toast use, with the
-## card radius from [CardStyle] — and the text area takes [member ThemeColor.inset_surface], with the
+## card colors of [ThemeColor] — the same surface the snackbar and the desktop toast use — and the
+## text area takes [member ThemeColor.inset_surface], with the
 ## accent on the caret, the selection and the scrollbar grabber. [method apply_theme] runs on open and
 ## on every theme change.
 ## The frame overrides only apply while subwindows are embedded, which is the project default; with
@@ -54,7 +54,7 @@ func apply_theme() -> void:
 func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 	var style: StyleBoxFlat = get_theme_stylebox("embedded_border").duplicate() as StyleBoxFlat
 	style.bg_color = ThemeColor.accent_surface
-	style.set_corner_radius_all(CardStyle.CORNER_RADIUS)
+	style.set_corner_radius_all(ControlSize.radius_md)
 	style.border_color = Color(ThemeColor.title_color, border_alpha)
 	style.set_border_width_all(1)
 	return style

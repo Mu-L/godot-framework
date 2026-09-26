@@ -1,7 +1,6 @@
 ## Material snackbar on `gdf_layer`: an accent-tinted card (near-black with near-white text in the dark
-## theme) and the semantic color as a stripe down both edges. Surface and geometry come from
-## [ThemeColor] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
-## accent and matches the desktop toast.
+## theme) and the semantic color as a stripe down both edges. Its surface follows [ThemeColor], so
+## the snackbar follows the app accent.
 ## It drops in at the top center — one short fall from the top edge of the screen down to
 ## [constant Margin.ma_6] — holds, then fades out; live cards stack downward, the newest one hugging
 ## the top edge.
@@ -23,6 +22,7 @@ const shadow_alpha_dark: float = 0.35
 const shadow_alpha_light: float = 0.18
 const shadow_size: int = 4
 const shadow_offset: Vector2 = Vector2(0.0, 2.0)
+const accent_stripe_width: int = 3
 
 ## Live cards, oldest first — [method relayout] stacks them from the top edge downward.
 static var alerts: Array[Alert] = []
@@ -54,7 +54,16 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 
 ## Dark surface in the app accent, with the semantic color as a stripe on each side and the card shadow.
 static func make_card_style(stripe_color: Color) -> StyleBoxFlat:
-	var style := CardStyle.make(stripe_color, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
+	var style := StyleBoxFlat.new()
+	style.bg_color = ThemeColor.accent_surface
+	style.set_corner_radius_all(ControlSize.radius_md)
+	style.content_margin_left = Margin.ma_4
+	style.content_margin_right = Margin.ma_4
+	style.content_margin_top = Margin.ma_3
+	style.content_margin_bottom = Margin.ma_3
+	style.border_color = stripe_color
+	style.set_border_width(SIDE_LEFT, accent_stripe_width)
+	style.set_border_width(SIDE_RIGHT, accent_stripe_width)
 	style.shadow_color = Color(0.0, 0.0, 0.0, shadow_alpha_dark if ThemeColor.is_dark_theme() else shadow_alpha_light)
 	style.shadow_size = shadow_size
 	style.shadow_offset = shadow_offset

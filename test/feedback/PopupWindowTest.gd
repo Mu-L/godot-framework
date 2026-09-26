@@ -122,7 +122,7 @@ func PopupWindow_theme_test() -> void:
 	gdf.gdf_node.add_child(window)
 	var border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
 	assert(border.bg_color == ThemeColor.accent_surface)
-	assert(border.corner_radius_top_left == CardStyle.CORNER_RADIUS)
+	assert(border.corner_radius_top_left == ControlSize.radius_md)
 	assert(border.get_minimum_size().y == window.get_theme_stylebox("embedded_unfocused_border").get_minimum_size().y)
 	assert(window.get_theme_color("title_color") == ThemeColor.title_color)
 	assert(window.get_theme_font("title_font") == Fonts.semibold())
