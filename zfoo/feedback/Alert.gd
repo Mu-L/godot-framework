@@ -65,7 +65,7 @@ static func make_card_style(stripe_color: Color) -> StyleBoxFlat:
 static func make_font() -> Font:
 	var variation := FontVariation.new()
 	variation.base_font = Fonts.medium()
-	variation.spacing_glyph = TextSize.body_large_letter_spacing
+	variation.spacing_glyph = TextSize.letter_spacing_xs
 	return variation
 
 

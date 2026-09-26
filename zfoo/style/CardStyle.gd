@@ -8,7 +8,7 @@ extends Object
 ##
 ## Only values two or more of them need live here. What a single component owns stays on it — its
 ## shadow, its hairline, its card width, its lifetime — and so does anything that already has a home
-## ([TextStyle] sizes, [Margin] steps).
+## ([TextSize] sizes, [Margin] steps).
 ##
 ## Typical use:
 ## [codeblock]

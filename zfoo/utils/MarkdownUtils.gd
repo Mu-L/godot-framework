@@ -35,7 +35,7 @@ extends Object
 ## instead of becoming a live tag. Restore runs high index → low because an outer
 ## token's body holds the inner tokens it was built from.
 
-# h1–h6; body uses RichTextLabel default size. Headline/Title steps of [TextStyle]: h4 and h5
+# h1–h6; body uses RichTextLabel default size. Headline/Title steps of [TextSize]: h4 and h5
 # both land on title_large because the 20px step has no counterpart in the scale.
 const HEADING_FONT_SIZES: PackedInt32Array = [
 	TextSize.headline_large_size,
