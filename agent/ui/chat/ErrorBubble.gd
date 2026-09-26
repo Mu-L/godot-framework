@@ -43,7 +43,7 @@ static func append(
 		resume_button.text = "Resume"
 		resume_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		style_resume_button(resume_button)
-		resume_button.pressed.connect(on_resume_pressed.bind(session_id))
+		resume_button.pressed.connect(on_resume_pressed.bind(session_id, entry))
 		wrapper.set_meta(META_RESUME_BUTTON, resume_button)
 		vbox.add_child(resume_button)
 
@@ -73,7 +73,8 @@ static func is_resumable(message: String) -> bool:
 	return message != "session is busy"
 
 
-static func on_resume_pressed(session_id: int) -> void:
+static func on_resume_pressed(session_id: int, entry: ChatEntry) -> void:
+	AgentSessionManager.delete_chat_from_entry(session_id, entry)
 	AgentEvents.events.session_resume.emit(session_id)
 	pass
 

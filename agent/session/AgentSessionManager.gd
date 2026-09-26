@@ -352,16 +352,22 @@ static func add_chat_entry(session_id: int, kind: String, entry_title: String, b
 	return entry
 
 
-## Removes this user entry and every chat entry after it; trims LLM messages to match.
+## Deletes chat from the selected entry. User entries truncate the following chat and matching
+## LLM history; error entries only remove themselves because they are not model messages.
 ## Chat only — workspace files are left untouched.
 static func delete_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
-	if entry == null or entry.kind != ChatEntry.KIND_USER:
+	if entry == null or entry.kind not in [ChatEntry.KIND_USER, ChatEntry.KIND_ERROR]:
 		return
 	var session := AgentSessionStore.load_session(session_id)
 	if session == null:
 		return
 	var entry_idx := session.chat_entries.find(entry)
 	if entry_idx < 0:
+		return
+	if entry.kind == ChatEntry.KIND_ERROR:
+		session.chat_entries.remove_at(entry_idx)
+		persist_session(session_id)
+		AgentEvents.events.chat_truncated.emit(session_id)
 		return
 	if is_running(session_id):
 		request_stop(session_id)
