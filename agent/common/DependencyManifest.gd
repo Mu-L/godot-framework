@@ -1,11 +1,19 @@
 class_name DependencyManifest
 extends RefCounted
 
+
+class DependencyManifestEntry:
+	var populated: bool = false
+	var bin: String = ""
+	pass
+
 ## Static manifest loaded from `.dependency/manifest.json`. Do not instantiate.
 
 const MANIFEST_REL_PATH := "res://.dependency/manifest.json"
 
 static var entries: Dictionary[String, DependencyManifestEntry] = {}
+
+
 
 
 static func _static_init() -> void:
