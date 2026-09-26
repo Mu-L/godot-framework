@@ -287,7 +287,7 @@ func append_result(session_id: int, entry_index: int, entry: ChatEntry, query: S
 		entry.title,
 		make_snippet(entry.body, query)
 	)
-	result.custom_minimum_size = Vector2(0, 72)
+	result.custom_minimum_size = Vector2(0, ControlSize.xl)
 	result.add_theme_font_override("font", Fonts.light())
 	result.add_theme_font_size_override("font_size", TextSize.label_large_size)
 	style_result_button(result)
@@ -369,7 +369,7 @@ func style_query_edit() -> void:
 
 
 func style_result_button(result: Button) -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_1, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
 	ButtonStyle.apply(result, normal,
 		ButtonStyle.filled(normal, ThemeColor.accent_surface.lerp(ThemeColor.accent_theme_color(), 0.12), ThemeColor.accent_theme_color()),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))
