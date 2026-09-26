@@ -661,7 +661,7 @@ func style_wrap() -> void:
 
 
 func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
-	var wrap_style := BoxStyle.make(ColorBase.surface, 16 if is_expanded else int(ControlSize.xl / 2), Margin.ma_1, Margin.ma_1)
+	var wrap_style := StyleBoxHelper.create_style_box_flat(ColorBase.surface, 16 if is_expanded else int(ControlSize.xl / 2), Margin.ma_1, Margin.ma_1)
 	if ThemeColor.is_dark_theme():
 		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
 		wrap_style.shadow_size = 16 if is_expanded else 10
@@ -674,7 +674,7 @@ func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
 
 
 func build_field_style() -> StyleBoxFlat:
-	var style := BoxStyle.make(Color.TRANSPARENT, 0, Margin.ma_3, Margin.ma_3)
+	var style := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, 0, Margin.ma_3, Margin.ma_3)
 	style.content_margin_right = Margin.ma_13
 	return style
 
@@ -729,7 +729,7 @@ func apply_send_button_style(base_color: Color) -> void:
 	# (margin + 16px icon + margin) stays below ControlSize.md, keeping the box a real square.
 	var radius: int = int(ControlSize.md * 0.5)
 	# Solid fill: hover / pressed / disabled read as plain shading, so they never flip with the theme.
-	var normal := BoxStyle.make(base_color, radius, Margin.ma_1, Margin.ma_1)
+	var normal := StyleBoxHelper.create_style_box_flat(base_color, radius, Margin.ma_1, Margin.ma_1)
 	ButtonStyle.apply(send_button, normal,
 		ButtonStyle.filled(normal, base_color.lightened(0.10)),
 		ButtonStyle.filled(normal, base_color.darkened(0.08)),

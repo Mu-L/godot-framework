@@ -2,7 +2,7 @@ class_name ButtonStyle
 extends Object
 
 ## Button and panel state styling: derive the hover / pressed colors from one base color,
-## and install the state set a [Button] needs. The boxes themselves are built by [BoxStyle].
+## and install the state set a [Button] needs. The boxes themselves are built by [StyleBoxHelper].
 ##
 ## The derivation is theme-aware on purpose. [method hover_color] steps *away* from the surface —
 ## brighter on the dark theme, darker on the light one — and [method press_color] steps back toward
@@ -15,7 +15,7 @@ extends Object
 ##
 ## Typical use:
 ## [codeblock]
-## var normal := BoxStyle.make(ThemeColor.card_surface, 6, Margin.ma_2, Margin.ma_1, ThemeColor.accent_theme_color(), 1)
+## var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.card_surface, 6, Margin.ma_2, Margin.ma_1, ThemeColor.accent_theme_color(), ControlSize.border_xs)
 ## ButtonStyle.apply(button, normal,
 ## 	ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.card_surface, 0.08)),
 ## 	ButtonStyle.filled(normal, ThemeColor.inset_surface, ThemeColor.accent_theme_color()))

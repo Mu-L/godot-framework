@@ -59,7 +59,7 @@ func refresh(_session_id: int = 0, _previous_session_id: int = 0) -> void:
 		usage.total_tokens
 	)
 	label.add_theme_color_override("font_color", text_color_for_tokens(n))
-	wrap.add_theme_stylebox_override("panel", BoxStyle.make(ThemeColor.selected_surface, 6, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1))
+	wrap.add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(ThemeColor.selected_surface, 6, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, ControlSize.border_xs))
 	pass
 
 

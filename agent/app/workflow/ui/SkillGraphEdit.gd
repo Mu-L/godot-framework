@@ -20,7 +20,7 @@ func _ready() -> void:
 
 
 func apply_theme() -> void:
-	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.app_background))
+	add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(ColorBase.app_background))
 	add_theme_color_override("grid_major", ColorBase.muted_border)
 	add_theme_color_override("grid_minor", ColorBase.subtle_border)
 	add_theme_color_override("activity", ThemeColor.accent_theme_color())

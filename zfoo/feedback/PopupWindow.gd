@@ -63,7 +63,7 @@ func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
 ## Read-only text area on the card's inset surface: padding from [Margin], accent caret and
 ## selection, themed scrollbars.
 func style_text_edit() -> void:
-	var style := BoxStyle.make(ThemeColor.inset_surface, 0, Margin.ma_4, Margin.ma_3)
+	var style := StyleBoxHelper.create_style_box_flat(ThemeColor.inset_surface, 0, Margin.ma_4, Margin.ma_3)
 	# A read-only TextEdit paints `read_only`, not `normal`; all three get the box so any state matches.
 	text_edit.add_theme_stylebox_override("normal", style)
 	text_edit.add_theme_stylebox_override("focus", style.duplicate())

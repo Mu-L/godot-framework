@@ -1,4 +1,4 @@
-## Unit tests for [BoxStyle], [ButtonStyle], [Margin] and the builders that go through them.
+## Unit tests for [StyleBoxHelper], [ButtonStyle], [Margin] and the builders that go through them.
 
 const GRAY := Color(0.5, 0.5, 0.5)
 
@@ -90,8 +90,8 @@ func ButtonStyle_with_alpha_test() -> void:
 	pass
 
 
-func BoxStyle_make_test() -> void:
-	var style := BoxStyle.make(Color(0.1, 0.2, 0.3), 8, Margin.ma_2, Margin.ma_1, ColorBase.info, 1)
+func StyleBoxHelper_create_style_box_flat_test() -> void:
+	var style := StyleBoxHelper.create_style_box_flat(Color(0.1, 0.2, 0.3), 8, Margin.ma_2, Margin.ma_1, ColorBase.info, 1)
 	assert(style.bg_color == Color(0.1, 0.2, 0.3))
 	assert(style.corner_radius_top_left == 8 and style.corner_radius_bottom_right == 8)
 	assert(style.get_margin(SIDE_LEFT) == Margin.ma_2 and style.get_margin(SIDE_RIGHT) == Margin.ma_2)
@@ -99,20 +99,20 @@ func BoxStyle_make_test() -> void:
 	assert(style.border_width_left == 1 and style.border_color == ColorBase.info)
 
 	# No border width means no border at all, so a caller that does not want one keeps the default.
-	var plain := BoxStyle.make(Color.WHITE, 4)
+	var plain := StyleBoxHelper.create_style_box_flat(Color.WHITE, 4)
 	assert(plain.border_width_left == 0 and plain.get_margin(SIDE_LEFT) == 0.0)
 	pass
 
 
-func Margin_apply_style_test() -> void:
-	var style := BoxStyle.make(Color.WHITE, 4)
-	Margin.apply_style_box_margin(style, Margin.ma_3, Margin.ma_2, Margin.ma_1, Margin.ma_0)
+func StyleBoxHelper_apply_style_box_margin_test() -> void:
+	var style := StyleBoxHelper.create_style_box_flat(Color.WHITE, 4)
+	StyleBoxHelper.apply_style_box_margin(style, Margin.ma_3, Margin.ma_2, Margin.ma_1, Margin.ma_0)
 	assert(style.get_margin(SIDE_LEFT) == Margin.ma_3 and style.get_margin(SIDE_RIGHT) == Margin.ma_1)
 	assert(style.get_margin(SIDE_TOP) == Margin.ma_2 and style.get_margin(SIDE_BOTTOM) == Margin.ma_0)
 
 	# Base class on purpose: an empty box takes the same padding as a filled one.
 	var empty := StyleBoxEmpty.new()
-	Margin.apply_style_box_margin(empty, Margin.ma_1, Margin.ma_1, Margin.ma_1, Margin.ma_1)
+	StyleBoxHelper.apply_style_box_margin(empty, Margin.ma_1, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	assert(empty.get_margin(SIDE_LEFT) == Margin.ma_1)
 	pass
 
@@ -161,7 +161,7 @@ func card_components_test() -> void:
 ## Every state box is a copy of the normal one with a new fill, so the border, padding and corners
 ## only have to be written once — this is the copy that keeps them.
 func ButtonStyle_filled_test() -> void:
-	var normal := BoxStyle.make(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
 	var hover := ButtonStyle.filled(normal, Color(0.3, 0.3, 0.3))
 	assert(hover.bg_color == Color(0.3, 0.3, 0.3))
 	assert(hover.border_color == normal.border_color and hover.get_margin(SIDE_LEFT) == Margin.ma_2)
@@ -177,7 +177,7 @@ func ButtonStyle_filled_test() -> void:
 ## A missed `hover_pressed` override resolves to the *default theme* box, not to `pressed`,
 ## so the helper has to set it. This is what that regression looked like.
 func ButtonStyle_apply_test() -> void:
-	var normal := BoxStyle.make(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(Color(0.2, 0.2, 0.2), 6, Margin.ma_2, Margin.ma_1, Color.WHITE, 1)
 	var hover := ButtonStyle.filled(normal, Color(0.3, 0.3, 0.3))
 	var pressed := ButtonStyle.filled(normal, Color(0.1, 0.1, 0.1))
 

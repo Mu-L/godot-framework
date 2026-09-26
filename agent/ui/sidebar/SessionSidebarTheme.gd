@@ -14,7 +14,7 @@ const RENAME_CORNER_RADIUS: int = 5
 
 ## Sidebar background plus the hairline against the chat area.
 static func sidebar_panel() -> StyleBoxFlat:
-	var style := BoxStyle.make(ColorBase.chrome_surface)
+	var style := StyleBoxHelper.create_style_box_flat(ColorBase.chrome_surface)
 	style.border_color = ColorBase.muted_border
 	style.set_border_width(SIDE_RIGHT, ControlSize.border_xs)
 	return style
@@ -38,7 +38,7 @@ static func apply_new_session_button(button: Button) -> void:
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.secondary_text)
 
 	var border := ThemeColor.alpha_theme_color(0.55 if ThemeColor.is_dark_theme() else 0.45)
-	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,
 		ButtonStyle.filled(normal, ThemeColor.selected_surface, ThemeColor.alpha_theme_color(0.85)),
 		ButtonStyle.filled(normal, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06), theme_color))
@@ -51,8 +51,8 @@ static func apply_new_session_button(button: Button) -> void:
 
 ## Row background 鈥?selected beats hovered, transparent otherwise.
 static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
-	var style := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS)
-	Margin.apply_style_box_margin(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
+	var style := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, ROW_CORNER_RADIUS)
+	StyleBoxHelper.apply_style_box_margin(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	if selected:
 		style.bg_color = ThemeColor.selected_surface
 	elif hovered:
@@ -106,7 +106,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 static func rename_field() -> StyleBoxFlat:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	var border := ThemeColor.alpha_theme_color(0.75 if ThemeColor.is_dark_theme() else 0.55)
-	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
+	return StyleBoxHelper.create_style_box_flat(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, ControlSize.border_xs)
 
 
 ## Mirrors a resolved font onto another control (rename field, drag ghost).

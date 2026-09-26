@@ -11,7 +11,7 @@ static func style(button: Button, tooltip: String) -> void:
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
-	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,
 		ButtonStyle.filled(normal, ColorBase.hover_surface),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface),
@@ -26,7 +26,7 @@ static func style_round(button: Button, tooltip: String) -> void:
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ThemeColor.accent_theme_color())
 
-	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.sm / 2, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.sm / 2, Margin.ma_2, Margin.ma_1, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,
 		ButtonStyle.filled(normal, ColorBase.hover_surface),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface),

@@ -224,7 +224,8 @@ func set_highlight(running: bool) -> void:
 func apply_theme(running: bool = false) -> void:
 	var background := ColorBase.surface.lerp(ColorBase.success, 0.12) if running else ColorBase.surface
 	var border := ColorBase.success if running else ColorBase.border
-	add_theme_stylebox_override("panel", BoxStyle.make(background, ControlSize.radius_lg, Margin.ma_3, Margin.ma_2, border, 2 if running else 1))
+	var border_width := ControlSize.border_sm if running else ControlSize.border_xs
+	add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(background, ControlSize.radius_lg, Margin.ma_3, Margin.ma_2, border, border_width))
 	add_theme_color_override(
 		"title_color",
 		ColorBase.success if running else ColorBase.primary_text,
@@ -249,8 +250,8 @@ func style_field(field: LineEdit) -> void:
 	field.add_theme_color_override("font_color", ColorBase.primary_text)
 	field.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
-	field.add_theme_stylebox_override("normal", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1))
-	field.add_theme_stylebox_override("focus", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.accent_theme_color(), 1))
+	field.add_theme_stylebox_override("normal", StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs))
+	field.add_theme_stylebox_override("focus", StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.accent_theme_color(), ControlSize.border_xs))
 	pass
 
 
@@ -258,7 +259,7 @@ func style_node_button(button: Button) -> void:
 	button.custom_minimum_size.y = ControlSize.md
 	button.add_theme_font_size_override("font_size", TextSize.body_medium_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
-	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,
 		ButtonStyle.filled(normal, ColorBase.hover_surface),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))

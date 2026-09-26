@@ -6,6 +6,7 @@ extends Object
 ## Values follow a 4px step scale, e.g. [code]Margin.ma_4[/code] == 16. The constants are ints
 ## because that is what theme constants ask for; the float size properties (`content_margin_*`,
 ## offsets, custom minimum size) take them as-is, since int to float is a lossless conversion.
+## All four sides of a box at once go through [method StyleBoxHelper.apply_style_box_margin].
 ## Typical use:
 ## [codeblock]
 ## var margin := MarginContainer.new()
@@ -13,7 +14,8 @@ extends Object
 ## margin.add_theme_constant_override("margin_right", Margin.ma_4)
 ##
 ## var style := StyleBoxFlat.new()
-## Margin.apply_style(style, Margin.ma_4, Margin.ma_2, Margin.ma_4, Margin.ma_2)
+## style.content_margin_left = Margin.ma_4
+## style.content_margin_right = Margin.ma_4
 ## [/codeblock]
 
 const ma_0: int = 0
@@ -33,14 +35,3 @@ const ma_13: int = 52
 const ma_14: int = 56
 const ma_15: int = 60
 const ma_16: int = 64
-
-
-## All four padding sides in one call (left, top, right, bottom) — for asymmetrical boxes.
-## Edits [param style] in place; takes the [StyleBox] base class, so an empty box or a line box
-## gets the same treatment.
-static func apply_style_box_margin(style: StyleBox, left: int, top: int, right: int, bottom: int) -> void:
-	style.content_margin_left = left
-	style.content_margin_top = top
-	style.content_margin_right = right
-	style.content_margin_bottom = bottom
-	pass

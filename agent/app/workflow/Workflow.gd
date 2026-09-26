@@ -65,9 +65,9 @@ func _ready() -> void:
 
 
 func apply_theme() -> void:
-	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.app_background))
-	toolbar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.deep_surface, 0, 0, 0, ColorBase.muted_border, 1))
-	sidebar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.chrome_surface, 0, 0, 0, ColorBase.muted_border, 1))
+	add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(ColorBase.app_background))
+	toolbar.add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(ColorBase.deep_surface, 0, 0, 0, ColorBase.muted_border, ControlSize.border_xs))
+	sidebar.add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(ColorBase.chrome_surface, 0, 0, 0, ColorBase.muted_border, ControlSize.border_xs))
 	apply_layout_tokens()
 	apply_text_tokens()
 	style_toolbar_buttons()
@@ -137,13 +137,13 @@ func style_palette_tree() -> void:
 	palette_tree.add_theme_color_override("font_selected_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("font_hovered_selected_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("guide_color", ColorBase.muted_border)
-	palette_tree.add_theme_stylebox_override("panel", BoxStyle.make(Color.TRANSPARENT))
-	var selected := BoxStyle.make(ThemeColor.selected_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
+	palette_tree.add_theme_stylebox_override("panel", StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT))
+	var selected := StyleBoxHelper.create_style_box_flat(ThemeColor.selected_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
 	palette_tree.add_theme_stylebox_override("selected", selected)
 	palette_tree.add_theme_stylebox_override("selected_focus", selected.duplicate() as StyleBoxFlat)
 	palette_tree.add_theme_stylebox_override("hovered_selected", selected.duplicate() as StyleBoxFlat)
 	palette_tree.add_theme_stylebox_override("hovered_selected_focus", selected.duplicate() as StyleBoxFlat)
-	palette_tree.add_theme_stylebox_override("hovered", BoxStyle.make(ColorBase.hover_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
+	palette_tree.add_theme_stylebox_override("hovered", StyleBoxHelper.create_style_box_flat(ColorBase.hover_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
 	pass
 
 
@@ -404,7 +404,7 @@ func style_run_button() -> void:
 
 
 func apply_run_button_style(base_color: Color) -> void:
-	var normal := BoxStyle.make(base_color, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
+	var normal := StyleBoxHelper.create_style_box_flat(base_color, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
 	ButtonStyle.apply(run_button, normal,
 		ButtonStyle.filled(normal, base_color.lightened(0.12)),
 		ButtonStyle.filled(normal, base_color.darkened(0.08)),

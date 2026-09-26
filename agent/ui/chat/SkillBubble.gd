@@ -122,7 +122,7 @@ static func style_expand_button(button: Button) -> void:
 	var theme_color := ThemeColor.accent_theme_color()
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.08))
 
-	var normal := BoxStyle.make(Color.TRANSPARENT, 0, Margin.ma_1, Margin.ma_0)
+	var normal := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, 0, Margin.ma_1, Margin.ma_0)
 	var hover := ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.12))
 	hover.set_corner_radius_all(4)
 

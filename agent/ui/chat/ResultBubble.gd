@@ -66,7 +66,7 @@ static func style_view_button(button: Button) -> void:
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ButtonStyle.hover_color(ColorBase.primary_text, 0.08), ButtonStyle.press_color(ColorBase.secondary_text, 0.08))
 
 	var border := ButtonStyle.press_color(ColorBase.secondary_text)
-	var normal := BoxStyle.make(ButtonStyle.hover_color(ColorBase.neutral_surface, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ButtonStyle.hover_color(ColorBase.neutral_surface, 0.08), 4, Margin.ma_1, Margin.ma_0, border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,
 		ButtonStyle.filled(normal, ButtonStyle.hover_color(ColorBase.neutral_surface, 0.16), ColorBase.secondary_text),
 		ButtonStyle.filled(normal, ButtonStyle.press_color(ColorBase.neutral_surface, 0.06), ColorBase.secondary_text))

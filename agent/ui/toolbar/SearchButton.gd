@@ -303,7 +303,7 @@ func make_search_icon(color: Color) -> ImageTexture:
 
 
 func make_popup_style() -> StyleBoxFlat:
-	var style := BoxStyle.make(ColorBase.app_background, 12, Margin.ma_4, Margin.ma_4, ColorBase.border, 1)
+	var style := StyleBoxHelper.create_style_box_flat(ColorBase.app_background, 12, Margin.ma_4, Margin.ma_4, ColorBase.border, ControlSize.border_xs)
 	style.shadow_color = Color(0, 0, 0, 0.22)
 	style.shadow_size = 18
 	style.shadow_offset = Vector2(0, 8)
@@ -311,7 +311,7 @@ func make_popup_style() -> StyleBoxFlat:
 
 
 func style_query_edit() -> void:
-	var normal := BoxStyle.make(ColorBase.control_surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
 	var focus := normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()
 	focus.set_border_width_all(ControlSize.border_sm)
@@ -323,7 +323,7 @@ func style_query_edit() -> void:
 
 
 func style_result_button(result: Button) -> void:
-	var normal := BoxStyle.make(ColorBase.surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(result, normal,
 		ButtonStyle.filled(normal, ColorBase.hover_surface, ThemeColor.accent_theme_color()),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))

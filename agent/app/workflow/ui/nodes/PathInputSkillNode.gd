@@ -62,7 +62,7 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	browse.custom_minimum_size = ControlSize.square(ControlSize.md)
 	browse.add_theme_font_size_override("font_size", TextSize.label_large_size)
 	ButtonStyle.apply_font_colors(browse, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
-	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_1, Margin.ma_1, ColorBase.subtle_border, 1)
+	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_1, Margin.ma_1, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(browse, normal,
 		ButtonStyle.filled(normal, ColorBase.hover_surface),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))
