@@ -126,13 +126,18 @@ func style_toolbar_button(button: Button, tooltip: String) -> void:
 
 
 func style_palette_tree() -> void:
-	palette_tree.add_theme_font_size_override("font_size", TextSize.body_large_size)
+	palette_tree.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	palette_tree.add_theme_color_override("font_color", ColorBase.text)
 	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.text)
 	palette_tree.add_theme_color_override("font_selected_color", ColorBase.text)
+	palette_tree.add_theme_color_override("font_hovered_selected_color", ColorBase.text)
 	palette_tree.add_theme_color_override("guide_color", ColorBase.muted_border)
 	palette_tree.add_theme_stylebox_override("panel", BoxStyle.make(Color.TRANSPARENT))
-	palette_tree.add_theme_stylebox_override("selected", BoxStyle.make(ColorBase.selection_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
+	var selected := BoxStyle.make(ColorBase.selection_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
+	palette_tree.add_theme_stylebox_override("selected", selected)
+	palette_tree.add_theme_stylebox_override("selected_focus", selected.duplicate() as StyleBoxFlat)
+	palette_tree.add_theme_stylebox_override("hovered_selected", selected.duplicate() as StyleBoxFlat)
+	palette_tree.add_theme_stylebox_override("hovered_selected_focus", selected.duplicate() as StyleBoxFlat)
 	palette_tree.add_theme_stylebox_override("hovered", BoxStyle.make(ColorBase.hover_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
 	pass
 
@@ -222,8 +227,6 @@ func build_palette_tree() -> void:
 		workflow_item.set_metadata(0, {"kind": "workflow", "path": workflow_path})
 		workflow_item.set_selectable(0, true)
 	pass
-
-
 func on_palette_item_selected() -> void:
 	var item: TreeItem = palette_tree.get_selected()
 	if item == null:
