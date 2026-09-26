@@ -31,7 +31,7 @@ func setup(p_button: Button) -> void:
 
 func apply_theme() -> void:
 	var tooltip: String = I18n.t("agent.toolbar.light_theme") if ThemeColor.is_dark_theme() else I18n.t("agent.toolbar.dark_theme")
-	AgentToolbarButton.style(button, tooltip, ControlSize.sm / 2)
+	AgentToolbarButton.style_round(button, tooltip)
 	apply_equal_icon_margins(Margin.ma_1)
 	button.text = ""
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

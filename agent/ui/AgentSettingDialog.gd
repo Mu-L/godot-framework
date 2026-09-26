@@ -540,7 +540,7 @@ func apply_locale() -> void:
 
 
 func apply_theme() -> void:
-	AgentToolbarButton.style(button, I18n.t("agent.settings.tooltip"), ControlSize.sm / 2)
+	AgentToolbarButton.style_round(button, I18n.t("agent.settings.tooltip"))
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
 	button.add_theme_color_override("icon_normal_color", ColorBase.muted)

@@ -32,7 +32,7 @@ func apply_theme() -> void:
 		if jarvis_orb_enabled
 		else I18n.t("agent.toolbar.show_animation")
 	)
-	AgentToolbarButton.style(button, tooltip, ControlSize.sm / 2)
+	AgentToolbarButton.style_round(button, tooltip)
 	apply_equal_icon_margins(Margin.ma_1)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER

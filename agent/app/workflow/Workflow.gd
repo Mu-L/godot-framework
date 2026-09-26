@@ -9,6 +9,7 @@ const PALETTE_LABEL_MAX: int = 30
 @onready var toolbar_row: HBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow
 @onready var brand: VBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand
 @onready var eyebrow: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand/Eyebrow
+@onready var actions: HBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
 @onready var sidebar_margin: MarginContainer = $Root/Body/Sidebar/SidebarMargin
 @onready var palette_vbox: VBoxContainer = $Root/Body/Sidebar/SidebarMargin/PaletteVBox
@@ -84,6 +85,7 @@ func apply_layout_tokens() -> void:
 	toolbar_margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
 	toolbar_row.add_theme_constant_override("separation", Margin.ma_4)
 	brand.add_theme_constant_override("separation", Margin.ma_0)
+	actions.add_theme_constant_override("separation", Margin.ma_2)
 	sidebar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_top", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
@@ -105,14 +107,18 @@ func apply_text_tokens() -> void:
 
 
 func style_toolbar_buttons() -> void:
-	for button: Button in [new_button, load_button, save_button, delete_button, log_button]:
-		button.custom_minimum_size.y = ControlSize.md
-		button.add_theme_font_size_override("font_size", TextSize.label_large_size)
-		ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ColorBase.text)
-		var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
-		var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-		var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
-		ButtonStyle.apply_states(button, normal, hover, pressed)
+	style_toolbar_button(new_button, tr("workflow.toolbar.new"))
+	style_toolbar_button(load_button, tr("workflow.toolbar.load"))
+	style_toolbar_button(save_button, tr("workflow.toolbar.save"))
+	style_toolbar_button(delete_button, tr("workflow.toolbar.delete"))
+	style_toolbar_button(log_button, tr("workflow.toolbar.log"))
+	pass
+
+
+func style_toolbar_button(button: Button, tooltip: String) -> void:
+	AgentToolbarButton.style(button, tooltip)
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	pass
 
 
@@ -374,9 +380,11 @@ func set_run_button_running(running: bool) -> void:
 
 func style_run_button() -> void:
 	apply_run_button_style(ColorBase.success)
-	run_button.custom_minimum_size.y = ControlSize.md
-	run_button.add_theme_font_size_override("font_size", TextSize.label_large_size)
+	run_button.custom_minimum_size = ControlSize.square(ControlSize.sm)
+	run_button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	ButtonStyle.apply_font_colors(run_button, Color.WHITE, Color.WHITE, Color.WHITE)
+	run_button.focus_mode = Control.FOCUS_NONE
+	run_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	run_button.icon = make_play_icon(TextSize.title_small_size, Color.WHITE)
 	run_button.text = tr("workflow.toolbar.run")
 	run_button.add_theme_constant_override("icon_max_width", TextSize.title_small_size)
@@ -386,10 +394,11 @@ func style_run_button() -> void:
 
 
 func apply_run_button_style(base_color: Color) -> void:
-	var normal := BoxStyle.make(base_color, ControlSize.radius_md, Margin.ma_4, Margin.ma_2)
+	var normal := BoxStyle.make(base_color, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
 	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.12))
 	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
-	ButtonStyle.apply_states(run_button, normal, hover, pressed)
+	var hover_pressed := BoxStyle.with_bg(pressed, base_color.darkened(0.02))
+	ButtonStyle.apply_states(run_button, normal, hover, pressed, null, hover_pressed)
 	pass
 
 
