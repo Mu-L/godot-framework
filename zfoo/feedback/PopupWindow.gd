@@ -44,8 +44,18 @@ func apply_theme() -> void:
 	add_theme_color_override("title_color", ThemeColor.title_color)
 	add_theme_font_override("title_font", Fonts.semibold())
 	add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
+	add_theme_icon_override("close_pressed", tint_theme_icon("close_pressed", ColorBase.error))
 	style_text_edit()
 	pass
+
+
+func tint_theme_icon(icon_name: String, color: Color) -> ImageTexture:
+	var image := get_theme_icon(icon_name).get_image()
+	for y: int in image.get_height():
+		for x: int in image.get_width():
+			var alpha := image.get_pixel(x, y).a
+			image.set_pixel(x, y, Color(color, alpha))
+	return ImageTexture.create_from_image(image)
 
 
 ## The engine's own frame with only its fills swapped, so the 32px title band, the close button and

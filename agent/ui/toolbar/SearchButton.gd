@@ -333,13 +333,11 @@ func make_icon(path: String, color: Color) -> ImageTexture:
 
 func style_close_button() -> void:
 	var normal := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, int(ControlSize.lg * 0.5))
-	var hover := ButtonStyle.filled(normal, Color(ThemeColor.title_color, 0.08))
-	var pressed := ButtonStyle.filled(normal, Color(ThemeColor.title_color, 0.14))
-	ButtonStyle.apply(close_button, normal, hover, pressed)
+	ButtonStyle.apply(close_button, normal, normal.duplicate() as StyleBoxFlat, normal.duplicate() as StyleBoxFlat)
 	close_button.add_theme_color_override("icon_normal_color", Color(ThemeColor.body_color, 0.75))
 	close_button.add_theme_color_override("icon_hover_color", ThemeColor.title_color)
-	close_button.add_theme_color_override("icon_pressed_color", ThemeColor.title_color)
-	close_button.add_theme_color_override("icon_hover_pressed_color", ThemeColor.title_color)
+	close_button.add_theme_color_override("icon_pressed_color", ColorBase.error)
+	close_button.add_theme_color_override("icon_hover_pressed_color", ColorBase.error)
 	pass
 
 
