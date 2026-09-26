@@ -4,7 +4,7 @@ extends Object
 ## Card palette derived from `ThemeColor.theme_color`, so floating cards and window bodies
 ## (`DesktopToast`, `Alert`, `PopupWindow`) pick up the accent the user chose while title/body
 ## contrast stays stable in either theme.
-## Usage: `ThemeColorCard.background_color` (card surface), `inset_color` (a window's body, one
+## Usage: `ColorCard.background_color` (card surface), `inset_color` (a window's body, one
 ## step below it), `title_color` / `body_color` (text), `accent_color` / `selection_color` (caret,
 ## selection, highlight). `ThemeColor` calls `refresh()` whenever the accent color or the dark/light
 ## theme changes; until that first call these hold their neutral fallbacks.

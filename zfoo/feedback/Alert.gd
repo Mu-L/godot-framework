@@ -1,6 +1,6 @@
 ## Material snackbar on `gdf_layer`: an accent-tinted card (near-black with near-white text in the dark
 ## theme) and the semantic color as a stripe down both edges. Surface and geometry come from
-## [ThemeColorCard] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
+## [ColorCard] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
 ## accent and matches the desktop toast.
 ## It drops in at the top center — one short fall from the top edge of the screen down to
 ## [constant Margin.ma_6] — holds, then fades out; live cards stack downward, the newest one hugging

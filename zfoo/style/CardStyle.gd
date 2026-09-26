@@ -28,7 +28,7 @@ const STRIPE_BOTH: int = STRIPE_LEFT | STRIPE_RIGHT
 const ACCENT_STRIPE_WIDTH: int = 3
 
 
-## Card box: [member ThemeColorCard.background_color] fill, [param stripe_color] painted down the edges
+## Card box: [member ColorCard.background_color] fill, [param stripe_color] painted down the edges
 ## named by [param stripe], rounded by [param radius], padded by [param margin_h] / [param margin_v].
 ## The paddings are floats because [DesktopToast] scales its whole card by the app UI scale.
 static func make(

@@ -127,7 +127,7 @@ func inline_code_box_padding_test() -> void:
 	pass
 
 
-## A highlight over a bubble follows the theme color ([ThemeColorCard]) instead of the
+## A highlight over a bubble follows the theme color ([ColorCard]) instead of the
 ## engine's default tint, and both label kinds share it.
 func selection_theme_test() -> void:
 	var labels: Array[RichTextLabel] = [

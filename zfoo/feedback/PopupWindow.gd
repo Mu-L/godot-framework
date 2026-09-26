@@ -1,8 +1,8 @@
 ## Read-only text popup. Dismiss with Esc, the close button, or a click outside (window loses focus).
 ##
 ## The popup paints itself from the app theme: the embedded frame and title take the accent-derived
-## card colors of [ThemeColorCard] — the same surface the snackbar and the desktop toast use, with the
-## card radius from [CardStyle] — and the text area takes [member ThemeColorCard.inset_color], with the
+## card colors of [ColorCard] — the same surface the snackbar and the desktop toast use, with the
+## card radius from [CardStyle] — and the text area takes [member ColorCard.inset_color], with the
 ## accent on the caret, the selection and the scrollbar grabber. [method apply_theme] runs on open and
 ## on every theme change.
 ## The frame overrides only apply while subwindows are embedded, which is the project default; with

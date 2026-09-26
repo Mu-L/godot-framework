@@ -7,7 +7,7 @@ extends Window
 ## It never activates and never joins Godot's popup list, so the app window keeps its input.
 ##
 ## Example: `DesktopToast.show_toast("Run finished", summary, ColorBase.success)`
-## The card is [CardStyle] on the [ThemeColorCard] surface — the same card the snackbar paints, only
+## The card is [CardStyle] on the [ColorCard] surface — the same card the snackbar paints, only
 ## with the stripe on the leading edge; the accent color is passed per toast.
 
 const CARD_WIDTH: float = 380.0

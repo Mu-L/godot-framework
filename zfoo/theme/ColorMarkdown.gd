@@ -5,7 +5,7 @@ extends Object
 ## Two hand-written sets — one per theme — instead of colors derived from `ThemeColor.theme_color`:
 ## every value is a literal you can read, tune and review in a screenshot, and a link always lands
 ## on a contrast that was picked by hand instead of on whatever the current accent implies.
-## Usage: `ThemeColorMarkdown.code_block_bg` / `table_grid_color` / … ; `MarkdownUtils` turns each
+## Usage: `ColorMarkdown.code_block_bg` / `table_grid_color` / … ; `MarkdownUtils` turns each
 ## one into a BBCode argument at conversion time.
 ## `ThemeColor` calls `refresh()` whenever the dark/light theme changes.
 

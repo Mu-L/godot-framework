@@ -22,7 +22,7 @@ extends Object
 ## GFM `\| col \|` table  → `[table=N][cell border=…]…[/cell][/table]` (header row bold + bg)
 ## leftover `[` / `]`     → `[lb]` / `[rb]` (incl. literal `[b]`, `[url=…]`)
 ##
-## No color lives here: every fill, border and mark comes from `ThemeColorMarkdown`, whose dark
+## No color lives here: every fill, border and mark comes from [ColorMarkdown], whose dark
 ## and light sets are constants it switches between.
 ##
 ## Block pass then inline pass. Block order is load-bearing: fences first so
@@ -96,7 +96,7 @@ static func compile_regex(pattern: String) -> RegEx:
 
 
 ## Converts Markdown to BBCode for RichTextLabel (`bbcode_enabled` must be on).
-## Colors come from `ThemeColorMarkdown`, so the result follows the current theme.
+## Colors come from [ColorMarkdown], so the result follows the current theme.
 static func to_bbcode(markdown: String) -> String:
 	if StringUtils.is_blank(markdown):
 		return StringUtils.EMPTY
@@ -796,7 +796,7 @@ class SelectableRichTextLabel extends RichTextLabel:
 
 
 ## Highlight colors of a selectable body: the card palette's accent-tinted selection plus its
-## primary text for the highlighted glyphs. Both come from [ThemeColorCard], so a bubble keeps
+## primary text for the highlighted glyphs. Both come from [ColorCard], so a bubble keeps
 ## readable contrast in either theme and re-tints when the user picks another accent color.
 static func apply_selection_theme(label: RichTextLabel) -> void:
 	label.add_theme_color_override("selection_color", ColorCard.selection_color)

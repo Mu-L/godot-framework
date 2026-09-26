@@ -4,7 +4,7 @@
 
 
 ## Caret and highlight of the chat input follow the theme color, the same pair the bubbles and
-## the sidebar rename field use ([ThemeColorCard]); the engine default would be a fixed green.
+## the sidebar rename field use ([ColorCard]); the engine default would be a fixed green.
 func AgentChatInput_text_colors_follow_theme_test() -> void:
 	var input := AgentChatInput.new()
 	input.input_field = TextEdit.new()

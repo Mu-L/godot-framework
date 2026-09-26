@@ -116,7 +116,7 @@ func PopupWindow_parent_test() -> void:
 	pass
 
 
-## [method PopupWindow.apply_theme] paints the frame from [ThemeColorCard] and the text area from its inset surface.
+## [method PopupWindow.apply_theme] paints the frame from [ColorCard] and the text area from its inset surface.
 func PopupWindow_theme_test() -> void:
 	var window := PopupWindow.new()
 	gdf.gdf_node.add_child(window)
