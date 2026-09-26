@@ -1,6 +1,17 @@
 class_name HttpUtils
 extends Object
 
+const GOOGLE_CONNECTIVITY_CHECK_URL := "https://www.google.com/generate_204"
+const CONNECTIVITY_CHECK_TIMEOUT_MILLIS := 5000
+
+
+## Checks whether the current network can reach Google across the firewall.
+## Uses Google's lightweight 204 endpoint; an optional proxy can be supplied for the check.
+static func async_is_cross_firewall(timeout_millis: int = CONNECTIVITY_CHECK_TIMEOUT_MILLIS) -> bool:
+	var response := await HttpHelper.async_get(GOOGLE_CONNECTIVITY_CHECK_URL, timeout_millis)
+	return response.success and response.code == 204
+
+
 static func is_https_url(url: String) -> bool:
 	if StringUtils.is_blank(url):
 		return false
