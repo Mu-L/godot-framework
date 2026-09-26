@@ -13,6 +13,7 @@ const PALETTE_LABEL_MAX: int = 30
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
 @onready var sidebar_margin: MarginContainer = $Root/Body/Sidebar/SidebarMargin
 @onready var palette_vbox: VBoxContainer = $Root/Body/Sidebar/SidebarMargin/PaletteVBox
+@onready var palette_scroll: ScrollContainer = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteScroll
 @onready var palette_tree: Tree = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteScroll/PaletteTree
 @onready var palette_title: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteTitle
 @onready var palette_hint: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteHint
@@ -74,6 +75,8 @@ func apply_theme() -> void:
 	style_run_button()
 	set_run_button_running(running_pipeline)
 	graph_edit.apply_theme()
+	ScrollBarStyle.apply(graph_edit.get_h_scroll_bar())
+	ScrollBarStyle.apply(graph_edit.get_v_scroll_bar())
 	pass
 
 
@@ -126,6 +129,8 @@ func style_toolbar_button(button: Button, tooltip: String) -> void:
 
 
 func style_palette_tree() -> void:
+	ScrollBarStyle.apply(palette_scroll.get_v_scroll_bar())
+	ScrollBarStyle.apply(palette_tree.get_v_scroll_bar())
 	palette_tree.add_theme_font_size_override("font_size", TextSize.title_medium_size)
 	palette_tree.add_theme_color_override("font_color", ColorBase.text)
 	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.text)

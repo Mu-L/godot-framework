@@ -693,6 +693,8 @@ func style_field() -> void:
 	input_field.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
 	input_field.add_theme_color_override("font_selected_color", ColorCard.title_color)
 	input_field.add_theme_color_override("selection_color", ColorCard.selection_color)
+	ScrollBarStyle.apply(input_field.get_v_scroll_bar())
+	ScrollBarStyle.apply(input_field.get_h_scroll_bar())
 	input_field.caret_blink = true
 	pass
 

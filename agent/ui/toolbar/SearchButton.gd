@@ -20,6 +20,7 @@ var popup_panel: PanelContainer
 var title_label: Label
 var query_edit: LineEdit
 var status_label: Label
+var results_scroll: ScrollContainer
 var results_list: VBoxContainer
 var debounce_timer: Timer
 
@@ -96,14 +97,14 @@ func build_popup() -> void:
 	status_label.add_theme_color_override("font_color", ColorBase.muted)
 	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	content.add_child(status_label)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	content.add_child(scroll)
+	results_scroll = ScrollContainer.new()
+	results_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	results_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	content.add_child(results_scroll)
 	results_list = VBoxContainer.new()
 	results_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	results_list.add_theme_constant_override("separation", Margin.ma_1)
-	scroll.add_child(results_list)
+	results_scroll.add_child(results_list)
 	pass
 
 
@@ -117,6 +118,7 @@ func apply_theme() -> void:
 	button.add_theme_constant_override("icon_max_height", 16)
 	update_icon(button.is_hovered())
 	popup_panel.add_theme_stylebox_override("panel", make_popup_style())
+	ScrollBarStyle.apply(results_scroll.get_v_scroll_bar())
 	style_query_edit()
 	pass
 

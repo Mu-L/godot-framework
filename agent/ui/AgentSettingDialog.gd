@@ -13,6 +13,7 @@ const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
 var button: Button
 var dialog: ConfirmationDialog
 var content_panel: PanelContainer
+var content_scroll: ScrollContainer
 var appearance_heading_label: Label
 var notification_heading_label: Label
 var language_select: OptionButton
@@ -83,14 +84,14 @@ func build_dialog() -> void:
 	content_panel.add_child(card_margin)
 
 	# The rows outgrow a short window, so keep them reachable instead of clipping the last one.
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	card_margin.add_child(scroll)
+	content_scroll = ScrollContainer.new()
+	content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	card_margin.add_child(content_scroll)
 
 	var fields: VBoxContainer = VBoxContainer.new()
 	fields.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fields.add_theme_constant_override("separation", Margin.ma_3)
-	scroll.add_child(fields)
+	content_scroll.add_child(fields)
 	appearance_heading_label = Label.new()
 	appearance_heading_label.text = I18n.t("agent.settings.appearance")
 	appearance_heading_label.add_theme_font_size_override("font_size", TextSize.title_large_size)
@@ -548,6 +549,7 @@ func apply_theme() -> void:
 	button.add_theme_color_override("icon_pressed_color", ColorBase.text)
 	button.add_theme_color_override("icon_focus_color", ColorBase.text)
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ScrollBarStyle.apply(content_scroll.get_v_scroll_bar())
 	style_dialog()
 	pass
 
