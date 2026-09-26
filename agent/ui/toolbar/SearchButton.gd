@@ -17,7 +17,6 @@ const SEARCH_ICON_PATH := "res://agent/asset/image/icon/search.svg"
 var button: Button
 var popup: Window
 var popup_panel: PanelContainer
-var title_label: Label
 var query_edit: LineEdit
 var status_label: Label
 var results_scroll: ScrollContainer
@@ -43,8 +42,6 @@ func build_popup() -> void:
 	popup.size = DEFAULT_POPUP_SIZE
 	popup.visible = false
 	popup.transient = true
-	popup.borderless = true
-	popup.transparent_bg = true
 	popup.close_requested.connect(popup.hide)
 	popup.focus_exited.connect(on_popup_focus_exited)
 	popup.window_input.connect(on_popup_window_input)
@@ -62,27 +59,6 @@ func build_popup() -> void:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", Margin.ma_3)
 	margin.add_child(content)
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", Margin.ma_2)
-	content.add_child(header)
-	var header_icon := TextureRect.new()
-	header_icon.custom_minimum_size = Vector2(22, 22)
-	header_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	header_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	header_icon.texture = make_search_icon(ColorBase.primary_text)
-	header.add_child(header_icon)
-	title_label = Label.new()
-	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
-	header.add_child(title_label)
-	var close_button := Button.new()
-	close_button.text = "×"
-	close_button.flat = true
-	close_button.focus_mode = Control.FOCUS_NONE
-	close_button.custom_minimum_size = ControlSize.square(ControlSize.md)
-	close_button.add_theme_font_size_override("font_size", TextSize.headline_small_size)
-	close_button.pressed.connect(popup.hide)
-	header.add_child(close_button)
 	query_edit = LineEdit.new()
 	query_edit.custom_minimum_size = Vector2(0, 42)
 	query_edit.clear_button_enabled = true
@@ -95,7 +71,6 @@ func build_popup() -> void:
 	debounce_timer.timeout.connect(on_debounce_timeout)
 	popup.add_child(debounce_timer)
 	status_label = Label.new()
-	status_label.add_theme_color_override("font_color", ColorBase.secondary_text)
 	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	content.add_child(status_label)
 	results_scroll = ScrollContainer.new()
@@ -118,14 +93,23 @@ func apply_theme() -> void:
 	button.add_theme_constant_override("icon_max_width", 16)
 	button.add_theme_constant_override("icon_max_height", 16)
 	update_icon(button.is_hovered())
-	popup_panel.add_theme_stylebox_override("panel", make_popup_style())
+	popup.add_theme_stylebox_override("embedded_border", make_embedded_border(PopupWindow.BORDER_ALPHA))
+	popup.add_theme_stylebox_override("embedded_unfocused_border", make_embedded_border(PopupWindow.BORDER_ALPHA_UNFOCUSED))
+	popup.add_theme_color_override("title_color", ThemeColor.title_color)
+	popup.add_theme_font_override("title_font", Fonts.semibold())
+	popup.add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
+	popup_panel.add_theme_stylebox_override("panel", make_content_style())
+	status_label.add_theme_color_override("font_color", Color(ThemeColor.title_color, 0.62))
 	ScrollBarStyle.apply(results_scroll.get_v_scroll_bar())
 	style_query_edit()
+	for child: Node in results_list.get_children():
+		if child is Button:
+			style_result_button(child as Button)
 	pass
 
 
 func apply_locale() -> void:
-	title_label.text = I18n.t("agent.search.title")
+	popup.title = I18n.t("agent.search.title")
 	query_edit.placeholder_text = I18n.t("agent.search.placeholder")
 	if not query_edit.editable:
 		status_label.text = I18n.t("agent.search.loading")
@@ -302,30 +286,37 @@ func make_search_icon(color: Color) -> ImageTexture:
 	return ImageTexture.create_from_image(image)
 
 
-func make_popup_style() -> StyleBoxFlat:
-	var style := StyleBoxHelper.create_style_box_flat(ColorBase.app_background, 12, Margin.ma_4, Margin.ma_4, ColorBase.border, ControlSize.border_xs)
-	style.shadow_color = Color(0, 0, 0, 0.22)
-	style.shadow_size = 18
-	style.shadow_offset = Vector2(0, 8)
+func make_embedded_border(border_alpha: float) -> StyleBoxFlat:
+	var style: StyleBoxFlat = popup.get_theme_stylebox("embedded_border").duplicate() as StyleBoxFlat
+	style.bg_color = ThemeColor.accent_surface
+	style.set_corner_radius_all(ControlSize.radius_md)
+	style.border_color = Color(ThemeColor.title_color, border_alpha)
+	style.set_border_width_all(ControlSize.border_xs)
+	return style
+
+
+func make_content_style() -> StyleBoxFlat:
+	var style := StyleBoxHelper.create_style_box_flat(ThemeColor.inset_surface, 0)
 	return style
 
 
 func style_query_edit() -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, PopupWindow.BORDER_ALPHA), ControlSize.border_xs)
 	var focus := normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()
 	focus.set_border_width_all(ControlSize.border_sm)
 	query_edit.add_theme_stylebox_override("normal", normal)
 	query_edit.add_theme_stylebox_override("focus", focus)
-	query_edit.add_theme_color_override("font_color", ColorBase.primary_text)
-	query_edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
+	query_edit.add_theme_color_override("font_color", ThemeColor.title_color)
+	query_edit.add_theme_color_override("font_placeholder_color", Color(ThemeColor.title_color, 0.62))
+	query_edit.add_theme_color_override("selection_color", ThemeColor.selection_color)
 	pass
 
 
 func style_result_button(result: Button) -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_2, Color(ThemeColor.title_color, PopupWindow.BORDER_ALPHA), ControlSize.border_xs)
 	ButtonStyle.apply(result, normal,
-		ButtonStyle.filled(normal, ColorBase.hover_surface, ThemeColor.accent_theme_color()),
+		ButtonStyle.filled(normal, ThemeColor.accent_surface.lerp(ThemeColor.accent_theme_color(), 0.12), ThemeColor.accent_theme_color()),
 		ButtonStyle.filled(normal, ThemeColor.selected_surface))
-	ButtonStyle.apply_font_colors(result, ColorBase.primary_text, ColorBase.primary_text, ColorBase.primary_text)
+	ButtonStyle.apply_font_colors(result, ThemeColor.title_color, ThemeColor.title_color, ThemeColor.title_color)
 	pass

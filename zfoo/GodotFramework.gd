@@ -79,7 +79,7 @@ class Events:
 	## Theme ui
 	signal theme_changed
 	signal theme_color_changed
-	## Locale
+	## I18n locale
 	signal locale_changed
 	pass
 ####################################################################################################
