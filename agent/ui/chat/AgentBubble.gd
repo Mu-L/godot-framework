@@ -1,7 +1,7 @@
-class_name AgentBubble
+﻿class_name AgentBubble
 extends Object
 
-## Agent reply bubble — markdown body; header copy puts ChatEntry.body on the clipboard.
+## Agent reply bubble 鈥?markdown body; header copy puts ChatEntry.body on the clipboard.
 
 
 static func append(
@@ -80,10 +80,11 @@ static func style_header_button(button: Button, bubble_bg: Color, tooltip: Strin
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.12), ButtonStyle.press_color(theme_color, 0.10))
 
-	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ButtonStyle.with_alpha(theme_color, 0.45), 1)
+	var normal := BoxStyle.make(ButtonStyle.hover_color(bubble_bg, 0.08), 4, Margin.ma_2, Margin.ma_0, ThemeColor.alpha_theme_color(0.45), 1)
 	var hover := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.85)
+	hover.border_color = ThemeColor.alpha_theme_color(0.85)
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
 	pressed.border_color = theme_color
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
+

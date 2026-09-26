@@ -87,7 +87,7 @@ func ButtonStyle_color_direction_test() -> void:
 
 
 func ButtonStyle_with_alpha_test() -> void:
-	var tinted := ButtonStyle.with_alpha(ColorBase.info, 0.45)
+	var tinted := Color(ColorBase.info, 0.45)
 	# `Color` stores 32-bit floats, so compare approximately.
 	assert(is_equal_approx(tinted.a, 0.45))
 	assert(tinted.r == ColorBase.info.r and tinted.b == ColorBase.info.b)
@@ -207,6 +207,6 @@ func ButtonStyle_apply_font_colors_test() -> void:
 	assert(button.get_theme_color("font_pressed_color") == Color.GREEN)
 	assert(button.get_theme_color("font_focus_color") == Color.RED)
 	assert(button.get_theme_color("font_hover_pressed_color") == Color.GREEN)
-	assert(button.get_theme_color("font_disabled_color") == ButtonStyle.with_alpha(Color.BLACK, 0.5))
+	assert(button.get_theme_color("font_disabled_color") == Color(Color.BLACK, 0.5))
 	button.free()
 	pass

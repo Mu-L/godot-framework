@@ -111,6 +111,9 @@ static func set_theme_color(color: Color) -> void:
 static func accent_theme_color() -> Color:
 	return Color(theme_color, 1.0)
 
+## Current theme color with the specified alpha for translucent accent effects.
+static func alpha_theme_color(alpha: float) -> Color:
+	return Color(theme_color, alpha)
 
 ## Refresh every palette derived from the active appearance. Cards follow the accent hue; semantic,
 ## markdown and file colors select their hand-tuned dark or light variants.

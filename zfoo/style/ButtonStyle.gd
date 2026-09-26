@@ -46,11 +46,6 @@ static func muted(base: Color, amount: float = MUTED_AMOUNT) -> Color:
 	return press_color(base, amount)
 
 
-## Same RGB at the given alpha, for accent-tinted hairlines (`Color(accent.r, accent.g, accent.b, 0.45)`).
-static func with_alpha(color: Color, alpha: float) -> Color:
-	return Color(color.r, color.g, color.b, alpha)
-
-
 ## Install the button states. [param disabled] falls back to a copy of [param normal] and
 ## [param hover_pressed] to a copy of [param pressed]; [code]focus[/code] always mirrors
 ## [param hover].
@@ -95,5 +90,5 @@ static func apply_font_colors(
 	button.add_theme_color_override("font_pressed_color", pressed_color)
 	button.add_theme_color_override("font_focus_color", hover_color)
 	button.add_theme_color_override("font_hover_pressed_color", pressed_color)
-	button.add_theme_color_override("font_disabled_color", disabled_color if disabled_color != Color.TRANSPARENT else with_alpha(base_color, 0.5))
+	button.add_theme_color_override("font_disabled_color", disabled_color if disabled_color != Color.TRANSPARENT else Color(base_color, 0.5))
 	pass

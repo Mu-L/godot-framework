@@ -1,4 +1,4 @@
-class_name SessionSidebarTheme
+﻿class_name SessionSidebarTheme
 extends Object
 
 ## Every stylebox / color override the sidebar uses. All builders read the live palette, so a
@@ -23,24 +23,24 @@ static func sidebar_panel() -> StyleBoxFlat:
 static func pinned_separator() -> StyleBoxLine:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	var line: StyleBoxLine = StyleBoxLine.new()
-	line.color = ButtonStyle.with_alpha(theme_color, 0.42 if ThemeColor.is_dark_theme() else 0.32)
+	line.color = ThemeColor.alpha_theme_color(0.42 if ThemeColor.is_dark_theme() else 0.32)
 	line.grow_begin = 2
 	line.grow_end = 2
 	line.thickness = 1
 	return line
 
 
-## "New Agent" — outlined in the theme color, filled while hovered / pressed.
+## "New Agent" 鈥?outlined in the theme color, filled while hovered / pressed.
 static func apply_new_session_button(button: Button) -> void:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	button.flat = false
 	button.focus_mode = Control.FOCUS_NONE
 	ButtonStyle.apply_font_colors(button, theme_color, ButtonStyle.hover_color(theme_color, 0.08), ButtonStyle.press_color(theme_color, 0.06), ColorBase.secondary_text)
 
-	var border := ButtonStyle.with_alpha(theme_color, 0.55 if ThemeColor.is_dark_theme() else 0.45)
+	var border := ThemeColor.alpha_theme_color(0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
 	var hover := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
-	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.85)
+	hover.border_color = ThemeColor.alpha_theme_color(0.85)
 	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
 	pressed.border_color = theme_color
 	ButtonStyle.apply_states(button, normal, hover, pressed)
@@ -51,7 +51,7 @@ static func apply_new_session_button(button: Button) -> void:
 # Chat rows
 # ---------------------------------------------------------------------------
 
-## Row background — selected beats hovered, transparent otherwise.
+## Row background 鈥?selected beats hovered, transparent otherwise.
 static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 	var style := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS)
 	BoxStyle.pad(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
@@ -80,7 +80,7 @@ static func drag_ghost() -> StyleBoxFlat:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	var style: StyleBoxFlat = row(false, false)
 	style.bg_color = ThemeColor.selected_surface
-	style.border_color = ButtonStyle.with_alpha(theme_color, 0.9 if ThemeColor.is_dark_theme() else 0.75)
+	style.border_color = ThemeColor.alpha_theme_color(0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(ControlSize.border_xs)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
 	style.shadow_size = 6
@@ -107,7 +107,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 
 static func rename_field() -> StyleBoxFlat:
 	var theme_color: Color = ThemeColor.accent_theme_color()
-	var border := ButtonStyle.with_alpha(theme_color, 0.75 if ThemeColor.is_dark_theme() else 0.55)
+	var border := ThemeColor.alpha_theme_color(0.75 if ThemeColor.is_dark_theme() else 0.55)
 	return BoxStyle.make(ColorBase.surface, RENAME_CORNER_RADIUS, Margin.ma_1, Margin.ma_0, border, 1)
 
 
@@ -116,3 +116,4 @@ static func copy_font(target: Control, source: Control) -> void:
 	target.add_theme_font_override("font", source.get_theme_font("font"))
 	target.add_theme_font_size_override("font_size", source.get_theme_font_size("font_size"))
 	pass
+
