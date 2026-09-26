@@ -91,7 +91,10 @@ func build_popup() -> void:
 	close_button.add_theme_constant_override("icon_max_width", 22)
 	close_button.add_theme_constant_override("icon_max_height", 22)
 	close_button.pressed.connect(popup.hide)
-	header.add_child(close_button)
+	var close_margin := MarginContainer.new()
+	close_margin.add_theme_constant_override("margin_right", -Margin.ma_3)
+	close_margin.add_child(close_button)
+	header.add_child(close_margin)
 	query_edit = LineEdit.new()
 	query_edit.custom_minimum_size = Vector2(0, 42)
 	query_edit.clear_button_enabled = true
@@ -335,7 +338,7 @@ func style_close_button() -> void:
 	var normal := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, int(ControlSize.lg * 0.5))
 	ButtonStyle.apply(close_button, normal, normal.duplicate() as StyleBoxFlat, normal.duplicate() as StyleBoxFlat)
 	close_button.add_theme_color_override("icon_normal_color", Color(ThemeColor.body_color, 0.75))
-	close_button.add_theme_color_override("icon_hover_color", ThemeColor.title_color)
+	close_button.add_theme_color_override("icon_hover_color", Color(ColorBase.error, 0.70))
 	close_button.add_theme_color_override("icon_pressed_color", ColorBase.error)
 	close_button.add_theme_color_override("icon_hover_pressed_color", ColorBase.error)
 	pass
