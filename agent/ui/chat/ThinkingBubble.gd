@@ -59,7 +59,7 @@ static func style_view_button(button: Button) -> void:
 	button.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.purple, ButtonStyle.hover_color(ColorBase.purple, 0.12), ButtonStyle.press_color(ColorBase.purple, 0.08))
 
-	var border := ButtonStyle.muted(ColorBase.purple)
+	var border := ButtonStyle.press_color(ColorBase.purple)
 	var normal := BoxStyle.make(ButtonStyle.hover_color(ColorBase.purple_surface, 0.08), 4, Margin.ma_1, Margin.ma_0, border, 1)
 	var hover := BoxStyle.with_bg(normal, ButtonStyle.hover_color(ColorBase.purple_surface, 0.16))
 	hover.border_color = ColorBase.purple

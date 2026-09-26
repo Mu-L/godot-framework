@@ -1,7 +1,7 @@
 class_name ButtonStyle
 extends Object
 
-## Button and panel state styling: derive the hover / pressed / muted colors from one base color,
+## Button and panel state styling: derive the hover / pressed colors from one base color,
 ## and install the state set a [Button] needs. The boxes themselves are built by [BoxStyle].
 ##
 ## The derivation is theme-aware on purpose. [method hover_color] steps *away* from the surface —
@@ -24,8 +24,6 @@ extends Object
 ## Common step sizes; pass an explicit amount when a component needs a different one.
 const HOVER_AMOUNT := 0.10
 const PRESS_AMOUNT := 0.06
-## Muted step — larger, because a hairline has to read as a muted outline, not as a second text color.
-const MUTED_AMOUNT := 0.35
 
 
 ## Fill or text color for the hover state: one step away from the surface, brighter on the dark
@@ -42,10 +40,6 @@ static func press_color(base: Color, amount: float = PRESS_AMOUNT) -> Color:
 
 ## Supporting color that should recede into the background: hairline outlines, secondary lines.
 ## Same direction as [method press_color], with a larger default step.
-static func muted(base: Color, amount: float = MUTED_AMOUNT) -> Color:
-	return press_color(base, amount)
-
-
 ## Install the button states. [param disabled] falls back to a copy of [param normal] and
 ## [param hover_pressed] to a copy of [param pressed]; [code]focus[/code] always mirrors
 ## [param hover].
