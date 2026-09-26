@@ -1,4 +1,4 @@
-## Unit tests for res://gui/config/graph_nodes.json loaded by GraphNodesConfig.
+## Unit tests for the workflow graph node catalog loaded by GraphNodesConfig.
 
 
 static func load_json_root() -> Dictionary:

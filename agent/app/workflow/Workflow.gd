@@ -1,33 +1,41 @@
 extends Control
 
-const SIDEBAR_WIDTH: int = 300
-const PALETTE_TREE_WIDTH: int = 276
+const SIDEBAR_WIDTH: int = 320
 const PALETTE_LABEL_MAX: int = 30
 
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
+@onready var toolbar: PanelContainer = $Root/Toolbar
+@onready var toolbar_margin: MarginContainer = $Root/Toolbar/ToolbarMargin
+@onready var toolbar_row: HBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow
+@onready var brand: VBoxContainer = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand
+@onready var eyebrow: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand/Eyebrow
 @onready var sidebar: PanelContainer = $Root/Body/Sidebar
-@onready var palette_tree: Tree = $Root/Body/Sidebar/PaletteVBox/PaletteScroll/PaletteTree
-@onready var workflow_name_label: Label = $Root/Toolbar/TitlePanel/WorkflowName
-@onready var palette_title: Label = $Root/Body/Sidebar/PaletteVBox/PaletteTitle
-@onready var palette_hint: Label = $Root/Body/Sidebar/PaletteVBox/PaletteHint
-@onready var new_button: Button = $Root/Toolbar/Actions/NewButton
-@onready var load_button: Button = $Root/Toolbar/Actions/LoadButton
-@onready var save_button: Button = $Root/Toolbar/Actions/SaveButton
-@onready var delete_button: Button = $Root/Toolbar/Actions/DeleteButton
-@onready var locale_button: Button = $Root/Toolbar/Actions/LocaleButton
-@onready var log_button: Button = $Root/Toolbar/Actions/LogButton
-@onready var run_button: Button = $Root/Toolbar/Actions/RunButton
+@onready var sidebar_margin: MarginContainer = $Root/Body/Sidebar/SidebarMargin
+@onready var palette_vbox: VBoxContainer = $Root/Body/Sidebar/SidebarMargin/PaletteVBox
+@onready var palette_tree: Tree = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteScroll/PaletteTree
+@onready var workflow_name_label: Label = $Root/Toolbar/ToolbarMargin/ToolbarRow/Brand/WorkflowName
+@onready var palette_title: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteTitle
+@onready var palette_hint: Label = $Root/Body/Sidebar/SidebarMargin/PaletteVBox/PaletteHint
+@onready var new_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/NewButton
+@onready var load_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/LoadButton
+@onready var save_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/SaveButton
+@onready var delete_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/DeleteButton
+@onready var log_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/LogButton
+@onready var run_button: Button = $Root/Toolbar/ToolbarMargin/ToolbarRow/Actions/RunButton
 @onready var save_dialog: FileDialog = $SaveDialog
 @onready var load_dialog: FileDialog = $LoadDialog
 
-var pipeline_runner: PipelineRunner  = PipelineRunner.new()
+var pipeline_runner: PipelineRunner = PipelineRunner.new()
 
 var running_pipeline: bool = false
 
 
 func _ready() -> void:
 	I18nHelper.init_i18n()
+	gdf.events.theme_changed.connect(apply_theme)
+	gdf.events.theme_color_changed.connect(apply_theme)
 	configure_sidebar_layout()
+	apply_theme()
 	apply_ui_locale()
 	set_workflow_name(WorkflowManager.workflow_name)
 	style_run_button()
@@ -38,7 +46,6 @@ func _ready() -> void:
 	load_button.pressed.connect(on_load_pressed)
 	run_button.pressed.connect(on_run_pressed)
 	delete_button.pressed.connect(on_delete_pressed)
-	locale_button.pressed.connect(on_locale_pressed)
 	log_button.pressed.connect(on_log_pressed)
 
 	palette_tree.item_selected.connect(on_palette_item_selected)
@@ -56,14 +63,79 @@ func _ready() -> void:
 	pass
 
 
+func apply_theme() -> void:
+	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.background))
+	toolbar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.deep_surface, 0, 0, 0, ColorBase.muted_border, 1))
+	sidebar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.chrome_surface, 0, 0, 0, ColorBase.muted_border, 1))
+	apply_layout_tokens()
+	apply_text_tokens()
+	style_toolbar_buttons()
+	style_palette_tree()
+	style_run_button()
+	set_run_button_running(running_pipeline)
+	graph_edit.apply_theme()
+	pass
+
+
+func apply_layout_tokens() -> void:
+	toolbar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
+	toolbar_margin.add_theme_constant_override("margin_top", Margin.ma_3)
+	toolbar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
+	toolbar_margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
+	toolbar_row.add_theme_constant_override("separation", Margin.ma_4)
+	brand.add_theme_constant_override("separation", Margin.ma_0)
+	sidebar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
+	sidebar_margin.add_theme_constant_override("margin_top", Margin.ma_4)
+	sidebar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
+	sidebar_margin.add_theme_constant_override("margin_bottom", Margin.ma_4)
+	palette_vbox.add_theme_constant_override("separation", Margin.ma_3)
+	pass
+
+
+func apply_text_tokens() -> void:
+	eyebrow.add_theme_font_size_override("font_size", TextSize.label_small_size)
+	eyebrow.add_theme_color_override("font_color", ThemeColor.theme_color_full_alpha())
+	workflow_name_label.add_theme_font_size_override("font_size", TextSize.title_large_size)
+	workflow_name_label.add_theme_color_override("font_color", ColorBase.text)
+	palette_title.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	palette_title.add_theme_color_override("font_color", ColorBase.text)
+	palette_hint.add_theme_font_size_override("font_size", TextSize.body_small_size)
+	palette_hint.add_theme_color_override("font_color", ColorBase.muted)
+	pass
+
+
+func style_toolbar_buttons() -> void:
+	for button: Button in [new_button, load_button, save_button, delete_button, log_button]:
+		button.custom_minimum_size.y = ControlSize.md
+		button.add_theme_font_size_override("font_size", TextSize.label_large_size)
+		ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ColorBase.text)
+		var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
+		var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
+		var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+		ButtonStyle.apply_states(button, normal, hover, pressed)
+	pass
+
+
+func style_palette_tree() -> void:
+	palette_tree.add_theme_font_size_override("font_size", TextSize.body_large_size)
+	palette_tree.add_theme_color_override("font_color", ColorBase.text)
+	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.text)
+	palette_tree.add_theme_color_override("font_selected_color", ColorBase.text)
+	palette_tree.add_theme_color_override("guide_color", ColorBase.muted_border)
+	palette_tree.add_theme_stylebox_override("panel", BoxStyle.make(Color.TRANSPARENT))
+	palette_tree.add_theme_stylebox_override("selected", BoxStyle.make(ColorBase.selection_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
+	palette_tree.add_theme_stylebox_override("hovered", BoxStyle.make(ColorBase.hover_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1))
+	pass
+
+
 func configure_sidebar_layout() -> void:
 	sidebar.custom_minimum_size.x = SIDEBAR_WIDTH
 	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	sidebar.clip_contents = true
-	palette_tree.custom_minimum_size.x = PALETTE_TREE_WIDTH
+	palette_tree.custom_minimum_size.x = SIDEBAR_WIDTH - Margin.ma_8
 	palette_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	palette_tree.set_column_expand(0, false)
-	palette_tree.set_column_custom_minimum_width(0, PALETTE_TREE_WIDTH)
+	palette_tree.set_column_custom_minimum_width(0, SIDEBAR_WIDTH - Margin.ma_8)
 	pass
 
 
@@ -92,7 +164,7 @@ func apply_ui_locale() -> void:
 		run_button.text = tr("workflow.toolbar.run")
 	palette_title.text = tr("workflow.palette.title")
 	palette_hint.text = tr("workflow.palette.hint")
-	palette_hint.add_theme_color_override("font_color", ColorCard.body_color)
+	palette_hint.add_theme_color_override("font_color", ColorBase.muted)
 	save_dialog.title = tr("workflow.dialog.save_title")
 	save_dialog.ok_button_text = tr("workflow.toolbar.save")
 	save_dialog.filters = PackedStringArray([
@@ -104,30 +176,6 @@ func apply_ui_locale() -> void:
 	load_dialog.filters = PackedStringArray([
 		"*.workflow.json ; " + tr("workflow.dialog.workflow_filter"),
 	])
-	refresh_locale_button()
-	pass
-
-
-func refresh_locale_button() -> void:
-	if I18n.get_locale() == "zh":
-		locale_button.text = tr("workflow.locale_switch.to_en")
-	else:
-		locale_button.text = tr("workflow.locale_switch.to_zh")
-	pass
-
-
-func apply_locale_change() -> void:
-	var locale := "en" if I18n.get_locale() == "zh" else "zh"
-	I18n.set_locale(I18nHelper.LOCALE_PATHS[locale].locale_path)
-	apply_ui_locale()
-	build_palette_tree()
-	set_workflow_name(WorkflowManager.workflow_name)
-	graph_edit.reload_locale(WorkflowManager.workflow_name)
-	pass
-
-
-func on_locale_pressed() -> void:
-	apply_locale_change()
 	pass
 
 
@@ -315,46 +363,33 @@ func on_pipeline_finished(success: bool, message: String) -> void:
 func set_run_button_running(running: bool) -> void:
 	if running:
 		apply_run_button_style(ColorBase.error)
-		run_button.icon = make_stop_icon(14, ColorCard.title_color)
+		run_button.icon = make_stop_icon(TextSize.title_small_size, Color.WHITE)
 		run_button.text = tr("workflow.toolbar.stop")
 	else:
 		apply_run_button_style(ColorBase.success)
-		run_button.icon = make_play_icon(14, ColorCard.title_color)
+		run_button.icon = make_play_icon(TextSize.title_small_size, Color.WHITE)
 		run_button.text = tr("workflow.toolbar.run")
 	pass
 
 
 func style_run_button() -> void:
 	apply_run_button_style(ColorBase.success)
-	run_button.add_theme_color_override("font_color", ColorCard.title_color)
-	run_button.add_theme_color_override("font_hover_color", ColorCard.title_color)
-	run_button.add_theme_color_override("font_pressed_color", ColorCard.title_color)
-	run_button.icon = make_play_icon(14, ColorCard.title_color)
+	run_button.custom_minimum_size.y = ControlSize.md
+	run_button.add_theme_font_size_override("font_size", TextSize.label_large_size)
+	ButtonStyle.apply_font_colors(run_button, Color.WHITE, Color.WHITE, Color.WHITE)
+	run_button.icon = make_play_icon(TextSize.title_small_size, Color.WHITE)
 	run_button.text = tr("workflow.toolbar.run")
-	run_button.add_theme_constant_override("icon_max_width", 14)
-	run_button.add_theme_constant_override("icon_max_height", 14)
+	run_button.add_theme_constant_override("icon_max_width", TextSize.title_small_size)
+	run_button.add_theme_constant_override("icon_max_height", TextSize.title_small_size)
 	run_button.add_theme_constant_override("h_separation", Margin.ma_2)
 	pass
 
 
 func apply_run_button_style(base_color: Color) -> void:
-	var normal: StyleBoxFlat = StyleBoxFlat.new()
-	normal.bg_color = base_color
-	normal.set_corner_radius_all(4)
-	normal.content_margin_top = Margin.ma_1
-	normal.content_margin_bottom = Margin.ma_1
-	normal.content_margin_left = Margin.ma_3
-	normal.content_margin_right = Margin.ma_4
-
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = base_color.lightened(0.12)
-
-	var pressed: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	pressed.bg_color = base_color.darkened(0.08)
-
-	run_button.add_theme_stylebox_override("normal", normal)
-	run_button.add_theme_stylebox_override("hover", hover)
-	run_button.add_theme_stylebox_override("pressed", pressed)
+	var normal := BoxStyle.make(base_color, ControlSize.radius_md, Margin.ma_4, Margin.ma_2)
+	var hover := BoxStyle.with_bg(normal, base_color.lightened(0.12))
+	var pressed := BoxStyle.with_bg(normal, base_color.darkened(0.08))
+	ButtonStyle.apply_states(run_button, normal, hover, pressed)
 	pass
 
 

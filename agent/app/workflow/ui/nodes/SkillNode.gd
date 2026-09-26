@@ -1,7 +1,9 @@
 class_name SkillNode
 extends GraphNode
 
-const NODE_MIN_WIDTH: int = 400
+const NODE_MIN_WIDTH: int = 420
+const LABEL_WIDTH: int = 88
+const FIELD_MIN_WIDTH: int = 240
 
 var node_id: String = ""
 var node_def: GraphNodeDef
@@ -17,7 +19,7 @@ func setup(p_node_id: String, p_node_def: GraphNodeDef) -> void:
 	resizable = true
 	build_node()
 	custom_minimum_size.x = NODE_MIN_WIDTH
-	set_highlight(false)
+	apply_theme(false)
 	pass
 
 
@@ -47,6 +49,7 @@ func add_output_port_row(port: PortDef) -> int:
 	var row: Label = Label.new()
 	row.text = tr("workflow.node.output_arrow").format([port.display_label(node_def.catalog_id())], StringUtils.EMPTY_JSON)
 	row.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	style_label(row, ColorBase.muted)
 	add_child(row)
 
 	output_slot_indices[port.id] = slot_index
@@ -68,13 +71,14 @@ func create_connect_only_row(label_text: String) -> HBoxContainer:
 
 	var label: Label = Label.new()
 	label.text = label_text
-	label.custom_minimum_size.x = 80
+	label.custom_minimum_size.x = LABEL_WIDTH
+	style_label(label, ColorBase.text)
 	row.add_child(label)
 
 	var hint: Label = Label.new()
 	hint.text = tr("workflow.node.connect_upstream")
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hint.modulate = ColorCard.body_color
+	style_label(hint, ColorBase.muted)
 	row.add_child(hint)
 
 	return row
@@ -86,13 +90,15 @@ func create_text_row(port_id: String, label_text: String, placeholder: String) -
 
 	var label: Label = Label.new()
 	label.text = label_text
-	label.custom_minimum_size.x = 80
+	label.custom_minimum_size.x = LABEL_WIDTH
+	style_label(label, ColorBase.text)
 	row.add_child(label)
 
 	var field: LineEdit = LineEdit.new()
-	field.custom_minimum_size.x = 260
+	field.custom_minimum_size.x = FIELD_MIN_WIDTH
 	field.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	field.placeholder_text = placeholder
+	style_field(field)
 	row.add_child(field)
 	input_fields[port_id] = field
 
@@ -211,15 +217,49 @@ func collect_extra_manual_inputs() -> Dictionary[String, String]:
 
 
 func set_highlight(running: bool) -> void:
-	var panel: StyleBoxFlat = StyleBoxFlat.new()
-	panel.bg_color = ColorCard.background_color.lerp(ColorBase.success, 0.12) if running else ColorCard.background_color
-	panel.border_color = ColorBase.success if running else ColorMarkdown.table_grid_color
-	panel.set_border_width_all(3 if running else 2)
-	panel.set_corner_radius_all(6)
-	panel.set_content_margin_all(Margin.ma_2)
-	add_theme_stylebox_override("panel", panel)
+	apply_theme(running)
+	pass
+
+
+func apply_theme(running: bool = false) -> void:
+	var background := ColorBase.surface.lerp(ColorBase.success, 0.12) if running else ColorBase.surface
+	var border := ColorBase.success if running else ColorBase.border
+	add_theme_stylebox_override("panel", BoxStyle.make(background, ControlSize.radius_lg, Margin.ma_3, Margin.ma_2, border, 2 if running else 1))
 	add_theme_color_override(
 		"title_color",
-		ColorBase.success.lightened(0.35) if running else ColorCard.title_color,
+		ColorBase.success if running else ColorBase.text,
 	)
+	add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
+	for field: LineEdit in input_fields.values():
+		style_field(field)
+	for child: Node in find_children("*", "Button", true, false):
+		style_node_button(child as Button)
+	pass
+
+
+func style_label(label: Label, color: Color) -> void:
+	label.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	label.add_theme_color_override("font_color", color)
+	pass
+
+
+func style_field(field: LineEdit) -> void:
+	field.custom_minimum_size.y = ControlSize.md
+	field.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	field.add_theme_color_override("font_color", ColorBase.text)
+	field.add_theme_color_override("font_placeholder_color", ColorBase.muted)
+	field.add_theme_color_override("caret_color", ThemeColor.theme_color_full_alpha())
+	field.add_theme_stylebox_override("normal", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1))
+	field.add_theme_stylebox_override("focus", BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.theme_color_full_alpha(), 1))
+	pass
+
+
+func style_node_button(button: Button) -> void:
+	button.custom_minimum_size.y = ControlSize.md
+	button.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ColorBase.text)
+	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
+	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
+	var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

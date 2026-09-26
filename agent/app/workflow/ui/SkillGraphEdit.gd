@@ -15,9 +15,18 @@ func _ready() -> void:
 	WorkflowEvents.events.pipeline_finished.connect(func(_success, _message): clear_node_highlight())
 	WorkflowEvents.events.pipeline_stopped.connect(clear_node_highlight)
 
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = ColorCard.inset_color
-	add_theme_stylebox_override("panel", bg)
+	apply_theme()
+	pass
+
+
+func apply_theme() -> void:
+	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.background))
+	add_theme_color_override("grid_major", ColorBase.muted_border)
+	add_theme_color_override("grid_minor", ColorBase.subtle_border)
+	add_theme_color_override("activity", ThemeColor.theme_color_full_alpha())
+	for node: SkillNode in skill_nodes.values():
+		node.apply_theme(node.node_id == highlighted_node_id)
+	queue_redraw()
 	pass
 
 

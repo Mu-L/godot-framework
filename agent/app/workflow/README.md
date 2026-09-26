@@ -4,7 +4,7 @@ A ComfyUI-style skill workflow editor for this repository. Each `.ai/` skill is 
 
 ## Running
 
-Open the project in the Godot editor and run the main scene `gui/SkillsWorkflow.tscn` (set as the main scene in `project.godot`).
+Open the project in the Godot editor and run `agent/app/workflow/Workflow.tscn`.
 
 ## Features
 
@@ -86,7 +86,7 @@ Port types: `audio`, `image`, `video`, `text`, `folder`. Connections require mat
 |------|------|
 | `config/locale/zh.json` | Simplified Chinese (default) |
 | `config/locale/en.json` | English |
-| `zfoo/translation/I18n.gd` | Register JSON strings with Godot `TranslationServer` |
+| `zfoo/i18n/I18n.gd` | Register JSON strings with Godot `TranslationServer` |
 
 String keys:
 

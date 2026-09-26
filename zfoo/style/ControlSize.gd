@@ -1,7 +1,7 @@
 class_name ControlSize
 extends Object
 
-## Control size scale: the height a button, a select or an input occupies, in px.
+## Control size scale: control heights, square sizes and shared corner radii, in px.
 ##
 ## Six tiers, each one 8px ([code]Margin.ma_2[/code]) above the previous, so every value lands on the
 ## same 4px grid as the rest of the layout and is a [Margin] step: xs 20 ([code]ma_5[/code]),
@@ -33,6 +33,19 @@ const lg: int = 44
 const xl: int = 52
 ## Tallest tier: showcase buttons and large controls that anchor a panel.
 const xxl: int = 60
+
+## Smallest radius: subtle rounding for compact indicators and hairline surfaces.
+const radius_xs: int = 2
+## Compact radius: chips, tags and tightly packed row controls.
+const radius_sm: int = 4
+## Default radius: buttons, selects, inputs and selectable rows.
+const radius_md: int = 6
+## Prominent radius: nodes, dialogs and medium cards.
+const radius_lg: int = 8
+## Hero radius: search bars, input bars and large floating surfaces.
+const radius_xl: int = 12
+## Largest radius: showcase controls and prominent floating containers.
+const radius_xxl: int = 16
 
 
 ## Both axes at one tier, for the square icon buttons that make up most of the chrome.

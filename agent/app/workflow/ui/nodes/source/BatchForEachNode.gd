@@ -30,11 +30,14 @@ func create_item_type_row() -> HBoxContainer:
 
 	var label := Label.new()
 	label.text = tr("workflow.batch.output_type")
-	label.custom_minimum_size.x = 80
+	label.custom_minimum_size.x = LABEL_WIDTH
+	style_label(label, ColorBase.text)
 	row.add_child(label)
 
 	item_type_option = OptionButton.new()
 	item_type_option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	item_type_option.custom_minimum_size.y = ControlSize.md
+	item_type_option.add_theme_font_size_override("font_size", TextSize.body_medium_size)
 	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_AUDIO), 0)
 	item_type_option.set_item_metadata(0, PortDef.TYPE_NAME_AUDIO)
 	item_type_option.add_item(tr("port_type." + PortDef.TYPE_NAME_IMAGE), 1)
