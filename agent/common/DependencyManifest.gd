@@ -10,7 +10,7 @@ class DependencyManifestEntry:
 ## Static manifest loaded from `.dependency/manifest.json`. Do not instantiate.
 
 const MANIFEST_REL_PATH := ".dependency/manifest.json"
-const PYTHON_PATH := "./dependency/python/python"
+const PYTHON_PATH := ".dependency/python/python"
 
 static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
@@ -18,6 +18,12 @@ static var entries: Dictionary[String, DependencyManifestEntry] = {}
 
 
 static func _static_init() -> void:
+	reload_manifest()
+	pass
+
+
+static func reload_manifest() -> void:
+	entries.clear()
 	var text := FileAccess.get_file_as_string(MANIFEST_REL_PATH)
 	if text.is_empty():
 		Log.error("manifest missing:[{}]", MANIFEST_REL_PATH)
@@ -41,6 +47,7 @@ static func _static_init() -> void:
 
 
 static func has_populated_runtime(runtime_path: String) -> bool:
+	reload_manifest()
 	var normalized := runtime_path.replace("\\", "/")
 	if not normalized.begins_with(".dependency/"):
 		return false

@@ -8,6 +8,7 @@ extends RefCounted
 const EXPANDED_HEIGHT_MIN: float = 88.0
 ## Cap auto-grow so long paste does not cover most of the chat area.
 const EXPANDED_HEIGHT_MAX_RATIO: float = 0.55
+const PYTHON_INSTALL_SKILL_PATH := ".agents/skills/skill-dependency-manager.md"
 
 var input_bar: Control
 var input_wrap: PanelContainer
@@ -255,6 +256,7 @@ func on_input_action_pressed() -> void:
 		return
 	if not ensure_git_installed(session.id):
 		return
+	append_python_install_skill(session)
 	clear_text()
 	collapse_after_send()
 	await AgentSessionManager.async_send(session.id, text)
@@ -277,6 +279,30 @@ func ensure_git_installed(session_id: int) -> bool:
 					+ StringUtils.format("Git Download: [{}]({})", url, url)
 	)
 	return false
+
+
+## When the bundled Python runtime is missing, give the dependency-manager skill to the agent
+## as context before the unchanged user message is sent.
+func append_python_install_skill(session: AgentSession) -> void:
+	if DependencyManifest.has_populated_runtime(DependencyManifest.PYTHON_PATH):
+		return
+	var skill_path := AgentWorkspace.resolve_path(PYTHON_INSTALL_SKILL_PATH)
+	if not FileAccess.file_exists(skill_path):
+		Log.error("python install skill missing:[{}]", skill_path)
+		return
+	var skill_text := FileUtils.read_file_to_string(skill_path).strip_edges()
+	if skill_text.is_empty():
+		Log.error("python install skill empty:[{}]", skill_path)
+		return
+	var install_prompt := (
+		"Python is not installed in .dependency/. Before handling the user request, "
+		+ "follow the dependency-manager skill below to install the default Python runtime. "
+		+ "After Python is installed, continue with the original user request."
+		+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
+		+ skill_text
+	)
+	session.messages.append(ChatMessage.system(install_prompt))
+	pass
 
 
 ## Re-layout when line count changes (typing, paste, delete). Skip during expand tween.
