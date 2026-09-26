@@ -627,6 +627,7 @@ func style_line_edit(edit: LineEdit) -> void:
 	edit.add_theme_color_override("font_color", ColorBase.primary_text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text.darkened(0.08))
 	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
+	edit.caret_blink = true
 	var normal: StyleBoxFlat = make_input_style()
 	var focus: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
 	focus.border_color = ThemeColor.accent_theme_color()

@@ -250,6 +250,7 @@ func style_field(field: LineEdit) -> void:
 	field.add_theme_color_override("font_color", ColorBase.primary_text)
 	field.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
+	field.caret_blink = true
 	field.add_theme_stylebox_override("normal", StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs))
 	field.add_theme_stylebox_override("focus", StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_3, Margin.ma_2, ThemeColor.accent_theme_color(), ControlSize.border_xs))
 	pass

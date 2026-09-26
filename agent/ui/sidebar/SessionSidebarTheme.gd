@@ -97,6 +97,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
 	edit.add_theme_color_override("selection_color", ThemeColor.selected_surface)
+	edit.caret_blink = true
 	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
 	edit.add_theme_stylebox_override("focus", field_style)
