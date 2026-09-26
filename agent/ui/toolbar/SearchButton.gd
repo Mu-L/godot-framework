@@ -59,10 +59,10 @@ func build_popup() -> void:
 	popup.add_child(popup_panel)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", Margin.ma_3)
-	margin.add_theme_constant_override("margin_right", Margin.ma_3)
-	margin.add_theme_constant_override("margin_top", Margin.ma_3)
-	margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
+	margin.add_theme_constant_override("margin_left", Margin.ma_2)
+	margin.add_theme_constant_override("margin_right", Margin.ma_2)
+	margin.add_theme_constant_override("margin_top", Margin.ma_2)
+	margin.add_theme_constant_override("margin_bottom", Margin.ma_2)
 	popup_panel.add_child(margin)
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", Margin.ma_3)
@@ -92,7 +92,7 @@ func build_popup() -> void:
 	close_button.add_theme_constant_override("icon_max_height", 22)
 	close_button.pressed.connect(popup.hide)
 	var close_margin := MarginContainer.new()
-	close_margin.add_theme_constant_override("margin_right", -Margin.ma_3)
+	close_margin.add_theme_constant_override("margin_right", -Margin.ma_2)
 	close_margin.add_child(close_button)
 	header.add_child(close_margin)
 	query_edit = LineEdit.new()
@@ -389,9 +389,9 @@ func style_query_edit() -> void:
 
 
 func style_result_button(result: Button) -> void:
-	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.accent_surface, 8, Margin.ma_3, Margin.ma_1, Color(ThemeColor.title_color, POPUP_BORDER_ALPHA), ControlSize.border_xs)
+	var normal := StyleBoxHelper.create_style_box_flat(ThemeColor.card_surface, 8, Margin.ma_3, Margin.ma_1, Color(ThemeColor.title_color, 0.10), ControlSize.border_xs)
 	ButtonStyle.apply(result, normal,
-		ButtonStyle.filled(normal, ThemeColor.accent_surface.lerp(ThemeColor.accent_theme_color(), 0.12), ThemeColor.accent_theme_color()),
-		ButtonStyle.filled(normal, ThemeColor.selected_surface))
+		ButtonStyle.filled(normal, ThemeColor.selected_surface, Color(ThemeColor.accent_theme_color(), 0.55)),
+		ButtonStyle.filled(normal, ThemeColor.selected_surface.lerp(ThemeColor.accent_theme_color(), 0.08)))
 	ButtonStyle.apply_font_colors(result, ThemeColor.title_color, ThemeColor.title_color, ThemeColor.title_color)
 	pass
