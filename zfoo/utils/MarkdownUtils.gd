@@ -823,8 +823,8 @@ static func create_rich_text_label(text_color: Color, raw_text: String, markdown
 	label.add_theme_constant_override("text_highlight_h_padding", HIGHLIGHT_H_PADDING)
 	label.add_theme_constant_override("text_highlight_v_padding", HIGHLIGHT_V_PADDING)
 	label.custom_minimum_size = Vector2(0, BODY_LABEL_MIN_HEIGHT)
-	# RichTextLabel copies what it draws, so a selection carries the `[code]` NBSP
-	# padding and pastes as mojibake; copy the spaces the user meant instead.
+	# RichTextLabel copies what it draws, so a selection carries `[code]` NBSPs and
+	# inline-chip thin margins; restore the source characters before copying.
 	label.gui_input.connect(
 			func(event: InputEvent) -> void:
 				if not event.is_action_pressed("ui_copy"):
@@ -852,12 +852,11 @@ static func create_plain_rich_text_label(text_color: Color) -> RichTextLabel:
 	return label
 
 
-## Put [param text] on the clipboard with the `[code]` NBSP padding
-## (see [method preserve_code_spaces]) turned back into real spaces.
+## Put [param text] on the clipboard without markdown's rendering-only spacing.
 static func copy_to_clipboard(text: String) -> void:
 	if StringUtils.is_blank(text):
 		return
-	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).strip_edges())
+	DisplayServer.clipboard_set(text.replace(NBSP, StringUtils.SPACE).replace(INLINE_CODE_MARGIN, StringUtils.EMPTY).strip_edges())
 	pass
 
 static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool) -> void:
