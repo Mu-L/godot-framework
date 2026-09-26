@@ -4,14 +4,17 @@ extends RefCounted
 ## Toolbar UI for editing the persisted API connection and notification settings.
 ## There is no Save button: every field writes straight to [Setting] once editing finishes.
 
-const DIALOG_SIZE: Vector2i = Vector2i(580, 1000)
+const DIALOG_SIZE: Vector2i = Vector2i(680, 1000)
 const FOLDER_DIALOG_SIZE: Vector2i = Vector2i(900, 600)
+const FIELD_LABEL_RATIO: float = 0.2
+const FIELD_CONTROL_RATIO: float = 0.8
 const SETTINGS_ICON_PATH: String = "res://agent/asset/image/icon/settings.svg"
 
 var button: Button
 var dialog: ConfirmationDialog
 var content_panel: PanelContainer
 var appearance_heading_label: Label
+var notification_heading_label: Label
 var language_select: OptionButton
 var heading_label: Label
 var description_label: Label
@@ -29,7 +32,6 @@ var sound_folder_edit: LineEdit
 var sound_folder_dialog: FileDialog
 ## True once the path was edited by hand, so a click no longer means "pick a folder".
 var folder_field_typing: bool = false
-var token_visibility_button: Button
 var field_labels: Array[Label] = []
 var help_labels: Array[Label] = []
 var separators: Array[HSeparator] = []
@@ -112,6 +114,10 @@ func build_dialog() -> void:
 	for edit: LineEdit in [api_url_edit, model_edit, api_token_edit, proxy_address_edit]:
 		bind_auto_save(edit, save_api_settings)
 	add_separator(fields)
+	notification_heading_label = Label.new()
+	notification_heading_label.text = I18n.t("agent.settings.notification")
+	notification_heading_label.add_theme_font_size_override("font_size", TextSize.title_large_size)
+	fields.add_child(notification_heading_label)
 	add_notify_fields(fields)
 	add_separator(fields)
 	build_folder_dialog()
@@ -126,16 +132,19 @@ func add_separator(parent: Container) -> HSeparator:
 
 
 func add_language_field(parent: VBoxContainer) -> void:
-	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.language"))
+	var group := make_field_group(parent)
+	var row := make_field_row(group, I18n.t("agent.settings.language"))
 	language_select = OptionButton.new()
 	language_select.custom_minimum_size = Vector2(0, 38)
+	language_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	language_select.size_flags_stretch_ratio = FIELD_CONTROL_RATIO
 	for locale: String in I18nHelper.LOCALE_PATHS:
 		var config: I18nHelper.LocaleConfig = I18nHelper.LOCALE_PATHS[locale]
 		language_select.add_item(config.language)
 		language_select.set_item_metadata(language_select.item_count - 1, locale)
 	language_select.item_selected.connect(on_language_selected)
 	language_select.get_popup().popup_hide.connect(on_provider_popup_hide)
-	group.add_child(language_select)
+	row.add_child(language_select)
 	select_current_language()
 	pass
 
@@ -232,24 +241,43 @@ func make_label(label_text: String) -> Label:
 	return label
 
 
-## Box of a stacked field — caption first, then whatever the caller adds (control, help line) —
-## with the tighter inner gap.
-func make_field_group(parent: Container, label_text: String) -> VBoxContainer:
+## Field group containing one horizontal label/control row and an optional help line.
+func make_field_group(parent: Container) -> VBoxContainer:
 	var group: VBoxContainer = VBoxContainer.new()
 	group.add_theme_constant_override("separation", Margin.ma_2)
 	group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(group)
-	group.add_child(make_label(label_text))
 	return group
+
+
+func make_field_row(parent: Container, label_text: String) -> HBoxContainer:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", Margin.ma_3)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(row)
+	var label := make_label(label_text)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.size_flags_stretch_ratio = FIELD_LABEL_RATIO
+	row.add_child(label)
+	return row
 
 
 ## Grey help line closing a field group.
 func add_help_label(parent: Container, help_text: String) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", Margin.ma_3)
+	parent.add_child(row)
+	var spacer: Control = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.size_flags_stretch_ratio = FIELD_LABEL_RATIO
+	row.add_child(spacer)
 	var help: Label = Label.new()
 	help.text = help_text
+	help.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	help.size_flags_stretch_ratio = FIELD_CONTROL_RATIO
 	help.add_theme_font_size_override("font_size", TextSize.label_small_size)
 	help_labels.append(help)
-	parent.add_child(help)
+	row.add_child(help)
 	pass
 
 
@@ -260,6 +288,7 @@ func make_line_edit(placeholder: String) -> LineEdit:
 	edit.placeholder_text = placeholder
 	edit.clear_button_enabled = true
 	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edit.size_flags_stretch_ratio = FIELD_CONTROL_RATIO
 	return edit
 
 
@@ -271,42 +300,38 @@ func bind_auto_save(edit: LineEdit, saver: Callable) -> void:
 
 
 func add_provider_field(parent: VBoxContainer) -> OptionButton:
-	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.provider"))
+	var group := make_field_group(parent)
+	var row := make_field_row(group, I18n.t("agent.settings.provider"))
 	var select: OptionButton = OptionButton.new()
 	select.custom_minimum_size = Vector2(0, 38)
+	select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	select.size_flags_stretch_ratio = FIELD_CONTROL_RATIO
 	select.add_item(I18n.t("agent.settings.custom_provider"))
 	for provider: ApiProvider in ApiSupport.PROVIDERS:
 		select.add_item(provider.name)
 	select.item_selected.connect(on_provider_selected)
 	select.get_popup().popup_hide.connect(on_provider_popup_hide)
-	group.add_child(select)
+	row.add_child(select)
 	add_help_label(group, I18n.t("agent.settings.provider_help"))
 	return select
 
 
 func add_field(parent: Container, label_text: String, placeholder: String, help_text: String) -> LineEdit:
-	var group: VBoxContainer = make_field_group(parent, label_text)
+	var group := make_field_group(parent)
+	var row := make_field_row(group, label_text)
 	var edit: LineEdit = make_line_edit(placeholder)
-	group.add_child(edit)
+	row.add_child(edit)
 	add_help_label(group, help_text)
 	return edit
 
 
 func add_token_field(parent: VBoxContainer) -> LineEdit:
-	var group: VBoxContainer = make_field_group(parent, I18n.t("agent.settings.api_token"))
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", Margin.ma_2)
-	group.add_child(row)
+	var group := make_field_group(parent)
+	var row := make_field_row(group, I18n.t("agent.settings.api_token"))
 	var edit: LineEdit = make_line_edit("sk-...")
 	edit.secret = true
 	edit.secret_character = "*"
 	row.add_child(edit)
-	token_visibility_button = Button.new()
-	token_visibility_button.custom_minimum_size = Vector2(64, 38)
-	token_visibility_button.text = I18n.t("agent.common.show")
-	token_visibility_button.focus_mode = Control.FOCUS_NONE
-	token_visibility_button.pressed.connect(on_token_visibility_pressed)
-	row.add_child(token_visibility_button)
 	add_help_label(group, I18n.t("agent.settings.token_help"))
 	return edit
 
@@ -363,7 +388,6 @@ func on_button_pressed() -> void:
 	api_token_edit.text = ApiSetting.get_api_token()
 	proxy_address_edit.text = ApiSetting.get_proxy_address()
 	api_token_edit.secret = true
-	token_visibility_button.text = I18n.t("agent.common.show")
 	refresh_check_button(toast_toggle_button, AgentSetting.get_notification_window())
 	refresh_check_button(sound_toggle_button, AgentSetting.get_notification_sound())
 	update_sound_options_visible(sound_toggle_button.button_pressed)
@@ -489,6 +513,7 @@ func check_dialog_focus() -> void:
 
 func apply_locale() -> void:
 	appearance_heading_label.text = I18n.t("agent.settings.appearance")
+	notification_heading_label.text = I18n.t("agent.settings.notification")
 	heading_label.text = I18n.t("agent.settings.heading")
 	description_label.text = I18n.t("agent.settings.description")
 	field_labels[0].text = I18n.t("agent.settings.language")
@@ -509,7 +534,6 @@ func apply_locale() -> void:
 	sound_folder_edit.tooltip_text = I18n.t("agent.settings.sound_folder_help")
 	sound_folder_dialog.title = I18n.t("agent.settings.sound_folder_title")
 	sound_folder_dialog.ok_button_text = I18n.t("agent.common.select")
-	token_visibility_button.text = I18n.t("agent.common.show") if api_token_edit.secret else I18n.t("agent.common.hide")
 	select_current_language()
 	apply_theme()
 	pass
@@ -542,6 +566,7 @@ func style_dialog() -> void:
 	dialog.add_theme_constant_override("buttons_separation", Margin.ma_0)
 	content_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	appearance_heading_label.add_theme_color_override("font_color", ColorBase.text)
+	notification_heading_label.add_theme_color_override("font_color", ColorBase.text)
 	heading_label.add_theme_color_override("font_color", ColorBase.text)
 	description_label.add_theme_color_override("font_color", ColorBase.muted)
 	for label: Label in field_labels:
@@ -558,7 +583,6 @@ func style_dialog() -> void:
 	style_option_button(provider_select)
 	style_option_button(language_select)
 	style_spin_box(sound_seconds_spin)
-	style_secondary_button(token_visibility_button)
 	style_check_button(toast_toggle_button)
 	style_check_button(sound_toggle_button)
 	pass
@@ -639,25 +663,4 @@ func style_spin_box(spin: SpinBox) -> void:
 		spin.add_theme_stylebox_override(side + "_background_disabled", normal.duplicate())
 	spin.add_theme_stylebox_override("field_and_buttons_separator", StyleBoxEmpty.new())
 	spin.add_theme_stylebox_override("up_down_buttons_separator", StyleBoxEmpty.new())
-	pass
-
-
-func style_secondary_button(target: Button) -> void:
-	ButtonStyle.apply_font_colors(target, ColorBase.text, ColorBase.text, ColorBase.text)
-	var normal: StyleBoxFlat = make_input_style()
-	normal.bg_color = ColorBase.control_surface
-	normal.content_margin_left = Margin.ma_4
-	normal.content_margin_right = Margin.ma_4
-	var hover: StyleBoxFlat = normal.duplicate() as StyleBoxFlat
-	hover.bg_color = ColorBase.hover_surface
-	target.add_theme_stylebox_override("normal", normal)
-	target.add_theme_stylebox_override("hover", hover)
-	target.add_theme_stylebox_override("pressed", hover.duplicate())
-	target.add_theme_stylebox_override("focus", hover.duplicate())
-	pass
-
-
-func on_token_visibility_pressed() -> void:
-	api_token_edit.secret = not api_token_edit.secret
-	token_visibility_button.text = I18n.t("agent.common.show") if api_token_edit.secret else I18n.t("agent.common.hide")
 	pass
