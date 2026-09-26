@@ -15,7 +15,7 @@ func build_node() -> void:
 		0,
 		false,
 		0,
-		ColorCard.title_color,
+		ThemeColor.title_color,
 		true,
 		port.port_type,
 		port_color(port.port_type),

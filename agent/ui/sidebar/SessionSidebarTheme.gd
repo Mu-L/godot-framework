@@ -39,9 +39,9 @@ static func apply_new_session_button(button: Button) -> void:
 
 	var border := ButtonStyle.with_alpha(theme_color, 0.55 if ThemeColor.is_dark_theme() else 0.45)
 	var normal := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS, Margin.ma_3, Margin.ma_2, border, 1)
-	var hover := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+	var hover := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	hover.border_color = ButtonStyle.with_alpha(theme_color, 0.85)
-	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ColorBase.selection_surface, 0.06))
+	var pressed := BoxStyle.with_bg(hover, ButtonStyle.hover_color(ThemeColor.selected_surface, 0.06))
 	pressed.border_color = theme_color
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass
@@ -56,7 +56,7 @@ static func row(selected: bool, hovered: bool) -> StyleBoxFlat:
 	var style := BoxStyle.make(Color.TRANSPARENT, ROW_CORNER_RADIUS)
 	BoxStyle.pad(style, Margin.ma_3, Margin.ma_1, Margin.ma_1, Margin.ma_1)
 	if selected:
-		style.bg_color = ColorBase.selection_surface
+		style.bg_color = ThemeColor.selected_surface
 	elif hovered:
 		style.bg_color = ColorBase.hover_surface
 	return style
@@ -79,7 +79,7 @@ static func apply_row_colors(title_button: Button, delete_button: Button, select
 static func drag_ghost() -> StyleBoxFlat:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	var style: StyleBoxFlat = row(false, false)
-	style.bg_color = ColorBase.selection_surface
+	style.bg_color = ThemeColor.selected_surface
 	style.border_color = ButtonStyle.with_alpha(theme_color, 0.9 if ThemeColor.is_dark_theme() else 0.75)
 	style.set_border_width_all(1)
 	style.shadow_color = Color(0, 0, 0, 0.35 if ThemeColor.is_dark_theme() else 0.18)
@@ -98,7 +98,7 @@ static func apply_rename_field(edit: LineEdit, title_button: Button) -> void:
 	edit.add_theme_color_override("font_color", ColorBase.text)
 	edit.add_theme_color_override("font_placeholder_color", ColorBase.muted)
 	edit.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
-	edit.add_theme_color_override("selection_color", ColorBase.selection_surface)
+	edit.add_theme_color_override("selection_color", ThemeColor.selected_surface)
 	var field_style: StyleBoxFlat = rename_field()
 	edit.add_theme_stylebox_override("normal", field_style)
 	edit.add_theme_stylebox_override("focus", field_style)

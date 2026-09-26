@@ -64,7 +64,7 @@ func create_path_row(port_id: String, label_text: String, port_type: int) -> HBo
 	ButtonStyle.apply_font_colors(browse, ColorBase.muted, ColorBase.text, ColorBase.text)
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_1, Margin.ma_1, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	ButtonStyle.apply_states(browse, normal, hover, pressed)
 	browse.pressed.connect(func() -> void: open_browse(port_id, port_type))
 	row.add_child(browse)

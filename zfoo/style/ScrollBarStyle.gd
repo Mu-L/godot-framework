@@ -13,7 +13,7 @@ static func apply(bar: ScrollBar) -> void:
 	scroll_focus.bg_color = Color(0, 0, 0, 0)
 	bar.add_theme_stylebox_override("scroll_focus", scroll_focus)
 	var grabber := bar.get_theme_stylebox("grabber").duplicate() as StyleBoxFlat
-	grabber.bg_color = ColorCard.body_color
+	grabber.bg_color = ThemeColor.body_color
 	bar.add_theme_stylebox_override("grabber", grabber)
 	var grabber_highlight := bar.get_theme_stylebox("grabber_highlight").duplicate() as StyleBoxFlat
 	grabber_highlight.bg_color = ThemeColor.accent_theme_color()

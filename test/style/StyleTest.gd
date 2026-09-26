@@ -6,7 +6,7 @@ const GRAY := Color(0.5, 0.5, 0.5)
 func ColorBase_follow_theme_test() -> void:
 	var original := ThemeColor.current_theme
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
-	ColorBase.refresh()
+	ThemeColor.refresh_derived_colors()
 	assert(ColorBase.background == ColorBase.DARK_BACKGROUND)
 	assert(ColorBase.deep_surface == ColorBase.DARK_DEEP_SURFACE)
 	assert(ColorBase.chrome_surface == ColorBase.DARK_CHROME_SURFACE)
@@ -31,10 +31,10 @@ func ColorBase_follow_theme_test() -> void:
 	assert(ColorBase.success_surface == ColorBase.DARK_SUCCESS_SURFACE)
 	assert(ColorBase.warning_surface == ColorBase.DARK_WARNING_SURFACE)
 	assert(ColorBase.neutral_surface == ColorBase.DARK_NEUTRAL_SURFACE)
-	assert(ColorBase.selection_surface == ColorBase.DARK_ELEVATED_SURFACE.lerp(ThemeColor.accent_theme_color(), ColorBase.DARK_SELECTION_MIX))
+	assert(ThemeColor.selected_surface == ThemeColor.DARK_SELECTED_SURFACE_BASE.lerp(ThemeColor.accent_theme_color(), ThemeColor.DARK_SELECTED_SURFACE_MIX))
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
-	ColorBase.refresh()
+	ThemeColor.refresh_derived_colors()
 	assert(ColorBase.background == ColorBase.LIGHT_BACKGROUND)
 	assert(ColorBase.deep_surface == ColorBase.LIGHT_DEEP_SURFACE)
 	assert(ColorBase.chrome_surface == ColorBase.LIGHT_CHROME_SURFACE)
@@ -59,10 +59,10 @@ func ColorBase_follow_theme_test() -> void:
 	assert(ColorBase.success_surface == ColorBase.LIGHT_SUCCESS_SURFACE)
 	assert(ColorBase.warning_surface == ColorBase.LIGHT_WARNING_SURFACE)
 	assert(ColorBase.neutral_surface == ColorBase.LIGHT_NEUTRAL_SURFACE)
-	assert(ColorBase.selection_surface == ColorBase.LIGHT_ELEVATED_SURFACE.lerp(ThemeColor.accent_theme_color(), ColorBase.LIGHT_SELECTION_MIX))
+	assert(ThemeColor.selected_surface == ThemeColor.LIGHT_SELECTED_SURFACE_BASE.lerp(ThemeColor.accent_theme_color(), ThemeColor.LIGHT_SELECTED_SURFACE_MIX))
 
 	ThemeColor.current_theme = original
-	ColorBase.refresh()
+	ThemeColor.refresh_derived_colors()
 	pass
 
 
@@ -125,7 +125,7 @@ func BoxStyle_pad_test() -> void:
 ## only marks the leading one.
 func CardStyle_make_test() -> void:
 	var snackbar := CardStyle.make(ColorBase.success, CardStyle.CORNER_RADIUS, Margin.ma_4, Margin.ma_3)
-	assert(snackbar.bg_color == ColorCard.background_color)
+	assert(snackbar.bg_color == ThemeColor.background_color)
 	assert(snackbar.border_color == ColorBase.success)
 	assert(snackbar.border_width_left == CardStyle.ACCENT_STRIPE_WIDTH)
 	assert(snackbar.border_width_right == CardStyle.ACCENT_STRIPE_WIDTH)

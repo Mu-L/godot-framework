@@ -29,9 +29,6 @@ const LIGHT_SUBTLE_BORDER := Color(0.87, 0.88, 0.90)
 const LIGHT_TEXT := Color(0.09, 0.09, 0.11)
 const LIGHT_MUTED := Color(0.42, 0.42, 0.46)
 
-const DARK_SELECTION_MIX := 0.14
-const LIGHT_SELECTION_MIX := 0.16
-
 ## Semantic colors are brighter on dark surfaces and darker on pale surfaces.
 const DARK_ERROR := Color(0.85, 0.30, 0.30)
 const DARK_INFO := Color(0.35, 0.65, 0.95)
@@ -104,10 +101,6 @@ static var success_surface: Color = DARK_SUCCESS_SURFACE
 static var warning_surface: Color = DARK_WARNING_SURFACE
 ## Status-neutral fill for output and result content.
 static var neutral_surface: Color = DARK_NEUTRAL_SURFACE
-## Selected-row fill derived from [member elevated_surface] and the current theme color.
-static var selection_surface: Color = DARK_ELEVATED_SURFACE
-
-
 ## Select neutral and semantic colors with suitable contrast for the current theme.
 static func refresh() -> void:
 	var dark := ThemeColor.is_dark_theme()
@@ -135,5 +128,4 @@ static func refresh() -> void:
 	success_surface = DARK_SUCCESS_SURFACE if dark else LIGHT_SUCCESS_SURFACE
 	warning_surface = DARK_WARNING_SURFACE if dark else LIGHT_WARNING_SURFACE
 	neutral_surface = DARK_NEUTRAL_SURFACE if dark else LIGHT_NEUTRAL_SURFACE
-	selection_surface = elevated_surface.lerp(ThemeColor.accent_theme_color(), DARK_SELECTION_MIX if dark else LIGHT_SELECTION_MIX)
 	pass

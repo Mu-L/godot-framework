@@ -326,7 +326,7 @@ func style_result_button(result: Button) -> void:
 	var normal := BoxStyle.make(ColorBase.surface, 8, Margin.ma_3, Margin.ma_2, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
 	hover.border_color = ThemeColor.accent_theme_color()
-	var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	ButtonStyle.apply_states(result, normal, hover, pressed)
 	ButtonStyle.apply_font_colors(result, ColorBase.text, ColorBase.text, ColorBase.text)
 	pass

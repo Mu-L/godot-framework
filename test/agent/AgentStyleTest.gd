@@ -4,14 +4,14 @@
 
 
 ## Caret and highlight of the chat input follow the theme color, the same pair the bubbles and
-## the sidebar rename field use ([ColorCard]); the engine default would be a fixed green.
+## the sidebar rename field use ([ThemeColor]); the engine default would be a fixed green.
 func AgentChatInput_text_colors_follow_theme_test() -> void:
 	var input := AgentChatInput.new()
 	input.input_field = TextEdit.new()
 	input.style_field()
 	assert(input.input_field.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
-	assert(input.input_field.get_theme_color("selection_color") == ColorCard.selection_color)
-	assert(input.input_field.get_theme_color("font_selected_color") == ColorCard.title_color)
+	assert(input.input_field.get_theme_color("selection_color") == ThemeColor.selection_color)
+	assert(input.input_field.get_theme_color("font_selected_color") == ThemeColor.title_color)
 	input.input_field.free()
 	pass
 
@@ -22,7 +22,7 @@ func ScrollBarStyle_apply_test() -> void:
 	var bar := scroll.get_v_scroll_bar()
 	ScrollBarStyle.apply(bar)
 	assert((bar.get_theme_stylebox("scroll") as StyleBoxFlat).bg_color.a == 0.0)
-	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).bg_color == ColorCard.body_color)
+	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).bg_color == ThemeColor.body_color)
 	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).get_minimum_size().x == ScrollBarStyle.THICKNESS)
 	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ThemeColor.accent_theme_color())
 	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ThemeColor.accent_theme_color())
@@ -59,7 +59,7 @@ func ToolbarButton_states_test() -> void:
 
 
 func SessionSidebarTheme_row_test() -> void:
-	assert(SessionSidebarTheme.row(true, false).bg_color == ColorBase.selection_surface)
+	assert(SessionSidebarTheme.row(true, false).bg_color == ThemeColor.selected_surface)
 	assert(SessionSidebarTheme.row(false, true).bg_color == ColorBase.hover_surface)
 	assert(SessionSidebarTheme.row(false, false).bg_color.a == 0.0)
 	var style := SessionSidebarTheme.row(true, false)

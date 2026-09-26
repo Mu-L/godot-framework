@@ -116,27 +116,27 @@ func PopupWindow_parent_test() -> void:
 	pass
 
 
-## [method PopupWindow.apply_theme] paints the frame from [ColorCard] and the text area from its inset surface.
+## [method PopupWindow.apply_theme] paints the frame from [ThemeColor] and the text area from its inset surface.
 func PopupWindow_theme_test() -> void:
 	var window := PopupWindow.new()
 	gdf.gdf_node.add_child(window)
 	var border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(border.bg_color == ColorCard.background_color)
+	assert(border.bg_color == ThemeColor.background_color)
 	assert(border.corner_radius_top_left == CardStyle.CORNER_RADIUS)
 	assert(border.get_minimum_size().y == window.get_theme_stylebox("embedded_unfocused_border").get_minimum_size().y)
-	assert(window.get_theme_color("title_color") == ColorCard.title_color)
+	assert(window.get_theme_color("title_color") == ThemeColor.title_color)
 	assert(window.get_theme_font("title_font") == Fonts.semibold())
 	assert(window.get_theme_font_size("title_font_size") == TextSize.title_medium_size)
-	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ColorCard.background_color)
-	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ColorCard.inset_color)
+	assert((window.get_theme_stylebox("embedded_unfocused_border") as StyleBoxFlat).bg_color == ThemeColor.background_color)
+	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).bg_color == ThemeColor.inset_color)
 	assert((window.text_edit.get_theme_stylebox("read_only") as StyleBoxFlat).content_margin_left == Margin.ma_4)
-	assert(window.text_edit.get_theme_color("font_readonly_color") == ColorCard.title_color)
+	assert(window.text_edit.get_theme_color("font_readonly_color") == ThemeColor.title_color)
 	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	assert(window.text_edit.get_theme_font("font") == Fonts.regular())
 	assert(window.text_edit.get_theme_font_size("font_size") == TextSize.body_large_size)
 	# The popup uses the shared thin scrollbar geometry and palette.
 	var grabber := window.text_edit.get_v_scroll_bar().get_theme_stylebox("grabber") as StyleBoxFlat
-	assert(grabber.bg_color == ColorCard.body_color)
+	assert(grabber.bg_color == ThemeColor.body_color)
 	assert(grabber.get_minimum_size().x == ScrollBarStyle.THICKNESS)
 	window.free()
 	pass
@@ -152,12 +152,12 @@ func PopupWindow_theme_change_test() -> void:
 	ThemeColor.refresh_derived_colors()
 	gdf.events.theme_color_changed.emit()
 	var painted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(painted.bg_color == ColorCard.background_color)
+	assert(painted.bg_color == ThemeColor.background_color)
 	ThemeColor.theme_color = Color(1.0, 0.35, 0.05)
 	ThemeColor.refresh_derived_colors()
 	gdf.events.theme_color_changed.emit()
 	var repainted := window.get_theme_stylebox("embedded_border") as StyleBoxFlat
-	assert(repainted.bg_color == ColorCard.background_color)
+	assert(repainted.bg_color == ThemeColor.background_color)
 	assert(repainted.bg_color != painted.bg_color)
 	assert(window.text_edit.get_theme_color("caret_color") == ThemeColor.accent_theme_color())
 	# Back to the accent the project was started with, so no other test sees a repaint.
@@ -165,7 +165,7 @@ func PopupWindow_theme_change_test() -> void:
 	ThemeColor.refresh_derived_colors()
 	gdf.events.theme_color_changed.emit()
 	gdf.events.theme_changed.emit()
-	assert(window.text_edit.get_theme_color("font_readonly_color") == ColorCard.title_color)
+	assert(window.text_edit.get_theme_color("font_readonly_color") == ThemeColor.title_color)
 	# The frame is rebuilt from the engine box on every repaint, so its geometry must survive.
 	var engine_border: StyleBox = ThemeDB.get_default_theme().get_stylebox("embedded_border", "Window")
 	var final_border := window.get_theme_stylebox("embedded_border") as StyleBoxFlat

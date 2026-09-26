@@ -1,6 +1,6 @@
 ## Material snackbar on `gdf_layer`: an accent-tinted card (near-black with near-white text in the dark
 ## theme) and the semantic color as a stripe down both edges. Surface and geometry come from
-## [ColorCard] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
+## [ThemeColor] and [CardStyle], the same card [DesktopToast] paints, so a snackbar follows the app
 ## accent and matches the desktop toast.
 ## It drops in at the top center — one short fall from the top edge of the screen down to
 ## [constant Margin.ma_6] — holds, then fades out; live cards stack downward, the newest one hugging
@@ -45,7 +45,7 @@ static func create_alert(i18n_text: String, stripe_color: Color) -> Alert:
 	card.label.add_theme_font_override("font", make_font())
 	card.label.add_theme_font_size_override("font_size", TextSize.body_large_size)
 	# Near-white on the dark surface, dark on the light one — the accent-tinted card decides this.
-	card.label.add_theme_color_override("font_color", ColorCard.title_color)
+	card.label.add_theme_color_override("font_color", ThemeColor.title_color)
 	card.label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	card.add_child(card.label)
 	card.resize_to_text()

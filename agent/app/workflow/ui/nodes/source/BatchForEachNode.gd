@@ -65,7 +65,7 @@ func refresh_output_slot(type_name: String) -> void:
 		slot_index,
 		false,
 		0,
-		ColorCard.title_color,
+		ThemeColor.title_color,
 		true,
 		out_type,
 		port_color(out_type),

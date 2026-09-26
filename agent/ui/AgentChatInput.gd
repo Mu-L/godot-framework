@@ -691,8 +691,8 @@ func style_field() -> void:
 	# Caret and highlight follow the theme color (same pair the sidebar rename field and the
 	# chat bubbles use), so neither keeps a stale hue after a theme or theme-color change.
 	input_field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
-	input_field.add_theme_color_override("font_selected_color", ColorCard.title_color)
-	input_field.add_theme_color_override("selection_color", ColorCard.selection_color)
+	input_field.add_theme_color_override("font_selected_color", ThemeColor.title_color)
+	input_field.add_theme_color_override("selection_color", ThemeColor.selection_color)
 	ScrollBarStyle.apply(input_field.get_v_scroll_bar())
 	ScrollBarStyle.apply(input_field.get_h_scroll_bar())
 	input_field.caret_blink = true

@@ -796,11 +796,11 @@ class SelectableRichTextLabel extends RichTextLabel:
 
 
 ## Highlight colors of a selectable body: the card palette's accent-tinted selection plus its
-## primary text for the highlighted glyphs. Both come from [ColorCard], so a bubble keeps
+## primary text for the highlighted glyphs. Both come from [ThemeColor], so a bubble keeps
 ## readable contrast in either theme and re-tints when the user picks another accent color.
 static func apply_selection_theme(label: RichTextLabel) -> void:
-	label.add_theme_color_override("selection_color", ColorCard.selection_color)
-	label.add_theme_color_override("font_selected_color", ColorCard.title_color)
+	label.add_theme_color_override("selection_color", ThemeColor.selection_color)
+	label.add_theme_color_override("font_selected_color", ThemeColor.title_color)
 	pass
 
 

@@ -138,7 +138,7 @@ func style_palette_tree() -> void:
 	palette_tree.add_theme_color_override("font_hovered_selected_color", ColorBase.text)
 	palette_tree.add_theme_color_override("guide_color", ColorBase.muted_border)
 	palette_tree.add_theme_stylebox_override("panel", BoxStyle.make(Color.TRANSPARENT))
-	var selected := BoxStyle.make(ColorBase.selection_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
+	var selected := BoxStyle.make(ThemeColor.selected_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_1)
 	palette_tree.add_theme_stylebox_override("selected", selected)
 	palette_tree.add_theme_stylebox_override("selected_focus", selected.duplicate() as StyleBoxFlat)
 	palette_tree.add_theme_stylebox_override("hovered_selected", selected.duplicate() as StyleBoxFlat)

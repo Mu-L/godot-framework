@@ -39,7 +39,7 @@ func add_input_port_row(port: PortDef, _allow_manual: bool = true) -> int:
 		port_color(port.port_type),
 		false,
 		0,
-		ColorCard.title_color,
+		ThemeColor.title_color,
 	)
 	return slot_index
 
@@ -57,7 +57,7 @@ func add_output_port_row(port: PortDef) -> int:
 		slot_index,
 		false,
 		0,
-		ColorCard.title_color,
+		ThemeColor.title_color,
 		true,
 		port.port_type,
 		port_color(port.port_type),
@@ -131,7 +131,7 @@ func port_color(port_type: int) -> Color:
 		PortDef.TYPE_FOLDER:
 			return ColorFile.folder_color
 		_:
-			return ColorCard.body_color
+			return ThemeColor.body_color
 
 
 func get_manual_input(port_id: String) -> String:
@@ -260,6 +260,6 @@ func style_node_button(button: Button) -> void:
 	ButtonStyle.apply_font_colors(button, ColorBase.muted, ColorBase.text, ColorBase.text)
 	var normal := BoxStyle.make(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, 1)
 	var hover := BoxStyle.with_bg(normal, ColorBase.hover_surface)
-	var pressed := BoxStyle.with_bg(normal, ColorBase.selection_surface)
+	var pressed := BoxStyle.with_bg(normal, ThemeColor.selected_surface)
 	ButtonStyle.apply_states(button, normal, hover, pressed)
 	pass

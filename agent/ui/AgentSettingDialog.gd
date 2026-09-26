@@ -616,7 +616,7 @@ func style_provider_popup(popup: PopupMenu) -> void:
 	popup.add_theme_constant_override("item_start_padding", Margin.ma_3)
 	popup.add_theme_constant_override("item_end_padding", Margin.ma_3)
 	popup.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.surface, 7, Margin.ma_1, Margin.ma_1, ColorBase.border, 1))
-	popup.add_theme_stylebox_override("hover", BoxStyle.make(ColorBase.selection_surface, 5, Margin.ma_2, 0))
+	popup.add_theme_stylebox_override("hover", BoxStyle.make(ThemeColor.selected_surface, 5, Margin.ma_2, 0))
 	var empty_icon: ImageTexture = ImageTexture.new()
 	for state: String in ["radio_checked", "radio_unchecked", "checked", "unchecked"]:
 		popup.add_theme_icon_override(state, empty_icon)
