@@ -79,7 +79,8 @@ func build_popup() -> void:
 	close_button.text = "×"
 	close_button.flat = true
 	close_button.focus_mode = Control.FOCUS_NONE
-	close_button.custom_minimum_size = ControlSize.square(ControlSize.sm)
+	close_button.custom_minimum_size = ControlSize.square(ControlSize.md)
+	close_button.add_theme_font_size_override("font_size", TextSize.headline_small_size)
 	close_button.pressed.connect(popup.hide)
 	header.add_child(close_button)
 	query_edit = LineEdit.new()
