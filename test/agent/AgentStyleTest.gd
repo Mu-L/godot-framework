@@ -24,8 +24,8 @@ func ScrollBarStyle_apply_test() -> void:
 	assert((bar.get_theme_stylebox("scroll") as StyleBoxFlat).bg_color.a == 0.0)
 	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).bg_color == ColorCard.body_color)
 	assert((bar.get_theme_stylebox("grabber") as StyleBoxFlat).get_minimum_size().x == ScrollBarStyle.THICKNESS)
-	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ColorCard.accent_color)
-	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ColorCard.accent_color)
+	assert((bar.get_theme_stylebox("grabber_highlight") as StyleBoxFlat).bg_color == ThemeColor.theme_color_full_alpha())
+	assert((bar.get_theme_stylebox("grabber_pressed") as StyleBoxFlat).bg_color == ThemeColor.theme_color_full_alpha())
 	scroll.free()
 	pass
 

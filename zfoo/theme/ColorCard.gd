@@ -5,8 +5,9 @@ extends Object
 ## (`DesktopToast`, `Alert`, `PopupWindow`) pick up the accent the user chose while title/body
 ## contrast stays stable in either theme.
 ## Usage: `ColorCard.background_color` (card surface), `inset_color` (a window's body, one
-## step below it), `title_color` / `body_color` (text), `accent_color` / `selection_color` (caret,
-## selection, highlight). `ThemeColor` calls `refresh()` whenever the accent color or the dark/light
+## step below it), `title_color` / `body_color` (text), and `selection_color` (selection highlight).
+## Use `ThemeColor.theme_color_full_alpha()` for carets and solid accent highlights. `ThemeColor`
+## calls `refresh()` whenever the accent color or the dark/light
 ## theme changes; until that first call these hold their neutral fallbacks.
 
 # Hue is always the accent hue; these scale its saturation and set the brightness per theme.
@@ -39,9 +40,7 @@ static var inset_color: Color = Color(0.09, 0.10, 0.12)
 static var title_color: Color = ColorBase.DARK_TEXT
 ## Secondary text: captions, muted labels, and the resting scrollbar grabber.
 static var body_color: Color = ColorBase.DARK_MUTED
-## The accent at full alpha: caret, scrollbar hover / press and other highlights.
-static var accent_color: Color = Color(0.0, 0.84, 0.68)
-## [member inset_color] mixed with [member accent_color]: the background of selected text.
+## [member inset_color] mixed with the full-alpha theme color: the background of selected text.
 static var selection_color: Color = Color(0.12, 0.29, 0.25)
 
 
@@ -54,8 +53,7 @@ static func refresh() -> void:
 	body_color = derive(BODY_SATURATION_DARK if dark else BODY_SATURATION_LIGHT, BODY_VALUE_DARK if dark else BODY_VALUE_LIGHT)
 	# Theme colors are stored translucent — they also tint the window — while a caret or a highlight
 	# wants the solid hue.
-	accent_color = Color(ThemeColor.theme_color, 1.0)
-	selection_color = inset_color.lerp(accent_color, SELECTION_MIX)
+	selection_color = inset_color.lerp(ThemeColor.theme_color_full_alpha(), SELECTION_MIX)
 	pass
 
 

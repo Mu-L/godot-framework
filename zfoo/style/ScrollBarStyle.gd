@@ -16,10 +16,10 @@ static func apply(bar: ScrollBar) -> void:
 	grabber.bg_color = ColorCard.body_color
 	bar.add_theme_stylebox_override("grabber", grabber)
 	var grabber_highlight := bar.get_theme_stylebox("grabber_highlight").duplicate() as StyleBoxFlat
-	grabber_highlight.bg_color = ColorCard.accent_color
+	grabber_highlight.bg_color = ThemeColor.theme_color_full_alpha()
 	bar.add_theme_stylebox_override("grabber_highlight", grabber_highlight)
 	var grabber_pressed := bar.get_theme_stylebox("grabber_pressed").duplicate() as StyleBoxFlat
-	grabber_pressed.bg_color = ColorCard.accent_color
+	grabber_pressed.bg_color = ThemeColor.theme_color_full_alpha()
 	bar.add_theme_stylebox_override("grabber_pressed", grabber_pressed)
 	var half_thickness := THICKNESS * 0.5
 	if bar is VScrollBar:
