@@ -96,7 +96,7 @@ func apply_locale() -> void:
 
 
 func apply_theme() -> void:
-	chat_area_panel.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.background))
+	chat_area_panel.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.app_background))
 	chat_area_panel.queue_redraw()
-	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.background))
+	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.app_background))
 	pass

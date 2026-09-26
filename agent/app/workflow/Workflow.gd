@@ -65,7 +65,7 @@ func _ready() -> void:
 
 
 func apply_theme() -> void:
-	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.background))
+	add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.app_background))
 	toolbar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.deep_surface, 0, 0, 0, ColorBase.muted_border, 1))
 	sidebar.add_theme_stylebox_override("panel", BoxStyle.make(ColorBase.chrome_surface, 0, 0, 0, ColorBase.muted_border, 1))
 	apply_layout_tokens()

@@ -303,7 +303,7 @@ func make_search_icon(color: Color) -> ImageTexture:
 
 
 func make_popup_style() -> StyleBoxFlat:
-	var style := BoxStyle.make(ColorBase.background, 12, Margin.ma_4, Margin.ma_4, ColorBase.border, 1)
+	var style := BoxStyle.make(ColorBase.app_background, 12, Margin.ma_4, Margin.ma_4, ColorBase.border, 1)
 	style.shadow_color = Color(0, 0, 0, 0.22)
 	style.shadow_size = 18
 	style.shadow_offset = Vector2(0, 8)

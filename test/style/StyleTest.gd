@@ -7,7 +7,7 @@ func ColorBase_follow_theme_test() -> void:
 	var original := ThemeColor.current_theme
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ThemeColor.refresh_derived_colors()
-	assert(ColorBase.background == ColorBase.DARK_BACKGROUND)
+	assert(ColorBase.app_background == ColorBase.DARK_BACKGROUND)
 	assert(ColorBase.deep_surface == ColorBase.DARK_DEEP_SURFACE)
 	assert(ColorBase.chrome_surface == ColorBase.DARK_CHROME_SURFACE)
 	assert(ColorBase.control_surface == ColorBase.DARK_CONTROL_SURFACE)
@@ -35,7 +35,7 @@ func ColorBase_follow_theme_test() -> void:
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
 	ThemeColor.refresh_derived_colors()
-	assert(ColorBase.background == ColorBase.LIGHT_BACKGROUND)
+	assert(ColorBase.app_background == ColorBase.LIGHT_BACKGROUND)
 	assert(ColorBase.deep_surface == ColorBase.LIGHT_DEEP_SURFACE)
 	assert(ColorBase.chrome_surface == ColorBase.LIGHT_CHROME_SURFACE)
 	assert(ColorBase.control_surface == ColorBase.LIGHT_CONTROL_SURFACE)

@@ -85,7 +85,7 @@ func ColorBase_shared_tones_test() -> void:
 	var original := ThemeColor.current_theme
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.LIGHT
 	ColorBase.refresh()
-	assert(ColorBase.background == ColorBase.LIGHT_BACKGROUND)
+	assert(ColorBase.app_background == ColorBase.LIGHT_BACKGROUND)
 	assert(ColorBase.text == ColorBase.LIGHT_TEXT)
 	assert(ColorBase.muted == ColorBase.LIGHT_MUTED)
 	assert(ColorBase.surface == ColorBase.LIGHT_SURFACE)
@@ -103,7 +103,7 @@ func ColorBase_shared_tones_test() -> void:
 
 	ThemeColor.current_theme = ThemeColor.ThemeEnum.DARK
 	ColorBase.refresh()
-	assert(ColorBase.background == ColorBase.DARK_BACKGROUND)
+	assert(ColorBase.app_background == ColorBase.DARK_BACKGROUND)
 	assert(ColorBase.text == ColorBase.DARK_TEXT)
 	assert(ColorBase.muted == ColorBase.DARK_MUTED)
 	assert(ColorBase.surface == ColorBase.DARK_SURFACE)

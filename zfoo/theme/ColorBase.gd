@@ -68,7 +68,7 @@ static var teal: Color = DARK_TEAL
 static var purple: Color = DARK_PURPLE
 
 ## Main application canvas behind panels and content.
-static var background: Color = DARK_BACKGROUND
+static var app_background: Color = DARK_BACKGROUND
 ## Deepest application layer, used by chrome that should sit behind adjacent regions, such as a toolbar.
 static var deep_surface: Color = DARK_DEEP_SURFACE
 ## Application chrome surface: persistent navigation and framing regions such as a sidebar.
@@ -104,7 +104,7 @@ static var neutral_surface: Color = DARK_NEUTRAL_SURFACE
 ## Select neutral and semantic colors with suitable contrast for the current theme.
 static func refresh() -> void:
 	var dark := ThemeColor.is_dark_theme()
-	background = DARK_BACKGROUND if dark else LIGHT_BACKGROUND
+	app_background = DARK_BACKGROUND if dark else LIGHT_BACKGROUND
 	deep_surface = DARK_DEEP_SURFACE if dark else LIGHT_DEEP_SURFACE
 	chrome_surface = DARK_CHROME_SURFACE if dark else LIGHT_CHROME_SURFACE
 	control_surface = DARK_CONTROL_SURFACE if dark else LIGHT_CONTROL_SURFACE
