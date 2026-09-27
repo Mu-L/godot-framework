@@ -65,11 +65,18 @@ var reply2 := await client.async_chat_messages(messages)
 ---
 
 
-## Alert — Floating toast messages
+## Feedback — alerts, desktop toasts, popup windows
 
 ```gdscript
+# Brief in-app feedback: show a non-blocking top-center message with a semantic result color.
 Alert.alert("Saved successfully", ColorBase.success)
 Alert.alert("Network error", ColorBase.error)
+
+# Background-task feedback: show an OS-level notification when the app may be unfocused.
+DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success)
+
+# Detailed feedback: show important or long content in a popup sized by viewport percentages.
+PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
 
 ---

@@ -53,16 +53,6 @@ var streamed := stream_completion.content
 ---
 
 
-## Alert — Floating toast messages
-
-```gdscript
-Alert.alert("Saved successfully", ColorBase.success)
-Alert.alert("Network error", ColorBase.error)
-```
-
----
-
-
 ## Audio — play music, sound, voice，SoundEffect
 
 ```gdscript
@@ -84,6 +74,23 @@ Audios.play("res://audio/click.mp3", 0.8)
 ```gdscript
 # plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
+```
+
+---
+
+
+## Feedback — alerts, desktop toasts, popup windows
+
+```gdscript
+# Brief in-app feedback: show a non-blocking top-center message with a semantic result color.
+Alert.alert("Saved successfully", ColorBase.success)
+Alert.alert("Network error", ColorBase.error)
+
+# Background-task feedback: show an OS-level notification when the app may be unfocused.
+DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success)
+
+# Detailed feedback: show important or long content in a popup sized by viewport percentages.
+PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
 
 ---
