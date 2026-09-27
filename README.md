@@ -239,37 +239,10 @@ var name := Setting.get_string("nickname", "")
 
 ## Utils — common helpers
 
-- Also available: `ArrayUtils`, `CollectionUtils`, `NumberUtils`, `NetUtils`, `HttpUtils`, `IdUtils`, `RateLimitUtils`.
-
-```gdscript
-# StringUtils
-var msg := StringUtils.format("score:[{}] name:[{}]", score, name)
-if StringUtils.is_blank(text):
-    return
-
-# TimeUtils
-var ts := TimeUtils.now()              # cached ms timestamp (updated each second)
-var now_str := TimeUtils.date()        # "yyyy-mm-dd hh:mm:ss"
-
-# JsonUtils — plain objects with public fields
-var obj = JsonUtils.json_to_object('{"name":"test","age":10}', Student)
-var json := JsonUtils.object_to_json(obj)
-
-# FileUtils
-FileUtils.write_string_to_file("user://log.txt", content)
-var text := FileUtils.read_file_to_string("user://log.txt")
-FileUtils.delete_file_or_directory("user://log.txt")
-
-# RandomUtils
-var n := RandomUtils.random_int_limit(100)
-var item = RandomUtils.random_ele(items)
-
-# ThreadUtils — non-blocking wait on main thread
-await ThreadUtils.async_sleep(500)
-
-# NodeUtils
-var node := NodeUtils.load_and_instantiate("res://scene/Popup.tscn")
-```
+- `ArrayUtils`, `CollectionUtils`, `FileUtils`, `GitUtils`, `GlobUtils`
+- `HttpUtils`, `IdUtils`, `JsonUtils`, `MarkdownUtils`, `NetUtils`
+- `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
+- `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
 
 ---
 
