@@ -1,3 +1,16 @@
+# Repository Map
+
+- `zfoo/`: Reusable Godot framework.
+- `agent/`: Desktop agent application.
+- `cli/`: Command-line application.
+- `test/`: Unit and integration tests.
+- `.agents/skills/`: Reusable AI agent skills.
+- `.ai/`: Scripts used by skills.
+
+
+---
+
+
 # GDScript Rules
 
 ## General
