@@ -66,7 +66,7 @@ var streamed := stream_completion.content
 ```
 
 
-## Audio — play music, sound, voice，SoundEffect
+## Audio — music, voice, and sound effects
 
 ```gdscript
 # Single track or playlist (auto cross-fade near end of track)
@@ -131,7 +131,7 @@ Log.error("load failed path:[{}] err:[{}]", path, err)
 - support `TcpClient`, `TcpClientThread`, `WebsocketClient`, `WebsocketClientThread`
 
 ```gdscript
-# Create a network seesion
+# Create a network session
 # `ICodec` for encode/decode
 var session: Session = TcpClient.new(Codec.new(), "127.0.0.1:80")
 
