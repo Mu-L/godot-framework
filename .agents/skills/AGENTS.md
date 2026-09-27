@@ -128,7 +128,7 @@ External CLIs, language runtimes, and skill-only toolchains install into `.depen
 | Kind | Name examples | Install location |
 |------|---------------|------------------|
 | Language runtime | `python`, `python-3.11`, `node-20`, `rust-1.75`, `go-1.22` | `.dependency/<name>/` |
-| CLI tool (standalone binary) | `ffmpeg`, `gemini-watermark`, `git`, `jq`, `curl`, `imagemagick` | `.dependency/<name>/` or `.dependency/<name>-tool/` |
+| CLI tool (standalone binary) | `ffmpeg`, `llama-cpp-cpu`, `llama-cpp-gpu`, `git`, `jq`, `curl`, `imagemagick` | `.dependency/<name>/` or `.dependency/<name>-tool/` |
 | Python third-party tool | `rembg`, cloned GitHub projects | `.dependency/<name>/.venv/` |
 
 **Root:** `.dependency/`  
@@ -174,6 +174,23 @@ The `python` runtime is for **stdlib-only** skill scripts (e.g. audio wrappers, 
 ### Standalone CLI tools
 
 When a skill depends on a portable upstream binary (e.g. FFmpeg), follow this order:
+
+When one CLI has separate CPU and GPU builds, register each build as its own dependency. Use matching directory and manifest names such as `.dependency/llama-cpp-cpu/` → `llama-cpp-cpu` and `.dependency/llama-cpp-gpu/` → `llama-cpp-gpu`. Do not place both builds under a model-specific directory or combine them into custom fields such as `gpu_bin`. Keep reusable runtimes separate from model weights; for example, store MiniCPM weights under `.dependency/minicpm-v-4.6/model/` while both llama.cpp builds remain independently reusable.
+
+```json
+"llama-cpp-cpu": {
+  "populated": true,
+  "bin": ".dependency/llama-cpp-cpu/llama-mtmd-cli.exe"
+},
+"llama-cpp-gpu": {
+  "populated": true,
+  "bin": ".dependency/llama-cpp-gpu/llama-mtmd-cli.exe"
+},
+"minicpm-v-4.6": {
+  "populated": true,
+  "model": ".dependency/minicpm-v-4.6/model"
+}
+```
 
 1. **Create the install directory** under `.dependency/` — use the manifest key name (e.g. `.dependency/ffmpeg/`).
 
@@ -273,10 +290,6 @@ Example:
   "ffmpeg": {
     "populated": true,
     "bin": ".dependency/ffmpeg/bin/ffmpeg"
-  },
-  "gemini-watermark": {
-    "populated": true,
-    "bin": ".dependency/gemini-watermark-tool/GeminiWatermarkTool.exe"
   },
   "rembg": {
     "populated": true,
