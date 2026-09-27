@@ -1,12 +1,14 @@
-# GDScript (this project)
+# GDScript Rules
+
+## General
 
 - **Types**: Use explicit types on function signatures and return values (`-> void`, etc.). Use the `class_name` type when a class has one. **Prefer `:=` for locals** to lock in the inferred type at declaration; use `var x = ...` only when you need Variant or mixed types.
 - **Docs**: Use `##` comments for scene entry points or complex logic. Match the tone of nearby files.
 - **Nodes**: Prefer `@onready var name: Type = $Path`.
-- **Compact formatting**: Keep code on one line whenever possible.
+- **Compact formatting**: Keep code on one line when it remains readable.
 - **Trailing pass**: If a function has no `return` statement, end the body with `pass`.
 
-# Underscores and naming (Godot 4)
+## Naming
 
 **`_` is mainly for engine callbacks** (`_ready`, `_process`, `_notification`, `_init`, etc.). **Do not prefix business methods** like `_refresh_xxx` — that clutters the file with `_` like lifecycle hooks. Use `_` on variables sparingly for internal details. GDScript has no real private; use structure and folders instead.
 
@@ -14,7 +16,7 @@
 
 | Kind | Naming | Notes |
 |------|--------|-------|
-| Engine lifecycle | `_ready`, `_process`, `_input`, `physics_*`, etc. | Keep the official `_` prefix. |
+| Engine lifecycle | `_ready`, `_process`, `_physics_process`, `_input`, etc. | Keep the official `_` prefix. |
 | Normal members | `player`, `ui_panel`, `news_cache` | **No** `_` prefix. |
 | Internal vars | `_http_client`, `_buffer`, `_retry_count` | Implementation detail; **use sparingly**. |
 | Signal handlers | `on_buy_pressed`, `on_timer_timeout`, or `handle_buy`, `handle_close` | **No** `_on_*`; keep separate from engine hooks. |
@@ -35,10 +37,11 @@ func refresh_ui() -> void:
 	pass
 ```
 
+
 ---
 
 
-# godot-framework
+# Godot Framework Reference
 
 ## GodotFramework — gdf
 
@@ -224,10 +227,11 @@ label.text = I18n.t("settings.title")
 - `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
 - `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
 
+
 ---
 
 
-# UI
+# UI Style Guide
 
 ## Typography
 
@@ -267,5 +271,6 @@ DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success
 # Detailed feedback: show important or long content in a popup sized by viewport percentages.
 PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
+
 
 ---
