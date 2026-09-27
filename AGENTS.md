@@ -35,6 +35,8 @@ func refresh_ui() -> void:
 	pass
 ```
 
+---
+
 
 # godot-framework
 
@@ -50,8 +52,6 @@ gdf.callable_deferred(func() -> void: refresh_ui())
 await gdf.quit()
 ```
 
----
-
 
 ## AI — OpenAI-compatible chat
 
@@ -64,8 +64,6 @@ var stream_completion := await client.async_chat_messages_stream(client.build_me
 	proxy, func(delta: String, stream_kind: String): print(delta))
 var streamed := stream_completion.content
 ```
-
----
 
 
 ## Audio — play music, sound, voice，SoundEffect
@@ -82,7 +80,6 @@ await Audio.play_voice("res://audio/narration.mp3")
 Audios.play("res://audio/click.mp3", 0.8)
 ```
 
----
 
 ## Animation
 
@@ -90,7 +87,7 @@ Audios.play("res://audio/click.mp3", 0.8)
 # plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
 ```
----
+
 
 ## Unit tests
 
@@ -102,14 +99,12 @@ EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vec
 - Attach `zfoo/gdtest/IntegrationTest.gd` to a scene; it scans the scene’s folder for `.tscn` whose name **starts or ends with `test`**, then runs them one by one.
 - Each finished test scene must emit `gdf.events.test_passed` (UnitTest does this automatically).
 
----
 
 ## HotUpdate
 
 - Godot PCK Hot Update for single pck
 - Workflow: Launch App → Check Version → Download PCK → Verify MD5 → Load PCK → Enter Game
 
----
 
 ## Http
 
@@ -120,7 +115,6 @@ if response.success:
     Log.info(response.get_body_string())
 ```
 
----
 
 ## Log
 
@@ -131,7 +125,6 @@ Log.info("player login uid:[{}]", user_id)
 Log.error("load failed path:[{}] err:[{}]", path, err)
 ```
 
----
 
 ## Network
 
@@ -152,7 +145,6 @@ Router.send(session, SomeRequest.new())
 var reply: LoginResponse = await Router.async_ask(session, LoginRequest.new())
 ```
 
----
 
 ## ResourceHelper — async loading
 
@@ -163,7 +155,6 @@ var texture: Texture2D = await ResourceHelper.async_load("res://assets/icon.svg"
 var scene: PackedScene = await ResourceHelper.async_load("res://scene/Level.tscn")
 ```
 
----
 
 ## SceneHelper — scenes & nodes
 
@@ -181,7 +172,6 @@ var node := SceneHelper.add_scene_to_node(load("res://scene/Popup.tscn"), self)
 SceneHelper.queue_free(old_node)
 ```
 
----
 
 ## SchedulerBus — delayed & periodic tasks
 
@@ -195,7 +185,6 @@ SchedulerBus.schedule(func() -> void: do_something(), 1000)
 SchedulerBus.schedule_at_fixed_rate(func() -> void: poll_status(), 2000)
 ```
 
----
 
 ## Setting — persistent user config
 
@@ -208,7 +197,6 @@ var enabled := Setting.get_bool("sound_enabled", false)
 var name := Setting.get_string("nickname", "")
 ```
 
----
 
 ## I18n — localization
 
@@ -217,19 +205,17 @@ Use `I18n.t()` to translate text:
 ```gdscript
 label.text = I18n.t("settings.title")
 ```
----
+
 
 ## Collection — collection utilities
 
 `ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
 
----
 
 ## Common — common utilities
 
 `StringBuilder`, `Utf8StreamDecoder`
 
----
 
 ## Utils — common helpers
 
@@ -240,14 +226,15 @@ label.text = I18n.t("settings.title")
 
 ---
 
-## UI style
 
-### Typography
+# UI
+
+## Typography
 
 - `Fonts`: Lazily loads the bundled Noto Sans SC fonts in light, regular, medium, semibold, and bold weights.
 - `Typography`: Provides shared display, headline, title, body, and label sizes, plus letter-spacing values.
 
-### Layout and controls
+## Layout and controls
 
 - `Margin`: Provides spacing tokens in 4-pixel increments.
 - `ControlSize`: Provides standard control heights, corner radii, border widths, and square sizes.
@@ -255,7 +242,7 @@ label.text = I18n.t("settings.title")
 - `ButtonStyle`: Builds and applies theme-aware button state boxes and font colors.
 - `ScrollBarStyle`: Applies standard or custom scrollbar thickness, colors, and rounding.
 
-### Theme and colors
+## Theme and colors
 
 - `ThemeColor`: Manages dark/light mode, the user accent color, and colors derived from the active theme.
 - `ColorBase`: Provides theme-aware semantic colors for surfaces, text, borders, and status feedback.
@@ -281,4 +268,3 @@ PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
 
 ---
-
