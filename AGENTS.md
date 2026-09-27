@@ -226,6 +226,15 @@ var enabled := Setting.get_bool("sound_enabled", false)
 var name := Setting.get_string("nickname", "")
 ```
 
+---
+
+## I18n — localization
+
+Use `I18n.t()` to translate text:
+
+```gdscript
+label.text = I18n.t("settings.title")
+```
 
 ---
 
