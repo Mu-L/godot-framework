@@ -19,7 +19,7 @@
 - **Docs**: Use `##` comments for scene entry points or complex logic. Match the tone of nearby files.
 - **Nodes**: Prefer `@onready var name: Type = $Path`.
 - **Compact formatting**: Keep code on one line when it remains readable.
-- **Trailing pass**: Every function without an explicit `return` must end with `pass`, even when its body is non-empty.
+- **Trailing pass**: Every named function without an explicit `return` must end with `pass`, even when its body is non-empty. Inline anonymous functions are exempt.
 
 ## Naming
 
