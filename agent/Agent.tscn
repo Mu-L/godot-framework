@@ -35,18 +35,24 @@ theme_override_font_sizes/font_size = 18
 text = "GAI"
 vertical_alignment = 1
 
-[node name="Title" type="Label" parent="Root/Toolbar/ToolbarRow" unique_id=1903907348]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Code Agent Workspace"
-
 [node name="ProjectButton" type="Button" parent="Root/Toolbar/ToolbarRow" unique_id=1917564757]
 layout_mode = 2
-size_flags_horizontal = 3
 focus_mode = 0
 mouse_default_cursor_shape = 2
 text = "project"
 flat = true
+
+[node name="WorkflowButton" type="Button" parent="Root/Toolbar/ToolbarRow"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+mouse_default_cursor_shape = 2
+text = "Workflow"
+
+[node name="ToolbarSpacer" type="Control" parent="Root/Toolbar/ToolbarRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="SearchButtonWrap" type="MarginContainer" parent="Root/Toolbar/ToolbarRow"]
 layout_mode = 2
@@ -182,12 +188,9 @@ text = "Set"
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 0
-split_offsets = PackedInt32Array(320)
-split_offset = 320
 dragger_visibility = 2
 
 [node name="Sidebar" type="PanelContainer" parent="Root/Body" unique_id=230992860]
-custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 
 [node name="SidebarVBox" type="VBoxContainer" parent="Root/Body/Sidebar" unique_id=1918749569]
@@ -247,10 +250,6 @@ follow_focus = true
 [node name="ChatMargin" type="MarginContainer" parent="Root/Body/ChatArea/ChatScroll" unique_id=1922989924]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 8
 
 [node name="InputBar" type="Control" parent="Root/Body/ChatArea" unique_id=1488732845]
 z_index = 2

@@ -2,9 +2,11 @@ extends Control
 
 ## Agent main app — multi-session chat UI.
 
+const Layout := preload("res://agent/ui/AgentLayout.gd")
+
 @onready var toolbar_panel: PanelContainer = $Root/Toolbar
 @onready var toolbar_logo: Label = $Root/Toolbar/ToolbarRow/Logo
-@onready var toolbar_title: Label = $Root/Toolbar/ToolbarRow/Title
+@onready var body_split: HSplitContainer = $Root/Body
 @onready var sidebar_panel: PanelContainer = $Root/Body/Sidebar
 @onready var chat_area_panel: Panel = $Root/Body/ChatArea
 @onready var pinned_header: Label = $Root/Body/Sidebar/SidebarVBox/SessionListScroll/SessionList/PinnedHeader
@@ -27,6 +29,7 @@ extends Control
 @onready var input_field: TextEdit = $Root/Body/ChatArea/InputBar/InputWrap/InputInner/InputField
 @onready var send_button: Button = $Root/Body/ChatArea/InputBar/InputWrap/InputInner/SendButton
 @onready var project_button: Button = $Root/Toolbar/ToolbarRow/ProjectButton
+@onready var workflow_button: Button = $Root/Toolbar/ToolbarRow/WorkflowButton
 @onready var search_button: Button = $Root/Toolbar/ToolbarRow/SearchButtonWrap/SearchButton
 @onready var log_button: Button = $Root/Toolbar/ToolbarRow/LogButtonWrap/LogButton
 @onready var theme_color_select: Button = $Root/Toolbar/ToolbarRow/ThemeColorSelectWrap/ThemeColorSelect
@@ -36,6 +39,7 @@ extends Control
 
 var toolbar: AgentToolbar = AgentToolbar.new()
 var workspace_button: WorkspaceButton = WorkspaceButton.new()
+var workflow_button_ctrl: WorkflowButton = WorkflowButton.new()
 var search_button_ctrl: SearchButton = SearchButton.new()
 var log_button_ctrl: LogButton = LogButton.new()
 var chat_input: AgentChatInput = AgentChatInput.new()
@@ -54,11 +58,12 @@ var notification: AgentNotification = AgentNotification.new()
 
 func _ready() -> void:
 	I18nHelper.init_i18n()
+	apply_layout()
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.locale_changed.connect(apply_locale)
 	apply_theme()
 	
-	toolbar.setup(toolbar_panel, toolbar_logo, toolbar_title, project_button)
+	toolbar.setup(toolbar_panel, toolbar_logo, project_button)
 	notification.setup()
 	session_sidebar.setup(pinned_header, pinned_list, pinned_separator,
 			normal_header, normal_list, session_list_scroll, new_session_button, sidebar_panel)
@@ -74,6 +79,7 @@ func _ready() -> void:
 	theme_toggle.setup(theme_toggle_button)
 	agent_setting_dialog.setup(agent_setting_button)
 	workspace_button.setup(project_button, workspace_dialog)
+	workflow_button_ctrl.setup(workflow_button, project_button)
 	search_button_ctrl.setup(search_button)
 	log_button_ctrl.setup(log_button)
 	apply_locale()
@@ -83,8 +89,17 @@ func _ready() -> void:
 	pass
 
 
+func apply_layout() -> void:
+	body_split.split_offset = Layout.SIDEBAR_DEFAULT_WIDTH
+	sidebar_panel.custom_minimum_size.x = Layout.SIDEBAR_MIN_WIDTH
+	chat_host.add_theme_constant_override("margin_left", Margin.ma_5)
+	chat_host.add_theme_constant_override("margin_right", Margin.ma_5)
+	chat_host.add_theme_constant_override("margin_top", Margin.ma_3)
+	chat_host.add_theme_constant_override("margin_bottom", Margin.ma_2)
+	pass
+
+
 func apply_locale() -> void:
-	toolbar_title.text = I18n.t("agent.toolbar.title")
 	new_session_button.text = I18n.t("agent.sidebar.new_session")
 	pinned_header.text = I18n.t("agent.sidebar.pinned")
 	normal_header.text = I18n.t("agent.sidebar.chats")

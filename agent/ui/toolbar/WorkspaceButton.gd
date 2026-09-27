@@ -12,9 +12,9 @@ var dialog: FileDialog
 func setup(p_button: Button, p_dialog: FileDialog) -> void:
 	button = p_button
 	dialog = p_dialog
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.tooltip_text = I18n.t("agent.workspace.choose")
+	button.tooltip_text = workspace_tooltip()
 	button.pressed.connect(on_button_pressed)
 	dialog.dir_selected.connect(on_dir_selected)
 	gdf.events.locale_changed.connect(apply_locale)
@@ -23,10 +23,14 @@ func setup(p_button: Button, p_dialog: FileDialog) -> void:
 
 
 func apply_locale() -> void:
-	button.tooltip_text = I18n.t("agent.workspace.choose")
+	button.tooltip_text = workspace_tooltip()
 	dialog.title = I18n.t("agent.workspace.dialog_title")
 	dialog.ok_button_text = I18n.t("agent.common.select")
 	pass
+
+
+func workspace_tooltip() -> String:
+	return "Code Agent Workspace · " + I18n.t("agent.workspace.choose")
 
 
 ## Sync the button label and the picker start folder with [method AgentWorkspace.get_root].

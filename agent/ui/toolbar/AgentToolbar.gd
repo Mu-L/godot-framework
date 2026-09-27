@@ -1,23 +1,20 @@
 class_name AgentToolbar
 extends RefCounted
 
-## Top toolbar — panel chrome, GAI logo, title, and workspace path button theme.
+## Top toolbar — panel chrome, GAI logo, and workspace path button theme.
 
 var toolbar_panel: PanelContainer
 var logo_label: Label
-var title_label: Label
 var project_button: Button
 
 
 func setup(
 	p_toolbar_panel: PanelContainer,
 	p_logo_label: Label,
-	p_title_label: Label,
 	p_project_button: Button
 ) -> void:
 	toolbar_panel = p_toolbar_panel
 	logo_label = p_logo_label
-	title_label = p_title_label
 	project_button = p_project_button
 	gdf.events.theme_changed.connect(apply_theme)
 	apply_theme()
@@ -28,8 +25,6 @@ func apply_theme() -> void:
 	toolbar_panel.add_theme_stylebox_override("panel", build_toolbar_style())
 	toolbar_panel.queue_redraw()
 	apply_logo_theme()
-	title_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
-	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
 	project_button.add_theme_color_override("font_color", ColorBase.secondary_text)
 	project_button.add_theme_color_override("font_hover_color", ColorBase.primary_text)
 	project_button.add_theme_color_override("font_pressed_color", ColorBase.primary_text)
