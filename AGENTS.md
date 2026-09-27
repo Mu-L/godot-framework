@@ -6,7 +6,7 @@
 - **Docs**: Use `##` comments for scene entry points or complex logic. Match the tone of nearby files.
 - **Nodes**: Prefer `@onready var name: Type = $Path`.
 - **Compact formatting**: Keep code on one line when it remains readable.
-- **Trailing pass**: If a function has no `return` statement, end the body with `pass`.
+- **Trailing pass**: Every function without an explicit `return` must end with `pass`, even when its body is non-empty.
 
 ## Naming
 
@@ -90,17 +90,6 @@ Audios.play("res://audio/click.mp3", 0.8)
 # Plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
 ```
-
-
-## Unit tests
-
-- Attach `zfoo/gdtest/UnitTest.gd` to a scene; it scans `.gd` files in the scene’s folder.
-- In each file, every no-arg method whose name **starts or ends with `test`** (case-insensitive) is run as a unit test.
-
-## Integration tests
-
-- Attach `zfoo/gdtest/IntegrationTest.gd` to a scene; it scans the scene’s folder for `.tscn` whose name **starts or ends with `test`**, then runs them one by one.
-- Each finished test scene must emit `gdf.events.test_passed` (UnitTest does this automatically).
 
 
 ## Hot update
@@ -271,3 +260,73 @@ DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success
 # Detailed feedback: show important or long content in a popup sized by viewport percentages.
 PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
+
+
+---
+
+
+# Testing
+
+Use the smallest relevant test scene while developing, then run the complete integration suite before reporting the task complete. A test run passes only when Godot exits with code `0`; do not report completion when the command fails, hangs, or prints a GDScript parse error.
+
+## Run tests from the command line
+
+Run commands from the repository root. Replace `godot` with the path to the Godot 4 executable when it is not available on `PATH`.
+
+```powershell
+# Run the complete suite. This is the required final verification for code changes.
+godot --headless --path . res://test/TestIntegrationTest.tscn
+
+# Run one test scene while developing.
+godot --headless --path . res://test/common/CommonTest.tscn
+```
+
+`test/TestIntegrationTest.tscn` uses `IntegrationTest.gd` with subfolder scanning enabled, so it discovers and runs matching test scenes under `test/` sequentially.
+
+## Unit tests
+
+Attach `zfoo/gdtest/UnitTest.gd` to a scene root. It scans `.gd` files in the scene’s folder; set `include_subfolders` on the scene root only when recursive discovery is intended.
+
+A method is discovered as a unit test when:
+
+- Its name starts or ends with `test`, case-insensitively.
+- It takes no arguments.
+- An instance test belongs to an instantiable script; `static` tests are also supported and run first.
+
+Use `assert(...)` for expectations. A failed assertion or any error logged through `gdf.events.log_error` fails the run and exits with code `1`.
+
+```gdscript
+func substring_before_test() -> void:
+	assert(StringUtils.substring_before("a/b/c", "/") == "a")
+	pass
+
+static func OSUtils_is_windows_test() -> void:
+	assert(OSUtils.is_windows() == (OS.get_name() == "Windows"))
+	pass
+```
+
+Place the test script beside its runner scene. For example, `test/common/CommonTest.tscn` runs matching methods from the `.gd` files in `test/common/`.
+
+## Integration tests
+
+Attach `zfoo/gdtest/IntegrationTest.gd` to a scene root. It discovers `.tscn` files in the same folder whose basename starts or ends with `test`, case-insensitively. Set `include_subfolders` when the runner should scan recursively.
+
+Integration test scenes run one at a time. Each scene must emit `gdf.events.test_passed` when its asynchronous work is complete; scenes using `UnitTest.gd` emit this signal automatically.
+
+```gdscript
+func _ready() -> void:
+	await run_scenario()
+	gdf.events.test_passed.emit()
+	pass
+```
+
+Log failures through `Log.error(...)` so the runner receives `gdf.events.log_error`, stops the suite, and exits with code `1`. Do not emit `test_passed` after a failed expectation.
+
+## Completion checklist
+
+Before reporting a code change complete:
+
+1. Run the most relevant unit or integration test scene during development.
+2. Run `test/TestIntegrationTest.tscn` as the complete suite.
+3. Confirm the process exits with code `0` and has no parse errors or failure logs.
+4. If tests cannot be run, state exactly why and identify what remains unverified.
