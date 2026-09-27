@@ -115,7 +115,7 @@ EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vec
 # GET request
 var response := await HttpHelper.async_get("https://api.example.com/data")
 if response.success:
-    Log.info(response.get_body_string())
+	Log.info(response.get_body_string())
 ```
 
 
@@ -141,7 +141,7 @@ var session: Session = TcpClient.new(Codec.new(), "127.0.0.1:80")
 # Register receiver (typically at login / session init)
 Router.register_receiver(LoginResponse, func(packet: LoginResponse) -> void: on_login_response(packet))
 
-# Send message is fire-and-forget
+# Send a message without waiting for a response (fire-and-forget)
 Router.send(session, SomeRequest.new())
 
 # Request–response (waits for matching reply or timeout)
@@ -168,7 +168,7 @@ await SceneHelper.async_change_scene_to_file("res://scene/Main.tscn")
 # Custom slide transition
 await SceneHelper.async_change_scene_to_file("res://scene/Main.tscn", RectTransitionSlide.new())
 
-# Instantiate a scene as child of a node
+# Instantiate a scene as a child of a node
 var node := SceneHelper.add_scene_to_node(load("res://scene/Popup.tscn"), self)
 
 # Safe queue_free
