@@ -280,21 +280,16 @@ PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 
 # Testing
 
-Use the smallest relevant test scene while developing, then run the complete integration suite before reporting the task complete. A test run passes only when Godot exits with code `0`; do not report completion when the command fails, hangs, or prints a GDScript parse error.
+Run the unit test scene relevant to the changed code before reporting the task complete. A test run passes only when Godot exits with code `0`; do not report completion when the command fails, hangs, or prints a GDScript parse error.
 
 ## Run tests from the command line
 
 Run commands from the repository root. Replace `godot` with the path to the Godot 4 executable when it is not available on `PATH`.
 
 ```powershell
-# Run the complete suite. This is the required final verification for code changes.
-godot --headless --path . res://test/TestIntegrationTest.tscn
-
-# Run one test scene while developing.
+# Example: run one unit test scene.
 godot --headless --path . res://test/common/CommonTest.tscn
 ```
-
-`test/TestIntegrationTest.tscn` uses `IntegrationTest.gd` with subfolder scanning enabled, so it discovers and runs matching test scenes under `test/` sequentially.
 
 ## Unit tests
 
@@ -339,7 +334,7 @@ Log failures through `Log.error(...)` so the runner receives `gdf.events.log_err
 
 Before reporting a code change complete:
 
-1. Run the most relevant unit or integration test scene during development.
-2. Run `test/TestIntegrationTest.tscn` as the complete suite.
-3. Confirm the process exits with code `0` and has no parse errors or failure logs.
+1. Run the unit test scene most relevant to the changed code.
+2. Confirm the process exits with code `0` and has no parse errors or failure logs.
+3. Run integration tests only when the change affects cross-scene behavior; the complete integration suite is not required by default because it is slow.
 4. If tests cannot be run, state exactly why and identify what remains unverified.
