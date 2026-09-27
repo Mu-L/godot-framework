@@ -20,7 +20,7 @@
 | Normal members | `player`, `ui_panel`, `news_cache` | **No** `_` prefix. |
 | Internal vars | `_http_client`, `_buffer`, `_retry_count` | Implementation detail; **use sparingly**. |
 | Signal handlers | `on_buy_pressed`, `on_timer_timeout`, or `handle_buy`, `handle_close` | **No** `_on_*`; keep separate from engine hooks. |
-| Business / utils | `refresh_trendings`, `set_tab`, `load_config_file` | **No** `_` prefix; distinguish from lifecycle funcs. |
+| Business / utils | `refresh_trending_items`, `set_tab`, `load_config_file` | **No** `_` prefix; distinguish from lifecycle funcs. |
 
 When connecting signals in `_ready`, prefer:
 
@@ -87,7 +87,7 @@ Audios.play("res://audio/click.mp3", 0.8)
 ## Animation
 
 ```gdscript
-# plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
+# Plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
 ```
 
@@ -103,13 +103,13 @@ EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vec
 - Each finished test scene must emit `gdf.events.test_passed` (UnitTest does this automatically).
 
 
-## HotUpdate
+## Hot update
 
-- Godot PCK Hot Update for single pck
+- Godot PCK hot update for a single PCK
 - Workflow: Launch App → Check Version → Download PCK → Verify MD5 → Load PCK → Enter Game
 
 
-## Http
+## HTTP
 
 ```gdscript
 # GET request
@@ -121,7 +121,7 @@ if response.success:
 
 ## Log
 
-- file logger at `{user_data}/logs/godot.log`
+- Logs are written to `{user_data}/logs/godot.log`.
 
 ```gdscript
 Log.info("player login uid:[{}]", user_id)
@@ -131,7 +131,7 @@ Log.error("load failed path:[{}] err:[{}]", path, err)
 
 ## Network
 
-- support `TcpClient`, `TcpClientThread`, `WebsocketClient`, `WebsocketClientThread`
+- Supports `TcpClient`, `TcpClientThread`, `WebsocketClient`, and `WebsocketClientThread`.
 
 ```gdscript
 # Create a network session
@@ -141,7 +141,7 @@ var session: Session = TcpClient.new(Codec.new(), "127.0.0.1:80")
 # Register receiver (typically at login / session init)
 Router.register_receiver(LoginResponse, func(packet: LoginResponse) -> void: on_login_response(packet))
 
-# Send message is Fire-and-forget
+# Send message is fire-and-forget
 Router.send(session, SomeRequest.new())
 
 # Request–response (waits for matching reply or timeout)
@@ -271,6 +271,3 @@ DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success
 # Detailed feedback: show important or long content in a popup sized by viewport percentages.
 PopupWindow.show_window("Details", "Full feedback message", 70, 80)
 ```
-
-
----
