@@ -9,7 +9,7 @@ func setup(p_node_id: String, p_node_def: GraphNodeDef) -> void:
 	browse_dialog = FileDialog.new()
 	browse_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	browse_dialog.access = FileDialog.ACCESS_FILESYSTEM
-	browse_dialog.size = Vector2i(900, 600)
+	browse_dialog.size = AgentLayout.FILE_DIALOG_SIZE
 	add_child(browse_dialog)
 	browse_dialog.file_selected.connect(on_browse_selected)
 	browse_dialog.dir_selected.connect(on_browse_selected)

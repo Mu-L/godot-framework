@@ -27,7 +27,6 @@ layout_mode = 2
 
 [node name="ToolbarRow" type="HBoxContainer" parent="Root/Toolbar" unique_id=451628449]
 layout_mode = 2
-theme_override_constants/separation = 16
 
 [node name="Logo" type="Label" parent="Root/Toolbar/ToolbarRow" unique_id=1903907347]
 layout_mode = 2
@@ -174,7 +173,6 @@ mouse_default_cursor_shape = 2
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/margin_right = 12
 
 [node name="AgentSettingButton" type="Button" parent="Root/Toolbar/ToolbarRow/AgentSettingWrap"]
 layout_mode = 2
@@ -319,7 +317,6 @@ script = ExtResource("2_orb")
 
 [node name="WorkspaceDialog" type="FileDialog" parent="." unique_id=1482164299]
 title = "Open a Directory"
-size = Vector2i(900, 600)
 ok_button_text = "Select"
 file_mode = 2
 access = 2

@@ -36,6 +36,7 @@ func _ready() -> void:
 	gdf.events.theme_changed.connect(apply_theme)
 	gdf.events.theme_color_changed.connect(apply_theme)
 	configure_sidebar_layout()
+	configure_dialog_layout()
 	apply_theme()
 	apply_ui_locale()
 	set_workflow_name(WorkflowManager.workflow_name)
@@ -80,12 +81,12 @@ func apply_theme() -> void:
 
 
 func apply_layout_tokens() -> void:
-	toolbar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
+	toolbar_margin.add_theme_constant_override("margin_left", Margin.ma_3)
 	toolbar_margin.add_theme_constant_override("margin_top", Margin.ma_3)
-	toolbar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
+	toolbar_margin.add_theme_constant_override("margin_right", Margin.ma_3)
 	toolbar_margin.add_theme_constant_override("margin_bottom", Margin.ma_3)
 	toolbar_row.add_theme_constant_override("separation", Margin.ma_4)
-	actions.add_theme_constant_override("separation", Margin.ma_2)
+	actions.add_theme_constant_override("separation", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_left", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_top", Margin.ma_4)
 	sidebar_margin.add_theme_constant_override("margin_right", Margin.ma_4)
@@ -163,6 +164,12 @@ func configure_sidebar_layout() -> void:
 	palette_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	palette_tree.set_column_expand(0, true)
 	palette_tree.set_column_custom_minimum_width(0, AgentLayout.SIDEBAR_MIN_WIDTH - Margin.ma_8)
+	pass
+
+
+func configure_dialog_layout() -> void:
+	save_dialog.size = AgentLayout.FILE_DIALOG_SIZE
+	load_dialog.size = AgentLayout.FILE_DIALOG_SIZE
 	pass
 
 
@@ -422,7 +429,7 @@ func apply_run_button_style(base_color: Color) -> void:
 
 func make_play_icon(size: int, color: Color) -> ImageTexture:
 	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
+	img.fill(Color.TRANSPARENT)
 	var left: int = int(size * 0.25)
 	var right: int = int(size * 0.92)
 	var top: int = int(size * 0.18)
@@ -441,7 +448,7 @@ func make_play_icon(size: int, color: Color) -> ImageTexture:
 
 func make_stop_icon(size: int, color: Color) -> ImageTexture:
 	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
+	img.fill(Color.TRANSPARENT)
 	var margin: int = int(size * 0.22)
 	for y in range(margin, size - margin):
 		for x in range(margin, size - margin):

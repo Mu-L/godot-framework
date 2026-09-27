@@ -2,9 +2,8 @@ extends Control
 
 ## Agent main app — multi-session chat UI.
 
-const Layout := preload("res://agent/ui/AgentLayout.gd")
-
 @onready var toolbar_panel: PanelContainer = $Root/Toolbar
+@onready var toolbar_row: HBoxContainer = $Root/Toolbar/ToolbarRow
 @onready var toolbar_logo: Label = $Root/Toolbar/ToolbarRow/Logo
 @onready var body_split: HSplitContainer = $Root/Body
 @onready var sidebar_panel: PanelContainer = $Root/Body/Sidebar
@@ -35,6 +34,7 @@ const Layout := preload("res://agent/ui/AgentLayout.gd")
 @onready var theme_color_select: Button = $Root/Toolbar/ToolbarRow/ThemeColorSelectWrap/ThemeColorSelect
 @onready var theme_toggle_button: Button = $Root/Toolbar/ToolbarRow/ThemeToggleWrap/ThemeToggleButton
 @onready var agent_setting_button: Button = $Root/Toolbar/ToolbarRow/AgentSettingWrap/AgentSettingButton
+@onready var agent_setting_wrap: MarginContainer = $Root/Toolbar/ToolbarRow/AgentSettingWrap
 @onready var workspace_dialog: FileDialog = $WorkspaceDialog
 
 var toolbar: AgentToolbar = AgentToolbar.new()
@@ -90,8 +90,10 @@ func _ready() -> void:
 
 
 func apply_layout() -> void:
-	body_split.split_offset = Layout.SIDEBAR_DEFAULT_WIDTH
-	sidebar_panel.custom_minimum_size.x = Layout.SIDEBAR_MIN_WIDTH
+	body_split.split_offset = AgentLayout.SIDEBAR_DEFAULT_WIDTH
+	sidebar_panel.custom_minimum_size.x = AgentLayout.SIDEBAR_MIN_WIDTH
+	toolbar_row.add_theme_constant_override("separation", Margin.ma_4)
+	agent_setting_wrap.add_theme_constant_override("margin_right", Margin.ma_3)
 	chat_host.add_theme_constant_override("margin_left", Margin.ma_5)
 	chat_host.add_theme_constant_override("margin_right", Margin.ma_5)
 	chat_host.add_theme_constant_override("margin_top", Margin.ma_3)

@@ -118,7 +118,6 @@ script = ExtResource("2_graph")
 [node name="SaveDialog" type="FileDialog" parent="."]
 oversampling_override = 1.0
 title = "Save Workflow"
-size = Vector2i(900, 600)
 ok_button_text = "Save"
 access = 2
 filters = PackedStringArray("*.workflow.json ; Workflow JSON", "* ; All Files")
@@ -126,7 +125,6 @@ filters = PackedStringArray("*.workflow.json ; Workflow JSON", "* ; All Files")
 [node name="LoadDialog" type="FileDialog" parent="."]
 oversampling_override = 1.0
 title = "Open Workflow"
-size = Vector2i(900, 600)
 ok_button_text = "Open"
 file_mode = 0
 access = 2
