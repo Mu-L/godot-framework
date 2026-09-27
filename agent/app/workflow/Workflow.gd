@@ -1,8 +1,8 @@
 extends Control
 
-const SIDEBAR_WIDTH: int = 320
 const PALETTE_LABEL_MAX: int = 30
 
+@onready var body_split: HSplitContainer = $Root/Body
 @onready var graph_edit: SkillGraphEdit = $Root/Body/SkillGraphEdit
 @onready var toolbar: PanelContainer = $Root/Toolbar
 @onready var toolbar_margin: MarginContainer = $Root/Toolbar/ToolbarMargin
@@ -75,8 +75,7 @@ func apply_theme() -> void:
 	style_run_button()
 	set_run_button_running(running_pipeline)
 	graph_edit.apply_theme()
-	ScrollBarStyle.apply(graph_edit.get_h_scroll_bar())
-	ScrollBarStyle.apply(graph_edit.get_v_scroll_bar())
+	style_internal_scroll_bars(graph_edit)
 	pass
 
 
@@ -130,7 +129,7 @@ func style_toolbar_button(button: Button, tooltip: String) -> void:
 
 func style_palette_tree() -> void:
 	ScrollBarStyle.apply(palette_scroll.get_v_scroll_bar())
-	ScrollBarStyle.apply(palette_tree.get_v_scroll_bar())
+	style_internal_scroll_bars(palette_tree)
 	palette_tree.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	palette_tree.add_theme_color_override("font_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.primary_text)
@@ -147,14 +146,23 @@ func style_palette_tree() -> void:
 	pass
 
 
+## Tree and GraphEdit expose their scroll bars as internal children in Godot 4.6.
+func style_internal_scroll_bars(node: Node) -> void:
+	for child: Node in node.get_children(true):
+		if child is ScrollBar:
+			ScrollBarStyle.apply(child as ScrollBar)
+		style_internal_scroll_bars(child)
+	pass
+
+
 func configure_sidebar_layout() -> void:
-	sidebar.custom_minimum_size.x = SIDEBAR_WIDTH
-	sidebar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	body_split.split_offset = AgentLayout.SIDEBAR_DEFAULT_WIDTH
+	sidebar.custom_minimum_size.x = AgentLayout.SIDEBAR_MIN_WIDTH
 	sidebar.clip_contents = true
-	palette_tree.custom_minimum_size.x = SIDEBAR_WIDTH - Margin.ma_8
+	palette_tree.custom_minimum_size.x = AgentLayout.SIDEBAR_MIN_WIDTH - Margin.ma_8
 	palette_tree.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	palette_tree.set_column_expand(0, false)
-	palette_tree.set_column_custom_minimum_width(0, SIDEBAR_WIDTH - Margin.ma_8)
+	palette_tree.set_column_expand(0, true)
+	palette_tree.set_column_custom_minimum_width(0, AgentLayout.SIDEBAR_MIN_WIDTH - Margin.ma_8)
 	pass
 
 
