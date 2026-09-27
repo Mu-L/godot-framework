@@ -1,262 +1,147 @@
-**Agent skills with CLI and GUI for building and shipping Godot games — plus a lightweight framework.**
+# GAI
 
-# Agent CLI & GUI
+**An all-in-one AI workspace for Godot game development: build and verify code with a desktop agent, then connect audio, image, and video tools through visual workflows.**
 
-Shared: root [`AGENTS.md`](AGENTS.md), [`.agents/skills/`](.agents/skills/README.md) (instructions), [`.ai/`](.ai/) (scripts). To reuse skills elsewhere, copy the matching skill folders from both directories.
+GAI brings together a coding agent, reusable skills, command-line tools, and a lightweight Godot framework in one repository. Ask the agent to inspect a project, edit files, run commands, and execute tests—or connect processing nodes visually to build repeatable asset pipelines.
+
+## Desktop Coding Agent
+
+![GAI desktop coding agent](agent/asset/image/screenshot/gai_1.png)
+
+Complete the full loop from request to verification in a native Godot desktop interface:
+
+- Stream responses, command output, and file changes in real time
+- Work with built-in `read`, `write`, `edit`, `bash`, and `web_search` tools
+- Run multiple independent sessions and switch between them while agents are working
+- Preserve conversation history and pin frequently used sessions
+- Create workspace checkpoints before changes, with support for reverting conversations and files
+- Connect to OpenAI-compatible APIs with configurable models, endpoints, and proxies
+
+## Visual Workflow Editor
+
+![GAI visual workflow editor](agent/asset/image/screenshot/workflow_1.png)
+
+The workflow editor exposes repository skills as connectable nodes. Select an input, connect processing steps, and run the entire pipeline at once:
+
+- Browse skill nodes grouped into Input, Audio, Image, Video, and other categories
+- Connect type-safe `audio`, `image`, `video`, `text`, and `folder` ports
+- Process entire folders with batch iteration and glob matching
+- Execute nodes in dependency order while monitoring progress and logs
+- Save workflows as `.workflow.json` files and reopen them later
+- Switch between English and Chinese interfaces
+
+The screenshot above shows this audio pipeline:
+
+```text
+Input folder
+  → Batch for each
+  → Convert to WAV
+  → Trim leading and trailing silence
+  → Normalize loudness
+  → Standardize sample rate
+  → Export to OGG
+```
+
+## Features
+
+| Module | Capabilities |
+| --- | --- |
+| Agent | Understand codebases, edit files, run commands and tests, and search the web |
+| Workflow | Compose skills as nodes with batch processing, persistence, and execution logs |
+| AI | Text-to-speech and zero-shot voice cloning |
+| Audio | Conversion, trimming, denoising, fades, volume and loudness processing, and sample-rate standardization |
+| Image | PNG conversion, local inpainting, sprite-sheet splitting, background removal, trimming, and resizing |
+| Video | Audio-track processing, 60 FPS interpolation, 4K upscaling and normalization, merging, compression, and OGV export |
+| Storyboard | Bilingual storyboards, HTML animation previews, narration, audio/video mixing, and multi-platform publishing copy |
+| Godot Framework | AI, networking, resource loading, audio, scenes, logging, settings, localization, testing, and shared utilities |
+
+See [`.agents/skills/README.md`](.agents/skills/README.md) for the complete skill catalog and usage details.
+
+## Quick Start
+
+### Requirements
+
+- Godot 4.6 or a compatible version
+- An OpenAI-compatible API key for the coding agent
+- The runtimes and tools required by the skills you want to use; all dependencies are isolated under `.dependency/` and documented in each skill's `SKILL.md`
+
+### Run the Coding Agent
+
+1. Open the root `project.godot` file in Godot.
+2. Set `OPENAI_API_KEY`, or configure the API connection from the Agent toolbar.
+3. Open `agent/Agent.tscn` and press **F6** to run the current scene.
+
+Alternatively, temporarily set the main scene to:
+
+```ini
+run/main_scene="res://agent/Agent.tscn"
+```
+
+### Run the Workflow Editor
+
+1. Open this project in Godot.
+2. Open `agent/app/workflow/Workflow.tscn`.
+3. Press **F6**, then double-click nodes in the skill library and connect them on the canvas.
+4. Provide the required input paths and click **Run**.
+
+See the [Workflow documentation](agent/app/workflow/README.md) for more details.
+
+## Skills and CLI
+
+Each skill consists of two parts:
+
+- [`.agents/skills/`](.agents/skills/): instructions and execution constraints for AI agents
+- [`.ai/`](.ai/): scripts that perform the actual processing
+
+Run all scripts from the repository root. Source files are not overwritten by default. Refer to the corresponding `SKILL.md` for commands, flags, dependencies, and output rules.
+
+For example, to convert an audio file to WAV:
+
+```bash
+.dependency/python/python .ai/audio-to-wav/convert.py --audio path/to/audio.mp3
+```
+
+Skills can be invoked by the desktop agent, executed directly from the command line, or combined into reusable visual workflows.
+
+## Agent Compatibility
+
+The root [`AGENTS.md`](AGENTS.md) defines shared project conventions. Skills can also be reused with other coding agents that support project instructions or skill packages.
 
 | Agent | Setup |
-|-------|-------|
-| **OpenCode** | Native Support — [`opencode.json`](opencode.json) |
-| **DeepSeek** | Native Support |
-| **Codex** | Native Support |
-| **Cursor** | Keep root `AGENTS.md`. Copy `.agents/skills/` → `.cursor/skills` |
-| **Claude** | Paste `AGENTS.md` content into `CLAUDE.md`. Copy `.agents/skills/` → `.claude/skills` |
+| --- | --- |
+| OpenCode | Use the included [`opencode.json`](opencode.json) |
+| DeepSeek / Codex | Native project-instruction and skill support |
+| Cursor | Keep `AGENTS.md` and copy `.agents/skills/` to `.cursor/skills/` |
+| Claude | Copy the contents of `AGENTS.md` to `CLAUDE.md`, then copy `.agents/skills/` to `.claude/skills/` |
 
-![gui.png](gui/gui.png)
+## Godot Framework
 
----
+[`zfoo/`](zfoo/) is the reusable Godot framework that powers GAI. It provides OpenAI-compatible chat, HTTP, TCP and WebSocket networking, asynchronous resource loading, audio playback, scene transitions, logging, persistent settings, localization, collection utilities, and a testing framework.
 
-# Agent Skills
+To reuse it in another Godot project:
 
-Batch asset tools in [`.agents/skills/`](.agents/skills/); scripts in [`.ai/`](.ai/). Run from repo root; use each skill’s script; never overwrite sources. Commands and flags: see each skill’s `SKILL.md`.
+1. Copy `zfoo/` into the target project.
+2. Register the following entry under **Project → Project Settings → Autoload**:
 
-| Category | Pipeline | Skills |
-|----------|----------|--------|
-| [AI](#ai) | Text-to-speech | 1 skill |
-| [Audio](#audio) | to-wav → trim → loudness → export | 9 skills |
-| [Image](#image) | to-png → split → background → trim / resize | 8 skills |
-| [Video](#video) | mute / wav → 60fps → 4K → merge → compress / OGV | 10 skills |
-| [Storyboard](#storyboard) | Storyboard → HTML preview / VO / video → AV mix → merge → publish | 4 skills |
-| [Other](#other) | Naming, commits | 2 skills |
+| Name | Path |
+| --- | --- |
+| `GodotFramework` | `res://zfoo/GodotFramework.tscn` |
 
----
+The Autoload exposes the global class name `gdf`.
 
+## Repository Structure
 
-# godot-framework
-
-
-## Quick start
-
-1. Copy the `zfoo/` folder into your Godot project.
-2. Register the framework scene as an **Autoload** (Project → Project Settings → Autoload):
-
-   | Name            | Path                          |
-   |-----------------|-------------------------------|
-   | `GodotFramework` | `res://zfoo/GodotFramework.tscn` |
-
-3. That's it — have fun!
-
----
-
-# Usage
-
-## AI — OpenAI-compatible chat
-
-```gdscript
-var client := OpenAiClient.new(OS.get_environment("OPENAI_API_KEY"), "https://api.deepseek.com/chat/completions", "deepseek-v4-flash")
-var reply := await client.async_chat("hello", "you are a helpful assistant")
-
-# Multi-turn
-var messages: Array[ChatMessage] = []
-messages.append(ChatMessage.new(ChatMessage.ROLE_USER, "hello"))
-var reply2 := await client.async_chat_messages(messages)
+```text
+gai/
+├── agent/           # Desktop coding agent and visual workflow editor
+├── cli/             # Command-line examples for individual skills
+├── .agents/skills/  # Agent skill definitions and instructions
+├── .ai/             # Skill implementation scripts
+├── .dependency/     # Isolated runtimes, models, and external tools
+├── zfoo/            # Reusable Godot framework
+└── test/            # Unit and integration tests
 ```
 
----
+## License
 
-
-## Feedback — alerts, desktop toasts, popup windows
-
-```gdscript
-# Brief in-app feedback: show a non-blocking top-center message with a semantic result color.
-Alert.alert("Saved successfully", ColorBase.success)
-Alert.alert("Network error", ColorBase.error)
-
-# Background-task feedback: show an OS-level notification when the app may be unfocused.
-DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success)
-
-# Detailed feedback: show important or long content in a popup sized by viewport percentages.
-PopupWindow.show_window("Details", "Full feedback message", 70, 80)
-```
-
----
-
-
-## Audio — play music, sound, voice，SoundEffect
-
-```gdscript
-# Single track or playlist (auto cross-fade near end of track)
-Audio.play_music("res://audio/bgm.mp3")
-Audio.play_musics(["res://audio/a.mp3", "res://audio/b.mp3"])
-
-# One-shot sound / voice
-await Audio.play_voice("res://audio/narration.mp3")
-
-# Multi-channel SFX (overlapping sounds on SoundEffect bus)
-Audios.play("res://audio/click.mp3", 0.8)
-```
-
----
-
-## Animation
-
-```gdscript
-# plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
-EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
-```
-
----
-
-## Collection — collection utilities
-
-`ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
-
----
-
-## Common — common utilities
-
-`StringBuilder`, `Utf8StreamDecoder`
-
----
-
-## Unit tests
-
-- Attach `zfoo/gdtest/UnitTest.gd` to a scene; it scans `.gd` files in the scene’s folder.
-- In each file, every no-arg method whose name **starts or ends with `test`** (case-insensitive) is run as a unit test.
-
-## Integration tests
-
-- Attach `zfoo/gdtest/IntegrationTest.gd` to a scene; it scans the scene’s folder for `.tscn` whose name **starts or ends with `test`**, then runs them one by one.
-- Each finished test scene must emit `gdf.events.test_passed` (UnitTest does this automatically).
-
----
-
-## HotUpdate
-
-- Godot PCK Hot Update for single pck
-- Workflow: Launch App → Check Version → Download PCK → Verify MD5 → Load PCK → Enter Game
-
----
-
-## Http
-
-```gdscript
-# GET request
-var response := await HttpHelper.async_get("https://api.example.com/data")
-if response.success:
-    Log.info(response.get_body_string())
-```
-
----
-
-## Log
-
-- file logger at `{user_data}/logs/godot.log`
-
-```gdscript
-Log.info("player login uid:[{}]", user_id)
-Log.error("load failed path:[{}] err:[{}]", path, err)
-```
-
----
-
-## Network
-
-- support `TcpClient`, `TcpClientThread`, `WebsocketClient`, `WebsocketClientThread`
-
-```gdscript
-# Create a network seesion
-# `ICodec` for encode/decode
-var session: Session = TcpClient.new(Codec.new(), "127.0.0.1:80")
-
-# Register receiver (typically at login / session init)
-Router.register_receiver(LoginResponse, func(packet: LoginResponse) -> void: on_login_response(packet))
-
-# Send message is Fire-and-forget
-Router.send(session, SomeRequest.new())
-
-# Request–response (waits for matching reply or timeout)
-var reply: LoginResponse = await Router.async_ask(session, LoginRequest.new())
-```
-
----
-
-## ResourceHelper — async loading
-
-- Avoid blocking the main thread when loading large assets.
-
-```gdscript
-var texture: Texture2D = await ResourceHelper.async_load("res://assets/icon.svg")
-var scene: PackedScene = await ResourceHelper.async_load("res://scene/Level.tscn")
-```
-
----
-
-## SceneHelper — scenes & nodes
-
-```gdscript
-# Switch scene with fade transition (default: RectTransitionFade)
-await SceneHelper.async_change_scene_to_file("res://scene/Main.tscn")
-
-# Custom slide transition
-await SceneHelper.async_change_scene_to_file("res://scene/Main.tscn", RectTransitionSlide.new())
-
-# Instantiate a scene as child of a node
-var node := SceneHelper.add_scene_to_node(load("res://scene/Popup.tscn"), self)
-
-# Safe queue_free
-SceneHelper.queue_free(old_node)
-```
-
----
-
-## SchedulerBus — delayed & periodic tasks
-
-```gdscript
-var sw := StopWatch.new() # sw.cost_seconds()
-
-# Run once after 1000 ms
-SchedulerBus.schedule(func() -> void: do_something(), 1000)
-
-# Run every 2000 ms (optional timer name, optional sub-thread)
-SchedulerBus.schedule_at_fixed_rate(func() -> void: poll_status(), 2000)
-```
-
----
-
-## Setting — persistent user config
-
-```gdscript
-Setting.set_bool("sound_enabled", true)
-Setting.set_string("nickname", "player1")
-Setting.save()
-
-var enabled := Setting.get_bool("sound_enabled", false)
-var name := Setting.get_string("nickname", "")
-```
-
----
-
-## Utils — common helpers
-
-- `ArrayUtils`, `CollectionUtils`, `FileUtils`, `GitUtils`, `GlobUtils`
-- `HttpUtils`, `IdUtils`, `JsonUtils`, `MarkdownUtils`, `NetUtils`
-- `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
-- `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
-
----
-
-## GodotFramework — gdf
-
-The Autoload node runs `GodotFramework.gd`, whose global class name is `gdf`.
-
-```gdscript
-# Defer a callable to the main thread (useful from network / worker callbacks)
-gdf.callable_deferred(func() -> void: refresh_ui())
-
-# Graceful exit (waits a few frames before quit)
-await gdf.quit()
-```
-
-
----
+This project is released under the terms described in [LICENSE](LICENSE).
