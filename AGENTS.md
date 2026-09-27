@@ -90,24 +90,6 @@ Audios.play("res://audio/click.mp3", 0.8)
 # plays a one-shot sprite sheet animation and removes itself when finished. Multi-row sheet: 4 columns × 4 rows, scale 0.5, 13 fps
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
 ```
-
----
-
-
-## Feedback — alerts, desktop toasts, popup windows
-
-```gdscript
-# Brief in-app feedback: show a non-blocking top-center message with a semantic result color.
-Alert.alert("Saved successfully", ColorBase.success)
-Alert.alert("Network error", ColorBase.error)
-
-# Background-task feedback: show an OS-level notification when the app may be unfocused.
-DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success)
-
-# Detailed feedback: show important or long content in a popup sized by viewport percentages.
-PopupWindow.show_window("Details", "Full feedback message", 70, 80)
-```
-
 ---
 
 ## Unit tests
@@ -235,6 +217,26 @@ Use `I18n.t()` to translate text:
 ```gdscript
 label.text = I18n.t("settings.title")
 ```
+---
+
+## Collection — collection utilities
+
+`ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
+
+---
+
+## Common — common utilities
+
+`StringBuilder`, `Utf8StreamDecoder`
+
+---
+
+## Utils — common helpers
+
+- `ArrayUtils`, `CollectionUtils`, `FileUtils`, `GitUtils`, `GlobUtils`
+- `HttpUtils`, `IdUtils`, `JsonUtils`, `MarkdownUtils`, `NetUtils`
+- `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
+- `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
 
 ---
 
@@ -264,23 +266,19 @@ Avoid hard-coded fonts, sizes, spacing, radii, and colors when a matching shared
 
 ---
 
-## Collection — collection utilities
+## Feedback — alerts, desktop toasts, popup windows
 
-`ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
+```gdscript
+# Brief in-app feedback: show a non-blocking top-center message with a semantic result color.
+Alert.alert("Saved successfully", ColorBase.success)
+Alert.alert("Network error", ColorBase.error)
 
----
+# Background-task feedback: show an OS-level notification when the app may be unfocused.
+DesktopToast.show_toast("Run finished", "All tasks completed", ColorBase.success)
 
-## Common — common utilities
-
-`StringBuilder`, `Utf8StreamDecoder`
-
----
-
-## Utils — common helpers
-
-- `ArrayUtils`, `CollectionUtils`, `FileUtils`, `GitUtils`, `GlobUtils`
-- `HttpUtils`, `IdUtils`, `JsonUtils`, `MarkdownUtils`, `NetUtils`
-- `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
-- `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
+# Detailed feedback: show important or long content in a popup sized by viewport percentages.
+PopupWindow.show_window("Details", "Full feedback message", 70, 80)
+```
 
 ---
+
