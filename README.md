@@ -107,6 +107,18 @@ EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vec
 
 ---
 
+## Collection — collection utilities
+
+`ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
+
+---
+
+## Common — common utilities
+
+`StringBuilder`, `Utf8StreamDecoder`
+
+---
+
 ## Unit tests
 
 - Attach `zfoo/gdtest/UnitTest.gd` to a scene; it scans `.gd` files in the scene’s folder.

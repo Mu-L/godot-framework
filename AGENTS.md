@@ -76,6 +76,20 @@ Audios.play("res://audio/click.mp3", 0.8)
 EffectAnimation2D.spawn(Vector2(500, 200), self, "res://effects/attack.png", Vector2i(4, 4), 0.5, 13)
 ```
 
+
+---
+
+## Collection — collection utilities
+
+`ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`
+
+---
+
+
+## Common — common utilities
+
+`StringBuilder`, `Utf8StreamDecoder`
+
 ---
 
 
