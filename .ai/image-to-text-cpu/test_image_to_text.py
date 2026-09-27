@@ -29,6 +29,12 @@ class ImageToTextCpuTest(unittest.TestCase):
     def test_clean_model_output_preserves_plain_answer(self) -> None:
         self.assertEqual(MODULE.clean_model_output("  Visible answer\n"), "Visible answer")
 
+    def test_cpu_disables_all_offload(self) -> None:
+        self.assertEqual(MODULE.acceleration_args(False), ["-ngl", "0", "--no-mmproj-offload"])
+
+    def test_gpu_offloads_all_model_layers(self) -> None:
+        self.assertEqual(MODULE.acceleration_args(True), ["-ngl", "999"])
+
 
 if __name__ == "__main__":
     unittest.main()
