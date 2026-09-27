@@ -234,6 +234,7 @@ label.text = I18n.t("settings.title")
 - `Fonts`: Lazily loads the bundled Noto Sans SC fonts in light, regular, medium, semibold, and bold weights.
 - `Typography`: Provides shared display, headline, title, body, and label sizes, plus letter-spacing values.
 
+
 ## Layout and controls
 
 - `Margin`: Provides spacing tokens in 4-pixel increments.
@@ -241,6 +242,7 @@ label.text = I18n.t("settings.title")
 - `StyleBoxHelper`: Creates `StyleBoxFlat` instances and applies their content margins.
 - `ButtonStyle`: Builds and applies theme-aware button state boxes and font colors.
 - `ScrollBarStyle`: Applies standard or custom scrollbar thickness, colors, and rounding.
+
 
 ## Theme and colors
 
@@ -251,7 +253,6 @@ label.text = I18n.t("settings.title")
 
 Avoid hard-coded fonts, sizes, spacing, radii, and colors when a matching shared token exists.
 
----
 
 ## Feedback — alerts, desktop toasts, popup windows
 
