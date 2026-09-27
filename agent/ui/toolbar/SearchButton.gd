@@ -78,7 +78,7 @@ func build_popup() -> void:
 	header.add_child(header_icon)
 	title_label = Label.new()
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	title_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	header.add_child(title_label)
 	close_button = Button.new()
 	close_button.icon = make_icon(CLOSE_ICON_PATH, Color.WHITE)
@@ -107,7 +107,7 @@ func build_popup() -> void:
 	debounce_timer.timeout.connect(on_debounce_timeout)
 	popup.add_child(debounce_timer)
 	status_label = Label.new()
-	status_label.add_theme_font_size_override("font_size", TextSize.label_small_size)
+	status_label.add_theme_font_size_override("font_size", Typography.label_small_size)
 	content.add_child(status_label)
 	content_panel = PanelContainer.new()
 	content_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -311,7 +311,7 @@ func append_result(session_id: int, entry_index: int, entry: ChatEntry, query: S
 	)
 	result.custom_minimum_size = Vector2(0, ControlSize.xl)
 	result.add_theme_font_override("font", Fonts.light())
-	result.add_theme_font_size_override("font_size", TextSize.label_large_size)
+	result.add_theme_font_size_override("font_size", Typography.label_large_size)
 	style_result_button(result)
 	result.pressed.connect(on_result_pressed.bind(session_id, entry_index))
 	results_list.add_child(result)

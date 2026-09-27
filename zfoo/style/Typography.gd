@@ -1,4 +1,4 @@
-class_name TextSize
+class_name Typography
 extends Object
 
 ## Material Design text scale: font size in px and six shared letter-spacing tiers in px.
@@ -8,10 +8,10 @@ extends Object
 ## instead of defining spacing separately for every text role.
 ## Typical use:
 ## [codeblock]
-## label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+## label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 ##
 ## var variation := FontVariation.new()
-## variation.spacing_glyph = TextSize.letter_spacing_xs
+## variation.spacing_glyph = Typography.letter_spacing_xs
 ## label.add_theme_font_override("font", variation)
 ## [/codeblock]
 

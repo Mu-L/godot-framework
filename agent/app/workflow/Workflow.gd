@@ -98,16 +98,16 @@ func apply_layout_tokens() -> void:
 func apply_text_tokens() -> void:
 	var logo_font := FontVariation.new()
 	logo_font.base_font = Fonts.bold()
-	logo_font.spacing_glyph = TextSize.letter_spacing_md
+	logo_font.spacing_glyph = Typography.letter_spacing_md
 	logo_label.add_theme_font_override("font", logo_font)
-	logo_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	logo_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	var logo_color := ThemeColor.accent_theme_color()
 	logo_label.add_theme_color_override("font_color", logo_color if ThemeColor.is_dark_theme() else logo_color.darkened(0.08))
-	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	title_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
-	palette_title.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	palette_title.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	palette_title.add_theme_color_override("font_color", ColorBase.primary_text)
-	palette_hint.add_theme_font_size_override("font_size", TextSize.body_small_size)
+	palette_hint.add_theme_font_size_override("font_size", Typography.body_small_size)
 	palette_hint.add_theme_color_override("font_color", ColorBase.secondary_text)
 	pass
 
@@ -131,7 +131,7 @@ func style_toolbar_button(button: Button, tooltip: String) -> void:
 func style_palette_tree() -> void:
 	ScrollBarStyle.apply(palette_scroll.get_v_scroll_bar())
 	ScrollBarStyle.apply(palette_tree.get_v_scroll_bar())
-	palette_tree.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	palette_tree.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	palette_tree.add_theme_color_override("font_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("font_hovered_color", ColorBase.primary_text)
 	palette_tree.add_theme_color_override("font_selected_color", ColorBase.primary_text)
@@ -379,11 +379,11 @@ func on_pipeline_finished(success: bool, message: String) -> void:
 func set_run_button_running(running: bool) -> void:
 	if running:
 		apply_run_button_style(ColorBase.error)
-		run_button.icon = make_stop_icon(TextSize.title_small_size, Color.WHITE)
+		run_button.icon = make_stop_icon(Typography.title_small_size, Color.WHITE)
 		run_button.text = tr("workflow.toolbar.stop")
 	else:
 		apply_run_button_style(ColorBase.success)
-		run_button.icon = make_play_icon(TextSize.title_small_size, Color.WHITE)
+		run_button.icon = make_play_icon(Typography.title_small_size, Color.WHITE)
 		run_button.text = tr("workflow.toolbar.run")
 	pass
 
@@ -391,14 +391,14 @@ func set_run_button_running(running: bool) -> void:
 func style_run_button() -> void:
 	apply_run_button_style(ColorBase.success)
 	run_button.custom_minimum_size = ControlSize.square(ControlSize.sm)
-	run_button.add_theme_font_size_override("font_size", TextSize.label_small_size)
+	run_button.add_theme_font_size_override("font_size", Typography.label_small_size)
 	ButtonStyle.apply_font_colors(run_button, Color.WHITE, Color.WHITE, Color.WHITE)
 	run_button.focus_mode = Control.FOCUS_NONE
 	run_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	run_button.icon = make_play_icon(TextSize.title_small_size, Color.WHITE)
+	run_button.icon = make_play_icon(Typography.title_small_size, Color.WHITE)
 	run_button.text = tr("workflow.toolbar.run")
-	run_button.add_theme_constant_override("icon_max_width", TextSize.title_small_size)
-	run_button.add_theme_constant_override("icon_max_height", TextSize.title_small_size)
+	run_button.add_theme_constant_override("icon_max_width", Typography.title_small_size)
+	run_button.add_theme_constant_override("icon_max_height", Typography.title_small_size)
 	run_button.add_theme_constant_override("h_separation", Margin.ma_2)
 	pass
 

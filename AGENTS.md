@@ -238,6 +238,32 @@ label.text = I18n.t("settings.title")
 
 ---
 
+## UI style
+
+### Typography
+
+- `Fonts`: Lazily loads the bundled Noto Sans SC fonts in light, regular, medium, semibold, and bold weights.
+- `Typography`: Provides shared display, headline, title, body, and label sizes, plus letter-spacing values.
+
+### Layout and controls
+
+- `Margin`: Provides spacing tokens in 4-pixel increments.
+- `ControlSize`: Provides standard control heights, corner radii, border widths, and square sizes.
+- `StyleBoxHelper`: Creates `StyleBoxFlat` instances and applies their content margins.
+- `ButtonStyle`: Builds and applies theme-aware button state boxes and font colors.
+- `ScrollBarStyle`: Applies standard or custom scrollbar thickness, colors, and rounding.
+
+### Theme and colors
+
+- `ThemeColor`: Manages dark/light mode, the user accent color, and colors derived from the active theme.
+- `ColorBase`: Provides theme-aware semantic colors for surfaces, text, borders, and status feedback.
+- `ColorFile`: Provides theme-aware colors for audio, image, video, text, and folder types.
+- `ColorMarkdown`: Provides theme-aware colors used by Markdown rendering.
+
+Avoid hard-coded fonts, sizes, spacing, radii, and colors when a matching shared token exists.
+
+---
+
 ## Collection — collection utilities
 
 `ConcurrentArrayList`, `ConcurrentMapInt`, `LazyCache`, `LruStringCache`, `ReadyQueue`, `RingIntList`, `RingStringList`

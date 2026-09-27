@@ -230,7 +230,7 @@ func apply_theme(running: bool = false) -> void:
 		"title_color",
 		ColorBase.success if running else ColorBase.primary_text,
 	)
-	add_theme_font_size_override("title_font_size", TextSize.title_medium_size)
+	add_theme_font_size_override("title_font_size", Typography.title_medium_size)
 	for field: LineEdit in input_fields.values():
 		style_field(field)
 	for child: Node in find_children("*", "Button", true, false):
@@ -239,14 +239,14 @@ func apply_theme(running: bool = false) -> void:
 
 
 func style_label(label: Label, color: Color) -> void:
-	label.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	label.add_theme_font_size_override("font_size", Typography.body_medium_size)
 	label.add_theme_color_override("font_color", color)
 	pass
 
 
 func style_field(field: LineEdit) -> void:
 	field.custom_minimum_size.y = ControlSize.md
-	field.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	field.add_theme_font_size_override("font_size", Typography.body_medium_size)
 	field.add_theme_color_override("font_color", ColorBase.primary_text)
 	field.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
 	field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
@@ -258,7 +258,7 @@ func style_field(field: LineEdit) -> void:
 
 func style_node_button(button: Button) -> void:
 	button.custom_minimum_size.y = ControlSize.md
-	button.add_theme_font_size_override("font_size", TextSize.body_medium_size)
+	button.add_theme_font_size_override("font_size", Typography.body_medium_size)
 	ButtonStyle.apply_font_colors(button, ColorBase.secondary_text, ColorBase.primary_text, ColorBase.primary_text)
 	var normal := StyleBoxHelper.create_style_box_flat(ColorBase.control_surface, ControlSize.radius_md, Margin.ma_2, Margin.ma_2, ColorBase.subtle_border, ControlSize.border_xs)
 	ButtonStyle.apply(button, normal,

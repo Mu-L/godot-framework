@@ -28,7 +28,7 @@ func apply_theme() -> void:
 	toolbar_panel.add_theme_stylebox_override("panel", build_toolbar_style())
 	toolbar_panel.queue_redraw()
 	apply_logo_theme()
-	title_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	title_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	title_label.add_theme_color_override("font_color", ColorBase.primary_text)
 	project_button.add_theme_color_override("font_color", ColorBase.secondary_text)
 	project_button.add_theme_color_override("font_hover_color", ColorBase.primary_text)
@@ -41,11 +41,11 @@ func apply_logo_theme() -> void:
 	var theme_color: Color = ThemeColor.accent_theme_color()
 	var logo_font: FontVariation = FontVariation.new()
 	logo_font.base_font = Fonts.bold()
-	logo_font.spacing_glyph = TextSize.letter_spacing_lg
+	logo_font.spacing_glyph = Typography.letter_spacing_lg
 	logo_label.text = "GAI"
 	logo_label.tooltip_text = "GAI Code Agent"
 	logo_label.add_theme_font_override("font", logo_font)
-	logo_label.add_theme_font_size_override("font_size", TextSize.title_medium_size)
+	logo_label.add_theme_font_size_override("font_size", Typography.title_medium_size)
 	logo_label.add_theme_color_override("font_color", theme_color if ThemeColor.is_dark_theme() else theme_color.darkened(0.08))
 	pass
 
