@@ -1,5 +1,5 @@
 """
-Describe one or more images with a local Qwen3-VL-8B-Instruct model.
+Describe one or more images with a local Qwen3-VL-4B-Instruct model.
 
 Not default python. Run through the qwen3-vl manifest bin
 (Python 3.14 venv at .dependency/qwen3-vl/.venv/).
@@ -32,7 +32,7 @@ DEFAULT_PROMPT = ("Describe the image accurately and comprehensively. Include vi
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Convert images to text with a local Qwen3-VL-8B-Instruct model.")
+    parser = argparse.ArgumentParser(description="Convert images to text with a local Qwen3-VL-4B-Instruct model.")
     parser.add_argument("--images", "--image", dest="images", nargs="+", required=True,
                         help="One or more input images.")
     parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="Instruction sent with the images.")

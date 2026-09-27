@@ -2,14 +2,14 @@
 name: image-to-text-gpu
 description: >-
   Converts one or more images into faithful text descriptions with a locally installed
-  Qwen3-VL-8B-Instruct model on an NVIDIA GPU. Use when the user asks to describe, caption,
+  Qwen3-VL-4B-Instruct model on an NVIDIA GPU. Use when the user asks to describe, caption,
   compare, transcribe, inspect, or extract visible details and text from PNG, JPEG, WebP, GIF,
   or BMP images without calling a remote vision API.
 ---
 
 # GPU Image to Text
 
-Run `Qwen/Qwen3-VL-8B-Instruct` locally. Do not send images to remote APIs.
+Run `Qwen/Qwen3-VL-4B-Instruct` locally. This lower-resource model is suited to UI screenshots and OCR. Do not send images to remote APIs.
 
 ## Rules
 
@@ -45,7 +45,7 @@ Use `--output description.md` to also save UTF-8 text. See [cli/image-to-text-gp
 
 ## Troubleshooting
 
-- Missing model: verify all four `.safetensors` shards and `model.safetensors.index.json` exist under `.dependency/qwen3-vl/model`.
+- Missing model: verify both `.safetensors` shards and `model.safetensors.index.json` exist under `.dependency/qwen3-vl/model`.
 - CUDA unavailable: verify the `qwen3-vl` venv contains a CUDA PyTorch build and the NVIDIA driver is active.
 - CUDA out of memory: close other GPU applications or process fewer images per invocation.
-- Slow first run: loading roughly 17.5GB of weights is expected; subsequent generation remains local.
+- Slow first run: loading roughly 8.9GB of weights is expected; subsequent generation remains local.
