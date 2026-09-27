@@ -11,7 +11,7 @@ GAI brings together a coding agent, reusable skills, command-line tools, and a l
 Complete the full loop from request to verification in a native Godot desktop interface:
 
 - Stream responses, command output, and file changes in real time
-- Work with built-in filesystem (`read`, `write`, `edit`, `delete`), project search (`list_dir`, `glob`, `grep`), shell (`bash`), and web (`web_search`, `web_fetch`) tools
+- Use built-in `read`, `write`, `edit`, `delete`, `list_dir`, `glob`, `grep`, `bash`, `web_search`, and `web_fetch` tools
 - Run an agentic model loop that plans, calls tools, evaluates their results, and continues until the task is complete
 - Run multiple independent sessions and switch between them while agents are working
 - Preserve conversation history and pin frequently used sessions
