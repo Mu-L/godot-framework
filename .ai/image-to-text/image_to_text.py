@@ -1,13 +1,12 @@
-"""Describe images with MiniCPM-V 4.6 GGUF on CPU or optional GPU.
+"""Describe images with MiniCPM-V 4.6 GGUF, preferring an available GPU.
 
 Run through default python from .dependency/manifest.json.
 Never use host python/py.
 
 Usage
 -----
-    .dependency/python/python.exe .ai/image-to-text-cpu/image_to_text.py --images image.png
-    .dependency/python/python.exe .ai/image-to-text-cpu/image_to_text.py --image image.png -GPU
-    .dependency/python/python.exe .ai/image-to-text-cpu/image_to_text.py --images before.png after.png --prompt "Compare the images."
+    .dependency/python/python.exe .ai/image-to-text/image_to_text.py --images image.png
+    .dependency/python/python.exe .ai/image-to-text/image_to_text.py --images before.png after.png --prompt "Compare the images."
 """
 
 from __future__ import annotations
@@ -24,7 +23,9 @@ if str(AI_ROOT) not in sys.path:
 
 from common.image_utils import resolve_image_file  # noqa: E402
 
-RUNTIME_DIR = Path(".dependency/minicpm-v-4.6")
+CPU_RUNTIME_DIR = Path(".dependency/llama-cpp-cpu")
+GPU_RUNTIME_DIR = Path(".dependency/llama-cpp-gpu")
+MODEL_DIR = Path(".dependency/minicpm-v-4.6/model")
 MODEL_NAME = "MiniCPM-V-4_6-Q4_K_M.gguf"
 MMPROJ_NAME = "mmproj-model-f16.gguf"
 DEFAULT_PROMPT = ("Describe the image accurately and comprehensively. Include visible subjects, actions, "
@@ -38,8 +39,6 @@ def parse_args() -> argparse.Namespace:
                         help="One or more input images.")
     parser.add_argument("--prompt", default=DEFAULT_PROMPT, help="Instruction sent with the images.")
     parser.add_argument("--output", type=Path, help="Optional UTF-8 output text file.")
-    parser.add_argument("--gpu", "-GPU", action="store_true",
-                        help="Use the Vulkan GPU runtime instead of CPU-only inference.")
     return parser.parse_args()
 
 
@@ -66,12 +65,36 @@ def acceleration_args(use_gpu: bool) -> list[str]:
     return ["-ngl", "999"] if use_gpu else ["-ngl", "0", "--no-mmproj-offload"]
 
 
+def runtime_executable(use_gpu: bool) -> Path:
+    """Return the CPU or GPU llama.cpp executable path."""
+    runtime_dir = (GPU_RUNTIME_DIR if use_gpu else CPU_RUNTIME_DIR).resolve()
+    return runtime_dir / ("llama-mtmd-cli.exe" if sys.platform == "win32" else "llama-mtmd-cli")
+
+
+def gpu_is_available() -> bool:
+    """Return whether the Vulkan llama.cpp build reports a usable GPU device."""
+    executable = runtime_executable(True)
+    if not executable.is_file():
+        return False
+    try:
+        result = subprocess.run([str(executable), "--list-devices"], capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    output = result.stdout + "\n" + result.stderr
+    return result.returncode == 0 and "(none)" not in output and bool(re.search(r"^\s+\S+:\s+.+$", output, re.MULTILINE))
+
+
+def select_gpu() -> bool:
+    """Prefer GPU when the Vulkan runtime reports a usable device."""
+    return gpu_is_available()
+
+
 def describe_images(prompt: str, image_paths: list[Path], use_gpu: bool = False) -> str:
-    runtime_dir = RUNTIME_DIR.resolve()
-    bin_name = "bin-gpu" if use_gpu else "bin"
-    executable = runtime_dir / bin_name / ("llama-mtmd-cli.exe" if sys.platform == "win32" else "llama-mtmd-cli")
-    model = runtime_dir / "model" / MODEL_NAME
-    mmproj = runtime_dir / "model" / MMPROJ_NAME
+    executable = runtime_executable(use_gpu)
+    model_dir = MODEL_DIR.resolve()
+    model = model_dir / MODEL_NAME
+    mmproj = model_dir / MMPROJ_NAME
     for required in (executable, model, mmproj):
         if not required.is_file():
             raise FileNotFoundError(f"Required local dependency is missing: {required}")
@@ -95,7 +118,8 @@ def main() -> int:
     if image_paths is None:
         return 1
     try:
-        description = describe_images(args.prompt, image_paths, args.gpu)
+        use_gpu = select_gpu()
+        description = describe_images(args.prompt, image_paths, use_gpu)
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(description + "\n", encoding="utf-8")
