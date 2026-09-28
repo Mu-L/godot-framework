@@ -89,6 +89,7 @@ Source image (AI art / sprite sheet)
 | [image-region-remove-key-color-app](image-region-remove-key-color-app/SKILL.md) | Manual Gradio app: paint a region, remove key-color only inside that selection |
 | [image-trim](image-trim/SKILL.md) | Trim transparent or solid-color borders (preserve aspect ratio by default) |
 | [image-resize](image-resize/SKILL.md) | Resize to explicit width × height (fit / fill / exact; ImageMagick) |
+| [image-to-text](image-to-text/SKILL.md) | Local image description / OCR with MiniCPM-V 4.6; automatically prefers Vulkan GPU and falls back to CPU |
 
 ## Video
 
