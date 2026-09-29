@@ -283,10 +283,6 @@ func image_metadata_test() -> void:
 
 
 func local_markdown_image_test() -> void:
-	var texture := MarkdownRender.load_local_image("res://.ai/test/image/girl.png")
-	assert(texture != null)
-	assert(texture.get_width() > 0)
-	assert(texture.get_height() > 0)
 	var label := MarkdownHelper.create_rich_text_label(
 			Color.WHITE,
 			"before ![Girl](res://.ai/test/image/girl.png) after",

@@ -31,7 +31,7 @@ static func load_external_file(path: String) -> Resource:
 	if AUDIO_EXTENSIONS.has(extension):
 		return load_external_audio(extension, path)
 	if IMAGE_EXTENSIONS.has(extension):
-		return Image.load_from_file(path)
+		return ImageTexture.create_from_image(Image.load_from_file(path))
 	if FONT_EXTENSIONS.has(extension):
 		var font := FontFile.new()
 		return font if font.load_dynamic_font(path) == OK else null

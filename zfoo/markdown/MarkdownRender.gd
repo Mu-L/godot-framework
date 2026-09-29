@@ -23,44 +23,31 @@ static func render_markdown_with_images(label: RichTextLabel, result: MarkdownPa
 
 
 static func append_markdown_image(label: RichTextLabel, markdown_image: MarkdownParseResult.MarkdownImage) -> void:
+	label.add_image(create_image_placeholder(), 0, 0, Color.WHITE, 5, Rect2(), markdown_image.image_url, false, markdown_image.alt_text)
 	if HttpUtils.is_valid_http_url(markdown_image.image_url):
 		var cache_path := remote_image_cache_path(markdown_image.image_url)
-		var cached_texture := load_local_image(cache_path)
-		if cached_texture != null:
-			add_image(label, cached_texture, markdown_image, cache_path)
+		if FileAccess.file_exists(cache_path):
+			load_local_image_into_label(label, markdown_image, cache_path)
 			return
-		label.add_image(create_image_placeholder(), 0, 0, Color.WHITE, 5, Rect2(), markdown_image.image_url, false, markdown_image.alt_text)
 		if is_image_downloading(label, markdown_image.image_url):
 			return
 		set_image_downloading(label, markdown_image.image_url, true)
 		download_remote_image(label, markdown_image, cache_path)
 		return
-	var texture := load_local_image(markdown_image.image_url)
-	if texture != null:
-		add_image(label, texture, markdown_image, markdown_image.image_url)
-	else:
-		append_image_error(label, markdown_image)
+	load_local_image_into_label(label, markdown_image, markdown_image.image_url)
 	pass
 
 
-static func add_image(
+static func load_local_image_into_label(
 		label: RichTextLabel,
-		texture: Texture2D,
 		markdown_image: MarkdownParseResult.MarkdownImage,
-		tooltip: String
+		path: String
 ) -> void:
-	label.add_image(texture, 0, 0, Color.WHITE, 5, Rect2(), markdown_image.image_url, false, tooltip)
+	var texture: Texture2D = await ResourceHelper.async_load(path)
+	if texture == null or not is_instance_valid(label):
+		return
+	label.update_image(markdown_image.image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
 	pass
-
-
-static func load_local_image(path: String) -> ImageTexture:
-	var absolute_path := ProjectSettings.globalize_path(path) if path.begins_with("res://") or path.begins_with("user://") else path
-	if not FileAccess.file_exists(absolute_path):
-		return null
-	var image := Image.load_from_file(absolute_path)
-	if image == null or image.is_empty():
-		return null
-	return ImageTexture.create_from_image(image)
 
 
 static func download_remote_image(
@@ -89,7 +76,7 @@ static func download_remote_image(
 		Log.error("markdown image cache failed path:[{}] err:[{}]", cache_path, cache_error)
 		set_image_downloading(label, markdown_image.image_url, false)
 		return
-	var texture := load_local_image(cache_path)
+	var texture: Texture2D = await ResourceHelper.async_load(cache_path)
 	if texture == null:
 		set_image_downloading(label, markdown_image.image_url, false)
 		return
@@ -149,9 +136,3 @@ static func set_image_downloading(label: RichTextLabel, image_url: String, downl
 
 static func image_download_meta_key(image_url: String) -> StringName:
 	return StringName("image_" + image_url.sha256_text())
-
-
-static func append_image_error(label: RichTextLabel, markdown_image: MarkdownParseResult.MarkdownImage) -> void:
-	var description := markdown_image.alt_text if StringUtils.is_not_blank(markdown_image.alt_text) else markdown_image.image_url
-	label.add_text("[%s]" % description)
-	pass
