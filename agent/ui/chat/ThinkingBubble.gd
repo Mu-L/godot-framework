@@ -42,7 +42,7 @@ static func append(
 
 	vbox.add_child(header)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_plain_rich_text_label(ColorBase.secondary_text)
+	var rich_text: RichTextLabel = MarkdownHelper.create_plain_rich_text_label(ColorBase.secondary_text)
 	ChatBubblePreview.enable_fixed_height_at_limit(rich_text)
 	vbox.add_child(rich_text)
 

@@ -75,7 +75,7 @@ static func refresh_rich_text(rich_text: RichTextLabel, entry: ChatEntry) -> voi
 		SkillBubble.refresh(rich_text, entry)
 		return
 	rich_text.visible = StringUtils.is_not_blank(entry.body)
-	MarkdownUtils.set_rich_text_label_text(
+	MarkdownHelper.set_rich_text_label_text(
 			rich_text,
 			entry.body,
 			MarkdownToggle.markdown_enabled_for_entry(entry)

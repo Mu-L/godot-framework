@@ -43,7 +43,7 @@ static func append(
 
 	vbox.add_child(header)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownHelper.create_rich_text_label(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry)
@@ -59,7 +59,7 @@ static func append(
 static func on_copy_pressed(entry: ChatEntry) -> void:
 	if entry == null or StringUtils.is_blank(entry.body):
 		return
-	MarkdownUtils.copy_to_clipboard(entry.body)
+	MarkdownHelper.copy_to_clipboard(entry.body)
 	Alert.alert("Copied", ColorBase.success)
 	pass
 

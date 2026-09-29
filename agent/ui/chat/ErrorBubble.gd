@@ -30,7 +30,7 @@ static func append(
 	title_label.add_theme_font_size_override("font_size", Typography.label_medium_size)
 	vbox.add_child(title_label)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownHelper.create_rich_text_label(
 			ColorBase.error,
 			StringUtils.first_lines(entry.body, MAX_LINES),
 			AgentSetting.get_markdown_enabled()
@@ -56,7 +56,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 	if entry == null:
 		return
 	var display: String = StringUtils.first_lines(entry.body, MAX_LINES)
-	MarkdownUtils.set_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
+	MarkdownHelper.set_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
 	pass
 
 

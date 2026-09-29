@@ -408,7 +408,7 @@ func append_bubble(chat_list: VBoxContainer, entry: ChatEntry, text_color: Color
 	title_label.add_theme_font_size_override("font_size", Typography.label_medium_size)
 	vbox.add_child(title_label)
 
-	var rich_text: RichTextLabel = MarkdownUtils.create_rich_text_label(
+	var rich_text: RichTextLabel = MarkdownHelper.create_rich_text_label(
 		text_color,
 		entry.body,
 		MarkdownToggle.markdown_enabled_for_entry(entry)

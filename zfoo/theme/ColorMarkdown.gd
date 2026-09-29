@@ -1,11 +1,11 @@
 class_name ColorMarkdown
 extends Object
 
-## Markdown palette for `MarkdownUtils`: code blocks, inline code chips, tables, quotes, links.
+## Markdown palette for `MarkdownParser`: code blocks, inline code chips, tables, quotes, links.
 ## Two hand-written sets — one per theme — instead of colors derived from `ThemeColor.theme_color`:
 ## every value is a literal you can read, tune and review in a screenshot, and a link always lands
 ## on a contrast that was picked by hand instead of on whatever the current accent implies.
-## Usage: `ColorMarkdown.code_block_bg` / `table_grid_color` / … ; `MarkdownUtils` turns each
+## Usage: `ColorMarkdown.code_block_bg` / `table_grid_color` / … ; `MarkdownParser` turns each
 ## one into a BBCode argument at conversion time.
 ## `ThemeColor` calls `refresh()` whenever the dark/light theme changes.
 
