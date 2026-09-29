@@ -18,7 +18,6 @@ static func async_load(path: String) -> Resource:
 ## Loaders for the file types that can also be read from outside the project — [ResourceLoader]
 ## only opens resources, so a plain file needs the loader of its own format.
 const AUDIO_EXTENSIONS: PackedStringArray = ["wav", "mp3", "ogg"]
-const IMAGE_EXTENSIONS: PackedStringArray = ["png", "jpg", "jpeg", "webp", "bmp", "tga", "svg"]
 const FONT_EXTENSIONS: PackedStringArray = ["ttf", "otf", "woff", "woff2"]
 
 ## Godot has no format-agnostic loader for a file that is not a project resource, so the loader is
@@ -30,8 +29,8 @@ static func load_external_file(path: String) -> Resource:
 	var extension := path.get_extension().to_lower()
 	if AUDIO_EXTENSIONS.has(extension):
 		return load_external_audio(extension, path)
-	if IMAGE_EXTENSIONS.has(extension):
-		return ImageTexture.create_from_image(Image.load_from_file(path))
+	if ImageHelper.EXTENSIONS.has(extension):
+		return ImageHelper.load_external_image(path)
 	if FONT_EXTENSIONS.has(extension):
 		var font := FontFile.new()
 		return font if font.load_dynamic_font(path) == OK else null

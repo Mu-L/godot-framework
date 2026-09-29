@@ -65,7 +65,7 @@ static func download_remote_image_texture(image_url: String, cache_path: String)
 	if response.body.size() > MAX_REMOTE_IMAGE_BYTES:
 		Log.error("markdown image is too large url:[{}] bytes:[{}]", image_url, response.body.size())
 		return null
-	var image := decode_image(response.body)
+	var image := ImageHelper.decode_image(response.body)
 	if image == null:
 		Log.error("markdown image decode failed url:[{}]", image_url)
 		return null
@@ -75,22 +75,6 @@ static func download_remote_image_texture(image_url: String, cache_path: String)
 		return null
 	var texture: Texture2D = await ResourceHelper.async_load(cache_path)
 	return texture
-
-
-static func decode_image(bytes: PackedByteArray) -> Image:
-	var image := Image.new()
-	if image.load_png_from_buffer(bytes) == OK:
-		return image
-	image = Image.new()
-	if image.load_jpg_from_buffer(bytes) == OK:
-		return image
-	image = Image.new()
-	if image.load_webp_from_buffer(bytes) == OK:
-		return image
-	image = Image.new()
-	if image.load_svg_from_buffer(bytes) == OK:
-		return image
-	return null
 
 
 static func save_cached_image(image: Image, cache_path: String) -> int:

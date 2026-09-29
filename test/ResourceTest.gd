@@ -3,3 +3,21 @@ func ResourceHelper_test() -> void:
 	var resource = await ResourceHelper.async_load("res://icon.svg")
 	assert(resource != null)
 	pass
+
+
+func external_image_test() -> void:
+	var path := ProjectSettings.globalize_path("res://icon.svg")
+	var texture := ResourceHelper.load_external_file(path) as ImageTexture
+	assert(texture != null)
+	assert(texture.get_width() > 0)
+	assert(texture.get_height() > 0)
+	pass
+
+
+func image_buffer_decode_test() -> void:
+	var source := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	source.fill(Color.RED)
+	var decoded := ImageHelper.decode_image(source.save_jpg_to_buffer())
+	assert(decoded != null)
+	assert(decoded.get_size() == Vector2i(2, 2))
+	pass
