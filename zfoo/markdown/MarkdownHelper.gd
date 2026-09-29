@@ -146,14 +146,14 @@ static func copy_to_clipboard(text: String) -> void:
 
 static func set_rich_text_label_text(label: RichTextLabel, raw_text: String, markdown_enabled: bool) -> void:
 	if markdown_enabled:
-		var bbcode := MarkdownParser.to_bbcode(raw_text)
+		var parse_result := MarkdownParser.to_bbcode(raw_text)
 		# Enabling bbcode re-parses existing text; raw markdown may contain literal
 		# `[cell]` / `[table]` (e.g. in backticks) and crash RichTextLabel.
 		if label.bbcode_enabled:
-			label.text = bbcode
+			label.text = parse_result.bbcode
 		else:
 			label.bbcode_enabled = false
-			label.text = bbcode
+			label.text = parse_result.bbcode
 			label.bbcode_enabled = true
 	else:
 		if label.bbcode_enabled:

@@ -101,7 +101,7 @@ The second matrix records the block-level coverage provided by this article. The
 
 The images in this section are read directly from `.ai/test/image`. The first PNG checks portrait scaling and fine visual detail.
 
-![Portrait test image](res://.ai/test/image/girl.png)
+![Portrait test image](C:/github/gai/.ai/test/image/girl.png)
 
 ### Armored Vehicle Series
 

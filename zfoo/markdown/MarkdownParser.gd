@@ -1,6 +1,8 @@
 class_name MarkdownParser
 extends Object
 
+const MarkdownParseResult = preload("res://zfoo/markdown/MarkdownParseResult.gd")
+
 ## Markdown → RichTextLabel BBCode.
 ##
 ## Syntax map
@@ -107,11 +109,12 @@ static func compile_regex(pattern: String) -> RegEx:
 	return regex
 
 
-## Converts Markdown to BBCode for RichTextLabel (`bbcode_enabled` must be on).
-## Colors come from [ColorMarkdown], so the result follows the current theme.
-static func to_bbcode(markdown: String) -> String:
+## Parses Markdown into RichTextLabel BBCode plus ordered image metadata.
+## Colors come from [ColorMarkdown], so [member MarkdownParseResult.bbcode] follows the current theme.
+static func to_bbcode(markdown: String) -> MarkdownParseResult:
+	var result := MarkdownParseResult.new()
 	if StringUtils.is_blank(markdown):
-		return StringUtils.EMPTY
+		return result
 
 	var lines := normalize_newlines(markdown).split(FileUtils.NEWLINE_LF)
 	var out: PackedStringArray = []
@@ -147,7 +150,7 @@ static func to_bbcode(markdown: String) -> String:
 					StringUtils.format(
 							"[font_size={}]{}[/font_size]",
 							size,
-							inline_to_bbcode(extract_heading_text(line, heading_level))
+							inline_to_bbcode(extract_heading_text(line, heading_level), result)
 					)
 			)
 			i += 1
@@ -159,18 +162,18 @@ static func to_bbcode(markdown: String) -> String:
 			while i < lines.size() and is_blockquote_line(lines[i]):
 				quote_lines.append(strip_blockquote_prefix(lines[i]))
 				i += 1
-			out.append(format_blockquote_bbcode(FileUtils.NEWLINE_LF.join(quote_lines)))
+			out.append(format_blockquote_bbcode(FileUtils.NEWLINE_LF.join(quote_lines), result))
 			continue
 
 		# | h1 | h2 | + |---|  →  [table=2][cell][b]h1[/b][/cell]…[/table]
-		var table := parse_table_block(lines, i)
+		var table := parse_table_block(lines, i, result)
 		if table.has("next"):
 			out.append(table["bbcode"])
 			i = table["next"]
 			continue
 
 		# - item / 1. item / - [ ] task  →  • / 1. / ☐ ☑
-		var list_line := format_list_line(line)
+		var list_line := format_list_line(line, result)
 		if StringUtils.is_not_empty(list_line):
 			out.append(list_line)
 			i += 1
@@ -179,10 +182,11 @@ static func to_bbcode(markdown: String) -> String:
 		if StringUtils.is_blank(line):
 			out.append("")
 		else:
-			out.append(inline_to_bbcode(line))
+			out.append(inline_to_bbcode(line, result))
 		i += 1
 
-	return FileUtils.NEWLINE_LF.join(out)
+	result.bbcode = FileUtils.NEWLINE_LF.join(out)
+	return result
 
 
 ## CRLF / lone CR → LF so Windows sources do not leave `\r` on markers.
@@ -315,7 +319,7 @@ static func strip_blockquote_prefix(line: String) -> String:
 
 
 ## Blockquote: the narrow background cell is a real full-height strip, not a baseline-aligned glyph.
-static func format_blockquote_bbcode(text: String) -> String:
+static func format_blockquote_bbcode(text: String, result: MarkdownParseResult) -> String:
 	var chunks: PackedStringArray = ["[indent][table=2]"]
 	for line: String in text.split(FileUtils.NEWLINE_LF):
 		chunks.append(
@@ -330,7 +334,7 @@ static func format_blockquote_bbcode(text: String) -> String:
 						"[cell shrink=false expand=1 padding={}][color={}]{}[/color][/cell]",
 						BLOCKQUOTE_BODY_PADDING,
 						to_bbcode_color(ColorMarkdown.blockquote_text_color),
-						inline_to_bbcode(line)
+						inline_to_bbcode(line, result)
 				)
 		)
 	chunks.append("[/table][/indent]")
@@ -338,7 +342,7 @@ static func format_blockquote_bbcode(text: String) -> String:
 
 
 ## GFM table: header row + `\| --- \|` separator + body rows. Needs the separator line.
-static func parse_table_block(lines: PackedStringArray, start: int) -> Dictionary:
+static func parse_table_block(lines: PackedStringArray, start: int, result: MarkdownParseResult) -> Dictionary:
 	if start + 1 >= lines.size():
 		return {}
 	if not is_table_row_line(lines[start]):
@@ -355,7 +359,7 @@ static func parse_table_block(lines: PackedStringArray, start: int) -> Dictionar
 		body_rows.append(normalize_table_row(parse_table_cells(lines[index]), columns))
 		index += 1
 	return {
-		"bbcode": format_table_bbcode(header, body_rows, columns),
+		"bbcode": format_table_bbcode(header, body_rows, columns, result),
 		"next": index,
 	}
 
@@ -399,20 +403,25 @@ static func normalize_table_row(cells: PackedStringArray, columns: int) -> Packe
 
 
 ## One line of `[cell]` tags; cell text is single-line (Godot table layout requirement).
-static func format_table_bbcode(header: PackedStringArray, body_rows: Array[PackedStringArray], columns: int) -> String:
+static func format_table_bbcode(
+		header: PackedStringArray,
+		body_rows: Array[PackedStringArray],
+		columns: int,
+		result: MarkdownParseResult
+) -> String:
 	var chunks: PackedStringArray = []
 	chunks.append(StringUtils.format("[table={}]", columns))
 	for cell in header:
-		chunks.append(format_table_cell(cell, true))
+		chunks.append(format_table_cell(cell, true, result))
 	for row in body_rows:
 		for cell in row:
-			chunks.append(format_table_cell(cell, false))
+			chunks.append(format_table_cell(cell, false, result))
 	chunks.append("[/table]")
 	return "".join(chunks)
 
 
-static func format_table_cell(text: String, is_header: bool) -> String:
-	var content := inline_to_bbcode(text)
+static func format_table_cell(text: String, is_header: bool, result: MarkdownParseResult) -> String:
+	var content := inline_to_bbcode(text, result)
 	var border := to_bbcode_color(ColorMarkdown.table_grid_color)
 	if is_header:
 		content = StringUtils.format("[b]{}[/b]", content)
@@ -432,28 +441,28 @@ static func format_table_cell(text: String, is_header: bool) -> String:
 
 
 ## `- item` / `* item` / `+ item` → `• item`; `1. item` / `1) item` → `1. item`.
-static func format_list_line(line: String) -> String:
+static func format_list_line(line: String, result: MarkdownParseResult) -> String:
 	var prefix_len := parse_unordered_list_prefix_length(line)
 	if prefix_len > 0:
-		return format_unordered_list_item(line.substr(prefix_len).strip_edges())
+		return format_unordered_list_item(line.substr(prefix_len).strip_edges(), result)
 
 	prefix_len = parse_ordered_list_prefix_length(line)
 	if prefix_len > 0:
 		var trimmed := line.strip_edges(true, false)
 		var number := trimmed.substr(0, parse_leading_integer_length(trimmed))
 		var item := line.substr(prefix_len).strip_edges()
-		return StringUtils.format("{}. {}", number, inline_to_bbcode(item))
+		return StringUtils.format("{}. {}", number, inline_to_bbcode(item, result))
 
 	return StringUtils.EMPTY
 
 
 ## GFM task list: `- [ ]` → ☐, `- [x]` / `- [X]` → ☑; otherwise `•`.
-static func format_unordered_list_item(item: String) -> String:
+static func format_unordered_list_item(item: String, result: MarkdownParseResult) -> String:
 	if item.begins_with("[ ] "):
-		return StringUtils.format("☐ {}", inline_to_bbcode(item.substr(4)))
+		return StringUtils.format("☐ {}", inline_to_bbcode(item.substr(4), result))
 	if item.length() >= 4 and item.substr(0, 3).to_lower() == "[x]" and item[3] == " ":
-		return StringUtils.format("☑ {}", inline_to_bbcode(item.substr(4)))
-	return StringUtils.format("• {}", inline_to_bbcode(item))
+		return StringUtils.format("☑ {}", inline_to_bbcode(item.substr(4), result))
+	return StringUtils.format("• {}", inline_to_bbcode(item, result))
 
 
 ## Prefix length of `- `/`* `/`+ ` (or tab). `0` if the line is not an unordered item.
@@ -502,11 +511,13 @@ static func parse_leading_integer_length(text: String) -> int:
 
 
 ## Inline Markdown → BBCode. Protect → escape leftover brackets → restore.
-static func inline_to_bbcode(text: String) -> String:
+static func inline_to_bbcode(text: String, result: MarkdownParseResult = null) -> String:
 	if StringUtils.is_empty(text):
 		return StringUtils.EMPTY
+	if result == null:
+		result = MarkdownParseResult.new()
 	var parts: Array[String] = []
-	return restore_protected(inline_body(text, parts), parts)
+	return restore_protected(inline_body(text, parts, result), parts)
 
 
 ## Converted text with every leftover `[` / `]` escaped, tags still stashed in [param parts].
@@ -514,52 +525,60 @@ static func inline_to_bbcode(text: String) -> String:
 ## from turning into a live tag; tokens hold no brackets, so they survive untouched.
 ## Emphasis and link labels go through here too — their bodies land inside [param parts]
 ## and are never scanned again, so `**a[0]b**` must be escaped on the way in.
-static func inline_body(text: String, parts: Array[String]) -> String:
-	return escape_bbcode_literals(apply_inline(text, parts))
+static func inline_body(text: String, parts: Array[String], result: MarkdownParseResult) -> String:
+	return escape_bbcode_literals(apply_inline(text, parts, result))
 
 
 ## Order is load-bearing: code, then images (so `![a](u)` is not a link), then
 ## links, then `__init__` as literal, then `***` / `**` / `__` / `~~` / `*` / `_`,
 ## plus inline HTML `<u>`.
 ## Recurse into link labels and emphasis so `**foo *bar* baz**` / `[**b**](url)` work.
-static func apply_inline(text: String, parts: Array[String]) -> String:
+static func apply_inline(text: String, parts: Array[String], result: MarkdownParseResult) -> String:
 	var s := text
 	# `code` → [bgcolor][code]code[/code][/bgcolor]
-	s = regex_sub(s, re_inline_code, InlineReplacement.INLINE_CODE, parts)
+	s = regex_sub(s, re_inline_code, InlineReplacement.INLINE_CODE, parts, result)
 	# <u>html</u> → [u]html[/u]  (CommonMark has no native underline)
-	s = regex_sub(s, re_html_underline, InlineReplacement.HTML_UNDERLINE, parts)
+	s = regex_sub(s, re_html_underline, InlineReplacement.HTML_UNDERLINE, parts, result)
 	# ![alt](url "title") → [img]url[/img]
-	s = regex_sub(s, re_image, InlineReplacement.IMAGE, parts)
+	s = regex_sub(s, re_image, InlineReplacement.IMAGE, parts, result)
 	# [label](url "title") → [url=url][color]label[/color][/url]
-	s = regex_sub(s, re_link, InlineReplacement.LINK, parts)
+	s = regex_sub(s, re_link, InlineReplacement.LINK, parts, result)
 	# `__init__` would otherwise become `[b]init[/b]` (and then `_init_` italic).
-	s = regex_sub(s, re_dunder, InlineReplacement.DUNDER_LITERAL, parts)
+	s = regex_sub(s, re_dunder, InlineReplacement.DUNDER_LITERAL, parts, result)
 	# ***both*** → [b][i]both[/i][/b]
-	s = regex_sub(s, re_bold_italic, InlineReplacement.BOLD_ITALIC, parts)
+	s = regex_sub(s, re_bold_italic, InlineReplacement.BOLD_ITALIC, parts, result)
 	# **bold** → [b]bold[/b]
-	s = regex_sub(s, re_bold, InlineReplacement.BOLD, parts)
+	s = regex_sub(s, re_bold, InlineReplacement.BOLD, parts, result)
 	# __bold__ → [b]bold[/b]  (not __init__)
-	s = regex_sub(s, re_bold_underscore, InlineReplacement.BOLD, parts)
+	s = regex_sub(s, re_bold_underscore, InlineReplacement.BOLD, parts, result)
 	# ~~strike~~ → [s]strike[/s]
-	s = regex_sub(s, re_strike, InlineReplacement.STRIKE, parts)
+	s = regex_sub(s, re_strike, InlineReplacement.STRIKE, parts, result)
 	# *italic* → [i]italic[/i]
-	s = regex_sub(s, re_italic, InlineReplacement.ITALIC, parts)
+	s = regex_sub(s, re_italic, InlineReplacement.ITALIC, parts, result)
 	# _italic_ → [i]italic[/i]  (not my_var_name)
-	s = regex_sub(s, re_italic_underscore, InlineReplacement.ITALIC, parts)
+	s = regex_sub(s, re_italic_underscore, InlineReplacement.ITALIC, parts, result)
 	return s
 
 
-static func replace_inline_match(match: RegExMatch, replacement: InlineReplacement, parts: Array[String]) -> String:
+static func replace_inline_match(
+		match: RegExMatch,
+		replacement: InlineReplacement,
+		parts: Array[String],
+		result: MarkdownParseResult
+) -> String:
 	match replacement:
 		InlineReplacement.INLINE_CODE:
 			return protect(parts, add_code_background(match.get_string(1)))
 		InlineReplacement.HTML_UNDERLINE:
-			return protect(parts, StringUtils.format("[u]{}[/u]", inline_body(match.get_string(1), parts)))
+			return protect(parts, StringUtils.format("[u]{}[/u]", inline_body(match.get_string(1), parts, result)))
 		InlineReplacement.IMAGE:
-			var url := escape_bbcode_literals(parse_link_destination(match.get_string(2)))
+			var alt_text := match.get_string(1)
+			var image_url := parse_link_destination(match.get_string(2))
+			var url := escape_bbcode_literals(image_url)
+			result.images.append(MarkdownParseResult.MarkdownImage.new(alt_text, image_url))
 			return protect(parts, StringUtils.format("[img]{}[/img]", url))
 		InlineReplacement.LINK:
-			var label := inline_body(match.get_string(1), parts)
+			var label := inline_body(match.get_string(1), parts, result)
 			var url := escape_bbcode_literals(parse_link_destination(match.get_string(2)))
 			return protect(parts, StringUtils.format(
 					"[url={}][color={}]{}[/color][/url]",
@@ -570,13 +589,13 @@ static func replace_inline_match(match: RegExMatch, replacement: InlineReplaceme
 		InlineReplacement.DUNDER_LITERAL:
 			return protect(parts, escape_bbcode_literals(match.get_string(0)))
 		InlineReplacement.BOLD_ITALIC:
-			return protect(parts, StringUtils.format("[b][i]{}[/i][/b]", inline_body(match.get_string(1), parts)))
+			return protect(parts, StringUtils.format("[b][i]{}[/i][/b]", inline_body(match.get_string(1), parts, result)))
 		InlineReplacement.BOLD:
-			return protect(parts, StringUtils.format("[b]{}[/b]", inline_body(match.get_string(1), parts)))
+			return protect(parts, StringUtils.format("[b]{}[/b]", inline_body(match.get_string(1), parts, result)))
 		InlineReplacement.STRIKE:
-			return protect(parts, StringUtils.format("[s]{}[/s]", inline_body(match.get_string(1), parts)))
+			return protect(parts, StringUtils.format("[s]{}[/s]", inline_body(match.get_string(1), parts, result)))
 		InlineReplacement.ITALIC:
-			return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(match.get_string(1), parts)))
+			return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(match.get_string(1), parts, result)))
 	assert(false, "Unhandled inline replacement: %s" % replacement)
 	return StringUtils.EMPTY
 
@@ -659,7 +678,13 @@ static func restore_protected(text: String, parts: Array[String]) -> String:
 	return s
 
 
-static func regex_sub(text: String, regex: RegEx, replacement: InlineReplacement, parts: Array[String]) -> String:
+static func regex_sub(
+		text: String,
+		regex: RegEx,
+		replacement: InlineReplacement,
+		parts: Array[String],
+		result: MarkdownParseResult
+) -> String:
 	if StringUtils.is_empty(text):
 		return text
 	var matches := regex.search_all(text)
@@ -669,7 +694,7 @@ static func regex_sub(text: String, regex: RegEx, replacement: InlineReplacement
 	var pos := 0
 	for m in matches:
 		chunks.append(text.substr(pos, m.get_start() - pos))
-		chunks.append(replace_inline_match(m, replacement, parts))
+		chunks.append(replace_inline_match(m, replacement, parts, result))
 		pos = m.get_end()
 	chunks.append(text.substr(pos))
 	return "".join(chunks)

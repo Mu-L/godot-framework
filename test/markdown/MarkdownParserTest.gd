@@ -1,6 +1,6 @@
 
 func heading_and_inline_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("# Title\n\n**bold** and *italic*")
+	var bbcode := MarkdownParser.to_bbcode("# Title\n\n**bold** and *italic*").bbcode
 	assert("# Title" not in bbcode)
 	assert("[b]bold[/b]" in bbcode)
 	assert("[i]italic[/i]" in bbcode)
@@ -10,7 +10,7 @@ func heading_and_inline_test() -> void:
 
 
 func ordered_list_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("1. first\n2. second")
+	var bbcode := MarkdownParser.to_bbcode("1. first\n2. second").bbcode
 	assert("1. first" in bbcode)
 	assert("2. second" in bbcode)
 	assert("•" not in bbcode)
@@ -18,14 +18,14 @@ func ordered_list_test() -> void:
 
 
 func task_list_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("- [ ] todo\n- [x] done")
+	var bbcode := MarkdownParser.to_bbcode("- [ ] todo\n- [x] done").bbcode
 	assert("☐" in bbcode)
 	assert("☑" in bbcode)
 	pass
 
 
 func blockquote_multiline_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("> line one\n> line two")
+	var bbcode := MarkdownParser.to_bbcode("> line one\n> line two").bbcode
 	assert("[indent]" in bbcode)
 	assert("[table=2]" in bbcode)
 	assert(bbcode.count("bg=" + MarkdownParser.to_bbcode_color(ColorMarkdown.blockquote_bar_color)) == 2)
@@ -38,7 +38,7 @@ func blockquote_multiline_test() -> void:
 
 
 func blockquote_single_line_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("> 快乐韭菜网使用的 chatgpt 3.5 模型")
+	var bbcode := MarkdownParser.to_bbcode("> 快乐韭菜网使用的 chatgpt 3.5 模型").bbcode
 	assert("[indent]" in bbcode)
 	assert("[table=2]" in bbcode)
 	assert("bg=" + MarkdownParser.to_bbcode_color(ColorMarkdown.blockquote_bar_color) in bbcode)
@@ -50,7 +50,7 @@ func horizontal_rule_test() -> void:
 	assert(MarkdownParser.is_horizontal_rule_line("---"))
 	assert(MarkdownParser.is_horizontal_rule_line("- - -"))
 	assert(not MarkdownParser.is_horizontal_rule_line("-_*-"))
-	var bbcode := MarkdownParser.to_bbcode("---")
+	var bbcode := MarkdownParser.to_bbcode("---").bbcode
 	assert(MarkdownParser.format_horizontal_rule_line() in bbcode)
 	assert("#" in MarkdownParser.format_horizontal_rule_line())
 	pass
@@ -76,13 +76,13 @@ func bold_does_not_add_font_size_test() -> void:
 
 
 func blank_lines_preserved_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("para one\n\npara two")
+	var bbcode := MarkdownParser.to_bbcode("para one\n\npara two").bbcode
 	assert(bbcode == "para one\n\npara two")
 	pass
 
 
 func code_fence_blank_lines_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("```\nline1\n\nline2\n```")
+	var bbcode := MarkdownParser.to_bbcode("```\nline1\n\nline2\n```").bbcode
 	assert("[table=1]" in bbcode)
 	assert("[/table]" in bbcode)
 	assert("[cell shrink=false expand=1 bg=" in bbcode)
@@ -94,13 +94,13 @@ func code_fence_blank_lines_test() -> void:
 
 ## The fence fill follows the theme accent instead of a hex the caller passes in.
 func code_block_bg_themed_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("```\nx\n```")
+	var bbcode := MarkdownParser.to_bbcode("```\nx\n```").bbcode
 	assert("bg=" + MarkdownParser.to_bbcode_color(ColorMarkdown.code_block_bg) in bbcode)
 	pass
 
 
 func code_fence_right_gutter_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("```\nx\n```")
+	var bbcode := MarkdownParser.to_bbcode("```\nx\n```").bbcode
 	assert(bbcode.begins_with("[table=1][cell padding=" + MarkdownParser.CODE_BLOCK_RIGHT_GUTTER + "]"))
 	assert(bbcode.ends_with("[/cell][/table]"))
 	pass
@@ -212,7 +212,7 @@ func link_label_blue_test() -> void:
 
 
 func crlf_normalized_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("# Title\r\n\r\n**bold**")
+	var bbcode := MarkdownParser.to_bbcode("# Title\r\n\r\n**bold**").bbcode
 	assert("[font_size=32]" in bbcode)
 	assert("[b]bold[/b]" in bbcode)
 	assert("\r" not in bbcode)
@@ -220,14 +220,14 @@ func crlf_normalized_test() -> void:
 
 
 func tilde_fence_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("~~~\ncode\n~~~")
+	var bbcode := MarkdownParser.to_bbcode("~~~\ncode\n~~~").bbcode
 	assert("[code]" in bbcode)
 	assert("code" in bbcode)
 	pass
 
 
 func heading_trailing_hashes_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("# Title ##")
+	var bbcode := MarkdownParser.to_bbcode("# Title ##").bbcode
 	assert("[font_size=32]" in bbcode)
 	assert("Title" in bbcode)
 	assert("##" not in bbcode)
@@ -235,14 +235,14 @@ func heading_trailing_hashes_test() -> void:
 
 
 func indented_heading_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("  # Title")
+	var bbcode := MarkdownParser.to_bbcode("  # Title").bbcode
 	assert("[font_size=32]" in bbcode)
 	assert("Title" in bbcode)
 	pass
 
 
 func ordered_paren_list_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("1) first")
+	var bbcode := MarkdownParser.to_bbcode("1) first").bbcode
 	assert("1. first" in bbcode)
 	pass
 
@@ -266,8 +266,19 @@ func brackets_inside_emphasis_escaped_test() -> void:
 
 
 func literal_tag_in_block_escaped_test() -> void:
-	assert(MarkdownParser.to_bbcode("- use [i] for italic") == "• use [lb]i[rb] for italic")
-	assert("[lb]center[rb]" in MarkdownParser.to_bbcode("# [center] title"))
+	assert(MarkdownParser.to_bbcode("- use [i] for italic").bbcode == "• use [lb]i[rb] for italic")
+	assert("[lb]center[rb]" in MarkdownParser.to_bbcode("# [center] title").bbcode)
+	pass
+
+
+func image_metadata_test() -> void:
+	var result := MarkdownParser.to_bbcode("before ![Landscape](https://example.com/image.png) after")
+	assert(result.bbcode == "before [img]https://example.com/image.png[/img] after")
+	assert(result.images.size() == 1)
+	assert(result.images[0].alt_text == "Landscape")
+	assert(result.images[0].image_url == "https://example.com/image.png")
+	var code_result := MarkdownParser.to_bbcode("```\n![not an image](https://example.com/code.png)\n```")
+	assert(code_result.images.is_empty())
 	pass
 
 
@@ -283,7 +294,7 @@ func spaced_markers_stay_plain_test() -> void:
 
 func gfm_table_test() -> void:
 	var md := "| 时段 | 天气 | 气温 |\n|---|---|---|\n| 12–13时 | 多云 | ~30℃ |\n| 14–16时 | 阴 | 29~30℃ |"
-	var bbcode := MarkdownParser.to_bbcode(md)
+	var bbcode := MarkdownParser.to_bbcode(md).bbcode
 	assert("[table=3]" in bbcode)
 	assert("[/table]" in bbcode)
 	assert("border=" in bbcode)
@@ -298,7 +309,7 @@ func gfm_table_test() -> void:
 
 func table_inline_in_cell_test() -> void:
 	var md := "| name | val |\n|---|---|\n| **x** | *y* |"
-	var bbcode := MarkdownParser.to_bbcode(md)
+	var bbcode := MarkdownParser.to_bbcode(md).bbcode
 	assert("[b]name[/b]" in bbcode)
 	assert("[b]x[/b]" in bbcode)
 	assert("[i]y[/i]" in bbcode)
@@ -306,7 +317,7 @@ func table_inline_in_cell_test() -> void:
 
 
 func pipe_without_separator_stays_plain_test() -> void:
-	var bbcode := MarkdownParser.to_bbcode("a | b\nc | d")
+	var bbcode := MarkdownParser.to_bbcode("a | b\nc | d").bbcode
 	assert("[table=" not in bbcode)
 	assert("a | b" in bbcode)
 	pass
