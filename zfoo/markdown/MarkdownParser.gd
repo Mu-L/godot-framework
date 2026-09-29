@@ -86,6 +86,18 @@ static var re_italic_underscore: RegEx = compile_regex("(?<![A-Za-z0-9])_(?![\\s
 static var re_html_underline: RegEx = compile_regex("(?i)<u>([^<\\n]+)</u>") # <u>html underline</u>
 static var re_table_separator_cell: RegEx = compile_regex("^\\s*:?-+:?\\s*$") # --- / :---:
 
+enum InlineReplacement {
+	INLINE_CODE,
+	HTML_UNDERLINE,
+	IMAGE,
+	LINK,
+	DUNDER_LITERAL,
+	BOLD_ITALIC,
+	BOLD,
+	STRIKE,
+	ITALIC,
+}
+
 
 static func compile_regex(pattern: String) -> RegEx:
 	var regex := RegEx.new()
@@ -513,100 +525,60 @@ static func inline_body(text: String, parts: Array[String]) -> String:
 static func apply_inline(text: String, parts: Array[String]) -> String:
 	var s := text
 	# `code` → [bgcolor][code]code[/code][/bgcolor]
-	s = regex_sub(
-			s,
-			re_inline_code,
-			func(m: RegExMatch) -> String:
-				return protect(parts, add_code_background(m.get_string(1)))
-	)
+	s = regex_sub(s, re_inline_code, InlineReplacement.INLINE_CODE, parts)
 	# <u>html</u> → [u]html[/u]  (CommonMark has no native underline)
-	s = regex_sub(
-			s,
-			re_html_underline,
-			func(m: RegExMatch) -> String:
-				return protect(
-						parts,
-						StringUtils.format("[u]{}[/u]", inline_body(m.get_string(1), parts))
-				)
-	)
+	s = regex_sub(s, re_html_underline, InlineReplacement.HTML_UNDERLINE, parts)
 	# ![alt](url "title") → [img]url[/img]
-	s = regex_sub(
-			s,
-			re_image,
-			func(m: RegExMatch) -> String:
-				var url := escape_bbcode_literals(parse_link_destination(m.get_string(2)))
-				return protect(parts, StringUtils.format("[img]{}[/img]", url))
-	)
+	s = regex_sub(s, re_image, InlineReplacement.IMAGE, parts)
 	# [label](url "title") → [url=url][color]label[/color][/url]
-	s = regex_sub(
-			s,
-			re_link,
-			func(m: RegExMatch) -> String:
-				var label := inline_body(m.get_string(1), parts)
-				var url := escape_bbcode_literals(parse_link_destination(m.get_string(2)))
-				return protect(
-						parts,
-						StringUtils.format(
-								"[url={}][color={}]{}[/color][/url]",
-								url,
-								to_bbcode_color(ColorMarkdown.link_color),
-								label
-						)
-				)
-	)
+	s = regex_sub(s, re_link, InlineReplacement.LINK, parts)
 	# `__init__` would otherwise become `[b]init[/b]` (and then `_init_` italic).
-	s = regex_sub(
-			s,
-			re_dunder,
-			func(m: RegExMatch) -> String:
-				return protect(parts, escape_bbcode_literals(m.get_string(0)))
-	)
+	s = regex_sub(s, re_dunder, InlineReplacement.DUNDER_LITERAL, parts)
 	# ***both*** → [b][i]both[/i][/b]
-	s = regex_sub(
-			s,
-			re_bold_italic,
-			func(m: RegExMatch) -> String:
-				return protect(
-						parts,
-						StringUtils.format("[b][i]{}[/i][/b]", inline_body(m.get_string(1), parts))
-				)
-	)
+	s = regex_sub(s, re_bold_italic, InlineReplacement.BOLD_ITALIC, parts)
 	# **bold** → [b]bold[/b]
-	s = regex_sub(
-			s,
-			re_bold,
-			func(m: RegExMatch) -> String:
-				return protect(parts, StringUtils.format("[b]{}[/b]", inline_body(m.get_string(1), parts)))
-	)
+	s = regex_sub(s, re_bold, InlineReplacement.BOLD, parts)
 	# __bold__ → [b]bold[/b]  (not __init__)
-	s = regex_sub(
-			s,
-			re_bold_underscore,
-			func(m: RegExMatch) -> String:
-				return protect(parts, StringUtils.format("[b]{}[/b]", inline_body(m.get_string(1), parts)))
-	)
+	s = regex_sub(s, re_bold_underscore, InlineReplacement.BOLD, parts)
 	# ~~strike~~ → [s]strike[/s]
-	s = regex_sub(
-			s,
-			re_strike,
-			func(m: RegExMatch) -> String:
-				return protect(parts, StringUtils.format("[s]{}[/s]", inline_body(m.get_string(1), parts)))
-	)
+	s = regex_sub(s, re_strike, InlineReplacement.STRIKE, parts)
 	# *italic* → [i]italic[/i]
-	s = regex_sub(
-			s,
-			re_italic,
-			func(m: RegExMatch) -> String:
-				return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(m.get_string(1), parts)))
-	)
+	s = regex_sub(s, re_italic, InlineReplacement.ITALIC, parts)
 	# _italic_ → [i]italic[/i]  (not my_var_name)
-	s = regex_sub(
-			s,
-			re_italic_underscore,
-			func(m: RegExMatch) -> String:
-				return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(m.get_string(1), parts)))
-	)
+	s = regex_sub(s, re_italic_underscore, InlineReplacement.ITALIC, parts)
 	return s
+
+
+static func replace_inline_match(match: RegExMatch, replacement: InlineReplacement, parts: Array[String]) -> String:
+	match replacement:
+		InlineReplacement.INLINE_CODE:
+			return protect(parts, add_code_background(match.get_string(1)))
+		InlineReplacement.HTML_UNDERLINE:
+			return protect(parts, StringUtils.format("[u]{}[/u]", inline_body(match.get_string(1), parts)))
+		InlineReplacement.IMAGE:
+			var url := escape_bbcode_literals(parse_link_destination(match.get_string(2)))
+			return protect(parts, StringUtils.format("[img]{}[/img]", url))
+		InlineReplacement.LINK:
+			var label := inline_body(match.get_string(1), parts)
+			var url := escape_bbcode_literals(parse_link_destination(match.get_string(2)))
+			return protect(parts, StringUtils.format(
+					"[url={}][color={}]{}[/color][/url]",
+					url,
+					to_bbcode_color(ColorMarkdown.link_color),
+					label
+			))
+		InlineReplacement.DUNDER_LITERAL:
+			return protect(parts, escape_bbcode_literals(match.get_string(0)))
+		InlineReplacement.BOLD_ITALIC:
+			return protect(parts, StringUtils.format("[b][i]{}[/i][/b]", inline_body(match.get_string(1), parts)))
+		InlineReplacement.BOLD:
+			return protect(parts, StringUtils.format("[b]{}[/b]", inline_body(match.get_string(1), parts)))
+		InlineReplacement.STRIKE:
+			return protect(parts, StringUtils.format("[s]{}[/s]", inline_body(match.get_string(1), parts)))
+		InlineReplacement.ITALIC:
+			return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(match.get_string(1), parts)))
+	assert(false, "Unhandled inline replacement: %s" % replacement)
+	return StringUtils.EMPTY
 
 
 ## Link/image dest: `[t](<url>)` unwraps; `[t](url "title")` / `[t](url 'title')` drops title.
@@ -687,7 +659,7 @@ static func restore_protected(text: String, parts: Array[String]) -> String:
 	return s
 
 
-static func regex_sub(text: String, regex: RegEx, replacer: Callable) -> String:
+static func regex_sub(text: String, regex: RegEx, replacement: InlineReplacement, parts: Array[String]) -> String:
 	if StringUtils.is_empty(text):
 		return text
 	var matches := regex.search_all(text)
@@ -697,7 +669,7 @@ static func regex_sub(text: String, regex: RegEx, replacer: Callable) -> String:
 	var pos := 0
 	for m in matches:
 		chunks.append(text.substr(pos, m.get_start() - pos))
-		chunks.append(str(replacer.call(m)))
+		chunks.append(replace_inline_match(m, replacement, parts))
 		pos = m.get_end()
 	chunks.append(text.substr(pos))
 	return "".join(chunks)
