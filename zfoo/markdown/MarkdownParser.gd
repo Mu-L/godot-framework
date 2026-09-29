@@ -1,8 +1,6 @@
 class_name MarkdownParser
 extends Object
 
-const MarkdownParseResult = preload("res://zfoo/markdown/MarkdownParseResult.gd")
-
 ## Markdown → RichTextLabel BBCode.
 ##
 ## Syntax map
