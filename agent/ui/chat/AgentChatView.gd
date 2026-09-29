@@ -56,7 +56,7 @@ func setup(
 	AgentEvents.events.chat_entry_add.connect(on_chat_entry_add)
 	AgentEvents.events.chat_entry_update.connect(on_chat_entry_update)
 	AgentEvents.events.chat_bubble_flushed.connect(on_chat_bubble_flushed)
-	AgentEvents.events.chat_truncated.connect(on_chat_truncated)
+	AgentEvents.events.chat_entry_delete.connect(on_chat_truncated)
 	AgentEvents.events.chat_search_result_selected.connect(on_chat_search_result_selected)
 	pass
 

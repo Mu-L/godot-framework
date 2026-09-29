@@ -367,7 +367,7 @@ static func delete_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
 	if entry.kind == ChatEntry.KIND_ERROR:
 		session.chat_entries.remove_at(entry_idx)
 		persist_session(session_id)
-		AgentEvents.events.chat_truncated.emit(session_id)
+		AgentEvents.events.chat_entry_delete.emit(session_id)
 		return
 	if is_running(session_id):
 		request_stop(session_id)
@@ -375,7 +375,7 @@ static func delete_chat_from_entry(session_id: int, entry: ChatEntry) -> void:
 	session.chat_entries = session.chat_entries.slice(0, entry_idx)
 	session.messages = session.messages.slice(0, msg_idx)
 	persist_session(session_id)
-	AgentEvents.events.chat_truncated.emit(session_id)
+	AgentEvents.events.chat_entry_delete.emit(session_id)
 	pass
 
 

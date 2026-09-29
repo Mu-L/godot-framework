@@ -50,7 +50,7 @@ class Events:
 	# UI configuration
 	signal chat_entry_add(session_id: int, entry: ChatEntry)
 	signal chat_entry_update(session_id: int, entry: ChatEntry, stream_kind: String)
-	signal chat_truncated(session_id: int)
+	signal chat_entry_delete(session_id: int)
 	## A search result requests that the transcript reveal a specific persisted entry.
 	signal chat_search_result_selected(session_id: int, entry_index: int)
 	## Emitted after ChatBubbleFlusher applies a pending batch (every ~100 ms while streaming).
