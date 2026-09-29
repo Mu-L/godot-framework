@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dq6n3w8p2y5kr"]
+
+[ext_resource type="Script" uid="uid://b7v2m5q9x4k8n" path="res://test/markdown/MarkdownArticlePreview.gd" id="1_article"]
+
+[node name="MarkdownArticlePreview" type="Control"]
+custom_minimum_size = Vector2(1100, 800)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_article")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ContentScroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="PageMargin" type="MarginContainer" parent="ContentScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ArticleBody" type="VBoxContainer" parent="ContentScroll/PageMargin"]
+custom_minimum_size = Vector2(860, 0)
+layout_mode = 2
+size_flags_horizontal = 3
