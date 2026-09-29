@@ -283,7 +283,7 @@ func image_metadata_test() -> void:
 
 
 func local_markdown_image_test() -> void:
-	var texture := MarkdownHelper.load_local_image("res://.ai/test/image/girl.png")
+	var texture := MarkdownRender.load_local_image("res://.ai/test/image/girl.png")
 	assert(texture != null)
 	assert(texture.get_width() > 0)
 	assert(texture.get_height() > 0)
@@ -299,10 +299,10 @@ func local_markdown_image_test() -> void:
 
 
 func remote_image_cache_path_test() -> void:
-	var first := MarkdownHelper.remote_image_cache_path("https://example.com/image.png")
-	var second := MarkdownHelper.remote_image_cache_path("https://example.com/image.png")
+	var first := MarkdownRender.remote_image_cache_path("https://example.com/image.png")
+	var second := MarkdownRender.remote_image_cache_path("https://example.com/image.png")
 	assert(first == second)
-	assert(first.begins_with(MarkdownHelper.IMAGE_CACHE_DIR))
+	assert(first.begins_with(MarkdownRender.IMAGE_CACHE_DIR))
 	assert(first.ends_with(".png"))
 	pass
 
@@ -310,14 +310,14 @@ func remote_image_cache_path_test() -> void:
 func remote_image_download_state_test() -> void:
 	var label := RichTextLabel.new()
 	var image_url := "https://example.com/image.png"
-	assert(MarkdownHelper.image_download_meta_key(image_url) != MarkdownHelper.image_download_meta_key("https://example.com/other.png"))
-	assert(not MarkdownHelper.is_image_downloading(label, image_url))
-	MarkdownHelper.set_image_downloading(label, image_url, true)
-	assert(MarkdownHelper.is_image_downloading(label, image_url))
-	assert(label.has_meta(MarkdownHelper.image_download_meta_key(image_url)))
-	MarkdownHelper.set_image_downloading(label, image_url, false)
-	assert(not MarkdownHelper.is_image_downloading(label, image_url))
-	assert(not label.has_meta(MarkdownHelper.image_download_meta_key(image_url)))
+	assert(MarkdownRender.image_download_meta_key(image_url) != MarkdownRender.image_download_meta_key("https://example.com/other.png"))
+	assert(not MarkdownRender.is_image_downloading(label, image_url))
+	MarkdownRender.set_image_downloading(label, image_url, true)
+	assert(MarkdownRender.is_image_downloading(label, image_url))
+	assert(label.has_meta(MarkdownRender.image_download_meta_key(image_url)))
+	MarkdownRender.set_image_downloading(label, image_url, false)
+	assert(not MarkdownRender.is_image_downloading(label, image_url))
+	assert(not label.has_meta(MarkdownRender.image_download_meta_key(image_url)))
 	label.free()
 	pass
 
