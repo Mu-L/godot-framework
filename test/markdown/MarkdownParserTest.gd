@@ -282,6 +282,46 @@ func image_metadata_test() -> void:
 	pass
 
 
+func local_markdown_image_test() -> void:
+	var texture := MarkdownHelper.load_local_image("res://.ai/test/image/girl.png")
+	assert(texture != null)
+	assert(texture.get_width() > 0)
+	assert(texture.get_height() > 0)
+	var label := MarkdownHelper.create_rich_text_label(
+			Color.WHITE,
+			"before ![Girl](res://.ai/test/image/girl.png) after",
+			true
+	)
+	assert("before" in label.get_parsed_text())
+	assert("after" in label.get_parsed_text())
+	label.free()
+	pass
+
+
+func remote_image_cache_path_test() -> void:
+	var first := MarkdownHelper.remote_image_cache_path("https://example.com/image.png")
+	var second := MarkdownHelper.remote_image_cache_path("https://example.com/image.png")
+	assert(first == second)
+	assert(first.begins_with(MarkdownHelper.IMAGE_CACHE_DIR))
+	assert(first.ends_with(".png"))
+	pass
+
+
+func remote_image_download_state_test() -> void:
+	var label := RichTextLabel.new()
+	var image_url := "https://example.com/image.png"
+	assert(MarkdownHelper.image_download_meta_key(image_url) != MarkdownHelper.image_download_meta_key("https://example.com/other.png"))
+	assert(not MarkdownHelper.is_image_downloading(label, image_url))
+	MarkdownHelper.set_image_downloading(label, image_url, true)
+	assert(MarkdownHelper.is_image_downloading(label, image_url))
+	assert(label.has_meta(MarkdownHelper.image_download_meta_key(image_url)))
+	MarkdownHelper.set_image_downloading(label, image_url, false)
+	assert(not MarkdownHelper.is_image_downloading(label, image_url))
+	assert(not label.has_meta(MarkdownHelper.image_download_meta_key(image_url)))
+	label.free()
+	pass
+
+
 func spaced_markers_stay_plain_test() -> void:
 	var stars := MarkdownParser.inline_to_bbcode("3 * 4 * 5")
 	assert("[i]" not in stars)

@@ -56,7 +56,7 @@ static func refresh(rich_text: RichTextLabel, entry: ChatEntry) -> void:
 	if entry == null:
 		return
 	var display: String = StringUtils.first_lines(entry.body, MAX_LINES)
-	MarkdownHelper.set_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
+	MarkdownHelper.update_rich_text_label_text(rich_text, display, AgentSetting.get_markdown_enabled())
 	pass
 
 
@@ -94,4 +94,3 @@ static func style_resume_button(button: Button) -> void:
 		ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.22)),
 		ButtonStyle.filled(normal, ThemeColor.alpha_theme_color(0.04), ThemeColor.alpha_theme_color(0.12)))
 	pass
-
