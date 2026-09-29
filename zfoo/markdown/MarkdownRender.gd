@@ -30,7 +30,7 @@ static func append_markdown_image(label: RichTextLabel, markdown_image: Markdown
 		if FileAccess.file_exists(cache_path):
 			load_image_into_label(label, image_url, cache_path)
 			return
-		if is_image_downloading(label, image_url):
+		if label.has_meta(image_download_meta_key(image_url)):
 			return
 		set_image_downloading(label, image_url, true)
 		download_remote_image(label, image_url, cache_path)
@@ -93,10 +93,6 @@ static func create_image_placeholder() -> ImageTexture:
 	var image := Image.create(24, 24, false, Image.FORMAT_RGBA8)
 	image.fill(Color.TRANSPARENT)
 	return ImageTexture.create_from_image(image)
-
-
-static func is_image_downloading(label: RichTextLabel, image_url: String) -> bool:
-	return label.has_meta(image_download_meta_key(image_url))
 
 
 static func set_image_downloading(label: RichTextLabel, image_url: String, downloading: bool) -> void:

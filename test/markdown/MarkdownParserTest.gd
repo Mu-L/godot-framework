@@ -307,12 +307,10 @@ func remote_image_download_state_test() -> void:
 	var label := RichTextLabel.new()
 	var image_url := "https://example.com/image.png"
 	assert(MarkdownRender.image_download_meta_key(image_url) != MarkdownRender.image_download_meta_key("https://example.com/other.png"))
-	assert(not MarkdownRender.is_image_downloading(label, image_url))
+	assert(not label.has_meta(MarkdownRender.image_download_meta_key(image_url)))
 	MarkdownRender.set_image_downloading(label, image_url, true)
-	assert(MarkdownRender.is_image_downloading(label, image_url))
 	assert(label.has_meta(MarkdownRender.image_download_meta_key(image_url)))
 	MarkdownRender.set_image_downloading(label, image_url, false)
-	assert(not MarkdownRender.is_image_downloading(label, image_url))
 	assert(not label.has_meta(MarkdownRender.image_download_meta_key(image_url)))
 	label.free()
 	pass
