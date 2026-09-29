@@ -20,3 +20,13 @@ func image_buffer_decode_test() -> void:
 	assert(decoded != null)
 	assert(decoded.get_size() == Vector2i(2, 2))
 	pass
+
+
+func detect_image_format_test() -> void:
+	var source := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	assert(ImageHelper.detect_image_format(source.save_jpg_to_buffer()) == ImageHelper.jpg)
+	assert(ImageHelper.detect_image_format(source.save_png_to_buffer()) == ImageHelper.png)
+	assert(ImageHelper.detect_image_format(source.save_webp_to_buffer()) == ImageHelper.webp)
+	assert(ImageHelper.detect_image_format("<?xml version=\"1.0\"?><svg xmlns=\"http://www.w3.org/2000/svg\"/>".to_utf8_buffer()) == ImageHelper.svg)
+	assert(ImageHelper.detect_image_format(PackedByteArray([0x01, 0x02, 0x03])) == "")
+	pass
