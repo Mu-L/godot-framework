@@ -1,6 +1,8 @@
 class_name Fonts
 extends Object
 
+const EXTENSIONS: PackedStringArray = ["ttf", "otf", "woff", "woff2"]
+
 ## Noto Sans SC (SIL Open Font License 1.1).
 
 const LIGHT_PATH := "res://zfoo/font/NotoSansSC-Light.woff2"
