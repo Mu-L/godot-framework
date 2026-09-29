@@ -1,6 +1,11 @@
 class_name MarkdownParseResult
 extends RefCounted
 
+
+var bbcode: String = ""
+var images: Array[MarkdownImage] = []
+
+
 class MarkdownImage extends RefCounted:
 	var alt_text: String
 	var image_url: String
@@ -9,6 +14,3 @@ class MarkdownImage extends RefCounted:
 		alt_text = p_alt_text
 		image_url = p_image_url
 		pass
-
-var bbcode: String = ""
-var images: Array[MarkdownImage] = []
