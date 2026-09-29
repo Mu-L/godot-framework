@@ -225,7 +225,7 @@ label.text = I18n.t("settings.title")
 ## Utils — common helpers
 
 - `ArrayUtils`, `CollectionUtils`, `FileUtils`, `GitUtils`, `GlobUtils`
-- `HttpUtils`, `IdUtils`, `JsonUtils`, `MarkdownUtils`, `NetUtils`
+- `HttpUtils`, `IdUtils`, `JsonUtils`, `NetUtils`
 - `NodeUtils`, `NumberUtils`, `OSUtils`, `ProxyUtils`, `RandomUtils`
 - `RateLimitUtils`, `ReflectionUtils`, `StringUtils`, `ThreadUtils`, `TimeUtils`
 
