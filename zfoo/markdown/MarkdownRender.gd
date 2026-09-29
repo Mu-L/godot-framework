@@ -23,68 +23,58 @@ static func render_markdown_with_images(label: RichTextLabel, result: MarkdownPa
 
 
 static func append_markdown_image(label: RichTextLabel, markdown_image: MarkdownParseResult.MarkdownImage) -> void:
-	label.add_image(create_image_placeholder(), 0, 0, Color.WHITE, 5, Rect2(), markdown_image.image_url, false, markdown_image.alt_text)
-	if HttpUtils.is_valid_http_url(markdown_image.image_url):
-		var cache_path := remote_image_cache_path(markdown_image.image_url)
+	var image_url := markdown_image.image_url
+	label.add_image(create_image_placeholder(), 0, 0, Color.WHITE, 5, Rect2(), image_url, false, markdown_image.alt_text)
+	if HttpUtils.is_valid_http_url(image_url):
+		var cache_path := remote_image_cache_path(image_url)
 		if FileAccess.file_exists(cache_path):
-			load_local_image_into_label(label, markdown_image, cache_path)
+			load_image_into_label(label, image_url, cache_path)
 			return
-		if is_image_downloading(label, markdown_image.image_url):
+		if is_image_downloading(label, image_url):
 			return
-		set_image_downloading(label, markdown_image.image_url, true)
-		download_remote_image(label, markdown_image, cache_path)
+		set_image_downloading(label, image_url, true)
+		download_remote_image(label, image_url, cache_path)
 		return
-	load_local_image_into_label(label, markdown_image, markdown_image.image_url)
+	load_image_into_label(label, image_url, image_url)
 	pass
 
 
-static func load_local_image_into_label(
-		label: RichTextLabel,
-		markdown_image: MarkdownParseResult.MarkdownImage,
-		path: String
-) -> void:
+static func load_image_into_label(label: RichTextLabel, image_url: String, path: String) -> void:
 	var texture: Texture2D = await ResourceHelper.async_load(path)
 	if texture == null or not is_instance_valid(label):
 		return
-	label.update_image(markdown_image.image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
+	label.update_image(image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
 	pass
 
 
-static func download_remote_image(
-		label: RichTextLabel,
-		markdown_image: MarkdownParseResult.MarkdownImage,
-		cache_path: String
-) -> void:
-	var response := await HttpHelper.async_get(markdown_image.image_url)
+static func download_remote_image(label: RichTextLabel, image_url: String, cache_path: String) -> void:
+	var texture := await download_remote_image_texture(image_url, cache_path)
 	if not is_instance_valid(label):
 		return
+	set_image_downloading(label, image_url, false)
+	if texture != null:
+		label.update_image(image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
+	pass
+
+
+static func download_remote_image_texture(image_url: String, cache_path: String) -> Texture2D:
+	var response := await HttpHelper.async_get(image_url)
 	if not response.success or response.code < 200 or response.code >= 300 or response.body.is_empty():
-		Log.error("markdown image download failed url:[{}] code:[{}]", markdown_image.image_url, response.code)
-		set_image_downloading(label, markdown_image.image_url, false)
-		return
+		Log.error("markdown image download failed url:[{}] code:[{}]", image_url, response.code)
+		return null
 	if response.body.size() > MAX_REMOTE_IMAGE_BYTES:
-		Log.error("markdown image is too large url:[{}] bytes:[{}]", markdown_image.image_url, response.body.size())
-		set_image_downloading(label, markdown_image.image_url, false)
-		return
+		Log.error("markdown image is too large url:[{}] bytes:[{}]", image_url, response.body.size())
+		return null
 	var image := decode_image(response.body)
 	if image == null:
-		Log.error("markdown image decode failed url:[{}]", markdown_image.image_url)
-		set_image_downloading(label, markdown_image.image_url, false)
-		return
+		Log.error("markdown image decode failed url:[{}]", image_url)
+		return null
 	var cache_error := save_cached_image(image, cache_path)
 	if cache_error != OK:
 		Log.error("markdown image cache failed path:[{}] err:[{}]", cache_path, cache_error)
-		set_image_downloading(label, markdown_image.image_url, false)
-		return
+		return null
 	var texture: Texture2D = await ResourceHelper.async_load(cache_path)
-	if texture == null:
-		set_image_downloading(label, markdown_image.image_url, false)
-		return
-	if not is_instance_valid(label):
-		return
-	label.update_image(markdown_image.image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
-	set_image_downloading(label, markdown_image.image_url, false)
-	pass
+	return texture
 
 
 static func decode_image(bytes: PackedByteArray) -> Image:

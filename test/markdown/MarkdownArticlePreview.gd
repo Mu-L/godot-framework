@@ -95,7 +95,8 @@ The second matrix records the block-level coverage provided by this article. The
 | Tilde fence | Triple tildes | Section 3 | Same code treatment |
 | Tables | Header separator row | Section 4 and 6 | Grid, padding, header fill |
 | Horizontal rules | `---`, `* * *`, `___` | Sections 7 and conclusion | Full-width divider |
-| Images | `![alt](path)` | Section 5 | Aspect-safe scaling |
+| Local images | `![alt](res://path)` | Section 5 | Resource loading and scaling |
+| Remote images | `![alt](https://...)` | Section 5 | Download, cache, and replacement |
 
 ## 5. Image Gallery
 
@@ -112,6 +113,12 @@ These three JPEG files verify consecutive images, differing aspect ratios, scali
 ![Tank test image two](res://.ai/test/image/tank2.jpg)
 
 ![Tank test image three](res://.ai/test/image/tank3.jpg)
+
+### Remote Image
+
+The Godot logo below is downloaded over HTTPS. It verifies the remote-image request, local cache, placeholder replacement, and repeated-render behavior.
+
+![Remote Godot logo](https://raw.githubusercontent.com/github/explore/main/topics/godot/godot.png)
 
 ## 6. 中文排版测试
 
@@ -169,7 +176,7 @@ ___
 
 ## Conclusion
 
-The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four images, scrolling, and text selection render correctly.
+The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four local images, the remote image, scrolling, and text selection render correctly.
 """
 
 @onready var background: ColorRect = $Background
