@@ -36,6 +36,10 @@ extends Object
 ## instead of becoming a live tag. Restore runs high index → low because an outer
 ## token's body holds the inner tokens it was built from.
 
+# ---------------------------------------------------------------------------
+# Constants and patterns
+# ---------------------------------------------------------------------------
+
 # h1–h6; body uses RichTextLabel default size. Headline/Title steps of [Typography]: h4 and h5
 # both land on title_large because the 20px step has no counterpart in the scale.
 const HEADING_FONT_SIZES: PackedInt32Array = [
@@ -123,6 +127,10 @@ static func compile_regex(pattern: String) -> RegEx:
 	return regex
 
 
+# ---------------------------------------------------------------------------
+# Parser entry point
+# ---------------------------------------------------------------------------
+
 ## Parses Markdown into RichTextLabel BBCode plus ordered image metadata.
 ## Colors come from [ColorMarkdown], so [member MarkdownParseResult.bbcode] follows the current theme.
 static func to_bbcode(markdown: String) -> MarkdownParseResult:
@@ -209,6 +217,10 @@ static func to_bbcode(markdown: String) -> MarkdownParseResult:
 	return result
 
 
+# ---------------------------------------------------------------------------
+# Shared block helpers
+# ---------------------------------------------------------------------------
+
 ## CRLF / lone CR → LF so Windows sources do not leave `\r` on markers.
 static func normalize_newlines(text: String) -> String:
 	return text.replace(FileUtils.NEWLINE_CRLF, FileUtils.NEWLINE_LF).replace(FileUtils.NEWLINE_CR, FileUtils.NEWLINE_LF)
@@ -220,6 +232,10 @@ static func count_leading_spaces(line: String) -> int:
 		n += 1
 	return n
 
+
+# ---------------------------------------------------------------------------
+# Headings
+# ---------------------------------------------------------------------------
 
 ## CommonMark ATX: 0–3 leading spaces. 4+ is indented code, not a heading.
 static func atx_content_source(line: String) -> String:
@@ -261,6 +277,10 @@ static func strip_closing_atx_hashes(content: String) -> String:
 		return content.substr(0, i).strip_edges()
 	return content
 
+
+# ---------------------------------------------------------------------------
+# Fenced code blocks
+# ---------------------------------------------------------------------------
 
 ## Opening fence: ` ``` ` or ` ~~~ ` (run ≥ 3). An info string provides the language title.
 static func parse_code_fence(line: String) -> String:
@@ -304,6 +324,52 @@ static func is_closing_fence(line: String, fence: String) -> bool:
 	return true
 
 
+## One full-width code cell wrapped in an outer gutter-preserving cell.
+static func format_code_fence_bbcode(code: String, language: String = StringUtils.EMPTY) -> String:
+	var title := StringUtils.EMPTY
+	if StringUtils.is_not_empty(language):
+		title = StringUtils.format(
+				"[color={}][b]{}{}[/b][/color]\n",
+				to_bbcode_color(ColorBase.teal), CODE_LANGUAGE_PREFIX, escape_bbcode_literals(language)
+		)
+	var block := StringUtils.format(
+			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}{}[/cell][/table]",
+			to_bbcode_color(ColorMarkdown.code_block_bg),
+			CODE_BLOCK_PADDING,
+			title,
+			wrap_code(code)
+	)
+	return StringUtils.format(
+			"[table=1][cell padding={}]{}[/cell][/table]",
+			CODE_BLOCK_RIGHT_GUTTER,
+			block
+	)
+
+
+## Inline code uses the same monospace wrapper with a compact themed background.
+static func add_code_background(code: String) -> String:
+	return StringUtils.format(
+			"{}[bgcolor={}]{}[/bgcolor]{}",
+			INLINE_CODE_MARGIN,
+			to_bbcode_color(ColorMarkdown.inline_code_bg),
+			wrap_code(code),
+			INLINE_CODE_MARGIN
+	)
+
+
+static func wrap_code(code: String) -> String:
+	return StringUtils.format("[code]{}[/code]", escape_bbcode_literals(preserve_code_spaces(code)))
+
+
+## RichTextLabel collapses ASCII spaces in `[code]`; NBSP preserves indentation.
+static func preserve_code_spaces(code: String) -> String:
+	return code.replace("\t", "    ").replace(" ", NBSP)
+
+
+# ---------------------------------------------------------------------------
+# Horizontal rules
+# ---------------------------------------------------------------------------
+
 ## Thematic break: `---`, `***`, `___`, or `- - -`. Mixed `-_*-` is not an HR.
 static func is_horizontal_rule_line(line: String) -> bool:
 	var trimmed := line.strip_edges()
@@ -326,6 +392,10 @@ static func is_horizontal_rule_line(line: String) -> bool:
 static func format_horizontal_rule_line() -> String:
 	return StringUtils.format("[hr width=100% height=1 color={}]", to_bbcode_color(ColorMarkdown.table_grid_color))
 
+
+# ---------------------------------------------------------------------------
+# Blockquotes and GitHub-style alerts
+# ---------------------------------------------------------------------------
 
 ## `>` after 0–3 spaces. Nested `>>` is left as leftover `>` in the quote body.
 static func is_blockquote_line(line: String) -> bool:
@@ -416,6 +486,10 @@ static func get_admonition_color(kind: String) -> Color:
 		"CAUTION": return ColorBase.error
 		_: return ColorBase.info
 
+
+# ---------------------------------------------------------------------------
+# Tables
+# ---------------------------------------------------------------------------
 
 ## GFM table: header row + `\| --- \|` separator + body rows. Needs the separator line.
 static func parse_table_block(lines: PackedStringArray, start: int, result: MarkdownParseResult) -> Dictionary:
@@ -516,6 +590,10 @@ static func format_table_cell(text: String, is_header: bool, result: MarkdownPar
 	)
 
 
+# ---------------------------------------------------------------------------
+# Lists and tasks
+# ---------------------------------------------------------------------------
+
 ## `- item` / `* item` / `+ item` → `• item`; `1. item` / `1) item` → `1. item`.
 static func format_list_line(line: String, result: MarkdownParseResult) -> String:
 	var prefix_len := parse_unordered_list_prefix_length(line)
@@ -585,6 +663,10 @@ static func parse_leading_integer_length(text: String) -> int:
 		n += 1
 	return n
 
+
+# ---------------------------------------------------------------------------
+# Inline parsing
+# ---------------------------------------------------------------------------
 
 ## Inline Markdown → BBCode. Protect → escape leftover brackets → restore.
 static func inline_to_bbcode(text: String, result: MarkdownParseResult = null) -> String:
@@ -677,6 +759,10 @@ static func replace_inline_match(
 	return StringUtils.EMPTY
 
 
+# ---------------------------------------------------------------------------
+# Link and file markers
+# ---------------------------------------------------------------------------
+
 ## Adds a theme-colored visual marker based on the link destination type.
 static func get_link_prefix(path: String) -> String:
 	if HttpUtils.is_valid_http_url(path):
@@ -718,56 +804,9 @@ static func parse_link_destination(raw: String) -> String:
 	return dest.substr(0, cut).strip_edges()
 
 
-## Fenced block → one full-width `[cell]` with background only, wrapped in an outer cell
-## that reserves the background spill ([constant CODE_BLOCK_RIGHT_GUTTER]) — the fill
-## otherwise ends on the bubble's right edge instead of keeping the left margin's gap.
-static func format_code_fence_bbcode(code: String, language: String = StringUtils.EMPTY) -> String:
-	var title := StringUtils.EMPTY
-	if StringUtils.is_not_empty(language):
-		title = StringUtils.format(
-				"[color={}][b]{}{}[/b][/color]\n",
-				to_bbcode_color(ColorBase.teal), CODE_LANGUAGE_PREFIX, escape_bbcode_literals(language)
-		)
-	var block := StringUtils.format(
-			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}{}[/cell][/table]",
-			to_bbcode_color(ColorMarkdown.code_block_bg),
-			CODE_BLOCK_PADDING,
-			title,
-			wrap_code(code)
-	)
-	return StringUtils.format(
-			"[table=1][cell padding={}]{}[/cell][/table]",
-			CODE_BLOCK_RIGHT_GUTTER,
-			block
-	)
-
-
-## Inline `` `code` `` → mono `[code]` plus a `[bgcolor]` chip behind it. The fenced
-## block's `[table]` fill would break the paragraph flow, so the tint is the text
-## background effect instead; the box around it is sized by
-## [constant MarkdownHelper.HIGHLIGHT_H_PADDING] / [constant MarkdownHelper.HIGHLIGHT_V_PADDING], which
-## [method MarkdownHelper.create_rich_text_label] installs on the label, and
-## [constant INLINE_CODE_MARGIN] keeps it clear of the surrounding prose.
-static func add_code_background(code: String) -> String:
-	return StringUtils.format(
-			"{}[bgcolor={}]{}[/bgcolor]{}",
-			INLINE_CODE_MARGIN,
-			to_bbcode_color(ColorMarkdown.inline_code_bg),
-			wrap_code(code),
-			INLINE_CODE_MARGIN
-	)
-
-
-## `[code]` only — mono font, no fill (see [method add_code_background] for the chip).
-static func wrap_code(code: String) -> String:
-	return StringUtils.format("[code]{}[/code]", escape_bbcode_literals(preserve_code_spaces(code)))
-
-
-## RichTextLabel collapses ASCII spaces in `[code]`; NBSP keeps indent visible and
-## [method MarkdownHelper.copy_to_clipboard] turns them back into spaces on the way out.
-static func preserve_code_spaces(code: String) -> String:
-	return code.replace("\t", "    ").replace(" ", NBSP)
-
+# ---------------------------------------------------------------------------
+# Protected replacement and BBCode utilities
+# ---------------------------------------------------------------------------
 
 ## Stash finished BBCode and leave a token that no inline regex will match.
 static func protect(parts: Array[String], bbcode: String) -> String:
