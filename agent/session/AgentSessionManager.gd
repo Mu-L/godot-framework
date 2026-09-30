@@ -477,6 +477,8 @@ static func on_tool_execution_start(session_id: int, _tool_call_id: String, tool
 			body = str(args.get(ListDirTool.ARG_PATH, ""))
 		BashTool.NAME:
 			body = str(args.get(BashTool.ARG_COMMAND, ""))
+		ImageToTextTool.NAME:
+			body = str(args.get(ImageToTextTool.ARG_PATH, "")) + FileUtils.NEWLINE_LF + str(args.get(ImageToTextTool.ARG_PROMPT, ""))
 		WebSearchToolProxy.NAME, WebSearchToolBing.NAME:
 			body = str(args.get(WebSearchToolProxy.ARG_QUERY, ""))
 		WebFetchTool.NAME:

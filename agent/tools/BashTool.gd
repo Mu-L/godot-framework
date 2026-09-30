@@ -38,7 +38,7 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	return AgentToolResult.new(text, is_error,  AgentToolResult.ui_details(exit_code, result))
 # AgentTool-Interface-Implement-End
 
-func build_argv_from_command(command: String) -> PackedStringArray:
+static func build_argv_from_command(command: String) -> PackedStringArray:
 	var bash := "/bin/bash"
 	if OSUtils.is_windows():
 		bash = GitUtils.find_windows_git_bash()

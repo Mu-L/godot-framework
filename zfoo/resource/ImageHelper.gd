@@ -19,9 +19,9 @@ static func load_external_image(path: String) -> ImageTexture:
 	return ImageTexture.create_from_image(image) if image != null and not image.is_empty() else null
 
 
-static func get_image_format(path: String) -> String:
+static func get_image_format(path: String, default_format: String = png) -> String:
 	var extension := StringUtils.substring_after_last(path.to_lower(), ".")
-	return extension if EXTENSIONS.has(extension) else png
+	return extension if EXTENSIONS.has(extension) else default_format
 
 
 static func detect_image_format(bytes: PackedByteArray) -> String:

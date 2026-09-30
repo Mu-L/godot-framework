@@ -28,6 +28,7 @@ func get_image_format_test() -> void:
 	assert(ImageHelper.get_image_format("https://example.com/photo.webp") == ImageHelper.webp)
 	assert(ImageHelper.get_image_format("https://example.com/photo") == ImageHelper.png)
 	assert(ImageHelper.get_image_format("res://document.txt") == ImageHelper.png)
+	assert(ImageHelper.get_image_format("res://document.txt", ImageHelper.webp) == ImageHelper.webp)
 	pass
 
 
