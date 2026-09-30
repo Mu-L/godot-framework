@@ -97,14 +97,15 @@ func clear_drop_focus_guard() -> void:
 	pass
 
 
-## Godot exposes clipboard text and images, but not Explorer's CF_HDROP file list. On Windows,
-## ask PowerShell for that format only when the text flavor is empty, leaving ordinary paste native.
+## Godot exposes clipboard text and images, but not Explorer's CF_HDROP file list. Explorer may
+## publish both FileDropList and text flavors for copied files, so always inspect FileDropList on
+## Windows; an empty result lets ordinary text continue through the native paste path.
 func get_pasted_file_markdown() -> String:
-	if not OSUtils.is_windows() or not DisplayServer.clipboard_get().is_empty():
+	if not OSUtils.is_windows():
 		return StringUtils.EMPTY
-	var script := "$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); " \
-		+ "Get-Clipboard -Format FileDropList -ErrorAction SilentlyContinue | " \
-		+ "ForEach-Object { [Console]::Out.WriteLine($_.FullName) }"
+	# Base64 keeps Unicode paths intact across the Windows process pipe regardless of its code page.
+	var script := "Get-Clipboard -Format FileDropList -ErrorAction SilentlyContinue | " \
+		+ "ForEach-Object { [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($_.FullName)) }"
 	var result := OSUtils.execute(PackedStringArray([
 		"powershell.exe", "-NoProfile", "-NonInteractive", "-STA", "-Command", script
 	]), false)
@@ -113,7 +114,7 @@ func get_pasted_file_markdown() -> String:
 	var files := PackedStringArray()
 	var output := FileUtils.normalize_line_endings_to_lf(result.output.build_string())
 	for line in output.split(FileUtils.NEWLINE_LF, false):
-		var path := line.strip_edges()
+		var path := Marshalls.base64_to_utf8(line.strip_edges())
 		if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(path):
 			files.append(path)
 	return format_files_as_markdown(files)
