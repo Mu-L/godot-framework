@@ -83,14 +83,16 @@ static func create_placeholder_texture(width: int = 160, height: int = 90) -> Im
 	var background := ColorBase.control_surface.to_html(false)
 	var border := ColorBase.subtle_border.to_html(false)
 	var icon := ColorBase.secondary_text.to_html(false)
-	var svg := """<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 160 90">
-	<rect x="0.5" y="0.5" width="159" height="89" rx="8" fill="#%s" stroke="#%s"/>
-	<g fill="none" stroke="#%s" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+	var svg_template := """
+	<svg xmlns="http://www.w3.org/2000/svg" width="{}" height="{}" viewBox="0 0 160 90">
+	<rect x="0.5" y="0.5" width="159" height="89" rx="8" fill="#{}" stroke="#{}"/>
+	<g fill="none" stroke="#{}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 		<rect x="61" y="29" width="38" height="32" rx="4"/>
-		<circle cx="88" cy="39" r="3" fill="#%s" stroke="none"/>
+		<circle cx="88" cy="39" r="3" fill="#{}" stroke="none"/>
 		<path d="M65 56l10-10 7 7 5-5 8 8"/>
 	</g>
-</svg>""" % [width, height, background, border, icon, icon]
+	</svg>"""
+	var svg := StringUtils.format(svg_template, width, height, background, border, icon, icon)
 	var image := Image.new()
 	if image.load_svg_from_buffer(svg.to_utf8_buffer()) != OK:
 		image = Image.create(width, height, false, Image.FORMAT_RGBA8)
