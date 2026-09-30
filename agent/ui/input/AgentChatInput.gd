@@ -14,6 +14,7 @@ var input_inner: Control
 var input_field: TextEdit
 var send_button: Button
 var border_beam: AccentBorderBeamLayer
+var file_input: AgentChatInputFile = AgentChatInputFile.new()
 
 var expanded: bool = false
 var force_expanded: bool = false
@@ -25,7 +26,6 @@ var tween_start_left: float = 0.0
 var tween_target_left: float = 0.0
 var tween_bar_size: Vector2 = Vector2.ZERO
 var tween_expand_target: bool = false
-var drop_focus_guard: bool = false
 
 
 # ---------------------------------------------------------------------------
@@ -61,8 +61,8 @@ func setup(
 	input_field.focus_exited.connect(on_field_focus_exited)
 	input_wrap.gui_input.connect(on_wrap_gui_input)
 	input_bar.resized.connect(layout_bar)
-	input_bar.get_window().files_dropped.connect(on_files_dropped)
 	input_bar.get_window().window_input.connect(on_global_input)
+	file_input.setup(input_bar, input_wrap, input_field, prepare_file_drop, focus_input_field, restore_caret)
 	gdf.events.theme_changed.connect(on_ui_theme_changed)
 	gdf.events.theme_color_changed.connect(on_ui_theme_changed)
 	gdf.events.locale_changed.connect(on_ui_theme_changed)
@@ -174,17 +174,17 @@ func refresh_from_active_session() -> void:
 
 
 func apply_theme() -> void:
-	style_wrap()
-	style_field()
+	AgentChatInputTheme.apply_wrap(input_wrap, expanded)
+	AgentChatInputTheme.apply_field(input_field)
 	var running: bool = AgentSessionManager.is_running(AgentSessionManager.active_session_id)
-	set_send_button_appearance(running)
+	AgentChatInputTheme.apply_send_button(send_button, running)
 	pass
 
 
 func refresh_state(running: bool, no_history: bool = false) -> void:
 	force_expanded = no_history and not running
 	var enabling: bool = not input_field.editable and not running
-	set_send_button_appearance(running)
+	AgentChatInputTheme.apply_send_button(send_button, running)
 	input_field.editable = not running
 	if force_expanded:
 		set_expanded(true, false)
@@ -220,7 +220,7 @@ func collapse_after_send() -> void:
 
 
 func on_global_input(event: InputEvent) -> void:
-	if not expanded or drop_focus_guard:
+	if not expanded or file_input.is_drop_focus_guarded():
 		return
 	if event is InputEventMouseButton:
 		var mouse: InputEventMouseButton = event as InputEventMouseButton
@@ -252,40 +252,12 @@ func on_input_action_pressed() -> void:
 		expand_if_collapsed()
 		focus_input_field.call_deferred()
 		return
-	if not ensure_git_installed(session.id):
+	if not AgentChatInputDependencyGuard.ensure_git_installed(session.id):
 		return
-	append_python_install_message(session)
+	AgentChatInputDependencyGuard.append_python_install_message(session)
 	clear_text()
 	collapse_after_send()
 	await AgentSessionManager.async_send(session.id, text)
-	pass
-
-
-## Blocks the turn when Git is missing and posts an install hint (clickable link) as an agent bubble.
-func ensure_git_installed(session_id: int) -> bool:
-	if GitUtils.is_git_installed():
-		return true
-	var url: String = GitUtils.get_download_url()
-	AgentSessionManager.add_chat_entry(
-			session_id,
-			ChatEntry.KIND_AGENT,
-			"Git",
-			"Git is not installed. Install it, then restart the app."
-					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-					+ "The agent uses Git to track and revert code changes and Bash to execute shell commands."
-					+ FileUtils.NEWLINE_LF + FileUtils.NEWLINE_LF
-					+ StringUtils.format("Git Download: [{}]({})", url, url)
-	)
-	return false
-
-
-## When Python is missing, append a separate user message that asks the agent to install it.
-func append_python_install_message(session: AgentSession) -> void:
-	if DependencyManifest.has_populated_runtime(DependencyManifest.PYTHON_PATH):
-		return
-	var prompt := DependencyManifest.PYTHON_INSTALL_PROMPT
-	session.messages.append(ChatMessage.user(prompt))
-	AgentSessionManager.add_chat_entry(session.id, ChatEntry.KIND_USER, ChatEntry.TITLE_USER, prompt)
 	pass
 
 
@@ -319,6 +291,10 @@ func on_field_gui_input(event: InputEvent) -> void:
 		var key: InputEventKey = event as InputEventKey
 		if not key.pressed or key.echo:
 			return
+		if key.is_action_pressed("ui_paste") and file_input.paste_clipboard_files():
+			input_field.accept_event()
+			input_field.get_viewport().set_input_as_handled()
+			return
 		var is_enter: bool = key.keycode == KEY_ENTER or key.keycode == KEY_KP_ENTER
 		if not is_enter:
 			is_enter = key.physical_keycode == KEY_ENTER or key.physical_keycode == KEY_KP_ENTER
@@ -335,36 +311,11 @@ func on_field_gui_input(event: InputEvent) -> void:
 	pass
 
 
-func on_files_dropped(files: PackedStringArray) -> void:
-	if not input_field.editable or files.is_empty() or not input_bar.is_inside_tree():
-		return
-	var build: StringBuilder = StringBuilder.new()
-	for file in files:
-		if file.ends_with(".uid"):
-			continue
-		build.append("\t" + MarkdownHelper.format_file_as_markdown(file) + "\t")
-	var mouse: Vector2 = input_bar.get_global_mouse_position()
-	if not input_wrap.get_global_rect().has_point(mouse) and not input_bar.get_global_rect().has_point(mouse):
-		return
-	drop_focus_guard = true
+func prepare_file_drop() -> void:
 	if layout_tween != null:
 		layout_tween.kill()
 		layout_tween = null
 	set_expanded(true, false)
-	insert_dropped_files.call_deferred(build.build_string())
-	var guard_timer: SceneTreeTimer = input_bar.get_tree().create_timer(0.4)
-	guard_timer.timeout.connect(clear_drop_focus_guard, CONNECT_ONE_SHOT)
-	pass
-
-
-func insert_dropped_files(paths: String) -> void:
-	if not input_field.editable or paths.is_empty():
-		return
-	restore_caret()
-	input_field.insert_text_at_caret(paths)
-	focus_input_field.call_deferred()
-	var retry_timer: SceneTreeTimer = input_bar.get_tree().create_timer(0.05)
-	retry_timer.timeout.connect(focus_input_field, CONNECT_ONE_SHOT)
 	pass
 
 
@@ -382,11 +333,6 @@ func focus_input_field() -> void:
 	pass
 
 
-func clear_drop_focus_guard() -> void:
-	drop_focus_guard = false
-	pass
-
-
 func on_field_focus_entered() -> void:
 	if not expanded:
 		set_expanded(true, true)
@@ -398,7 +344,7 @@ func on_field_focus_entered() -> void:
 
 
 func on_field_focus_exited() -> void:
-	if drop_focus_guard:
+	if file_input.is_drop_focus_guarded():
 		return
 	refresh_border_beam()
 	try_collapse.call_deferred()
@@ -429,7 +375,7 @@ func expand_if_collapsed() -> void:
 func restore_caret() -> void:
 	if not input_field.editable:
 		return
-	style_field()
+	AgentChatInputTheme.apply_field(input_field)
 	var line: int = maxi(0, input_field.get_line_count() - 1)
 	var col: int = input_field.get_line(line).length()
 	input_field.set_caret_line(line)
@@ -540,7 +486,7 @@ func layout_bar() -> void:
 		input_field.scroll_fit_content_height = true
 	input_wrap.tooltip_text = "" if expanded else I18n.t("agent.input.click_to_ask")
 	layout_send_button(expanded)
-	style_wrap()
+	AgentChatInputTheme.apply_wrap(input_wrap, expanded)
 	layout_border_beam()
 	refresh_border_beam()
 	pass
@@ -641,123 +587,3 @@ func sync_expanded_height_after_layout() -> void:
 	if absf(wrap_offset_height() - target_h) > 1.0:
 		layout_bar()
 	pass
-
-
-# ---------------------------------------------------------------------------
-# Theme
-# ---------------------------------------------------------------------------
-
-func style_wrap() -> void:
-	input_wrap.add_theme_stylebox_override("panel", build_wrap_style(expanded))
-	pass
-
-
-func build_wrap_style(is_expanded: bool) -> StyleBoxFlat:
-	var wrap_style := StyleBoxHelper.create_style_box_flat(ColorBase.surface, 16 if is_expanded else int(ControlSize.xl / 2), Margin.ma_1, Margin.ma_1)
-	if ThemeColor.is_dark_theme():
-		wrap_style.shadow_color = Color(0, 0, 0, 0.40)
-		wrap_style.shadow_size = 16 if is_expanded else 10
-		wrap_style.shadow_offset = Vector2(0, 6 if is_expanded else 4)
-	else:
-		wrap_style.shadow_color = Color(0, 0, 0, 0.08)
-		wrap_style.shadow_size = 12 if is_expanded else 8
-		wrap_style.shadow_offset = Vector2(0, 4 if is_expanded else 2)
-	return wrap_style
-
-
-func build_field_style() -> StyleBoxFlat:
-	var style := StyleBoxHelper.create_style_box_flat(Color.TRANSPARENT, 0, Margin.ma_3, Margin.ma_3)
-	style.content_margin_right = Margin.ma_13
-	return style
-
-
-func style_field() -> void:
-	var input_style: StyleBoxFlat = build_field_style()
-	input_field.add_theme_stylebox_override("normal", input_style)
-	input_field.add_theme_stylebox_override("focus", input_style.duplicate())
-	input_field.add_theme_stylebox_override("read_only", input_style.duplicate())
-	input_field.add_theme_font_override("font", Fonts.regular())
-	input_field.add_theme_color_override("font_color", ColorBase.primary_text)
-	input_field.add_theme_color_override("font_placeholder_color", ColorBase.secondary_text)
-	input_field.add_theme_color_override("font_readonly_color", ColorBase.secondary_text)
-	# Caret and highlight follow the theme color (same pair the sidebar rename field and the
-	# chat bubbles use), so neither keeps a stale hue after a theme or theme-color change.
-	input_field.add_theme_color_override("caret_color", ThemeColor.accent_theme_color())
-	input_field.add_theme_color_override("font_selected_color", ThemeColor.title_color)
-	input_field.add_theme_color_override("selection_color", ThemeColor.selection_color)
-	ScrollBarStyle.apply(input_field.get_v_scroll_bar())
-	ScrollBarStyle.apply(input_field.get_h_scroll_bar())
-	input_field.caret_blink = true
-	pass
-
-
-# ---------------------------------------------------------------------------
-# Send button & icons
-# ---------------------------------------------------------------------------
-
-func configure_send_button(icon: ImageTexture, tooltip: String, base_color: Color) -> void:
-	send_button.tooltip_text = tooltip
-	send_button.icon = icon
-	send_button.add_theme_constant_override("icon_max_width", 16)
-	send_button.add_theme_constant_override("icon_max_height", 16)
-	apply_send_button_style(base_color)
-	pass
-
-
-func set_send_button_appearance(running: bool) -> void:
-	if running:
-		configure_send_button(make_stop_icon(16, Color.WHITE), I18n.t("agent.input.stop"), ColorBase.error)
-	else:
-		configure_send_button(
-				make_arrow_up_icon(16, Color.WHITE),
-				I18n.t("agent.input.send"),
-				ThemeColor.accent_theme_color()
-		)
-	pass
-
-
-func apply_send_button_style(base_color: Color) -> void:
-	# Radius = half the diameter, and small content margins so the stylebox minimum size
-	# (margin + 16px icon + margin) stays below ControlSize.md, keeping the box a real square.
-	var radius: int = int(ControlSize.md * 0.5)
-	# Solid fill: hover / pressed / disabled read as plain shading, so they never flip with the theme.
-	var normal := StyleBoxHelper.create_style_box_flat(base_color, radius, Margin.ma_1, Margin.ma_1)
-	ButtonStyle.apply(send_button, normal,
-		ButtonStyle.filled(normal, base_color.lightened(0.10)),
-		ButtonStyle.filled(normal, base_color.darkened(0.08)),
-		ButtonStyle.filled(normal, base_color.darkened(0.25)))
-	send_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pass
-
-
-func make_arrow_up_icon(size: int, color: Color) -> ImageTexture:
-	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-	var cx: int = size / 2
-	var top: int = int(size * 0.12)
-	var bottom: int = int(size * 0.72)
-	var half_w: int = int(size * 0.34)
-	for y in range(top, bottom + 1):
-		var progress: float = float(y - top) / float(bottom - top)
-		var half_width: int = int(float(half_w) * progress)
-		for x in range(cx - half_width, cx + half_width + 1):
-			img.set_pixel(x, y, color)
-	var stem_w: int = maxi(1, int(size * 0.12))
-	var stem_left: int = cx - stem_w / 2
-	var stem_right: int = stem_left + stem_w - 1
-	for y in range(bottom, size):
-		for x in range(stem_left, stem_right + 1):
-			img.set_pixel(x, y, color)
-	return ImageTexture.create_from_image(img)
-
-
-func make_stop_icon(size: int, color: Color) -> ImageTexture:
-	var img: Image = Image.create(size, size, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0, 0, 0, 0))
-	var square_size: int = maxi(4, int(size * 0.56))
-	var left: int = (size - square_size) / 2
-	var top: int = (size - square_size) / 2
-	for y in range(top, top + square_size):
-		for x in range(left, left + square_size):
-			img.set_pixel(x, y, color)
-	return ImageTexture.create_from_image(img)
