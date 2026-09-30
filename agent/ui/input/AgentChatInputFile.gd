@@ -37,14 +37,16 @@ func is_drop_focus_guarded() -> bool:
 func paste_clipboard_files() -> bool:
 	if not input_field.editable:
 		return false
-	var image_markdown := save_clipboard_image()
-	if not image_markdown.is_empty():
-		input_field.insert_text_at_caret(image_markdown)
+	# Explorer can expose copied image files both as image pixels and as a FileDropList. Prefer the
+	# file list so a mixed selection (for example, images plus videos) is pasted in full.
+	var file_markdown := get_pasted_file_markdown()
+	if not file_markdown.is_empty():
+		input_field.insert_text_at_caret(file_markdown)
 		return true
-	var markdown := get_pasted_file_markdown()
-	if markdown.is_empty():
+	var image_markdown := save_clipboard_image()
+	if image_markdown.is_empty():
 		return false
-	input_field.insert_text_at_caret(markdown)
+	input_field.insert_text_at_caret(image_markdown)
 	return true
 
 
@@ -103,21 +105,31 @@ func clear_drop_focus_guard() -> void:
 func get_pasted_file_markdown() -> String:
 	if not OSUtils.is_windows():
 		return StringUtils.EMPTY
-	# Base64 keeps Unicode paths intact across the Windows process pipe regardless of its code page.
-	var script := "Get-Clipboard -Format FileDropList -ErrorAction SilentlyContinue | " \
-		+ "ForEach-Object { [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($_.FullName)) }"
+	# Get-Clipboard passes FileDropList as one collection object on some PowerShell versions, causing
+	# a direct pipeline to join all paths into one invalid path. Expand FullName before encoding items.
+	# Base64 keeps Unicode paths intact; commas are safe delimiters because Base64 never contains them.
+	var script := "$paths = (Get-Clipboard -Format FileDropList -ErrorAction SilentlyContinue).FullName; " \
+		+ "$encoded = foreach ($path in $paths) { " \
+		+ "[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($path)) }; " \
+		+ "[Console]::Out.Write(($encoded -join ','))"
 	var result := OSUtils.execute(PackedStringArray([
 		"powershell.exe", "-NoProfile", "-NonInteractive", "-STA", "-Command", script
 	]), false)
 	if result.exit_code != 0:
 		return StringUtils.EMPTY
 	var files := PackedStringArray()
-	var output := FileUtils.normalize_line_endings_to_lf(result.output.build_string())
-	for line in output.split(FileUtils.NEWLINE_LF, false):
-		var path := Marshalls.base64_to_utf8(line.strip_edges())
+	var output := result.output.build_string().strip_edges()
+	for path in decode_clipboard_paths(output):
 		if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(path):
 			files.append(path)
 	return format_files_as_markdown(files)
+
+
+func decode_clipboard_paths(output: String) -> PackedStringArray:
+	var paths := PackedStringArray()
+	for encoded_path in output.split(",", false):
+		paths.append(Marshalls.base64_to_utf8(encoded_path.strip_edges()))
+	return paths
 
 
 func format_files_as_markdown(files: PackedStringArray) -> String:
