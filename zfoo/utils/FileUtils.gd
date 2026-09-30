@@ -58,9 +58,11 @@ static func get_project_root_path() -> String:
 # File read / write / delete
 # ---------------------------------------------------------------------------
 
-## Opens a file with the operating system's default application.
-## If the file has no associated application, opens its containing folder instead.
+## Opens a file or directory with the operating system's default application.
+## If a file has no associated application, opens its containing folder instead.
 static func open_file(path: String) -> int:
+	if DirAccess.dir_exists_absolute(path):
+		return OS.shell_open(path)
 	if not FileAccess.file_exists(path):
 		return ERR_FILE_NOT_FOUND
 	var error := OS.shell_open(path)

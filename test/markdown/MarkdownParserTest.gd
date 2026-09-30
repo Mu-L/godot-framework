@@ -296,8 +296,18 @@ func local_markdown_image_test() -> void:
 
 func dropped_file_markdown_test() -> void:
 	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.md") == "[notes.md](<C:/My Files/notes.md>)")
+	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\voice.WAV") == "[voice.WAV](<C:/My Files/voice.WAV>)")
 	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\photo.png") == "![photo.png](<C:/My Files/photo.png>)")
 	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\demo.MP4") == "![demo.MP4](<C:/My Files/demo.MP4>)")
+	pass
+
+
+func local_file_link_prefix_test() -> void:
+	var folder_path := ProjectSettings.globalize_path("res://zfoo/markdown").replace("\\", "/")
+	assert("📄 notes.md" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.md")))
+	assert("🎵 voice.WAV" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\voice.WAV")))
+	assert("📁 markdown" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown(folder_path)))
+	assert("📄" not in MarkdownParser.inline_to_bbcode("[website](https://example.com/file.txt)"))
 	pass
 
 

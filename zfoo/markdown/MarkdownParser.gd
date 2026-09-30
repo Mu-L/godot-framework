@@ -52,6 +52,9 @@ const PROTECT_START := "\uE000"
 const PROTECT_END := "\uE001"
 const ESCAPE_SENTINEL := "\uE002"
 const NBSP := "\u00A0"
+const FOLDER_PREFIX := "📁 "
+const FILE_PREFIX := "📄 "
+const AUDIO_PREFIX := "🎵 "
 const TABLE_CELL_PADDING := "8,4,8,4"
 const CODE_BLOCK_PADDING := "6,6,6,6"
 const BLOCKQUOTE_BAR_PADDING := "2,0,0,0"
@@ -576,8 +579,9 @@ static func replace_inline_match(
 			result.images.append(MarkdownParseResult.MarkdownImage.new(alt_text, image_url))
 			return protect(parts, StringUtils.format("[img]{}[/img]", url))
 		InlineReplacement.LINK:
-			var label := inline_body(match.get_string(1), parts, result)
-			var url := escape_bbcode_literals(parse_link_destination(match.get_string(2)))
+			var link_destination := parse_link_destination(match.get_string(2))
+			var label := get_local_file_prefix(link_destination) + inline_body(match.get_string(1), parts, result)
+			var url := escape_bbcode_literals(link_destination)
 			return protect(parts, StringUtils.format(
 					"[url={}][color={}]{}[/color][/url]",
 					url,
@@ -596,6 +600,19 @@ static func replace_inline_match(
 			return protect(parts, StringUtils.format("[i]{}[/i]", inline_body(match.get_string(1), parts, result)))
 	assert(false, "Unhandled inline replacement: %s" % replacement)
 	return StringUtils.EMPTY
+
+
+## Adds a visual type marker to local file links. Web links retain their authored label.
+static func get_local_file_prefix(path: String) -> String:
+	if HttpUtils.is_valid_http_url(path):
+		return StringUtils.EMPTY
+	if not (path.is_absolute_path() or path.begins_with("res://") or path.begins_with("user://")):
+		return StringUtils.EMPTY
+	if DirAccess.dir_exists_absolute(path):
+		return FOLDER_PREFIX
+	if ResourceHelper.AUDIO_EXTENSIONS.has(path.get_extension().to_lower()):
+		return AUDIO_PREFIX
+	return FILE_PREFIX
 
 
 ## Link/image dest: `[t](<url>)` unwraps; `[t](url "title")` / `[t](url 'title')` drops title.
