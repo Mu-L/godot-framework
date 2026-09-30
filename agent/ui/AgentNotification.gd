@@ -1,9 +1,9 @@
 class_name AgentNotification
 extends RefCounted
 
-## Desktop notifications for agent runs — a toast pops up bottom-right of the screen when a run
-## ends while the app window is in the background, plus an optional sound clip. Both are toggled
-## in [AgentSettingDialog] and persisted through [AgentNotifySetting].
+## Desktop notifications for agent runs — a toast pops up top-right while the app is active or
+## bottom-right while it is in the background, plus an optional sound clip. Both are toggled in
+## [AgentSettingDialog] and persisted through [AgentNotifySetting].
 
 
 ## Fade of the notification sound when it starts and when its configured duration elapses.
@@ -24,7 +24,7 @@ func setup() -> void:
 	pass
 
 
-## Desktop toast when a run ends — visible outside the app window, bottom-right of the screen.
+## Desktop toast when a run ends, positioned according to whether the app is currently active.
 func on_agent_end(session_id: int, error_message: String) -> void:
 	# A stop comes from the app window, so the user is already looking at it.
 	if error_message.begins_with("Stop"):
@@ -37,7 +37,8 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 	var entry: ChatEntry = session.chat_entries.back()
 	if AgentSetting.get_notification_window():
 		var accent := ColorBase.error if entry.kind == ChatEntry.KIND_ERROR else ColorBase.success
-		DesktopToast.show_toast(entry.title, entry.body, accent, Corner.CORNER_TOP_RIGHT)
+		var corner := Corner.CORNER_TOP_RIGHT if DisplayServer.window_is_focused(DisplayServer.MAIN_WINDOW_ID) else Corner.CORNER_BOTTOM_RIGHT
+		DesktopToast.show_toast(entry.title, entry.body, accent, corner)
 	if AgentSetting.get_notification_sound():
 		play_sound_notifications()
 	pass
