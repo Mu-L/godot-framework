@@ -120,6 +120,12 @@ The Godot logo below is downloaded over HTTPS. It verifies the remote-image requ
 
 ![Remote Godot logo](https://raw.githubusercontent.com/github/explore/main/topics/godot/godot.png)
 
+### Missing Remote Image
+
+The image below intentionally points to a missing remote file. It verifies the placeholder appearance when an image request fails.
+
+![Missing remote image](https://raw.githubusercontent.com/github/explore/main/topics/godot/this-image-does-not-exist.png)
+
 ## 6. 中文排版测试
 
 这一节专门检查中文 Markdown 的显示效果。中文正文应使用正确的字体，标点符号应该清晰，窗口变窄时需要自然换行，不能出现字符缺失或异常间距。

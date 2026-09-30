@@ -7,6 +7,13 @@ func external_image_test() -> void:
 	pass
 
 
+func create_placeholder_texture_test() -> void:
+	var texture := ImageHelper.create_placeholder_texture()
+	assert(texture != null)
+	assert(texture.get_size() == Vector2(160, 90))
+	pass
+
+
 func image_buffer_decode_test() -> void:
 	var source := Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	source.fill(Color.RED)
