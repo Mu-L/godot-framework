@@ -137,5 +137,5 @@ func format_files_as_markdown(files: PackedStringArray) -> String:
 	for file in files:
 		if file.ends_with(".uid"):
 			continue
-		build.append("\t" + MarkdownHelper.format_file_as_markdown(file) + "\t")
+		build.append("    " + MarkdownHelper.format_file_as_markdown(file) + "    ")
 	return build.build_string()
