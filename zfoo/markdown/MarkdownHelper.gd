@@ -172,6 +172,17 @@ static func handle_meta_clicked(meta: Variant) -> void:
 	if lower.begins_with("javascript:") or lower.begins_with("data:"):
 		Log.info("blocked unsafe link:[{}]", url)
 		return
+	if HttpUtils.is_valid_http_url(url):
+		var http_error := OS.shell_open(url)
+		if http_error != OK:
+			Log.error("open link failed url:[{}] err:[{}]", url, http_error)
+		return
+	if url.begins_with("res://") or url.begins_with("user://") or url.is_absolute_path():
+		var local_path := ProjectSettings.globalize_path(url)
+		var local_error := FileUtils.open_file(local_path)
+		if local_error != OK:
+			Log.error("open local link failed path:[{}] err:[{}]", local_path, local_error)
+		return
 	if not lower.begins_with("http://") and not lower.begins_with("https://") and not lower.begins_with("mailto:"):
 		if url.begins_with("//"):
 			url = "https:" + url

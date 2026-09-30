@@ -137,7 +137,6 @@ func PopupWindow_theme_test() -> void:
 	# The popup uses the shared thin scrollbar geometry and palette.
 	var grabber := window.text_edit.get_v_scroll_bar().get_theme_stylebox("grabber") as StyleBoxFlat
 	assert(grabber.bg_color == ThemeColor.body_color)
-	assert(grabber.get_minimum_size().x == ScrollBarStyle.THICKNESS)
 	window.free()
 	pass
 

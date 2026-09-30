@@ -24,7 +24,9 @@ static func render_markdown_with_images(label: RichTextLabel, result: MarkdownPa
 
 static func append_markdown_image(label: RichTextLabel, markdown_image: MarkdownParseResult.MarkdownImage) -> void:
 	var image_url := markdown_image.image_url
+	label.push_meta(image_url, RichTextLabel.META_UNDERLINE_NEVER)
 	label.add_image(ImageHelper.create_placeholder_texture(), 0, 0, Color.WHITE, 5, Rect2(), image_url, false, markdown_image.alt_text)
+	label.pop()
 	if HttpUtils.is_valid_http_url(image_url):
 		var cache_path := StringUtils.format("{}.{}", IMAGE_CACHE_DIR.path_join(image_url.sha256_text()), ImageHelper.get_image_format(image_url))
 		if FileAccess.file_exists(cache_path):
