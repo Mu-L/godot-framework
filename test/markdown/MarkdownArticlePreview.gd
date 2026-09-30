@@ -97,8 +97,9 @@ The second matrix records the block-level coverage provided by this article. The
 | Horizontal rules | `---`, `* * *`, `___` | Sections 7 and conclusion | Full-width divider |
 | Local images | `![alt](res://path)` | Section 5 | Resource loading and scaling |
 | Remote images | `![alt](https://...)` | Section 5 | Download, cache, and replacement |
+| Local videos | `![alt](res://path.mp4)` | Section 5 | Video placeholder and clickable path |
 
-## 5. Image Gallery
+## 5. Media Gallery
 
 The images in this section are read directly from `.ai/test/image`. The first PNG checks portrait scaling and fine visual detail.
 
@@ -125,6 +126,14 @@ The Godot logo below is downloaded over HTTPS. It verifies the remote-image requ
 The image below intentionally points to a missing remote file. It verifies the placeholder appearance when an image request fails.
 
 ![Missing remote image](https://raw.githubusercontent.com/github/explore/main/topics/godot/this-image-does-not-exist.png)
+
+### Local Videos
+
+These two MP4 files verify that local videos render as video placeholders instead of being loaded as image textures. Clicking either placeholder should expose the original video path through the normal Markdown media link behavior.
+
+![Opening test video](res://.ai/test/video/opening.mp4)
+
+![Ending test video](res://.ai/test/video/ending.mp4)
 
 ## 6. 中文排版测试
 
@@ -182,7 +191,7 @@ ___
 
 ## Conclusion
 
-The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four local images, the remote image, scrolling, and text selection render correctly.
+The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four local images, both local video placeholders, the remote image, scrolling, and text selection render correctly.
 """
 
 @onready var background: ColorRect = $Background

@@ -297,6 +297,17 @@ func local_markdown_image_test() -> void:
 func dropped_file_markdown_test() -> void:
 	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.md") == "[notes.md](<C:/My Files/notes.md>)")
 	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\photo.png") == "![photo.png](<C:/My Files/photo.png>)")
+	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\demo.MP4") == "![demo.MP4](<C:/My Files/demo.MP4>)")
+	pass
+
+
+func markdown_video_preview_test() -> void:
+	assert(VideoHelper.is_video_path("C:/clips/demo.mp4"))
+	assert(VideoHelper.is_video_path("C:/clips/demo.WEBM"))
+	assert(VideoHelper.is_video_path("https://example.com/demo.mp4?token=1"))
+	assert(not VideoHelper.is_video_path("C:/clips/demo.png"))
+	var placeholder := VideoHelper.create_placeholder_texture()
+	assert(placeholder.get_size() == Vector2(160, 90))
 	pass
 
 

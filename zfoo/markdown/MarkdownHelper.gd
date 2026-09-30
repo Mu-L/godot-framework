@@ -19,12 +19,14 @@ const HIGHLIGHT_H_PADDING := 3
 const HIGHLIGHT_V_PADDING := -3
 
 
-## Formats a local file path for display in Markdown. Images render inline; other files are links.
+## Formats a local file path for display in Markdown. Images and video thumbnails render inline;
+## other files are links.
 static func format_file_as_markdown(path: String) -> String:
 	var normalized_path := path.replace("\\", "/")
 	var file_name := normalized_path.get_file().replace("[", "(").replace("]", ")")
 	var link := StringUtils.format("[{}](<{}>)", file_name, normalized_path)
-	if ImageHelper.EXTENSIONS.has(normalized_path.get_extension().to_lower()):
+	var extension := normalized_path.get_extension().to_lower()
+	if ImageHelper.EXTENSIONS.has(extension) or VideoHelper.is_video_path(normalized_path):
 		return "!" + link
 	return link
 

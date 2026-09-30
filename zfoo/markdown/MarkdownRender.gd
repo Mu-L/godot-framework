@@ -5,6 +5,8 @@ const IMAGE_CACHE_DIR := "user://markdown-caches"
 const MAX_REMOTE_IMAGE_BYTES := 20 * FileUtils.BYTES_PER_MB
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Markdown media rendering
 ## Appends parsed BBCode and image tags in source order. Local images are inserted
 ## immediately; remote images use a keyed placeholder that is replaced after download.
 static func render_markdown_with_images(label: RichTextLabel, result: MarkdownParseResult) -> void:
@@ -24,9 +26,13 @@ static func render_markdown_with_images(label: RichTextLabel, result: MarkdownPa
 
 static func append_markdown_image(label: RichTextLabel, markdown_image: MarkdownParseResult.MarkdownImage) -> void:
 	var image_url := markdown_image.image_url
+	var is_video := VideoHelper.is_video_path(image_url)
 	label.push_meta(image_url, RichTextLabel.META_UNDERLINE_NEVER)
-	label.add_image(ImageHelper.create_placeholder_texture(), 0, 0, Color.WHITE, 5, Rect2(), image_url, false, markdown_image.alt_text)
+	var placeholder := VideoHelper.create_placeholder_texture() if is_video else ImageHelper.create_placeholder_texture()
+	label.add_image(placeholder, 0, 0, Color.WHITE, 5, Rect2(), image_url, false, markdown_image.alt_text)
 	label.pop()
+	if is_video:
+		return
 	if HttpUtils.is_valid_http_url(image_url):
 		var cache_path := StringUtils.format("{}.{}", IMAGE_CACHE_DIR.path_join(image_url.sha256_text()), ImageHelper.get_image_format(image_url))
 		if FileAccess.file_exists(cache_path):
@@ -41,6 +47,8 @@ static func append_markdown_image(label: RichTextLabel, markdown_image: Markdown
 	pass
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Image loading and display
 static func load_image_into_label(label: RichTextLabel, image_url: String, path: String) -> void:
 	var texture: Texture2D = await ResourceHelper.async_load(path)
 	if texture == null or not is_instance_valid(label):
@@ -49,6 +57,8 @@ static func load_image_into_label(label: RichTextLabel, image_url: String, path:
 	pass
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Remote image download and cache
 static func download_remote_image(label: RichTextLabel, image_url: String, cache_path: String) -> void:
 	var texture := await download_remote_image_texture(image_url, cache_path)
 	if not is_instance_valid(label):
