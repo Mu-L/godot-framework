@@ -19,6 +19,23 @@ func DesktopToast_corner_position_test() -> void:
 	pass
 
 
+## Every global [enum Corner] pins the toast inside the matching usable-screen corner.
+func DesktopToast_all_corner_positions_test() -> void:
+	var toast_size: Vector2i = Vector2i(roundi(DesktopToast.CARD_WIDTH), 120)
+	var screen: int = DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
+	var usable: Rect2i = DisplayServer.screen_get_usable_rect(screen)
+	var margin: int = roundi(Margin.ma_6 * DesktopToast.ui_scale)
+	var top_left: Vector2i = DesktopToast.corner_position(toast_size, Corner.CORNER_TOP_LEFT)
+	var top_right: Vector2i = DesktopToast.corner_position(toast_size, Corner.CORNER_TOP_RIGHT)
+	var bottom_left: Vector2i = DesktopToast.corner_position(toast_size, Corner.CORNER_BOTTOM_LEFT)
+	var bottom_right: Vector2i = DesktopToast.corner_position(toast_size, Corner.CORNER_BOTTOM_RIGHT)
+	assert(top_left == Vector2i(usable.position.x + margin, usable.position.y + margin))
+	assert(top_right == Vector2i(usable.end.x - toast_size.x - margin, usable.position.y + margin))
+	assert(bottom_left == Vector2i(usable.position.x + margin, usable.end.y - toast_size.y - margin))
+	assert(bottom_right == Vector2i(usable.end.x - toast_size.x - margin, usable.end.y - toast_size.y - margin))
+	pass
+
+
 ## [method DesktopToast.build_card] lays out the accent stripe, title and wrapped body at the app UI scale.
 func DesktopToast_build_card_test() -> void:
 	DesktopToast.ui_scale = 1.0
@@ -81,12 +98,22 @@ func DesktopToast_relayout_test() -> void:
 	older.size = Vector2i(400, 100)
 	var newer: DesktopToast = DesktopToast.new()
 	newer.size = Vector2i(400, 100)
-	DesktopToast.toasts.append_array([older, newer])
+	var top_left_older: DesktopToast = DesktopToast.new()
+	top_left_older.size = Vector2i(400, 100)
+	top_left_older.toast_corner = Corner.CORNER_TOP_LEFT
+	var top_left_newer: DesktopToast = DesktopToast.new()
+	top_left_newer.size = Vector2i(400, 100)
+	top_left_newer.toast_corner = Corner.CORNER_TOP_LEFT
+	DesktopToast.toasts.append_array([older, newer, top_left_older, top_left_newer])
 	DesktopToast.relayout()
 	assert(newer.position.y == DesktopToast.corner_position(newer.size).y)
 	assert(older.position.y == newer.position.y - newer.size.y - roundi(Margin.ma_3))
+	assert(top_left_newer.position == DesktopToast.corner_position(top_left_newer.size, Corner.CORNER_TOP_LEFT))
+	assert(top_left_older.position.y == top_left_newer.position.y + top_left_newer.size.y + roundi(Margin.ma_3))
 	older.free()
 	newer.free()
+	top_left_older.free()
+	top_left_newer.free()
 	# Other scenes may still own live toasts; leave the stack as it was.
 	DesktopToast.toasts.clear()
 	DesktopToast.toasts.append_array(live)
@@ -102,6 +129,7 @@ func DesktopToast_show_toast_test() -> void:
 	assert(toast.title_text == "feedback toast")
 	assert(toast.body_text == "run finished")
 	assert(toast.accent == ColorBase.success)
+	assert(toast.toast_corner == Corner.CORNER_BOTTOM_RIGHT)
 	assert(toast.is_inside_tree())
 	assert(toast.size.x == roundi(DesktopToast.CARD_WIDTH * DesktopToast.ui_scale))
 	# Hold the toast on screen so a run with a display shows the card before it is dismissed.
@@ -114,6 +142,17 @@ func DesktopToast_show_toast_test() -> void:
 	assert(DesktopToast.toasts.size() == before)
 	await gdf.gdf_node.get_tree().process_frame
 	assert(!is_instance_valid(toast))
+	pass
+
+
+## The optional fourth argument selects a corner without changing the bottom-right default.
+func DesktopToast_show_toast_in_corner_test() -> void:
+	var before: int = DesktopToast.toasts.size()
+	DesktopToast.show_toast("feedback toast", "run finished", ColorBase.success, Corner.CORNER_TOP_LEFT)
+	var toast: DesktopToast = DesktopToast.toasts[before]
+	assert(toast.toast_corner == Corner.CORNER_TOP_LEFT)
+	assert(toast.position == DesktopToast.corner_position(toast.size, Corner.CORNER_TOP_LEFT))
+	toast.close_toast()
 	pass
 
 

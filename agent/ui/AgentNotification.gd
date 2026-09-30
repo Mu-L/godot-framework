@@ -37,7 +37,7 @@ func on_agent_end(session_id: int, error_message: String) -> void:
 	var entry: ChatEntry = session.chat_entries.back()
 	if AgentSetting.get_notification_window():
 		var accent := ColorBase.error if entry.kind == ChatEntry.KIND_ERROR else ColorBase.success
-		DesktopToast.show_toast(entry.title, entry.body, accent)
+		DesktopToast.show_toast(entry.title, entry.body, accent, Corner.CORNER_TOP_RIGHT)
 	if AgentSetting.get_notification_sound():
 		play_sound_notifications()
 	pass

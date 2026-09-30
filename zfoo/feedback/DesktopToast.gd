@@ -7,6 +7,7 @@ extends Window
 ## It never activates and never joins Godot's popup list, so the app window keeps its input.
 ##
 ## Example: `DesktopToast.show_toast("Run finished", summary, ColorBase.success)`
+## Pass a global [enum Corner] as the fourth argument to choose another screen corner.
 ## The card uses the [ThemeColor] surface with the per-toast accent color on its leading edge.
 
 const CARD_WIDTH: float = 380.0
@@ -26,6 +27,7 @@ var body_label: Label
 var title_text: String = ""
 var body_text: String = ""
 var accent: Color = ColorBase.info
+var toast_corner: Corner = Corner.CORNER_BOTTOM_RIGHT
 
 
 func _init() -> void:
@@ -47,9 +49,10 @@ func _init() -> void:
 	pass
 
 
-## Pop a toast in the bottom-right corner of the screen. [param i18n_title] and [param i18n_body]
-## may be translation keys; text without a registered translation is displayed unchanged.
-static func show_toast(i18n_title: String, i18n_body: String, color: Color) -> void:
+## Pop a toast in the selected [param corner], which defaults to the bottom-right.
+## [param i18n_title] and [param i18n_body] may be translation keys; text without a registered
+## translation is displayed unchanged.
+static func show_toast(i18n_title: String, i18n_body: String, color: Color, corner: Corner = Corner.CORNER_BOTTOM_RIGHT) -> void:
 	if gdf.gdf_node == null or not gdf.gdf_node.is_inside_tree():
 		return
 	ui_scale = compute_ui_scale()
@@ -57,6 +60,7 @@ static func show_toast(i18n_title: String, i18n_body: String, color: Color) -> v
 	toast.title_text = I18n.t(i18n_title)
 	toast.body_text = I18n.t(i18n_body).strip_edges()
 	toast.accent = color
+	toast.toast_corner = corner
 	toasts.append(toast)
 	gdf.gdf_node.add_child(toast)
 	pass
@@ -74,15 +78,16 @@ static func compute_ui_scale() -> float:
 	return clampf(minf(pixels.x / unit.x, pixels.y / unit.y), 0.5, 4.0)
 
 
-## Bottom-right anchor of the usable screen area (taskbar excluded).
-static func corner_position(window_size: Vector2i) -> Vector2i:
+## Anchor in the requested corner of the usable screen area (taskbar excluded).
+static func corner_position(window_size: Vector2i, corner: Corner = Corner.CORNER_BOTTOM_RIGHT) -> Vector2i:
 	var screen: int = DisplayServer.window_get_current_screen(DisplayServer.MAIN_WINDOW_ID)
 	var usable: Rect2i = DisplayServer.screen_get_usable_rect(screen)
 	var margin: int = roundi(Margin.ma_6 * ui_scale)
-	return Vector2i(
-		usable.position.x + usable.size.x - window_size.x - margin,
-		usable.position.y + usable.size.y - window_size.y - margin,
-	)
+	var on_left: bool = corner == Corner.CORNER_TOP_LEFT or corner == Corner.CORNER_BOTTOM_LEFT
+	var on_top: bool = corner == Corner.CORNER_TOP_LEFT or corner == Corner.CORNER_TOP_RIGHT
+	var x: int = usable.position.x + margin if on_left else usable.end.x - window_size.x - margin
+	var y: int = usable.position.y + margin if on_top else usable.end.y - window_size.y - margin
+	return Vector2i(x, y)
 
 
 ## Bring the app window back: restore it when minimized, raise it when it is behind, then focus it.
@@ -118,17 +123,33 @@ static func covered_usable_screen(window_id: int) -> bool:
 	return window_size.x >= usable.x and window_size.y >= usable.y
 
 
-## Stack live toasts from the screen corner upward. Dismissed toasts leave [member toasts] first, so
-## only a node freed behind our back can still show up here.
+## Stack each corner independently: top toasts grow downward and bottom toasts grow upward.
+## Dismissed toasts leave [member toasts] first, so only a node freed behind our back can still
+## show up here.
 static func relayout() -> void:
-	var lift: int = 0
+	var top_left_offset: int = 0
+	var top_right_offset: int = 0
+	var bottom_left_offset: int = 0
+	var bottom_right_offset: int = 0
+	var gap: int = roundi(Margin.ma_3 * ui_scale)
 	for i in range(toasts.size() - 1, -1, -1):
 		var toast: DesktopToast = toasts[i]
 		if not is_instance_valid(toast):
 			continue
-		var corner: Vector2i = corner_position(toast.size)
-		toast.position = Vector2i(corner.x, corner.y - lift)
-		lift += toast.size.y + roundi(Margin.ma_3 * ui_scale)
+		var anchor: Vector2i = corner_position(toast.size, toast.toast_corner)
+		match toast.toast_corner:
+			Corner.CORNER_TOP_LEFT:
+				toast.position = Vector2i(anchor.x, anchor.y + top_left_offset)
+				top_left_offset += toast.size.y + gap
+			Corner.CORNER_TOP_RIGHT:
+				toast.position = Vector2i(anchor.x, anchor.y + top_right_offset)
+				top_right_offset += toast.size.y + gap
+			Corner.CORNER_BOTTOM_LEFT:
+				toast.position = Vector2i(anchor.x, anchor.y - bottom_left_offset)
+				bottom_left_offset += toast.size.y + gap
+			Corner.CORNER_BOTTOM_RIGHT:
+				toast.position = Vector2i(anchor.x, anchor.y - bottom_right_offset)
+				bottom_right_offset += toast.size.y + gap
 	pass
 
 
@@ -178,7 +199,7 @@ func build_card() -> void:
 	var card_height: float = pad * 2.0 + title_font.get_height(title_size) + (gap + body_height if body_height > 0.0 else 0.0)
 	size = Vector2i(roundi(card_width), roundi(card_height))
 	# Place it while it is still invisible, so the window never flashes at the tree origin.
-	position = corner_position(size)
+	position = corner_position(size, toast_corner)
 
 	card = PanelContainer.new()
 	# The card with one accent stripe down the leading edge, everything scaled by the app UI scale.
