@@ -22,6 +22,7 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from common.image_utils import resolve_image_file  # noqa: E402
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 
 CPU_RUNTIME_DIR = Path(".dependency/llama-cpp-cpu")
 GPU_RUNTIME_DIR = Path(".dependency/llama-cpp-gpu")
@@ -31,14 +32,6 @@ MMPROJ_NAME = "mmproj-model-f16.gguf"
 DEFAULT_PROMPT = ("Describe the image accurately and comprehensively. Include visible subjects, actions, "
                   "setting, composition, notable colors, and legible text. Clearly mark uncertainty and "
                   "do not invent details that are not visible.")
-
-
-def configure_utf8_stdio() -> None:
-    """Use UTF-8 consistently for text exchanged through standard streams."""
-    for stream in (sys.stdin, sys.stdout, sys.stderr):
-        reconfigure = getattr(stream, "reconfigure", None)
-        if callable(reconfigure):
-            reconfigure(encoding="utf-8", errors="replace")
 
 
 def parse_args() -> argparse.Namespace:

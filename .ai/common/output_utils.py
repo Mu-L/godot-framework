@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+
+def configure_utf8_stdio() -> None:
+    """Use UTF-8 consistently for text exchanged through standard streams."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="replace")
 
 
 def default_output_path(
