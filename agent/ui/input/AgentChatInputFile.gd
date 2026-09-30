@@ -37,11 +37,31 @@ func is_drop_focus_guarded() -> bool:
 func paste_clipboard_files() -> bool:
 	if not input_field.editable:
 		return false
+	var image_markdown := save_clipboard_image()
+	if not image_markdown.is_empty():
+		input_field.insert_text_at_caret(image_markdown)
+		return true
 	var markdown := get_pasted_file_markdown()
 	if markdown.is_empty():
 		return false
 	input_field.insert_text_at_caret(markdown)
 	return true
+
+
+## Persists copied pixel data before inserting it, so the chat message references a stable file.
+## A copied image file is not pixel data and continues through the platform file-list path below.
+func save_clipboard_image() -> String:
+	if not DisplayServer.clipboard_has_image():
+		return StringUtils.EMPTY
+	var image: Image = DisplayServer.clipboard_get_image()
+	if image == null or image.is_empty():
+		return StringUtils.EMPTY
+	var cache_path := MarkdownRender.IMAGE_CACHE_DIR.path_join("clipboard_" + str(IdUtils.uuid()) + ".png")
+	var error := MarkdownRender.save_cached_image(image, cache_path)
+	if error != OK:
+		Log.error("clipboard image cache failed path:[{}] err:[{}]", cache_path, error)
+		return StringUtils.EMPTY
+	return format_files_as_markdown(PackedStringArray([cache_path]))
 
 
 func on_files_dropped(files: PackedStringArray) -> void:
