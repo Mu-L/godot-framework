@@ -33,6 +33,14 @@ DEFAULT_PROMPT = ("Describe the image accurately and comprehensively. Include vi
                   "do not invent details that are not visible.")
 
 
+def configure_utf8_stdio() -> None:
+    """Use UTF-8 consistently for text exchanged through standard streams."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="replace")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert images to text with MiniCPM-V 4.6 locally.")
     parser.add_argument("--images", "--image", dest="images", nargs="+", required=True,
@@ -113,6 +121,7 @@ def describe_images(prompt: str, image_paths: list[Path], use_gpu: bool = False)
 
 
 def main() -> int:
+    configure_utf8_stdio()
     args = parse_args()
     image_paths = resolve_images(args.images)
     if image_paths is None:
