@@ -1,7 +1,7 @@
 class_name MarkdownRender
 extends Object
 
-const IMAGE_CACHE_DIR := "user://markdown-images"
+const IMAGE_CACHE_DIR := "user://markdown-caches"
 const MAX_REMOTE_IMAGE_BYTES := 20 * FileUtils.BYTES_PER_MB
 
 
@@ -26,7 +26,7 @@ static func append_markdown_image(label: RichTextLabel, markdown_image: Markdown
 	var image_url := markdown_image.image_url
 	label.add_image(create_image_placeholder(), 0, 0, Color.WHITE, 5, Rect2(), image_url, false, markdown_image.alt_text)
 	if HttpUtils.is_valid_http_url(image_url):
-		var cache_path := remote_image_cache_path(image_url)
+		var cache_path := StringUtils.format("{}.{}", IMAGE_CACHE_DIR.path_join(image_url.sha256_text()), ImageHelper.get_image_format(image_url))
 		if FileAccess.file_exists(cache_path):
 			load_image_into_label(label, image_url, cache_path)
 			return
@@ -83,10 +83,6 @@ static func save_cached_image(image: Image, cache_path: String) -> int:
 	if error != OK and error != ERR_ALREADY_EXISTS:
 		return error
 	return image.save_png(ProjectSettings.globalize_path(cache_path))
-
-
-static func remote_image_cache_path(url: String) -> String:
-	return IMAGE_CACHE_DIR.path_join(url.sha256_text() + ".png")
 
 
 static func create_image_placeholder() -> ImageTexture:

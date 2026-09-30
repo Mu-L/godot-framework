@@ -19,6 +19,11 @@ static func load_external_image(path: String) -> ImageTexture:
 	return ImageTexture.create_from_image(image) if image != null and not image.is_empty() else null
 
 
+static func get_image_format(path: String) -> String:
+	var extension := StringUtils.substring_after_last(path.to_lower(), ".")
+	return extension if EXTENSIONS.has(extension) else png
+
+
 static func detect_image_format(bytes: PackedByteArray) -> String:
 	if bytes.size() >= 3 and bytes[0] == 0xff and bytes[1] == 0xd8 and bytes[2] == 0xff:
 		return jpg

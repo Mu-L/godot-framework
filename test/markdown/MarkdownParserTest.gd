@@ -294,15 +294,6 @@ func local_markdown_image_test() -> void:
 	pass
 
 
-func remote_image_cache_path_test() -> void:
-	var first := MarkdownRender.remote_image_cache_path("https://example.com/image.png")
-	var second := MarkdownRender.remote_image_cache_path("https://example.com/image.png")
-	assert(first == second)
-	assert(first.begins_with(MarkdownRender.IMAGE_CACHE_DIR))
-	assert(first.ends_with(".png"))
-	pass
-
-
 func remote_image_download_state_test() -> void:
 	var label := RichTextLabel.new()
 	var image_url := "https://example.com/image.png"
