@@ -27,13 +27,11 @@ func get_parameters() -> OpenAiToolDef.Parameters:
 func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 	var path := AgentWorkspace.resolve_path(str(args.get(ARG_PATH, "")))
 	if StringUtils.is_blank(path):
-		return AgentToolResult.error("error: path is required", AgentToolResult.ui_file_details_message("", "path is required"))
+		return AgentToolResult.error("error: path is required")
 	if not FileAccess.file_exists(path):
-		var missing_message := StringUtils.format("error: image not found: {}", path)
-		return AgentToolResult.error(missing_message, AgentToolResult.ui_file_details_message(path, "image not found"))
+		return AgentToolResult.error(StringUtils.format("error: image not found: {}", path))
 	if StringUtils.is_blank(ImageHelper.get_image_format(path, StringUtils.EMPTY)):
-		var extension_message := StringUtils.format("error: unsupported image format: {}", path)
-		return AgentToolResult.error(extension_message, AgentToolResult.ui_file_details_message(path, "unsupported image format"))
+		return AgentToolResult.error(StringUtils.format("error: unsupported image format: {}", path))
 
 	var prompt := StringUtils.truncate(str(args.get(ARG_PROMPT, "")).strip_edges(), MAX_PROMPT_LENGTH)
 
@@ -45,10 +43,11 @@ func async_execute(args: Dictionary[String, Variant]) -> AgentToolResult:
 		var error_text := StringUtils.format("error: image-to-text failed with exit code {}", exec_result.exit_code)
 		if StringUtils.is_not_blank(output):
 			error_text += FileUtils.NEWLINE_LF + StringUtils.truncate_last(output, MAX_OUTPUT, TRUNCATED_SUFFIX)
-		return AgentToolResult.error(error_text, AgentToolResult.ui_file_details_message(path, error_text))
+		return AgentToolResult.error(error_text)
 	if StringUtils.is_blank(output):
 		return AgentToolResult.error("error: image-to-text returned no text", AgentToolResult.ui_file_details_message(path, "no text returned"))
 
+	var exit_code := StringUtils.format("exit_code: {}", exec_result.exit_code)
 	var text := StringUtils.truncate(output, MAX_OUTPUT, TRUNCATED_SUFFIX)
-	return AgentToolResult.ok(text, AgentToolResult.ui_details(NAME, text))
+	return AgentToolResult.ok(text, AgentToolResult.ui_details(exit_code, text))
 # AgentTool-Interface-Implement-End
