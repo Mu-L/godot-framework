@@ -21,6 +21,10 @@ import shutil
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.output_utils import configure_utf8_stdio  # noqa: E402
+
 SPLIT_PATTERN = re.compile(r"[_\-\s.]+")
 LEADING_DIGITS = re.compile(r"^\d+")
 TRAILING_DIGITS = re.compile(r"\d+$")
@@ -88,6 +92,7 @@ def resolve_destination(src: Path, input_path: Path, new_name: str, output_dir: 
 
 
 def main() -> int:
+    configure_utf8_stdio()
     parser = argparse.ArgumentParser(
         description="Normalize filenames by splitting, cleaning segments, and joining with underscores."
     )

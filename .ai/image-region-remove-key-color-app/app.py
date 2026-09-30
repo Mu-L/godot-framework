@@ -22,6 +22,10 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageFilter
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.output_utils import configure_utf8_stdio  # noqa: E402
+
 PRESETS = {
     "white": (255, 255, 255),
     "green": (0, 255, 0),
@@ -333,6 +337,7 @@ def build_ui(
 
 
 def main() -> int:
+    configure_utf8_stdio()
     parser = argparse.ArgumentParser(description="Paint a region and remove key-color background.")
     parser.add_argument("image", nargs="?", help="Optional image to preload")
     parser.add_argument("--preset", choices=list(PRESETS), default="white")

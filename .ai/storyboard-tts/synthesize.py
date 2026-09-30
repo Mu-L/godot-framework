@@ -26,6 +26,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 
 TOOL_NAME = "index-tts"
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -276,6 +279,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     args = parse_args(argv)
 
     if not (0.0 <= args.emotion_weight <= 1.0):

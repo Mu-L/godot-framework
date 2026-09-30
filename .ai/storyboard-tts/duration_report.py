@@ -22,7 +22,9 @@ from pathlib import Path
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 from parse_storyboard import parse_storyboard  # noqa: E402
 
 
@@ -180,6 +182,7 @@ def build_report(data: dict, audio_dir: Path) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     parser = argparse.ArgumentParser(
         description="Write shot-to-audio duration markdown report.",
     )

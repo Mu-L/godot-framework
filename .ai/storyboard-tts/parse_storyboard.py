@@ -19,6 +19,9 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 
 SHOT_HEADER_RE = re.compile(
     r"^###\s+Shot\s+(\d+)\s*[—–\-]\s*(.+?)\s*$",
@@ -107,6 +110,7 @@ def parse_storyboard(markdown: str) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     parser = argparse.ArgumentParser(
         description="Parse storyboard markdown into shot VO JSON.",
     )

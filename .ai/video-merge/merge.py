@@ -20,11 +20,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 from common.video_utils import VIDEO_EXTENSIONS  # noqa: E402
 
 DEFAULT_OUTPUT_SUBDIR = "video-merge"
@@ -435,6 +434,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     args = parse_args(argv)
 
     script_path = Path(__file__)

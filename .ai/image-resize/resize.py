@@ -19,13 +19,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.cli_tools import resolve_magick  # noqa: E402
 from common.image_utils import image_output_name, resolve_image_file  # noqa: E402
-from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.output_utils import configure_utf8_stdio, format_default_output_help, resolve_output_path  # noqa: E402
 
 DEFAULT_OUTPUT_SUBDIR = "image-resize"
 RESIZE_MODES = ("fit", "fill", "exact")
@@ -131,6 +129,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_utf8_stdio()
     args = parse_args()
 
     if args.width <= 0 or args.height <= 0:

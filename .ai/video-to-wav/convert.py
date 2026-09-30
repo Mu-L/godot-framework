@@ -17,12 +17,10 @@ import argparse
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
-from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.output_utils import configure_utf8_stdio, format_default_output_help, resolve_output_path  # noqa: E402
 from common.video_utils import resolve_video_file  # noqa: E402
 from common.wav_utils import add_bit_depth_arg, can_pcm_stream_copy, describe_pcm_wav_plan, probe_video_audio_track, refuse_overwrite_source, resolve_bit_depth, run_pcm_wav_ffmpeg, wav_output_name  # noqa: E402
 
@@ -59,6 +57,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     args = parse_args(argv)
     if args.track < 0:
         print("--track must be >= 0", file=sys.stderr)

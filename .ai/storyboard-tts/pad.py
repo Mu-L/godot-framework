@@ -17,9 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.cli_tools import resolve_ffmpeg as _resolve_ffmpeg  # noqa: E402
 from common.cli_tools import resolve_ffprobe as _resolve_ffprobe  # noqa: E402

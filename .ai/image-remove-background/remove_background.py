@@ -21,13 +21,11 @@ from pathlib import Path
 
 from PIL import Image
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
 from common.image_utils import image_output_name, resolve_image_file  # noqa: E402
-from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.output_utils import configure_utf8_stdio, format_default_output_help, resolve_output_path  # noqa: E402
 
 DEFAULT_OUTPUT_SUBDIR = "image-remove-background"
 DEFAULT_MODEL = "u2net"
@@ -153,6 +151,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_utf8_stdio()
     args = parse_args()
 
     repo_root = find_repo_root(Path(__file__))

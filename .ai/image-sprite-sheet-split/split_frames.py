@@ -19,12 +19,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.cli_tools import resolve_ffmpeg, resolve_ffprobe  # noqa: E402
 from common.image_utils import resolve_image_file  # noqa: E402
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 
 DEFAULT_OUTPUT_SUBDIR = "image-sprite-sheet-split"
 GRID_RE = re.compile(r"^(\d+)x(\d+)$", re.IGNORECASE)
@@ -191,6 +190,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    configure_utf8_stdio()
     args = parse_args()
     cols, rows = args.grid
 

@@ -19,13 +19,11 @@ import argparse
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.audio_utils import audio_output_name  # noqa: E402
 from common.dependency_utils import find_repo_root, resolve_tool_bin  # noqa: E402
-from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.output_utils import configure_utf8_stdio, format_default_output_help, resolve_output_path  # noqa: E402
 
 
 TOOL_NAME = "index-tts"
@@ -203,6 +201,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     args = parse_args(argv)
 
     if not (0.0 <= args.emotion_weight <= 1.0):

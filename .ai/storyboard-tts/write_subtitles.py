@@ -21,7 +21,9 @@ from pathlib import Path
 _SCRIPT_DIR = Path(__file__).resolve().parent
 if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from common.output_utils import configure_utf8_stdio  # noqa: E402
 from duration_report import audio_duration_seconds, find_audio  # noqa: E402
 from parse_storyboard import parse_storyboard  # noqa: E402
 
@@ -212,6 +214,7 @@ def write_subtitles(
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     parser = argparse.ArgumentParser(
         description="Write concatenated Chinese.srt / English.srt from shot VO + WAV durations.",
     )

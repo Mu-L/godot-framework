@@ -18,13 +18,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-AI_ROOT = Path(__file__).resolve().parents[1]
-if str(AI_ROOT) not in sys.path:
-    sys.path.insert(0, str(AI_ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from common.audio_utils import audio_output_name, resolve_audio_file  # noqa: E402
 from common.cli_tools import resolve_ffmpeg  # noqa: E402
-from common.output_utils import format_default_output_help, resolve_output_path  # noqa: E402
+from common.output_utils import configure_utf8_stdio, format_default_output_help, resolve_output_path  # noqa: E402
 
 
 DEFAULT_OUTPUT_SUBDIR = "audio-volume-adjust"
@@ -91,6 +89,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_utf8_stdio()
     args = parse_args(argv)
     ffmpeg = resolve_ffmpeg(Path(__file__))
 
