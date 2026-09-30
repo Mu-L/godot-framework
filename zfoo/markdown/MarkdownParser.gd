@@ -55,6 +55,17 @@ const NBSP := "\u00A0"
 const FOLDER_PREFIX := "📁 "
 const FILE_PREFIX := "📄 "
 const AUDIO_PREFIX := "🎵 "
+const WEB_PREFIX := "🔗 "
+const EMAIL_PREFIX := "✉ "
+const EXECUTABLE_CONFIG_PREFIX := "⚙ "
+const TEXT_DOCUMENT_PREFIX := "📝 "
+const EXECUTABLE_CONFIG_EXTENSIONS: PackedStringArray = [
+	"apk", "app", "bat", "cfg", "cmd", "conf", "env", "exe", "godot", "ini", "json",
+	"msi", "plist", "properties", "ps1", "sh", "toml", "xml", "yaml", "yml",
+]
+const TEXT_DOCUMENT_EXTENSIONS: PackedStringArray = [
+	"doc", "docx", "gd", "log", "markdown", "md", "odt", "pdf", "rtf", "rst", "txt",
+]
 const TABLE_CELL_PADDING := "8,4,8,4"
 const CODE_BLOCK_PADDING := "6,6,6,6"
 const BLOCKQUOTE_BAR_PADDING := "2,0,0,0"
@@ -580,7 +591,7 @@ static func replace_inline_match(
 			return protect(parts, StringUtils.format("[img]{}[/img]", url))
 		InlineReplacement.LINK:
 			var link_destination := parse_link_destination(match.get_string(2))
-			var label := get_local_file_prefix(link_destination) + inline_body(match.get_string(1), parts, result)
+			var label := get_link_prefix(link_destination) + inline_body(match.get_string(1), parts, result)
 			var url := escape_bbcode_literals(link_destination)
 			return protect(parts, StringUtils.format(
 					"[url={}][color={}]{}[/color][/url]",
@@ -602,17 +613,28 @@ static func replace_inline_match(
 	return StringUtils.EMPTY
 
 
-## Adds a visual type marker to local file links. Web links retain their authored label.
-static func get_local_file_prefix(path: String) -> String:
+## Adds a theme-colored visual marker based on the link destination type.
+static func get_link_prefix(path: String) -> String:
 	if HttpUtils.is_valid_http_url(path):
-		return StringUtils.EMPTY
+		return format_link_prefix(WEB_PREFIX, ColorBase.info)
+	if path.to_lower().begins_with("mailto:"):
+		return format_link_prefix(EMAIL_PREFIX, ColorBase.purple)
 	if not (path.is_absolute_path() or path.begins_with("res://") or path.begins_with("user://")):
 		return StringUtils.EMPTY
 	if DirAccess.dir_exists_absolute(path):
-		return FOLDER_PREFIX
-	if ResourceHelper.AUDIO_EXTENSIONS.has(path.get_extension().to_lower()):
-		return AUDIO_PREFIX
-	return FILE_PREFIX
+		return format_link_prefix(FOLDER_PREFIX, ColorFile.folder_color)
+	var extension := path.get_extension().to_lower()
+	if ResourceHelper.AUDIO_EXTENSIONS.has(extension):
+		return format_link_prefix(AUDIO_PREFIX, ColorFile.audio_color)
+	if EXECUTABLE_CONFIG_EXTENSIONS.has(extension):
+		return format_link_prefix(EXECUTABLE_CONFIG_PREFIX, ColorBase.teal)
+	if TEXT_DOCUMENT_EXTENSIONS.has(extension):
+		return format_link_prefix(TEXT_DOCUMENT_PREFIX, ColorFile.text_color)
+	return format_link_prefix(FILE_PREFIX, ColorFile.text_color)
+
+
+static func format_link_prefix(prefix: String, color: Color) -> String:
+	return StringUtils.format("[color={}]{}[/color]", to_bbcode_color(color), prefix)
 
 
 ## Link/image dest: `[t](<url>)` unwraps; `[t](url "title")` / `[t](url 'title')` drops title.

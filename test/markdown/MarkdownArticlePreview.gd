@@ -15,7 +15,7 @@ A normal paragraph should remain comfortable to read when the window becomes nar
 
 Inline code such as `var message := "Hello, Markdown!"` should use a distinct background. Literal content inside code—`[b]`, `**asterisks**`, and `array[0]`—must not be parsed a second time.
 
-External links should be clearly recognizable: visit [Godot Engine](https://godotengine.org), or test a formatted label with [**OpenAI**](https://openai.com "OpenAI").
+External links should be clearly recognizable: visit [Godot Engine](https://godotengine.org), test a formatted label with [**OpenAI**](https://openai.com "OpenAI"), or open an [email](mailto:user@example.com).
 
 ### A Third-Level Heading
 
@@ -101,6 +101,8 @@ The second matrix records the block-level coverage provided by this article. The
 | Local audio | `[label](res://path.wav)` | Section 5 | File link label and clickable path |
 | Local folders | `[label](res://folder)` | Section 5 | Folder character and clickable path |
 | Local files | `[label](res://path.gd)` | Section 5 | File character and clickable path |
+| Config and executable files | `[label](res://path.json)` | Section 5 | Gear character and clickable path |
+| Text and documents | `[label](res://path.md)` | Section 5 | Memo character and clickable path |
 
 ## 5. Media Gallery
 
@@ -148,13 +150,19 @@ These WAV files verify that local audio paths render as clickable Markdown file 
 
 [Zhu Bajie voice](res://.ai/test/audio/zhu_ba_jie.wav)
 
-### Local Folder and File
+### Local Folder and Files
 
-These links verify that the parser adds distinct folder and ordinary-file characters while keeping both paths clickable.
+These links verify that the parser adds distinct, colored characters for folders and file categories while keeping every path clickable.
 
 [Markdown folder](res://zfoo/markdown)
 
+[Ordinary file](res://LICENSE)
+
 [Markdown parser source](res://zfoo/markdown/MarkdownParser.gd)
+
+[Project configuration](res://project.godot)
+
+[PowerShell executable script](res://sync-godot-framework.ps1)
 
 ## 6. 中文排版测试
 

@@ -202,9 +202,9 @@ func url_with_parens_test() -> void:
 
 func link_label_blue_test() -> void:
 	var bbcode := MarkdownParser.inline_to_bbcode("[hi](https://a.com)")
-	assert(
-			bbcode == "[url=https://a.com][color=%s]hi[/color][/url]" % MarkdownParser.to_bbcode_color(ColorMarkdown.link_color)
-	)
+	assert("🔗 " in bbcode)
+	assert("[color=%s]🔗 [/color]" % MarkdownParser.to_bbcode_color(ColorBase.info) in bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorMarkdown.link_color) in bbcode)
 	var bold_label := MarkdownParser.inline_to_bbcode("[**hi**](https://a.com)")
 	assert("[b]hi[/b]" in bold_label)
 	assert("[/color][/url]" in bold_label)
@@ -304,10 +304,25 @@ func dropped_file_markdown_test() -> void:
 
 func local_file_link_prefix_test() -> void:
 	var folder_path := ProjectSettings.globalize_path("res://zfoo/markdown").replace("\\", "/")
-	assert("📄 notes.md" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.md")))
-	assert("🎵 voice.WAV" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\voice.WAV")))
-	assert("📁 markdown" in MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown(folder_path)))
-	assert("📄" not in MarkdownParser.inline_to_bbcode("[website](https://example.com/file.txt)"))
+	var file_bbcode := MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.bin"))
+	var audio_bbcode := MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown("C:\\My Files\\voice.WAV"))
+	var folder_bbcode := MarkdownParser.inline_to_bbcode(MarkdownHelper.format_file_as_markdown(folder_path))
+	var config_bbcode := MarkdownParser.inline_to_bbcode("[settings.json](<C:/My Files/settings.json>)")
+	var document_bbcode := MarkdownParser.inline_to_bbcode("[README.md](<C:/My Files/README.md>)")
+	var website_bbcode := MarkdownParser.inline_to_bbcode("[website](https://example.com/file.txt)")
+	var email_bbcode := MarkdownParser.inline_to_bbcode("[email](mailto:user@example.com)")
+	assert("📄 " in file_bbcode and "notes.bin" in file_bbcode)
+	assert("🎵 " in audio_bbcode and "voice.WAV" in audio_bbcode)
+	assert("📁 " in folder_bbcode and "markdown" in folder_bbcode)
+	assert("⚙ " in config_bbcode and "settings.json" in config_bbcode)
+	assert("📝 " in document_bbcode and "README.md" in document_bbcode)
+	assert("🔗 " in website_bbcode and "website" in website_bbcode)
+	assert("✉ " in email_bbcode and "email" in email_bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorFile.audio_color) in audio_bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorFile.folder_color) in folder_bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorBase.teal) in config_bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorFile.text_color) in document_bbcode)
+	assert("[color=%s]" % MarkdownParser.to_bbcode_color(ColorBase.purple) in email_bbcode)
 	pass
 
 
