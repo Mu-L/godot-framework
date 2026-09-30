@@ -98,6 +98,7 @@ The second matrix records the block-level coverage provided by this article. The
 | Local images | `![alt](res://path)` | Section 5 | Resource loading and scaling |
 | Remote images | `![alt](https://...)` | Section 5 | Download, cache, and replacement |
 | Local videos | `![alt](res://path.mp4)` | Section 5 | Video placeholder and clickable path |
+| Local audio | `[label](res://path.wav)` | Section 5 | File link label and clickable path |
 
 ## 5. Media Gallery
 
@@ -134,6 +135,16 @@ These two MP4 files verify that local videos render as video placeholders instea
 ![Opening test video](res://.ai/test/video/opening.mp4)
 
 ![Ending test video](res://.ai/test/video/ending.mp4)
+
+### Local Audio
+
+These WAV files verify that local audio paths render as clickable Markdown file links with readable labels.
+
+[Han voice](res://.ai/test/audio/han.wav)
+
+[Han voice, louder version](res://.ai/test/audio/han_loud.wav)
+
+[Zhu Bajie voice](res://.ai/test/audio/zhu_ba_jie.wav)
 
 ## 6. 中文排版测试
 
@@ -191,7 +202,7 @@ ___
 
 ## Conclusion
 
-The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four local images, both local video placeholders, the remote image, scrolling, and text selection render correctly.
+The visual review passes when heading hierarchy, inline styles, lists, task boxes, code blocks, tables, links, Chinese text, all four local images, both local video placeholders, all three local audio links, the remote image, scrolling, and text selection render correctly.
 """
 
 @onready var background: ColorRect = $Background
