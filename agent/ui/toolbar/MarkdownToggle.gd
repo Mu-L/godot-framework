@@ -3,10 +3,9 @@ extends RefCounted
 
 ## Toolbar toggle for chat bubble Markdown rendering.
 
-## Respect toolbar setting; tool and user bubbles always stay plain text.
-## A user prompt is echoed exactly as typed — never Markdown-rendered.
+## Conversation bubbles respect the toolbar setting; tool output stays plain text.
 static func markdown_enabled_for_entry(entry: ChatEntry) -> bool:
-	if entry.kind == ChatEntry.KIND_TOOL or entry.kind == ChatEntry.KIND_USER:
+	if entry.kind == ChatEntry.KIND_TOOL:
 		return false
 	return AgentSetting.get_markdown_enabled()
 

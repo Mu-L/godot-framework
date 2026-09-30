@@ -342,7 +342,7 @@ func on_files_dropped(files: PackedStringArray) -> void:
 	for file in files:
 		if file.ends_with(".uid"):
 			continue
-		build.append(file)
+		build.append("\t" + MarkdownHelper.format_local_file(file) + "\t")
 	var mouse: Vector2 = input_bar.get_global_mouse_position()
 	if not input_wrap.get_global_rect().has_point(mouse) and not input_bar.get_global_rect().has_point(mouse):
 		return
@@ -351,7 +351,7 @@ func on_files_dropped(files: PackedStringArray) -> void:
 		layout_tween.kill()
 		layout_tween = null
 	set_expanded(true, false)
-	insert_dropped_files.call_deferred(build.build_joined("  "))
+	insert_dropped_files.call_deferred(build.build_string())
 	var guard_timer: SceneTreeTimer = input_bar.get_tree().create_timer(0.4)
 	guard_timer.timeout.connect(clear_drop_focus_guard, CONNECT_ONE_SHOT)
 	pass
@@ -361,15 +361,7 @@ func insert_dropped_files(paths: String) -> void:
 	if not input_field.editable or paths.is_empty():
 		return
 	restore_caret()
-	var insert: String = paths
-	if input_field.text.length() > 0:
-		var line: int = input_field.get_caret_line()
-		var col: int = input_field.get_caret_column()
-		if col > 0:
-			var before: String = input_field.get_line(line).substr(0, col)
-			if before.length() > 0 and not before.ends_with(" ") and not before.ends_with(FileUtils.NEWLINE_LF):
-				insert = " " + insert
-	input_field.insert_text_at_caret(insert)
+	input_field.insert_text_at_caret(paths)
 	focus_input_field.call_deferred()
 	var retry_timer: SceneTreeTimer = input_bar.get_tree().create_timer(0.05)
 	retry_timer.timeout.connect(focus_input_field, CONNECT_ONE_SHOT)

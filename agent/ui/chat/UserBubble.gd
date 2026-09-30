@@ -5,7 +5,7 @@ extends Object
 ## Delete drops this turn and everything after it — chat only, code is left alone.
 ## Revert does the same and restores the workspace snapshot taken before the turn (only shown when
 ## the entry has one). Both hand the message body back to the chat input for re-editing.
-## The body is shown as plain text — what the user typed is never Markdown-rendered.
+## The body follows the shared Markdown toolbar setting, matching agent replies.
 
 const BeamLayer: GDScript = preload("res://agent/ui/effects/AccentBorderBeamLayer.gd")
 const BUBBLE_CORNER_RADIUS: float = 8.0
@@ -69,7 +69,6 @@ static func append(
 
 	vbox.add_child(header)
 
-	# MarkdownToggle forces plain text for user entries, so the prompt shows verbatim.
 	var rich_text: RichTextLabel = MarkdownHelper.create_rich_text_label(
 		text_color,
 		entry.body,

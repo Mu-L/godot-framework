@@ -19,6 +19,16 @@ const HIGHLIGHT_H_PADDING := 3
 const HIGHLIGHT_V_PADDING := -3
 
 
+## Formats a local file path for display in Markdown. Images render inline; other files are links.
+static func format_local_file(path: String) -> String:
+	var normalized_path := path.replace("\\", "/")
+	var file_name := normalized_path.get_file().replace("[", "(").replace("]", ")")
+	var link := StringUtils.format("[{}](<{}>)", file_name, normalized_path)
+	if ImageHelper.EXTENSIONS.has(normalized_path.get_extension().to_lower()):
+		return "!" + link
+	return link
+
+
 ## RichTextLabel that also drops its highlight when a click lands outside it.
 ##
 ## `deselect_on_focus_loss_enabled` only fires when focus moves to another *focusable*

@@ -294,6 +294,12 @@ func local_markdown_image_test() -> void:
 	pass
 
 
+func dropped_file_markdown_test() -> void:
+	assert(MarkdownHelper.format_local_file("C:\\My Files\\notes.md") == "[notes.md](<C:/My Files/notes.md>)")
+	assert(MarkdownHelper.format_local_file("C:\\My Files\\photo.png") == "![photo.png](<C:/My Files/photo.png>)")
+	pass
+
+
 func remote_image_download_state_test() -> void:
 	var label := RichTextLabel.new()
 	var image_url := "https://example.com/image.png"
