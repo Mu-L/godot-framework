@@ -46,6 +46,24 @@ func blockquote_single_line_test() -> void:
 	pass
 
 
+func github_admonition_test() -> void:
+	var cases := {
+		"NOTE": ["ℹ", ColorBase.info],
+		"WARNING": ["⚠", ColorBase.warning],
+		"TIP": ["✓", ColorBase.success],
+		"IMPORTANT": ["ℹ", ColorBase.purple],
+		"CAUTION": ["✕", ColorBase.error],
+	}
+	for kind: String in cases:
+		var bbcode := MarkdownParser.to_bbcode("> [!%s]\n> **body**" % kind).bbcode
+		var expectation: Array = cases[kind]
+		assert(kind.capitalize() in bbcode)
+		assert("[b]body[/b]" in bbcode)
+		assert("bg=" + MarkdownParser.to_bbcode_color(expectation[1]) in bbcode)
+	assert("[!NOTE]" not in MarkdownParser.to_bbcode("> [!NOTE]\n> body").bbcode)
+	pass
+
+
 func horizontal_rule_test() -> void:
 	assert(MarkdownParser.is_horizontal_rule_line("---"))
 	assert(MarkdownParser.is_horizontal_rule_line("- - -"))
@@ -89,6 +107,16 @@ func code_fence_blank_lines_test() -> void:
 	assert("bg=" in bbcode)
 	assert("[code]" in bbcode)
 	assert("line1" in bbcode and "line2" in bbcode)
+	pass
+
+
+func code_fence_language_title_test() -> void:
+	var bbcode := MarkdownParser.to_bbcode("```gdscript\nvar answer := 42\n```").bbcode
+	assert("⌨ gdscript" in bbcode)
+	assert("[color=" + MarkdownParser.to_bbcode_color(ColorBase.teal) in bbcode)
+	assert("[code]var" in bbcode)
+	var plain_bbcode := MarkdownParser.to_bbcode("```\nplain\n```").bbcode
+	assert("⌨" not in plain_bbcode)
 	pass
 
 

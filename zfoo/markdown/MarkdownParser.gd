@@ -6,10 +6,11 @@ extends Object
 ## Syntax map
 ## ----------
 ## `#`–`###### Title`     → `[font_size=N]Title[/font_size]`
-## ` ``` / ~~~ ` fence    → `[table=1][cell bg=…][code]…[/code][/cell][/table]` + right gutter
+## ` ```lang / ~~~ ` fence → colored `⌨ lang` title + `[code]…[/code]` block
 ## `` `code` ``           → `[bgcolor=…][code]code[/code][/bgcolor]` (inline chip)
 ## `---` `***` `___`      → full-width `[hr]` line
 ## `> quote`              → two-cell table: accent strip + muted quote text
+## `> [!NOTE]` alerts     → colored GitHub-style note/warning/tip/important/caution block
 ## `-` `*` `+` item       → `• item`  (`- [ ]` / `- [x]` → ☐ / ☑)
 ## `1. item` / `1) item`  → `1. item`
 ## `**bold**` / `__bold__` → `[b]bold[/b]`
@@ -59,6 +60,7 @@ const WEB_PREFIX := "🔗 "
 const EMAIL_PREFIX := "✉ "
 const EXECUTABLE_CONFIG_PREFIX := "⚙ "
 const TEXT_DOCUMENT_PREFIX := "📝 "
+const CODE_LANGUAGE_PREFIX := "⌨ "
 const EXECUTABLE_CONFIG_EXTENSIONS: PackedStringArray = [
 	"apk", "app", "bat", "cfg", "cmd", "conf", "env", "exe", "godot", "ini", "json",
 	"msi", "plist", "properties", "ps1", "sh", "toml", "xml", "yaml", "yml",
@@ -138,6 +140,7 @@ static func to_bbcode(markdown: String) -> MarkdownParseResult:
 		# Unclosed fence swallows the rest of the document (same as CommonMark).
 		var fence := parse_code_fence(line)
 		if StringUtils.is_not_empty(fence):
+			var language := parse_code_fence_language(line, fence)
 			i += 1
 			var code_lines: PackedStringArray = []
 			while i < lines.size() and not is_closing_fence(lines[i], fence):
@@ -145,7 +148,7 @@ static func to_bbcode(markdown: String) -> MarkdownParseResult:
 				i += 1
 			if i < lines.size():
 				i += 1
-			out.append(format_code_fence_bbcode(FileUtils.NEWLINE_LF.join(code_lines)))
+			out.append(format_code_fence_bbcode(FileUtils.NEWLINE_LF.join(code_lines), language))
 			continue
 
 		# --- / *** / ___  →  [hr width=100% …]
@@ -174,7 +177,12 @@ static func to_bbcode(markdown: String) -> MarkdownParseResult:
 			while i < lines.size() and is_blockquote_line(lines[i]):
 				quote_lines.append(strip_blockquote_prefix(lines[i]))
 				i += 1
-			out.append(format_blockquote_bbcode(FileUtils.NEWLINE_LF.join(quote_lines), result))
+			var admonition_kind := parse_admonition_kind(quote_lines[0])
+			if StringUtils.is_not_empty(admonition_kind):
+				quote_lines.remove_at(0)
+				out.append(format_admonition_bbcode(admonition_kind, quote_lines, result))
+			else:
+				out.append(format_blockquote_bbcode(FileUtils.NEWLINE_LF.join(quote_lines), result))
 			continue
 
 		# | h1 | h2 | + |---|  →  [table=2][cell][b]h1[/b][/cell]…[/table]
@@ -254,7 +262,7 @@ static func strip_closing_atx_hashes(content: String) -> String:
 	return content
 
 
-## Opening fence: ` ``` ` or ` ~~~ ` (run ≥ 3). Info string (` ```python`) is ignored.
+## Opening fence: ` ``` ` or ` ~~~ ` (run ≥ 3). An info string provides the language title.
 static func parse_code_fence(line: String) -> String:
 	var leading := count_leading_spaces(line)
 	if leading > 3:
@@ -273,6 +281,13 @@ static func parse_code_fence(line: String) -> String:
 	if n < 3:
 		return StringUtils.EMPTY
 	return rest.substr(0, n)
+
+
+static func parse_code_fence_language(line: String, fence: String) -> String:
+	var rest := line.substr(count_leading_spaces(line) + fence.length()).strip_edges()
+	if StringUtils.is_empty(rest):
+		return StringUtils.EMPTY
+	return rest.split(" ", false, 1)[0]
 
 
 ## Closer: same character as [param fence], no info string, length ≥ opening run.
@@ -351,6 +366,55 @@ static func format_blockquote_bbcode(text: String, result: MarkdownParseResult) 
 		)
 	chunks.append("[/table][/indent]")
 	return "".join(chunks)
+
+
+## GitHub-style alert syntax: `> [!NOTE]`, followed by consecutive quoted body lines.
+static func parse_admonition_kind(line: String) -> String:
+	var marker := line.strip_edges().to_upper()
+	for kind: String in ["NOTE", "WARNING", "TIP", "IMPORTANT", "CAUTION"]:
+		if marker == "[!%s]" % kind:
+			return kind
+	return StringUtils.EMPTY
+
+
+static func format_admonition_bbcode(kind: String, lines: PackedStringArray, result: MarkdownParseResult) -> String:
+	var color := get_admonition_color(kind)
+	var chunks: PackedStringArray = ["[indent][table=2]"]
+	append_admonition_row(chunks, StringUtils.format(
+			"[color={}][b]{} {}[/b][/color]",
+			to_bbcode_color(color), get_admonition_icon(kind), kind.capitalize()
+	), color)
+	for line: String in lines:
+		append_admonition_row(chunks, inline_to_bbcode(line, result), color)
+	chunks.append("[/table][/indent]")
+	return StringUtils.EMPTY.join(chunks)
+
+
+static func append_admonition_row(chunks: PackedStringArray, content: String, color: Color) -> void:
+	chunks.append(StringUtils.format(
+			"[cell bg={} padding={}][/cell]", to_bbcode_color(color), BLOCKQUOTE_BAR_PADDING
+	))
+	chunks.append(StringUtils.format(
+			"[cell shrink=false expand=1 padding={}]{}[/cell]", BLOCKQUOTE_BODY_PADDING, content
+	))
+	pass
+
+
+static func get_admonition_icon(kind: String) -> String:
+	match kind:
+		"WARNING": return "⚠"
+		"TIP": return "✓"
+		"CAUTION": return "✕"
+		_: return "ℹ"
+
+
+static func get_admonition_color(kind: String) -> Color:
+	match kind:
+		"WARNING": return ColorBase.warning
+		"TIP": return ColorBase.success
+		"IMPORTANT": return ColorBase.purple
+		"CAUTION": return ColorBase.error
+		_: return ColorBase.info
 
 
 ## GFM table: header row + `\| --- \|` separator + body rows. Needs the separator line.
@@ -657,11 +721,18 @@ static func parse_link_destination(raw: String) -> String:
 ## Fenced block → one full-width `[cell]` with background only, wrapped in an outer cell
 ## that reserves the background spill ([constant CODE_BLOCK_RIGHT_GUTTER]) — the fill
 ## otherwise ends on the bubble's right edge instead of keeping the left margin's gap.
-static func format_code_fence_bbcode(code: String) -> String:
+static func format_code_fence_bbcode(code: String, language: String = StringUtils.EMPTY) -> String:
+	var title := StringUtils.EMPTY
+	if StringUtils.is_not_empty(language):
+		title = StringUtils.format(
+				"[color={}][b]{}{}[/b][/color]\n",
+				to_bbcode_color(ColorBase.teal), CODE_LANGUAGE_PREFIX, escape_bbcode_literals(language)
+		)
 	var block := StringUtils.format(
-			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}[/cell][/table]",
+			"[table=1][cell shrink=false expand=1 bg={} padding={}]{}{}[/cell][/table]",
 			to_bbcode_color(ColorMarkdown.code_block_bg),
 			CODE_BLOCK_PADDING,
+			title,
 			wrap_code(code)
 	)
 	return StringUtils.format(

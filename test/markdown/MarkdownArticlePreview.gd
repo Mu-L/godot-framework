@@ -41,6 +41,21 @@ External links should be clearly recognizable: visit [Godot Engine](https://godo
 - [x] Tables, quotes, and images
 - [ ] Verify the layout at several window widths
 
+> [!NOTE]
+> Informational context uses a blue marker and an info symbol.
+
+> [!WARNING]
+> Check potentially surprising behavior before continuing.
+
+> [!TIP]
+> A successful recommendation uses a green check.
+
+> [!IMPORTANT]
+> Important guidance is highlighted in purple.
+
+> [!CAUTION]
+> A destructive or dangerous action uses a red cross.
+
 ## 3. Code Blocks
 
 ```gdscript
@@ -88,10 +103,11 @@ The second matrix records the block-level coverage provided by this article. The
 | Headings | `#` through `######` | Sections 1–7 | Clear size hierarchy |
 | Paragraphs | Consecutive prose | Every section | Natural wrapping |
 | Blockquotes | `> quoted line` | Introduction and edge cases | Accent bar and inset text |
+| GitHub alerts | `> [!NOTE]` | Section 2 | Colored symbol, title, and accent bar |
 | Unordered lists | `-`, `*`, `+` | Section 2 | Stable bullet alignment |
 | Ordered lists | `1.` and `3)` | Section 2 | Preserved numbering |
 | Task lists | `- [x]`, `- [ ]` | Sections 2 and 6 | Checked and empty boxes |
-| Fenced code | Triple backticks | Section 3 | Preserved whitespace |
+| Fenced code | Triple backticks plus language | Section 3 | Colored keyboard title and preserved whitespace |
 | Tilde fence | Triple tildes | Section 3 | Same code treatment |
 | Tables | Header separator row | Section 4 and 6 | Grid, padding, header fill |
 | Horizontal rules | `---`, `* * *`, `___` | Sections 7 and conclusion | Full-width divider |
