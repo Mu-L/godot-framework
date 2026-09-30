@@ -342,7 +342,7 @@ func on_files_dropped(files: PackedStringArray) -> void:
 	for file in files:
 		if file.ends_with(".uid"):
 			continue
-		build.append("\t" + MarkdownHelper.format_local_file(file) + "\t")
+		build.append("\t" + MarkdownHelper.format_file_as_markdown(file) + "\t")
 	var mouse: Vector2 = input_bar.get_global_mouse_position()
 	if not input_wrap.get_global_rect().has_point(mouse) and not input_bar.get_global_rect().has_point(mouse):
 		return

@@ -20,7 +20,7 @@ const HIGHLIGHT_V_PADDING := -3
 
 
 ## Formats a local file path for display in Markdown. Images render inline; other files are links.
-static func format_local_file(path: String) -> String:
+static func format_file_as_markdown(path: String) -> String:
 	var normalized_path := path.replace("\\", "/")
 	var file_name := normalized_path.get_file().replace("[", "(").replace("]", ")")
 	var link := StringUtils.format("[{}](<{}>)", file_name, normalized_path)

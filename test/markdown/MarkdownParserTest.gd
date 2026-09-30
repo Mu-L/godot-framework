@@ -295,8 +295,8 @@ func local_markdown_image_test() -> void:
 
 
 func dropped_file_markdown_test() -> void:
-	assert(MarkdownHelper.format_local_file("C:\\My Files\\notes.md") == "[notes.md](<C:/My Files/notes.md>)")
-	assert(MarkdownHelper.format_local_file("C:\\My Files\\photo.png") == "![photo.png](<C:/My Files/photo.png>)")
+	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\notes.md") == "[notes.md](<C:/My Files/notes.md>)")
+	assert(MarkdownHelper.format_file_as_markdown("C:\\My Files\\photo.png") == "![photo.png](<C:/My Files/photo.png>)")
 	pass
 
 
