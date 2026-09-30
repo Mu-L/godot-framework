@@ -34,6 +34,7 @@ const xl: int = 52
 ## Tallest tier: showcase buttons and large controls that anchor a panel.
 const xxl: int = 60
 
+
 ## Smallest radius: subtle rounding for compact indicators and hairline surfaces.
 const radius_xs: int = 2
 ## Compact radius: chips, tags and tightly packed row controls.
@@ -47,6 +48,7 @@ const radius_xl: int = 12
 ## Largest radius: showcase controls and prominent floating containers.
 const radius_xxl: int = 16
 
+
 ## Hairline border: separators, subtle outlines and ordinary control frames.
 const border_xs: int = 1
 ## Emphasized border: focus rings and selected control outlines.
@@ -59,6 +61,20 @@ const border_lg: int = 4
 const border_xl: int = 5
 ## Widest border: hero surfaces and highly emphasized decorative frames.
 const border_xxl: int = 6
+
+
+## Smallest image width: compact thumbnails and avatars.
+const image_xs: int = 160
+## Compact image width: thumbnails and dense list previews.
+const image_sm: int = 240
+## Default image width: inline images in text content.
+const image_md: int = 320
+## Large image width: cards and expanded previews.
+const image_lg: int = 480
+## Extra-large image width: prominent content previews.
+const image_xl: int = 640
+## Largest image width: hero images and full content previews.
+const image_xxl: int = 800
 
 
 ## Both axes at one tier, for the square icon buttons that make up most of the chrome.

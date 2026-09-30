@@ -45,7 +45,7 @@ static func load_image_into_label(label: RichTextLabel, image_url: String, path:
 	var texture: Texture2D = await ResourceHelper.async_load(path)
 	if texture == null or not is_instance_valid(label):
 		return
-	label.update_image(image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
+	update_label_image(label, image_url, texture)
 	pass
 
 
@@ -55,8 +55,22 @@ static func download_remote_image(label: RichTextLabel, image_url: String, cache
 		return
 	set_image_downloading(label, image_url, false)
 	if texture != null:
-		label.update_image(image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture)
+		update_label_image(label, image_url, texture)
 	pass
+
+
+static func update_label_image(label: RichTextLabel, image_url: String, texture: Texture2D) -> void:
+	var display_size := get_image_display_size(texture)
+	label.update_image(image_url, RichTextLabel.UPDATE_TEXTURE | RichTextLabel.UPDATE_SIZE, texture, display_size.x, display_size.y)
+	pass
+
+
+static func get_image_display_size(texture: Texture2D) -> Vector2i:
+	var source_size := texture.get_size()
+	if source_size.x <= ControlSize.image_lg:
+		return Vector2i(source_size.round())
+	var scale := ControlSize.image_lg / source_size.x
+	return Vector2i(maxi(1, roundi(source_size.x * scale)), maxi(1, roundi(source_size.y * scale)))
 
 
 static func download_remote_image_texture(image_url: String, cache_path: String) -> Texture2D:

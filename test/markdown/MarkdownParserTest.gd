@@ -313,6 +313,16 @@ func remote_image_download_state_test() -> void:
 	pass
 
 
+func markdown_image_max_width_test() -> void:
+	var image := Image.create_empty(1200, 600, false, Image.FORMAT_RGBA8)
+	var texture := ImageTexture.create_from_image(image)
+	assert(MarkdownRender.get_image_display_size(texture) == Vector2i(480, 240))
+	var small_image := Image.create_empty(200, 100, false, Image.FORMAT_RGBA8)
+	var small_texture := ImageTexture.create_from_image(small_image)
+	assert(MarkdownRender.get_image_display_size(small_texture) == Vector2i(200, 100))
+	pass
+
+
 func spaced_markers_stay_plain_test() -> void:
 	var stars := MarkdownParser.inline_to_bbcode("3 * 4 * 5")
 	assert("[i]" not in stars)
