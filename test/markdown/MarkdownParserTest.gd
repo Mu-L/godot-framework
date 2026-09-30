@@ -114,6 +114,7 @@ func code_fence_language_title_test() -> void:
 	var bbcode := MarkdownParser.to_bbcode("```gdscript\nvar answer := 42\n```").bbcode
 	assert("⌨ gdscript" in bbcode)
 	assert("[color=" + MarkdownParser.to_bbcode_color(ColorBase.teal) in bbcode)
+	assert("[b]⌨ gdscript[/b]" not in bbcode)
 	assert("[code]var" in bbcode)
 	var plain_bbcode := MarkdownParser.to_bbcode("```\nplain\n```").bbcode
 	assert("⌨" not in plain_bbcode)

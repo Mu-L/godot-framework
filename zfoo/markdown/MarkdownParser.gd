@@ -329,7 +329,7 @@ static func format_code_fence_bbcode(code: String, language: String = StringUtil
 	var title := StringUtils.EMPTY
 	if StringUtils.is_not_empty(language):
 		title = StringUtils.format(
-				"[color={}][b]{}{}[/b][/color]\n",
+				"[color={}]{}{}[/color]\n",
 				to_bbcode_color(ColorBase.teal), CODE_LANGUAGE_PREFIX, escape_bbcode_literals(language)
 		)
 	var block := StringUtils.format(
